@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{3E2334C1-A0E1-4FB4-AEEB-0FD743050BD8}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>KnowledgeDialog</RootNamespace>
+    <AssemblyName>KnowledgeDialog</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Database\FreebaseConnector.cs" />
+    <Compile Include="Database\PresidentLayer.cs" />
+    <Compile Include="Dialog\Responses\CountResponse.cs" />
+    <Compile Include="Dialog\Responses\ResponseBase.cs" />
+    <Compile Include="Dialog\Responses\SimpleResponse.cs" />
+    <Compile Include="Knowledge\ExplicitLayer.cs" />
+    <Compile Include="PatternComputation\Actions\ActionBase.cs" />
+    <Compile Include="PatternComputation\Actions\CountAction.cs" />
+    <Compile Include="PatternComputation\Actions\InformAction.cs" />
+    <Compile Include="PatternComputation\ConsoleDecorator.cs" />
+    <Compile Include="PatternComputation\DialogContext.cs" />
+    <Compile Include="PatternComputation\DialogManager.cs" />
+    <Compile Include="Dialog\ConsoleServices.cs" />
+    <Compile Include="Dialog\DialogConsole.cs" />
+    <Compile Include="Dialog\IDialogManager.cs" />
+    <Compile Include="Dialog\IDialogProvider.cs" />
+    <Compile Include="Dialog\Utterances\AdviceUtterance.cs" />
+    <Compile Include="Dialog\Utterances\AskUtterance.cs" />
+    <Compile Include="Dialog\Utterances\NoUtterance.cs" />
+    <Compile Include="Dialog\Utterances\UtteranceBase.cs" />
+    <Compile Include="Knowledge\ComposedGraph.cs" />
+    <Compile Include="Knowledge\GraphLayerBase.cs" />
+    <Compile Include="Knowledge\KnowledgePath.cs" />
+    <Compile Include="Knowledge\NodeReference.cs" />
+    <Compile Include="Knowledge\PathSegment.cs" />
+    <Compile Include="PatternComputation\DialogTurn.cs" />
+    <Compile Include="PatternComputation\EvaluationContext.cs" />
+    <Compile Include="PatternComputation\IEvaluation.cs" />
+    <Compile Include="PatternComputation\KnowledgeGroup.cs" />
+    <Compile Include="PatternComputation\NodeAlternatives.cs" />
+    <Compile Include="PatternComputation\NodeRestriction.cs" />
+    <Compile Include="PatternComputation\PartialMatching\PartialEvaluation.cs" />
+    <Compile Include="PatternComputation\PartialMatching\SubgraphSnapshot.cs" />
+    <Compile Include="PatternComputation\PathFeature.cs" />
+    <Compile Include="PatternComputation\MultiTurnDialogLayer.cs" />
+    <Compile Include="PatternComputation\GroupEvaluation.cs" />
+    <Compile Include="PatternComputation\WeightedPattern.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

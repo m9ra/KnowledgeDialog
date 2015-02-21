@@ -16,6 +16,11 @@ namespace KnowledgeDialog
     {
         static void Main(string[] args)
         {
+            PoolDialog();
+        }
+    
+        private static void PatternDialog()
+        {
             var manager = new PatternComputation.DialogManager(new Database.PresidentLayer());
             var decoratedManager = new PatternComputation.ConsoleDecorator(manager);
             var provider = new DialogConsole(decoratedManager);
@@ -24,6 +29,22 @@ namespace KnowledgeDialog
             //demoDialog1(provider);
             contextDialog(provider);
             //debugDialog1(provider);
+
+            provider.Run();
+        }
+
+        private static void PoolDialog()
+        {
+            var manager = new PoolComputation.DialogManager(new Database.PresidentLayer());
+            var provider = new DialogConsole(manager);
+
+            provider.SimulateInput(
+             "president of USA?",
+             "it is Barack_Obama",
+             "president of CZ?",
+             "president",
+             "of USA"
+             );
 
             provider.Run();
         }

@@ -10,6 +10,8 @@ namespace KnowledgeDialog.Database
 {
     public class PresidentLayer : ExplicitLayer
     {
+        public static readonly string PresidentNode = "president";
+
         public static readonly string StateNode = "state";
 
         public static readonly string ReignsRelation = "reigns in";
@@ -36,6 +38,8 @@ namespace KnowledgeDialog.Database
         private PresidentLayer President(string name)
         {
             _lastPresidentName = name;
+
+            AddEdge(N(name), ComposedGraph.IsRelation, N(PresidentNode));
 
             return this;
         }

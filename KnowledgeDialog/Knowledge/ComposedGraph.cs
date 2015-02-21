@@ -47,6 +47,22 @@ namespace KnowledgeDialog.Knowledge
             return new NodeReference(data);
         }
 
+        internal bool HasEvidence(object data)
+        {
+            var node = GetNode(data);
+
+            foreach (var layer in _layers)
+            {
+                if (layer.Incoming(node).Any())
+                    return true;
+
+                if (layer.Outcoming(node).Any())
+                    return true;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Determine whether there is an edge between from and to nodes and has specified direction.
         /// </summary>

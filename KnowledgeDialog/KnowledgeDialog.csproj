@@ -78,6 +78,16 @@
     <Compile Include="PatternComputation\MultiTurnDialogLayer.cs" />
     <Compile Include="PatternComputation\GroupEvaluation.cs" />
     <Compile Include="PatternComputation\WeightedPattern.cs" />
+    <Compile Include="PoolComputation\ActionGroup.cs" />
+    <Compile Include="PoolComputation\GroupContext.cs" />
+    <Compile Include="PoolComputation\PoolActions\ConstraintAction.cs" />
+    <Compile Include="PoolComputation\PoolHypothesis.cs" />
+    <Compile Include="PoolComputation\SemanticPart.cs" />
+    <Compile Include="PoolComputation\ActionMapping.cs" />
+    <Compile Include="PoolComputation\ContextPool.cs" />
+    <Compile Include="PoolComputation\DialogManager.cs" />
+    <Compile Include="PoolComputation\IPoolAction.cs" />
+    <Compile Include="PoolComputation\PoolActions\PushAction.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

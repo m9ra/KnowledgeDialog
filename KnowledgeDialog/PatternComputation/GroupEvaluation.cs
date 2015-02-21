@@ -59,7 +59,7 @@ namespace KnowledgeDialog.PatternComputation
                 for (var i = 0; i < path.Length; ++i)
                 {
                     var currentNode = path.Node(i + 1);
-                    ReportRestriction(previousNode, path.Edge(i), path.IsOutDirection(i), currentNode, restrictions);
+                    ReportRestriction(previousNode, path.Edge(i), path.IsOutcomming(i), currentNode, restrictions);
 
                     previousNode = currentNode;
                 }

@@ -132,7 +132,7 @@ namespace KnowledgeDialog.Knowledge
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        internal bool IsOutDirection(int index)
+        internal bool IsOutcomming(int index)
         {
             return _edgeDirection[index];
         }
@@ -151,6 +151,29 @@ namespace KnowledgeDialog.Knowledge
                 new[] { edge }.Concat(_edges),
                 new[] { isOutcome }.Concat(_edgeDirection)
                 );
+        }
+
+        internal KnowledgePath TakeEnding(int startingOffset)
+        {
+            return new KnowledgePath(
+                _nodes.Skip(startingOffset),
+                _edges.Skip(startingOffset),
+                _edgeDirection.Skip(startingOffset)
+                );
+        }
+
+        internal bool HasSameEdgesAs(KnowledgePath other)
+        {
+            if (Length != other.Length)
+                return false;
+
+            for (var i = 0; i < Length; ++i)
+            {
+                if (Edge(i) != other.Edge(i))
+                    return false;
+            }
+
+            return true;
         }
     }
 }

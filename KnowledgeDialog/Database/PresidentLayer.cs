@@ -33,6 +33,13 @@ namespace KnowledgeDialog.Database
                 .ReignsIn("CZ")
                 .Wife("Ivana Zemanová")
                 .Children("Kateřina Zemanová");
+
+            President("Andrej Kiska")
+                .ReignsIn("SK");
+
+            President("Joachim Gauck")
+                .ReignsIn("D");
+
         }
 
         private PresidentLayer President(string name)

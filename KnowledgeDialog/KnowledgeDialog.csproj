@@ -47,6 +47,8 @@
     <Compile Include="Dialog\Responses\ResponseBase.cs" />
     <Compile Include="Dialog\Responses\SimpleResponse.cs" />
     <Compile Include="Knowledge\ExplicitLayer.cs" />
+    <Compile Include="Knowledge\KnowledgeClassifier.cs" />
+    <Compile Include="Knowledge\MultiTraceLog.cs" />
     <Compile Include="PatternComputation\Actions\ActionBase.cs" />
     <Compile Include="PatternComputation\Actions\CountAction.cs" />
     <Compile Include="PatternComputation\Actions\InformAction.cs" />

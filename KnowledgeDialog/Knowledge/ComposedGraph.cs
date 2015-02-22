@@ -233,6 +233,29 @@ namespace KnowledgeDialog.Knowledge
             }
         }
 
+        public HashSet<NodeReference> GetForwardTargets(IEnumerable<NodeReference> startingNodes, IEnumerable<Tuple<string, bool>> path)
+        {
+            if (startingNodes == null)
+                throw new ArgumentNullException("startingNodes");
+
+            var result = new HashSet<NodeReference>();
+            var currentLayer = startingNodes;
+            foreach (var part in path)
+            {
+                var nextLayer = new List<NodeReference>();
+                foreach (var node in currentLayer)
+                {
+                    var targets = Targets(node, part.Item1, part.Item2).ToArray();
+                    nextLayer.AddRange(targets);
+                }
+
+                currentLayer = nextLayer;
+            }
+
+            result.UnionWith(currentLayer);
+            return result;
+        }
+
 
         /// <summary>
         /// Get children of given node (incoming and outcoming).

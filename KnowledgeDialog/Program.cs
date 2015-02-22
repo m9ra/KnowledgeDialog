@@ -16,9 +16,32 @@ namespace KnowledgeDialog
     {
         static void Main(string[] args)
         {
-            PoolDialog();
+            KnowledgeClassifier();
         }
-    
+
+        private static void KnowledgeClassifier()
+        {
+            var dataLayer = new PresidentLayer();
+            var graph = new ComposedGraph(dataLayer);
+
+            var node1 = graph.GetNode("Barack_Obama");
+            var node2 = graph.GetNode("Miloš_Zeman");
+            var node3 = graph.GetNode("Michelle_Obama");
+
+            var log = new MultiTraceLog(new[] { node1, node2, node3 }, graph);
+
+            var classifier = new KnowledgeClassifier<string>(graph);
+            classifier.Advice(node1, "president");
+            classifier.Advice(node2, "president");
+            classifier.Advice(node3, "wife");
+
+            var node4=graph.GetNode("Ivana_Zemanová");
+            var node5=graph.GetNode("Andrej_Kiska");
+
+            var test1 = classifier.Classify(node4);
+            var test2 = classifier.Classify(node5);
+        }
+
         private static void PatternDialog()
         {
             var manager = new PatternComputation.DialogManager(new Database.PresidentLayer());
@@ -62,7 +85,7 @@ namespace KnowledgeDialog
 
             var paths = new[] { graph.GetPaths(graph.GetNode(node1), graph.GetNode(node2), 100, 100).First() };
             var group = new KnowledgeGroup(paths);
-            
+
             DialogManager.FillDialogLayer(dialogLayer, "president2 of USA");
 
             var evaluation = new PatternComputation.PartialMatching.PartialEvaluation(group, graph);
@@ -98,11 +121,11 @@ namespace KnowledgeDialog
 
         private static void contextDialog(DialogConsole provider)
         {
-            provider.SimulateInput(              
+            provider.SimulateInput(
                 "president of USA is Barack_Obama",
-                "president of USA?",                
-                "last is Barack_Obama",                
-                "president of CZ?",    
+                "president of USA?",
+                "last is Barack_Obama",
+                "president of CZ?",
                 "last?"
                 );
         }

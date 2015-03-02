@@ -175,5 +175,15 @@ namespace KnowledgeDialog.Knowledge
 
             return true;
         }
+
+        public IEnumerable<Tuple<string, bool>> CompleteEdges
+        {
+            get
+            {
+                for (var i = 0; i < Length; ++i)
+                    yield return Tuple.Create(Edge(i), IsOutcomming(i));
+            }
+        }
+
     }
 }

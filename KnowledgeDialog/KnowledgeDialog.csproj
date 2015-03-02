@@ -80,9 +80,12 @@
     <Compile Include="PatternComputation\MultiTurnDialogLayer.cs" />
     <Compile Include="PatternComputation\GroupEvaluation.cs" />
     <Compile Include="PatternComputation\WeightedPattern.cs" />
+    <Compile Include="PoolComputation\ActionBlock.cs" />
     <Compile Include="PoolComputation\ActionGroup.cs" />
     <Compile Include="PoolComputation\ConsoleDecorator.cs" />
+    <Compile Include="PoolComputation\Frames\YesNoFrame.cs" />
     <Compile Include="PoolComputation\ModifiableResponses\FrameResponse.cs" />
+    <Compile Include="PoolComputation\PoolActions\ExtendAction.cs" />
     <Compile Include="PoolComputation\UtteranceMapping.cs" />
     <Compile Include="PoolComputation\ConversationFrameBase.cs" />
     <Compile Include="PoolComputation\DialogContext.cs" />

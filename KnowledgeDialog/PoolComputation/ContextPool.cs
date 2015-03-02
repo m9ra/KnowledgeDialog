@@ -56,6 +56,18 @@ namespace KnowledgeDialog.PoolComputation
             _accumulator = layer;
         }
 
+        internal void ExtendBy(KnowledgePath path)
+        {
+            var extended = Graph.GetForwardTargets(ActiveNodes, path);
+            _accumulator.Clear();
+            _accumulator.UnionWith(extended);
+        }
+
+        internal void Insert(NodeReference node)
+        {
+            _accumulator.Add(node);
+        }
+
         internal HashSet<NodeReference> GetPathLayer(NodeReference pushStart, KnowledgePath path)
         {
             var layer = new HashSet<NodeReference>();

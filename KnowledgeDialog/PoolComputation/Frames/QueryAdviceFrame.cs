@@ -17,6 +17,18 @@ namespace KnowledgeDialog.PoolComputation.Frames
 
         private readonly string _unknownQuestion;
 
+        private bool _expectCorrectAnswer;
+
+        private bool _isExtendUncertain;
+
+        private bool _isExtend;
+
+        private bool _hasAskedForAnswer;
+
+        private bool _hasAskedForExtendUncertainity;
+
+        private NodeReference _correctAnswer;
+
         internal QueryAdviceFrame(ConversationContext conversationContext, string unknownQuestion, DialogContext context)
             : base(conversationContext)
         {
@@ -26,20 +38,95 @@ namespace KnowledgeDialog.PoolComputation.Frames
 
         protected override ModifiableResponse FrameInitialization()
         {
-            //TODO try guessing and user guidiance
-            if (_unknownQuestion == CurrentInput)
-                return Response("I can't understand your question, can you give me correct answer?");
-            else
-                return DefaultHandler();
+            _isExtendUncertain = _context.Pool.ActiveCount > 0;
+            _expectCorrectAnswer = _unknownQuestion != CurrentInput;
+
+            return DefaultHandler();
         }
 
         protected override ModifiableResponse DefaultHandler()
         {
-            var question = parseQuestion(_unknownQuestion);
-            var answer = parseAnswer(CurrentInput);
+            if (_expectCorrectAnswer)
+            {
+                _correctAnswer = parseAnswer(CurrentInput);
+            }
 
-            var answerNode = getNode(answer);
-            var relevantUtterances = lastRelevantUtterances(answerNode);
+            if (_isExtendUncertain)
+            {
+                _isExtendUncertain = false;
+                _hasAskedForExtendUncertainity = true;
+                return YesNoQuestion("I cannot fully understand your question. Are you asking for something connected with your previous question?",
+                    () => _isExtend = true,
+                    () => _isExtend = false
+                    );
+                throw new NotImplementedException("Ask for extend and set _isExtend accordingly");
+            }
+
+            var hasCorrectAnswer = _correctAnswer != null;
+            if (!hasCorrectAnswer && !_hasAskedForAnswer)
+            {
+                _hasAskedForAnswer = true;
+                _expectCorrectAnswer = true;
+
+                if (_hasAskedForAnswer)
+                    return Response("I know lot of information connected with your previous question. Can you please advice me the correct answer?");
+                else
+                    return Response("Please, can you give me correct answer for your question?");
+
+            }
+
+            if (_hasAskedForAnswer && CurrentInput.Contains(" no "))
+            {
+                throw new NotImplementedException("user refuse to tell correct answer");
+            }
+
+            ActionBlock actionBlock;
+            if (_isExtend)
+            {
+                actionBlock = extendAdvice();
+            }
+            else
+            {
+                actionBlock = pushAdvice();
+            }
+
+            _context.Pool.Insert(_correctAnswer);
+
+
+            //we want to update mapping of question answering frame
+            Get<QuestionAnsweringFrame, UtteranceMapping<ActionBlock>>().SetMapping(_unknownQuestion, actionBlock);
+
+            IsComplete = true;
+            return Response("Thank you");
+        }
+
+        private ActionBlock extendAdvice()
+        {
+            KnowledgePath shortestPath = null;
+            var bestLength = int.MaxValue;
+            foreach (var node in _context.Pool.ActiveNodes)
+            {
+                var path = _context.Graph.GetPaths(node, _correctAnswer, 20, 100).FirstOrDefault();
+                if (path == null)
+                    continue;
+
+                if (path.Length < bestLength)
+                {
+                    shortestPath = path;
+                    bestLength = path.Length;
+                }
+            }
+
+            if (shortestPath == null)
+                throw new NotImplementedException("There is no extending path");
+
+            var poolAction = new ExtendAction(shortestPath);
+            return new ActionBlock(new[] { poolAction });
+        }
+
+        private ActionBlock pushAdvice()
+        {
+            var relevantUtterances = lastRelevantUtterances(_correctAnswer);
             var orderedUtterances = (from utterance in relevantUtterances orderby getFowardTargets(utterance).Count select utterance).ToArray();
 
             var pushPart = orderedUtterances.Last();
@@ -62,13 +149,8 @@ namespace KnowledgeDialog.PoolComputation.Frames
             actions.Add(pushAction);
             actions.AddRange(constraints);
 
-            //we want to update mapping of question answering frame
-            Get<QuestionAnsweringFrame, PoolActionMapping>().SetMapping(new[] { actions });
-
-            IsComplete = true;
-            return Response("Thank you");
+            return new ActionBlock(actions);
         }
-
 
         private HashSet<NodeReference> getFowardTargets(SemanticPart part, IEnumerable<NodeReference> startingNodes = null)
         {
@@ -214,10 +296,10 @@ namespace KnowledgeDialog.PoolComputation.Frames
             return utterance;
         }
 
-        private string parseAnswer(string utterance)
+        private NodeReference parseAnswer(string utterance)
         {
             var prefix = "it is";
-            return utterance.Substring(prefix.Length).Trim();
+            return getNode(utterance.Substring(prefix.Length).Trim());
         }
 
         private IEnumerable<string> getWords(string sentence)

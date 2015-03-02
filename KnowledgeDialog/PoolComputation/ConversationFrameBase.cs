@@ -8,6 +8,8 @@ using KnowledgeDialog.Knowledge;
 
 using KnowledgeDialog.PoolComputation.ModifiableResponses;
 
+using KnowledgeDialog.PoolComputation.Frames;
+
 namespace KnowledgeDialog.PoolComputation
 {
     abstract class ConversationFrameBase
@@ -73,6 +75,11 @@ namespace KnowledgeDialog.PoolComputation
             ConversationContext.EnsureInitialized<SurroundingPattern>(storageKey, () => new SurroundingPattern(ConversationContext.Graph, prefix, suffix));
             var pattern = ConversationContext.Get<SurroundingPattern>(storageKey);
             return new SurroundedResponse(nodes, pattern);
+        }
+
+        protected ModifiableResponse YesNoQuestion(string question, Action yesHandler, Action noHandler)
+        {
+            return new FrameResponse(new YesNoFrame(ConversationContext, question, yesHandler, noHandler));
         }
 
         protected void EnsureInitialized<T>(Func<T> lazyCreator)

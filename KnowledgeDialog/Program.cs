@@ -16,7 +16,7 @@ namespace KnowledgeDialog
     {
         static void Main(string[] args)
         {
-            PoolDialog();
+            ExtendLearningDialog();
         }
 
         private static void KnowledgeClassifier()
@@ -52,6 +52,22 @@ namespace KnowledgeDialog
             //demoDialog1(provider);
             contextDialog(provider);
             //debugDialog1(provider);
+
+            provider.Run();
+        }
+
+        private static void ExtendLearningDialog()
+        {
+            var manager = new PoolComputation.DialogManager(new Database.PresidentLayer());
+            var provider = new DialogConsole(new PoolComputation.ConsoleDecorator(manager));
+
+            provider.SimulateInput(
+             "president of USA?",
+             "it is Barack_Obama",
+             "name of his wife?",
+             "yes",
+             "it is Michelle_Obama"
+             );
 
             provider.Run();
         }

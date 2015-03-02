@@ -71,6 +71,15 @@ namespace KnowledgeDialog.PoolComputation
             {
                 var frame = getCurrentFrame(utterance);
                 var modifiableResponse = frame.Input(utterance);
+                if (modifiableResponse == null)
+                {
+                    if (frame.IsComplete)
+                        continue;
+                    else
+                        throw new NotSupportedException("Cannot accept null response");
+                }
+
+
 
                 //utterance can be processed only once
                 utterance = null;

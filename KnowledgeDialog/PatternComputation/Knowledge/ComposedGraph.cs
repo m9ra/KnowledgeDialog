@@ -256,6 +256,12 @@ namespace KnowledgeDialog.Knowledge
             return result;
         }
 
+        public HashSet<NodeReference> GetForwardTargets(IEnumerable<NodeReference> startingNodes, KnowledgePath path)
+        {
+            return GetForwardTargets(startingNodes, path.CompleteEdges);
+        }
+
+
 
         /// <summary>
         /// Get children of given node (incoming and outcoming).

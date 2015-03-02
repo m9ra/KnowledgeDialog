@@ -35,9 +35,11 @@ namespace KnowledgeDialog.Database
                 .Children("Kateřina Zemanová");
 
             President("Andrej Kiska")
+                .Wife("Martina Kisková")
                 .ReignsIn("SK");
 
             President("Joachim Gauck")
+                .Wife("Gerhild Radtke")
                 .ReignsIn("D");
 
         }

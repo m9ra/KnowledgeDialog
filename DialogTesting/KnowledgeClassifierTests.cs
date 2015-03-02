@@ -19,7 +19,7 @@ namespace DialogTesting
     public class KnowledgeClassifierTests
     {
         /// <summary>
-        /// Tests that turn nodes are connected to knowledge in the graph.
+        /// Tests that classifier can distinguish classes according to neighbour nodes.
         /// </summary>
         [TestMethod]
         public void BasicClassification()
@@ -33,18 +33,18 @@ namespace DialogTesting
                 .Assert("small letter", "a", "b", "c", "d");
         }
 
-        private static void edge(string node1,string edgeName, string node2)
+        /// <summary>
+        /// Tests that classifier can infer default class from a single advice.
+        /// </summary>
+        [TestMethod]
+        public void DefaultClassification()
         {
-            var dataLayer = new PresidentLayer();
-            var dialogLayer = new MultiTurnDialogLayer();
+            Graphs.Alphabet
+                .Advice("A", "letter")
 
-            DialogManager.FillDialogLayer(dialogLayer, "president of USA");
-
-            var graph = new ComposedGraph(dataLayer, dialogLayer);
-            var paths = graph.GetPaths(graph.GetNode(node1), graph.GetNode(node2), 100, 100).ToArray();
-
-            if (paths.Length == 0)
-                throw new InternalTestFailureException("Missing path from " + node1 + " to " + node2);
+                .Assert("letter", "A", "B", "C", "D")
+                .Assert("letter", "a", "b", "c", "d");
         }
+
     }
 }

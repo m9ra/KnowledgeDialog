@@ -68,6 +68,11 @@ namespace KnowledgeDialog.Knowledge
 
         private ClassType classify(NodeReference node, KnowledgeRule rule)
         {
+            if (rule.Path == null)
+                //there is no constraint
+                return getKnownClassifications(_knownClassifications.Keys.First());
+
+
             var layer = Knowledge.GetForwardTargets(new[] { node }, rule.Path);
 
             var isSatisfied = layer.Contains(rule.EndNode);
@@ -78,6 +83,11 @@ namespace KnowledgeDialog.Knowledge
                 return classify(node, rule.NoRule);
 
             var classExamples = isSatisfied ? rule.InitialYesNodes : rule.InitialNoNodes;
+            var opositeExamples = isSatisfied ? rule.InitialNoNodes : rule.InitialYesNodes;
+
+            if (!classExamples.Any())
+                classExamples = opositeExamples;
+
             //TODO examples could be missing
             return getKnownClassifications(classExamples.First());
         }
@@ -184,10 +194,16 @@ namespace KnowledgeDialog.Knowledge
                 discount += Math.Min(yesCounts[cls], noCounts[cls]);
             }
 
-            var binaryDiscount = 1.0 * Math.Abs(yesCounts.Count - noCounts.Count) / Math.Abs(yesCounts.Count + noCounts.Count);
-            if (coverage.Contains(trace.CurrentNode))
+            var totalYesCounts = getTotalCounts(yesCounts);
+            var totalNoCounts = getTotalCounts(noCounts);
+
+            var binaryDiscount = 1.0 * Math.Abs(totalYesCounts - totalNoCounts) / Math.Abs(totalYesCounts + totalNoCounts);
+            if (_knownClassifications.Keys.Contains(trace.CurrentNode))
                 //prevent node overfitting
                 binaryDiscount += 0.5;
+
+            //prefer more generalizing rules
+            var magnitude = Knowledge.GetNeighbours(trace.CurrentNode, 10).Count() / 10.0;
 
             return -discount - binaryDiscount;
         }
@@ -217,6 +233,11 @@ namespace KnowledgeDialog.Knowledge
             }
 
             return result;
+        }
+
+        private int getTotalCounts(Dictionary<ClassType, int> classCounts)
+        {
+            return classCounts.Values.Sum();
         }
 
         private ClassType getKnownClassifications(NodeReference node)

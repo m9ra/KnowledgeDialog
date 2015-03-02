@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KnowledgeDialog.Dialog.Responses
+namespace KnowledgeDialog.PoolComputation.Frames
 {
-    public abstract class ResponseBase
+    class AskAction
     {
     }
 }

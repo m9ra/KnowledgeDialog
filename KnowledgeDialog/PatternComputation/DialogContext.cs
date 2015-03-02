@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using KnowledgeDialog.Knowledge;
 
+using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Dialog.Responses;
 
 using KnowledgeDialog.PatternComputation.Actions;

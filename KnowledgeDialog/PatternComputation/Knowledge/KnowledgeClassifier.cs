@@ -21,7 +21,7 @@ namespace KnowledgeDialog.Knowledge
         /// <summary>
         /// Current tree of rules that are used for classification.
         /// </summary>
-        private KnowledgeRule _ruleTree = null;
+        internal KnowledgeRule Root { get; private set; }
 
         public KnowledgeClassifier(ComposedGraph knowledge)
         {
@@ -40,7 +40,7 @@ namespace KnowledgeDialog.Knowledge
                 //we know this example
                 return classification;
 
-            return classify(node, _ruleTree);
+            return classify(node, Root);
         }
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace KnowledgeDialog.Knowledge
         private void retrain()
         {
             var log = new MultiTraceLog(_knownClassifications.Keys, Knowledge);
-            _ruleTree = createRuleTree(new HashSet<NodeReference>(_knownClassifications.Keys), log);
+            Root = createRuleTree(new HashSet<NodeReference>(_knownClassifications.Keys), log);
         }
 
         private IEnumerable<NodeReference> getCoverage(TraceNode node)

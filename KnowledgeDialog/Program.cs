@@ -35,8 +35,8 @@ namespace KnowledgeDialog
             classifier.Advice(node2, "president");
             classifier.Advice(node3, "wife");
 
-            var node4=graph.GetNode("Ivana_Zemanová");
-            var node5=graph.GetNode("Andrej_Kiska");
+            var node4 = graph.GetNode("Ivana_Zemanová");
+            var node5 = graph.GetNode("Andrej_Kiska");
 
             var test1 = classifier.Classify(node4);
             var test2 = classifier.Classify(node5);
@@ -59,7 +59,7 @@ namespace KnowledgeDialog
         private static void PoolDialog()
         {
             var manager = new PoolComputation.DialogManager(new Database.PresidentLayer());
-            var provider = new DialogConsole(manager);
+            var provider = new DialogConsole(new PoolComputation.ConsoleDecorator(manager));
 
             provider.SimulateInput(
              "president of USA?",
@@ -67,7 +67,7 @@ namespace KnowledgeDialog
              "president of USA?",
              "you should say his name i_s Barack_Obama",
              "president of USA?",
-             "wife of president in USA?",             
+             "wife of president in USA?",
              "it is Michelle_Obama",
              "wife of president in CZ?",
              "you should say her name i_s Ivana_Zemanová",
@@ -78,7 +78,7 @@ namespace KnowledgeDialog
              "wife of president in SK?",
              "president of CZ?"
 
-                         
+
              );
 
             provider.Run();

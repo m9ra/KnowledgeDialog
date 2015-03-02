@@ -18,12 +18,11 @@ namespace KnowledgeDialog.PoolComputation
 {
     class DialogManager : IDialogManager
     {
+        internal readonly DialogContext Context;
+
+        internal readonly ConversationContext ConversationContext;
 
         private readonly ComposedGraph _graph;
-
-        private readonly DialogContext _context;
-
-        private readonly ConversationContext _conversationContext;
 
         private readonly List<string> _lastWindowSentences = new List<string>();
 
@@ -34,9 +33,9 @@ namespace KnowledgeDialog.PoolComputation
         public DialogManager(params GraphLayerBase[] layers)
         {
             _graph = new ComposedGraph(layers);
-            _context = new DialogContext(_graph);
-            _conversationContext = new ConversationContext(_graph);
-            _framesStack.Push(new Frames.QuestionAnsweringFrame(_conversationContext, _context));
+            Context = new DialogContext(_graph);
+            ConversationContext = new ConversationContext(_graph);
+            _framesStack.Push(new Frames.QuestionAnsweringFrame(ConversationContext, Context));
         }
 
         #region Frame stack control
@@ -45,7 +44,7 @@ namespace KnowledgeDialog.PoolComputation
         {
             var prefix = "you should say";
             if (utterance!=null && utterance.Contains(prefix))
-                return new ChangeResponseFrame(_conversationContext, _responses.Last());
+                return new ChangeResponseFrame(ConversationContext, _responses.Last());
 
             return null;
         }

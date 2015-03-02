@@ -99,6 +99,8 @@ namespace KnowledgeDialog.PoolComputation
 
         internal readonly ComposedGraph Graph;
 
+        internal IEnumerable<object> StoredData { get { return _storage.Values; } }
+
         private Dictionary<Tuple<object, Type>, object> _storage = new Dictionary<Tuple<object, Type>, object>();
 
         private List<string> _utterances = new List<string>();

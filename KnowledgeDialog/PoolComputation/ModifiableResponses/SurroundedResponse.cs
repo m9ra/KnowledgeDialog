@@ -73,9 +73,9 @@ namespace KnowledgeDialog.PoolComputation.ModifiableResponses
 
     class SurroundingPatternPart
     {
-        private readonly KnowledgeClassifier<string> _singleNode;
+        internal readonly KnowledgeClassifier<string> SingleNodeClassifier;
 
-        private readonly KnowledgeClassifier<string> _multipleNodes;
+        internal readonly KnowledgeClassifier<string> MultipleNodesClassifier;
 
         private string _singleDefaultValue;
 
@@ -83,8 +83,8 @@ namespace KnowledgeDialog.PoolComputation.ModifiableResponses
 
         internal SurroundingPatternPart(ComposedGraph graph, string defaultValue)
         {
-            _singleNode = new KnowledgeClassifier<string>(graph);
-            _multipleNodes = new KnowledgeClassifier<string>(graph);
+            SingleNodeClassifier = new KnowledgeClassifier<string>(graph);
+            MultipleNodesClassifier = new KnowledgeClassifier<string>(graph);
 
             _singleDefaultValue = defaultValue;
             _multiDefaultValue = defaultValue;
@@ -92,8 +92,6 @@ namespace KnowledgeDialog.PoolComputation.ModifiableResponses
 
         public string GetPattern(IEnumerable<NodeReference> nodes)
         {
-
-
             switch (nodes.Count())
             {
                 case 0:
@@ -102,14 +100,14 @@ namespace KnowledgeDialog.PoolComputation.ModifiableResponses
                 case 1:
                     if (_singleDefaultValue != null)
                         return _singleDefaultValue;
-                    return _singleNode.Classify(nodes.First());
+                    return SingleNodeClassifier.Classify(nodes.First());
 
                 default:
                     if (_multiDefaultValue != null)
                         return _multiDefaultValue;
 
                     //TODO other nodes can be also taken into consideration 
-                    return _multipleNodes.Classify(nodes.First());
+                    return MultipleNodesClassifier.Classify(nodes.First());
             }
         }
 
@@ -125,13 +123,13 @@ namespace KnowledgeDialog.PoolComputation.ModifiableResponses
 
                 case 1:
                     _singleDefaultValue = null;
-                    _singleNode.Advice(nodes.First(), pattern);
+                    SingleNodeClassifier.Advice(nodes.First(), pattern);
                     break;
 
                 default:
                     //TODO other nodes can be also taken into consideration 
                     _multiDefaultValue = null;
-                    _multipleNodes.Advice(nodes.First(), pattern);
+                    MultipleNodesClassifier.Advice(nodes.First(), pattern);
                     break;
             }
         }

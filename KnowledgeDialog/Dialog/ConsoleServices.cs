@@ -94,6 +94,38 @@ namespace KnowledgeDialog.Dialog
             PrintLine(path.ToString(), NodeColor);
         }
 
+        internal static void Print(KnowledgeRule rule)
+        {
+            var path = new StringBuilder();
+            path.Append("[");
+
+            if (rule == null)
+            {
+                path.Append('*');
+            }
+            else
+            {
+                path.Append('#');
+
+                foreach (var tuple in rule.Path)
+                {
+                    var isOut = tuple.Item2;
+
+                    var prefix = isOut ? "--" : "<--";
+                    var suffix = isOut ? "-->" : "--";
+
+                    path.Append(prefix);
+                    path.Append(tuple.Item1);
+                    path.Append(suffix);
+                }
+
+                path.Append(rule.EndNode.Data);
+            }
+
+            path.Append("]");
+            PrintLine(path.ToString(), NodeColor);
+        }
+
         internal static void PrintPrompt()
         {
             Print("utterance> ", PromptColor);

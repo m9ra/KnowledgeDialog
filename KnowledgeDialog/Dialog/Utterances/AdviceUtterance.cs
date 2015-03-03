@@ -8,7 +8,7 @@ using KnowledgeDialog.Dialog.Responses;
 
 namespace KnowledgeDialog.Dialog.Utterances
 {
-    class AdviceUtterance : UtteranceBase
+    public class AdviceUtterance : UtteranceBase
     {
         internal readonly string Question;
 
@@ -20,7 +20,7 @@ namespace KnowledgeDialog.Dialog.Utterances
             Advice = answer.Trim();
         }
 
-        internal static AdviceUtterance TryParse(string utterance)
+        public static AdviceUtterance TryParse(string utterance)
         {
             if (!utterance.Contains(" is "))
                 return null;

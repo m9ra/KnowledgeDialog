@@ -64,6 +64,7 @@ namespace KnowledgeDialog
             provider.SimulateInput(
              "president of USA?",
              "it is Barack_Obama",
+             "president of CZ?",
              "name of his wife?",
              "yes",
              "it is Michelle_Obama"

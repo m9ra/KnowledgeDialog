@@ -8,9 +8,9 @@ using KnowledgeDialog.Dialog.Responses;
 
 namespace KnowledgeDialog.Dialog.Utterances
 {
-    class NoUtterance : UtteranceBase
+    public class NoUtterance : UtteranceBase
     {
-        internal static NoUtterance TryParse(string utterance)
+        public static NoUtterance TryParse(string utterance)
         {
             if (!utterance.StartsWith("no"))
                 return null;

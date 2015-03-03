@@ -8,11 +8,11 @@ using KnowledgeDialog.Dialog.Responses;
 
 namespace KnowledgeDialog.Dialog.Utterances
 {
-    abstract class UtteranceBase
+    public abstract class UtteranceBase
     {
         protected abstract ResponseBase handleManager(IDialogManager manager);
 
-        internal ResponseBase HandleManager(IDialogManager manager)
+        public ResponseBase HandleManager(IDialogManager manager)
         {
             return handleManager(manager);
         }

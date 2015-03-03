@@ -1,0 +1,30 @@
+.dialog_log{
+	width: 500px;
+	height: 300px;
+	border: 1px solid gray;
+
+	overflow-x:hidden;
+	overflow-y:scroll;
+}
+
+.utterance{
+	margin-top: 10px;
+	width: 450px;
+}
+
+.utterance_submit{
+	width: 50px;
+}
+
+.system_text, .user_text{
+	margin-bottom: 2px;
+}
+
+.system_text{
+	color: black;
+	font-weight: bold;
+}
+
+.user_text{
+	color: black;
+}

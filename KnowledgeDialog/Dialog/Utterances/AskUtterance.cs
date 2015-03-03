@@ -8,7 +8,7 @@ using KnowledgeDialog.Dialog.Responses;
 
 namespace KnowledgeDialog.Dialog.Utterances
 {
-    class AskUtterance : UtteranceBase
+    public class AskUtterance : UtteranceBase
     {
         internal readonly string Question;
 
@@ -17,7 +17,7 @@ namespace KnowledgeDialog.Dialog.Utterances
             Question = question;
         }
 
-        internal static AskUtterance TryParse(string utterance)
+        public static AskUtterance TryParse(string utterance)
         {
             return new AskUtterance(utterance.TrimEnd('?'));
         }

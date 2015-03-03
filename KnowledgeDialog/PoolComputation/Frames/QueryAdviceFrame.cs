@@ -68,7 +68,7 @@ namespace KnowledgeDialog.PoolComputation.Frames
                 _hasAskedForAnswer = true;
                 _expectCorrectAnswer = true;
 
-                if (_hasAskedForAnswer)
+                if (_hasAskedForExtendUncertainity)
                     return Response("I know lot of information connected with your previous question. Can you please advice me the correct answer?");
                 else
                     return Response("Please, can you give me correct answer for your question?");

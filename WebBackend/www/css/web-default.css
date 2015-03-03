@@ -1,0 +1,74 @@
+body{
+	padding-top: 50px;
+}
+/* Common utilities */
+
+.no-height{
+	position: absolute;
+}
+
+.follow-pad{
+	padding-left: 150px;
+}
+
+.codility-award{
+	overflow:hidden; 
+	border: none;
+}
+
+/* Table listing styling */
+
+.table_listing .lead{
+	background-color: lightgray;
+}
+
+.table_listing td:nth-child(1){
+	width: 80px;
+}
+
+/* DD listing styling */
+
+.dd_listing article{
+	margin-top: 40px;
+}
+
+.dd_listing article hr{
+	float: left;
+	
+	width: 160px;
+	margin-right: 20px;
+}
+
+.dd_listing article h3{ 
+	margin: 0;
+	font-weight: bold;
+	font-size: 14px;
+	
+	line-height: 1.428571429;
+}
+
+.dd_listing article h4{ 
+	font-size:14px;
+	margin: 0 0 0 10px;
+}
+
+.dd_listing dd, .dd_listing dt{
+	margin-bottom: 5px;
+}
+
+.dd_listing dt, .dd_listing dd ul{
+	color: gray;
+}
+
+.dd_listing dt{
+	white-space: normal;
+}
+
+.dd_listing dd ul.list-unstyled{
+	color: #333;
+}
+
+.dd_listing_img dd, .dd_listing_img dt{	
+	height: 35px;
+	line-height: 35px;
+}

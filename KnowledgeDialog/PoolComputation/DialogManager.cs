@@ -16,7 +16,7 @@ using KnowledgeDialog.PoolComputation.ModifiableResponses;
 
 namespace KnowledgeDialog.PoolComputation
 {
-    class DialogManager : IDialogManager
+    public class DialogManager : IDialogManager
     {
         internal readonly DialogContext Context;
 

@@ -48,6 +48,7 @@ namespace KnowledgeDialog.PoolComputation.Frames
         {
             if (_expectCorrectAnswer)
             {
+                _expectCorrectAnswer = false;
                 _correctAnswer = parseAnswer(CurrentInput);
             }
 
@@ -299,6 +300,9 @@ namespace KnowledgeDialog.PoolComputation.Frames
         private NodeReference parseAnswer(string utterance)
         {
             var prefix = "it is";
+            if (utterance.Length < prefix.Length)
+                return null;
+
             return getNode(utterance.Substring(prefix.Length).Trim());
         }
 

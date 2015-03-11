@@ -16,7 +16,7 @@ namespace KnowledgeDialog
     {
         static void Main(string[] args)
         {
-            ExtendLearningDialog();
+            PoolDialog();
         }
 
         private static void KnowledgeClassifier()
@@ -67,7 +67,9 @@ namespace KnowledgeDialog
              "president of CZ?",
              "name of his wife?",
              "yes",
-             "it is Michelle_Obama"
+             "it is Ivana_Zemanová",
+             "president of D?",
+             "his wife?"
              );
 
             provider.Run();
@@ -86,6 +88,7 @@ namespace KnowledgeDialog
              "president of USA?",
              "wife of president in USA?",
              "it is Michelle_Obama",
+             "no",
              "wife of president in CZ?",
              "you should say her name i_s Ivana_Zemanová",
              "wife of president in D?",

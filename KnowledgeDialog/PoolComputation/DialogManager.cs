@@ -79,8 +79,6 @@ namespace KnowledgeDialog.PoolComputation
                         throw new NotSupportedException("Cannot accept null response");
                 }
 
-
-
                 //utterance can be processed only once
                 utterance = null;
                 if (modifiableResponse is FrameResponse)
@@ -108,7 +106,7 @@ namespace KnowledgeDialog.PoolComputation
 
         public ResponseBase Negate()
         {
-            throw new NotImplementedException();
+            return getResponse("no");
         }
 
         public ResponseBase Advise(string question, string answer)

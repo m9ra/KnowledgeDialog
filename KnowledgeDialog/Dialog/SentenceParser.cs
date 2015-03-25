@@ -6,46 +6,40 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.Dialog
 {
-    public class SentenceParser
+    public static class SentenceParser
     {
-        //   private readonly Dictionary<string, List<string>> _indexedEntities = new Dictionary<string, List<string>>();
+        private static readonly Dictionary<string, List<string>> _indexedEntities = new Dictionary<string, List<string>>();
 
-        private readonly DoubleMetaphone _metaphone = new DoubleMetaphone();
+        private static readonly DoubleMetaphone _metaphone = new DoubleMetaphone();
 
-        private StringSearch _searcher;
-
-        private List<string> _allEntities = new List<string>();
-
-        internal void AddEntity(string entity)
+        internal static void RegisterEntity(string entity)
         {
-            /*   var indexCode = getCode(entity);
+            if (!entity.Contains(' '))
+                //only multi word entities has to be known by parser
+                return;
 
-               List<string> entities;
-               if (!_indexedEntities.TryGetValue(indexCode, out entities))
-                   _indexedEntities[indexCode] = entities = new List<string>();
+            var indexCode = getCode(entity);
 
-               if (entities.Contains(entity))
-                   //nothing to do
-                   return;
+            List<string> entities;
+            if (!_indexedEntities.TryGetValue(indexCode, out entities))
+                _indexedEntities[indexCode] = entities = new List<string>();
 
-               entities.Add(entity);*/
+            if (entities.Contains(entity))
+                //nothing to do
+                return;
 
-
-            _allEntities.Add(entity);
-            //searcher has to be rebuilt
-            _searcher = null;
+            entities.Add(entity);
         }
 
-        internal ParsedSentence Parse(string sentence)
+        internal static ParsedSentence Parse(string sentence)
         {
             var validEntities = findEntities(sentence);
             return parseSentence(sentence, validEntities);
         }
 
-        private List<StringSearchResult> findEntities(string sentence)
+        private static List<StringSearchResult> findEntities(string sentence)
         {
-            var searcher = getSearcher();
-            var foundEntities = searcher.FindAll(sentence);
+            var foundEntities = getRawEntities(sentence);
 
 
             //try to find longest entities as posible
@@ -78,6 +72,125 @@ namespace KnowledgeDialog.Dialog
             return validEntities;
         }
 
+        private static IEnumerable<StringSearchResult> getRawEntities(string sentence)
+        {
+            var unigrams = sentence.Split(' ');
+            var maxNGram = unigrams.Length;
+
+            var result = new List<StringSearchResult>();
+            for (var n = maxNGram; n > 0; --n)
+            {
+                //each ngram that is longer than 1 may be named entity
+                for (var ngramOffset = 0; ngramOffset < unigrams.Length - n + 1; ++ngramOffset)
+                {
+                    var ngram = new StringBuilder();
+                    for (var i = 0; i < n; ++i)
+                    {
+                        if (i > 0)
+                            ngram.Append(' ');
+
+                        var word = unigrams[ngramOffset + i];
+                        ngram.Append(word);
+                    }
+
+                    var ngramString = ngram.ToString();
+                    var match = getBestMatch(ngramString);
+
+                    if (match.Item2 <= 2.0)
+                    {
+                        //TODO this supposes that word has appeared only once
+                        var startIndex = sentence.IndexOf(unigrams[ngramOffset]);
+
+                        var endWord = unigrams[ngramOffset + n - 1];
+                        var endIndex = sentence.IndexOf(endWord)+endWord.Length;
+
+                        var original = sentence.Substring(startIndex, endIndex - startIndex);
+                        var searchResult = new StringSearchResult(startIndex, match.Item1, original);
+                        result.Add(searchResult);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private static Tuple<string, double> getBestMatch(string ngram)
+        {
+            var code = getCode(ngram);
+
+            List<string> entities;
+            if (!_indexedEntities.TryGetValue(code, out entities))
+                return Tuple.Create<string, double>(null, double.MaxValue);
+
+            var minDistance = double.MaxValue;
+            string candidate = null;
+            foreach (var entity in entities)
+            {
+                var distance = levenshtein(ngram, entity);
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    candidate = entity;
+                }
+            }
+
+            return Tuple.Create(candidate, minDistance);
+        }
+
+        private static Int32 levenshtein(String a, String b)
+        {
+
+            if (string.IsNullOrEmpty(a))
+            {
+                if (!string.IsNullOrEmpty(b))
+                {
+                    return b.Length;
+                }
+                return 0;
+            }
+
+            if (string.IsNullOrEmpty(b))
+            {
+                if (!string.IsNullOrEmpty(a))
+                {
+                    return a.Length;
+                }
+                return 0;
+            }
+
+            Int32 cost;
+            Int32[,] d = new int[a.Length + 1, b.Length + 1];
+            Int32 min1;
+            Int32 min2;
+            Int32 min3;
+
+            for (Int32 i = 0; i <= d.GetUpperBound(0); i += 1)
+            {
+                d[i, 0] = i;
+            }
+
+            for (Int32 i = 0; i <= d.GetUpperBound(1); i += 1)
+            {
+                d[0, i] = i;
+            }
+
+            for (Int32 i = 1; i <= d.GetUpperBound(0); i += 1)
+            {
+                for (Int32 j = 1; j <= d.GetUpperBound(1); j += 1)
+                {
+                    cost = Convert.ToInt32(!(a[i - 1] == b[j - 1]));
+
+                    min1 = d[i - 1, j] + 1;
+                    min2 = d[i, j - 1] + 1;
+                    min3 = d[i - 1, j - 1] + cost;
+                    d[i, j] = Math.Min(Math.Min(min1, min2), min3);
+                }
+            }
+
+            return d[d.GetUpperBound(0), d.GetUpperBound(1)];
+
+        }
+
         private static ParsedSentence parseSentence(string sentence, List<StringSearchResult> validEntities)
         {
             var parsedWords = new List<string>();
@@ -94,31 +207,26 @@ namespace KnowledgeDialog.Dialog
                 }
 
                 var currentSentencePart = sentence.Substring(currentIndex, nextEntityStart - currentIndex);
-                parsedWords.AddRange(currentSentencePart.Split(' '));
+                if (currentSentencePart != "")
+                    parsedWords.AddRange(currentSentencePart.Trim().Split(' '));
+
+                currentIndex += currentSentencePart.Length;
                 if (hasEntity)
                 {
                     var entity = validEntities[currentEntityIndex];
                     parsedWords.Add(entity.Keyword);
-                    currentIndex = nextEntityStart + entity.Keyword.Length;
+                    currentIndex = nextEntityStart + entity.OriginalText.Length;
+                    ++currentEntityIndex;
                 }
             }
 
-            return new ParsedSentence(parsedWords);
+            return new ParsedSentence(sentence, parsedWords);
         }
 
-        private string getCode(string entity)
+        private static string getCode(string entity)
         {
             _metaphone.ComputeKeys(entity);
             return _metaphone.PrimaryKey;
-        }
-
-        private StringSearch getSearcher()
-        {
-            if (_searcher == null)
-                //new searcher has to be built
-                _searcher = new StringSearch(_allEntities.ToArray());
-
-            return _searcher;
         }
     }
 }

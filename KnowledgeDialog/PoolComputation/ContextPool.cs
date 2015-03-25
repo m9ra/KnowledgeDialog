@@ -11,6 +11,7 @@ namespace KnowledgeDialog.PoolComputation
     class ContextPool
     {
         public int ActiveCount { get { return _accumulator.Count; } }
+
         public bool HasActive { get { return ActiveCount > 0; } }
 
         public IEnumerable<NodeReference> ActiveNodes { get { return _accumulator; } }
@@ -24,6 +25,16 @@ namespace KnowledgeDialog.PoolComputation
         public ContextPool(ComposedGraph context)
         {
             Graph = context;
+        }
+
+
+        internal ContextPool Clone()
+        {
+            var clone = new ContextPool(Graph);
+            clone._accumulator.UnionWith(_accumulator);
+            clone._substitutions = new Dictionary<NodeReference, NodeReference>(_substitutions);
+
+            return clone;
         }
 
         internal NodeReference GetSubstitution(NodeReference node)
@@ -63,9 +74,9 @@ namespace KnowledgeDialog.PoolComputation
             _accumulator.UnionWith(extended);
         }
 
-        internal void Insert(NodeReference node)
+        internal void Insert(params NodeReference[] nodes)
         {
-            _accumulator.Add(node);
+            _accumulator.UnionWith(nodes);
         }
 
         internal HashSet<NodeReference> GetPathLayer(NodeReference pushStart, KnowledgePath path)

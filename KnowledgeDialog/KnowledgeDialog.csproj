@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Database\FlatPresidentLayer.cs" />
     <Compile Include="Database\FreebaseConnector.cs" />
     <Compile Include="Database\PresidentLayer.cs" />
     <Compile Include="Dialog\DoubleMetaphone.cs" />
@@ -89,8 +90,29 @@
     <Compile Include="PoolComputation\ActionGroup.cs" />
     <Compile Include="PoolComputation\ConsoleDecorator.cs" />
     <Compile Include="PoolComputation\Frames\YesNoFrame.cs" />
+    <Compile Include="PoolComputation\IMappingProvider.cs" />
+    <Compile Include="PoolComputation\MappingControl.cs" />
     <Compile Include="PoolComputation\ModifiableResponses\FrameResponse.cs" />
     <Compile Include="PoolComputation\PoolActions\ExtendAction.cs" />
+    <Compile Include="PoolComputation\PoolActions\InsertAction.cs" />
+    <Compile Include="PoolComputation\QuestionAnsweringModule.cs" />
+    <Compile Include="PoolComputation\StateDialogManager.cs" />
+    <Compile Include="PoolComputation\StateDialog\EdgeIdentifier.cs" />
+    <Compile Include="PoolComputation\StateDialog\EdgeInput.cs" />
+    <Compile Include="PoolComputation\StateDialog\StateBase.cs" />
+    <Compile Include="PoolComputation\StateDialog\StateContext.cs" />
+    <Compile Include="PoolComputation\StateDialog\StateGraphBuilder.cs" />
+    <Compile Include="PoolComputation\StateDialog\StateProperty.cs" />
+    <Compile Include="PoolComputation\StateDialog\States\AcceptAdvice.cs" />
+    <Compile Include="PoolComputation\StateDialog\States\CantHelp.cs" />
+    <Compile Include="PoolComputation\StateDialog\States\EmptyState.cs" />
+    <Compile Include="PoolComputation\StateDialog\States\HowCanIHelp.cs" />
+    <Compile Include="PoolComputation\StateDialog\States\QuestionAnswering.cs" />
+    <Compile Include="PoolComputation\StateDialog\States\AdviceRouting.cs" />
+    <Compile Include="PoolComputation\StateDialog\States\RepairAnswer.cs" />
+    <Compile Include="PoolComputation\StateDialog\States\Welcome.cs" />
+    <Compile Include="PoolComputation\StateDialog\Trigger.cs" />
+    <Compile Include="PoolComputation\TriggerGroup.cs" />
     <Compile Include="PoolComputation\UtteranceMapping.cs" />
     <Compile Include="PoolComputation\ConversationFrameBase.cs" />
     <Compile Include="PoolComputation\DialogContext.cs" />

@@ -16,7 +16,46 @@ namespace KnowledgeDialog
     {
         static void Main(string[] args)
         {
-            PoolDialog();
+            ExternalDB();
+        }
+
+        private static void ExternalDB()
+        {
+            var manager = new PoolComputation.StateDialogManager(new FlatPresidentLayer());
+            var provider = new DialogConsole(manager);
+
+            provider.SimulateInput(
+            "president of USA?",
+            "it is blabla",
+            "president of USA?",
+            "it is Barack Obama",
+            "president of USA?",
+            "president of CZ?",
+            "his wife?",
+            "yes",
+            "it is Ivana Zemanová"
+            );
+
+            provider.Run();
+        }
+
+        private static void StateBasedManager()
+        {
+            var manager = new PoolComputation.StateDialogManager(new Database.PresidentLayer());
+            var provider = new DialogConsole(manager);
+
+            provider.SimulateInput(
+            "president of USA?",
+            "it is Barack_Obama",
+            "president of CZ?",
+            "name of his wife?",
+            "yes",
+            "it is Ivana_Zemanová",
+            "president of D?",
+            "his wife?"
+            );
+
+            provider.Run();
         }
 
         private static void KnowledgeClassifier()

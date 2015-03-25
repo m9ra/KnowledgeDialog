@@ -50,7 +50,7 @@ namespace KnowledgeDialog.Dialog
     /// Structure containing results of search 
     /// (keyword and position in original text)
     /// </summary>
-    public struct StringSearchResult
+    public class StringSearchResult
     {
         #region Members
 
@@ -58,13 +58,22 @@ namespace KnowledgeDialog.Dialog
         private string _keyword;
 
         /// <summary>
+        /// Length of original text;
+        /// </summary>
+        public readonly int Length;
+
+        public readonly string OriginalText;
+
+        /// <summary>
         /// Initialize string search result
         /// </summary>
         /// <param name="index">Index in text</param>
         /// <param name="keyword">Found keyword</param>
-        public StringSearchResult(int index, string keyword)
+        public StringSearchResult(int index, string keyword, string originalText=null)
         {
             _index = index; _keyword = keyword;
+            OriginalText = originalText;
+            Length = OriginalText.Length;   
         }
 
 

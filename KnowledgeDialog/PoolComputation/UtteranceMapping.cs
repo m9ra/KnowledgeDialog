@@ -4,13 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Knowledge;
 
 namespace KnowledgeDialog.PoolComputation
 {
-    class UtteranceMapping<T>
+    class UtteranceMapping<T> : IMappingProvider
     {
-        private readonly Dictionary<string, T> _mapping = new Dictionary<string, T>();
+        protected readonly Dictionary<ParsedSentence, T> Mapping = new Dictionary<ParsedSentence, T>();
 
         private readonly ComposedGraph _graph;
 
@@ -27,11 +28,13 @@ namespace KnowledgeDialog.PoolComputation
         public IEnumerable<Tuple<T, double>> ScoredMap(string utterance)
         {
             var result = new List<Tuple<T, double>>();
-            foreach (var pair in _mapping)
-            {
-                var similarity = getSimilarity(pair.Key, utterance);
+            var parsedSentence = SentenceParser.Parse(utterance);
 
-                result.Add(Tuple.Create(pair.Value,similarity));
+            foreach (var pair in Mapping)
+            {
+                var similarity = getSimilarity(pair.Key, parsedSentence);
+
+                result.Add(Tuple.Create(pair.Value, similarity.Item2));
             }
 
             result.Sort((a, b) => b.Item2.CompareTo(a.Item2));
@@ -39,34 +42,100 @@ namespace KnowledgeDialog.PoolComputation
             return result;
         }
 
+        public IEnumerable<Tuple<T, string, double>> ScoredSubstitutionMap(string utterance)
+        {
+            var result = new List<Tuple<T, string, double>>();
+            var parsedSentence = SentenceParser.Parse(utterance);
+
+            foreach (var pair in Mapping)
+            {
+                var similarity = getSimilarity(pair.Key, parsedSentence);
+
+                result.Add(Tuple.Create(pair.Value, similarity.Item1, similarity.Item2));
+            }
+
+            result.Sort((a, b) => b.Item3.CompareTo(a.Item3));
+
+            return result;
+        }
+
+        internal IEnumerable<Tuple<T, MappingControl>> ControlledMap(string utterance)
+        {
+            var result = new List<Tuple<T, MappingControl>>();
+            var parsedSentence = SentenceParser.Parse(utterance);
+
+            foreach (var pair in Mapping)
+            {
+                var similarity = getSimilarity(pair.Key, parsedSentence);
+
+                var control = new MappingControl(similarity.Item1, similarity.Item2, null, this);
+                result.Add(Tuple.Create(pair.Value, control));
+            }
+
+            result.Sort((a, b) => b.Item2.Score.CompareTo(a.Item2.Score));
+
+            return result;
+        }
+
         public void SetMapping(string utterance, T data)
         {
-            _mapping[utterance] = data;
+            var sentence = SentenceParser.Parse(utterance);
+            Mapping[sentence] = data;
         }
 
-        private double getSimilarity(string utterance1, string utterance2)
+        private Tuple<string, double> getSimilarity(ParsedSentence pattern, ParsedSentence sentence)
         {
-            if (utterance1 == utterance2)
+            if (pattern.OriginalSentence == sentence.OriginalSentence)
                 //we have exact match
-                return 1;
+                return Tuple.Create<string, double>(null, 1.0);
 
-            var words1 = new HashSet<string>(getWords(utterance1));
-            var words2 = new HashSet<string>(getWords(utterance2));
+            var patternWords = new HashSet<string>(pattern.Words);
+            var sentenceWords = new HashSet<string>(sentence.Words);
 
-            var intersection = words1.Intersect(words2).ToArray();
-            var union = words1.Union(words2).ToArray();
+            var isPattern = patternWords.Remove("*");
+            var intersection = patternWords.Intersect(sentenceWords).ToArray();
+            var intersectionCount = intersection.Length;
 
-            return 0.9 * intersection.Count() / union.Count();
+            string substitution = null;
+            if (isPattern)
+            {
+                //TODO improve patterning
+                var isStartPattern = patternWords.First() == "*";
+                ++intersectionCount;
+
+                var minIndex = int.MaxValue;
+                var maxIndex = int.MinValue;
+                string minWord = null, maxWord = null;
+                foreach (var word in sentenceWords.Except(intersection))
+                {
+                    var index = sentence.OriginalSentence.IndexOf(word);
+                    if (index < minIndex)
+                    {
+                        minIndex = index;
+                        minWord = word;
+                    }
+
+                    if (index > maxIndex)
+                    {
+                        maxIndex = index;
+                        maxWord = word;
+                    }
+
+                    substitution = isStartPattern ? minWord : maxWord;
+                    if (substitution == null)
+                        //substitution doesn't fit
+                        return Tuple.Create(substitution, 0.0);
+                }
+            }
+
+            var union = patternWords.Union(sentenceWords).ToArray();
+            var confidence = 0.9 * intersectionCount / union.Count();
+            return Tuple.Create(substitution, confidence);
         }
 
-        private IEnumerable<string> getWords(string utterance)
+        public void DesiredScore(object index, double score)
         {
-            var words = utterance.Split(' ');
-            foreach (var word in words)
-            {
-                if (!_graph.HasEvidence(word))
-                    yield return word;
-            }
+            //throw new NotImplementedException();
         }
     }
 }

@@ -20,5 +20,10 @@ namespace KnowledgeDialog.PoolComputation
             Substitutions = substitutions;
             Actions = new List<IPoolAction>(actions);
         }
+
+        internal void Suggest(NodeReference suggestedAnswer)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -44,6 +44,11 @@ namespace KnowledgeDialog.Database
 
         }
 
+        private PresidentLayer IsExPresident()
+        {
+            throw new NotImplementedException();
+        }
+
         private PresidentLayer President(string name)
         {
             _lastPresidentName = name;

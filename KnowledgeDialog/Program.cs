@@ -16,12 +16,63 @@ namespace KnowledgeDialog
     {
         static void Main(string[] args)
         {
-            ExternalDB();
+            PersistentInformationConsole();
+        }
+
+        private static void PersistentInformationConsole()
+        {
+            var manager = new PoolComputation.StateDialogManager("test.json", new FlatPresidentLayer());
+            var provider = new DialogConsole(manager);
+
+            provider.Run();
+        }
+
+        private static void EquivalenceLearning()
+        {
+            var manager = new PoolComputation.StateDialogManager(null, new FlatPresidentLayer());
+            var provider = new DialogConsole(manager);
+
+            /*  provider.SimulateInput(
+              "president of USA?",
+              "it is Barack Obama",
+              "wife of president of USA?",
+              "no",
+              "no",
+              "it is Michelle Obama"
+              );*/
+
+            provider.SimulateInput(
+          "president of USA?",
+          "it is Barack Obama",
+          "wife of president of USA?",
+          "no",
+          "no",
+          "it is Michelle Obama",
+          "wife of president of SK?"
+          );
+
+            provider.Run();
+        }
+
+        private static void MultipleNodesDistinguishing()
+        {
+            var manager = new PoolComputation.StateDialogManager(null, new FlatPresidentLayer());
+            var provider = new DialogConsole(manager);
+
+            provider.SimulateInput(
+            "president of USA?",
+            "it is Barack Obama",
+            "president of USA?",
+            "president of CZ?",
+            "it is Miloš Zeman"
+            );
+
+            provider.Run();
         }
 
         private static void ExternalDB()
         {
-            var manager = new PoolComputation.StateDialogManager(new FlatPresidentLayer());
+            var manager = new PoolComputation.StateDialogManager(null, new FlatPresidentLayer());
             var provider = new DialogConsole(manager);
 
             provider.SimulateInput(
@@ -33,7 +84,9 @@ namespace KnowledgeDialog
             "president of CZ?",
             "his wife?",
             "yes",
-            "it is Ivana Zemanová"
+            "it is Ivana Zemanová",
+            "president of USA?",
+            "his wife?"
             );
 
             provider.Run();
@@ -41,7 +94,7 @@ namespace KnowledgeDialog
 
         private static void StateBasedManager()
         {
-            var manager = new PoolComputation.StateDialogManager(new Database.PresidentLayer());
+            var manager = new PoolComputation.StateDialogManager(null, new Database.PresidentLayer());
             var provider = new DialogConsole(manager);
 
             provider.SimulateInput(
@@ -136,8 +189,6 @@ namespace KnowledgeDialog
              "you should say his name i_s Andrej_Kiska",
              "wife of president in SK?",
              "president of CZ?"
-
-
              );
 
             provider.Run();

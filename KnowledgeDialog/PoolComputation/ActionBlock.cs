@@ -14,14 +14,18 @@ namespace KnowledgeDialog.PoolComputation
 
         internal readonly IEnumerable<NodeReference> RequiredSubstitutions;
 
-        internal ActionBlock(params IPoolAction[] actions)
-            : this((IEnumerable<IPoolAction>)actions)
+        internal readonly KnowledgeClassifier<bool> OutputFilter;
+
+        internal ActionBlock(ComposedGraph graph,params IPoolAction[] actions)
+            : this(graph,(IEnumerable<IPoolAction>)actions)
         {
+            
         }
 
 
-        internal ActionBlock(IEnumerable<IPoolAction> actions)
+        internal ActionBlock(ComposedGraph graph,IEnumerable<IPoolAction> actions)
         {
+            OutputFilter = new KnowledgeClassifier<bool>(graph);
             var nodes = new List<NodeReference>();
             foreach (var action in actions)
             {
@@ -31,7 +35,6 @@ namespace KnowledgeDialog.PoolComputation
                 var substitutedNode = action.SemanticOrigin.StartNode;
                 if (nodes.Contains(substitutedNode))
                     continue;
-
 
                 nodes.Add(substitutedNode);
             }

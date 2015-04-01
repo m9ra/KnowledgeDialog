@@ -24,7 +24,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
                 return Response("Sorry, I don't know what are you talking about.");
             }
 
-            Context.QuestionAnsweringModule.SuggestAnswer(repairedQuestion, Context.Graph.GetNode(correctAnswer));
+            Context.QuestionAnsweringModule.RepairAnswer(repairedQuestion, Context.Graph.GetNode(correctAnswer));
 
             Context.Remove(AcceptAdvice.CorrectAnswerProperty);
             return EmitEdge(AdviceAccepted);

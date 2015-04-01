@@ -12,18 +12,13 @@ namespace KnowledgeDialog.PoolComputation
     {
         public readonly IEnumerable<KeyValuePair<NodeReference, NodeReference>> Substitutions;
 
-        public readonly IEnumerable<IPoolAction> Actions;
+        public readonly ActionBlock ActionBlock;
 
 
-        public PoolHypothesis(IEnumerable<KeyValuePair<NodeReference, NodeReference>> substitutions, IEnumerable<IPoolAction> actions)
+        public PoolHypothesis(IEnumerable<KeyValuePair<NodeReference, NodeReference>> substitutions, ActionBlock block)
         {
             Substitutions = substitutions;
-            Actions = new List<IPoolAction>(actions);
-        }
-
-        internal void Suggest(NodeReference suggestedAnswer)
-        {
-            throw new NotImplementedException();
+            ActionBlock = block;
         }
     }
 }

@@ -1,0 +1,39 @@
+﻿@dialog string
+
+.container
+	%nav{class: "navbar navbar-inverse navbar-fixed-top"}
+		.navbar-header
+			%button{type: "button", class: "navbar-toggle", data-toggle: "collapse", data-target: "navbar-collapse"}
+				%span.sr-only
+					Expand navigation	
+				%span.icon-bar
+				%span.icon-bar
+				%span.icon-bar
+
+			%p{class: "navbar-brand"} Mgr. Vodolán Miroslav
+
+
+
+.jumbotron#preface
+	.container
+		%h1 Task definition
+		%p 
+			= yield :task
+
+
+.container
+	%article{class: "alert alert-info"}
+		%strong Info
+		%p If system gets lost in dialog, you can write <strong>reset</strong> to start dialog from the begining.
+
+.container
+	.row
+		.dialog_log
+			= raw @dialog
+		%input{class:"utterance", type: "text"}
+			=""
+		%input{class:"utterance_submit", type: "submit", value: "Send"}
+			=""
+
+%script{src: "js/chat.js"}
+	=""

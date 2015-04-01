@@ -48,6 +48,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
 
             Context.Remove(CorrectAnswerProperty);
             Context.Remove(IsBasedOnContextProperty);
+            Context.Remove(AdviceRouting.QuestionProperty);
 
             EmitEdge(AdviceAcceptedEdge);
             return Response("Thank you");

@@ -10,12 +10,12 @@ using KnowledgeDialog.Dialog;
 
 using KnowledgeDialog.PoolComputation.PoolActions;
 
+using KnowledgeDialog.Database;
+
 namespace KnowledgeDialog.PoolComputation
 {
-    class QuestionAnsweringModule
+    public class QuestionAnsweringModule
     {
-        private Dictionary<string, IEnumerable<NodeReference>> _explicitAnswers = new Dictionary<string, IEnumerable<NodeReference>>();
-
         internal readonly ContextPool Pool;
 
         internal ComposedGraph Graph { get { return Pool.Graph; } }
@@ -26,57 +26,78 @@ namespace KnowledgeDialog.PoolComputation
 
         internal readonly int MaximumGraphWidth = 1000;
 
-        internal QuestionAnsweringModule(ComposedGraph graph)
+        private readonly CallSerializer _adviceAnswer;
+
+        private readonly CallSerializer _repairAnswer;
+
+        private readonly CallSerializer _setEquivalencies;
+
+        private readonly CallSerializer _negate;
+
+        internal readonly CallStorage Storage;
+
+        internal QuestionAnsweringModule(ComposedGraph graph, CallStorage storage)
         {
+            Storage = storage;
             Pool = new ContextPool(graph);
             Triggers = new UtteranceMapping<ActionBlock>(graph);
+
+            _adviceAnswer = storage.RegisterCall("AdviceAnswer", c =>
+            {
+                _AdviceAnswer(c.String("question"), c.Bool("isBasedOnContext"), c.Node("correctAnswerNode", Graph), c.Nodes("context",Graph));
+            });
+
+            _repairAnswer = storage.RegisterCall("RepairAnswer", c =>
+            {
+                _RepairAnswer(c.String("question"), c.Node("suggestedAnswer", Graph),c.Nodes("context",Graph));
+            });
+
+            _setEquivalencies = storage.RegisterCall("SetEquivalence", c =>
+            {
+                SetEquivalence(c.String("patternQuestion"), c.String("queriedQuestion"), c.Bool("isEquivalent"));
+            });
+
+            _negate = storage.RegisterCall("Negate", c =>
+            {
+                Negate(c.String("question"));
+            });
         }
 
-        public IEnumerable<NodeReference> GetAnswer(string question)
+        #region Input methods
+
+        public bool AdviceAnswer(string question, bool isBasedOnContext, NodeReference correctAnswerNode)
         {
-            IEnumerable<NodeReference> explicitAnswer;
-            if (_explicitAnswers.TryGetValue(question, out explicitAnswer))
-            {
-                return explicitAnswer;
-            }
-
-            var bestHypothesis = GetBestHypothesis(question);
-            if (bestHypothesis == null)
-                return new NodeReference[0];
-
-            var pool = Pool.Clone();
-
-            pool.SetSubstitutions(bestHypothesis.Item1.Substitutions);
-            foreach (var action in bestHypothesis.Item1.Actions)
-            {
-                action.Run(pool);
-            }
-
-            return pool.ActiveNodes;
+            return _AdviceAnswer(question, isBasedOnContext, correctAnswerNode, Pool.ActiveNodes);
         }
 
-        public void AdviceAnswer(string question, bool isBasedOnContext, NodeReference correctAnswerNode)
+        private bool _AdviceAnswer(string question, bool isBasedOnContext, NodeReference correctAnswerNode, IEnumerable<NodeReference> context)
         {
-            ActionBlock actionBlock;
-            if (isBasedOnContext)
-            {
-                actionBlock = extendAdvice(correctAnswerNode);
-            }
-            else
-            {
-                actionBlock = pushAdvice(question, correctAnswerNode);
-            }
+            _adviceAnswer.ReportParameter("question", question);
+            _adviceAnswer.ReportParameter("isBasedOnContext", isBasedOnContext);
+            _adviceAnswer.ReportParameter("correctAnswerNode", correctAnswerNode);
+            _adviceAnswer.ReportParameter("context", context);
+            _adviceAnswer.SaveReport();
 
-            //we want to update mapping of question answering frame
-            Triggers.SetMapping(question, actionBlock);
-            _explicitAnswers[question] = new[] { correctAnswerNode };
+            fillPool(context);
+
+            return
+                updateOldActions(question, isBasedOnContext, correctAnswerNode) ||
+                createNewActions(question, isBasedOnContext, correctAnswerNode);
         }
 
-
-        public void SuggestAnswer(string question, NodeReference suggestedAnswer)
+        public void RepairAnswer(string question, NodeReference suggestedAnswer)
         {
-            _explicitAnswers[question] = new[] { suggestedAnswer };
+            _RepairAnswer(question, suggestedAnswer, Pool.ActiveNodes);
+        }
 
+        public void _RepairAnswer(string question, NodeReference suggestedAnswer, IEnumerable<NodeReference> context)
+        {
+            _repairAnswer.ReportParameter("question", question);
+            _repairAnswer.ReportParameter("suggestedAnswer", suggestedAnswer);
+            _repairAnswer.ReportParameter("context", context);
+            _repairAnswer.SaveReport();
+
+            fillPool(context);
             var hypotheses = GetControlledHypotheses(question).ToArray();
 
             foreach (var hypothesis in hypotheses)
@@ -89,14 +110,51 @@ namespace KnowledgeDialog.PoolComputation
 
             if (suggestedAnswer != null)
             {
-                var isBasedOnContext = hypotheses.Length > 0 && hypotheses[0].Item1.Actions.Any(a => a is ExtendAction);
+                var isBasedOnContext = hypotheses.Length > 0 && hypotheses[0].Item1.ActionBlock.Actions.Any(a => a is ExtendAction);
                 AdviceAnswer(question, isBasedOnContext, suggestedAnswer);
+            }
+        }
+
+        public void SetEquivalence(string patternQuestion, string queriedQuestion, bool isEquivalent)
+        {
+            _setEquivalencies.ReportParameter("patternQuestion", patternQuestion);
+            _setEquivalencies.ReportParameter("queriedQuestion", queriedQuestion);
+            _setEquivalencies.ReportParameter("isEquivalent", isEquivalent);
+            _setEquivalencies.SaveReport();
+
+            if (isEquivalent)
+            {
+                var bestHyp = Triggers.BestMap(patternQuestion);
+                Triggers.SetMapping(queriedQuestion, bestHyp);
+            }
+            else
+            {
+                Triggers.DisableEquivalence(patternQuestion, queriedQuestion);
             }
         }
 
         public void Negate(string question)
         {
+            _negate.ReportParameter("question", question);
+            _negate.SaveReport();
             throw new NotImplementedException();
+        }
+
+        #endregion
+
+        public IEnumerable<NodeReference> GetAnswer(string question)
+        {
+            var bestHypothesis = GetBestHypothesis(question);
+            if (bestHypothesis == null)
+                return new NodeReference[0];
+
+            var pool = Pool.Clone();
+
+            var substitutions = bestHypothesis.Item1.Substitutions;
+            var block = bestHypothesis.Item1.ActionBlock;
+            runActions(pool, block, substitutions);
+
+            return pool.ActiveNodes;
         }
 
         internal Tuple<PoolHypothesis, double> GetBestHypothesis(string question)
@@ -124,7 +182,7 @@ namespace KnowledgeDialog.PoolComputation
                     substitutions.Add(node, nearestNode);
                 }
 
-                var scoredHypothesis = Tuple.Create(new PoolHypothesis(substitutions, scoredAction.Item1.Actions), scoredAction.Item2);
+                var scoredHypothesis = Tuple.Create(new PoolHypothesis(substitutions, scoredAction.Item1), scoredAction.Item2);
                 result.Add(scoredHypothesis);
             }
 
@@ -170,6 +228,84 @@ namespace KnowledgeDialog.PoolComputation
             return measuredNodes[0].Item1;
         }
 
+        private void fillPool(IEnumerable<NodeReference> context)
+        {
+            Pool.Insert(context.ToArray());
+        }
+
+        private bool updateOldActions(string question, bool isBasedOnContext, NodeReference correctAnswerNode)
+        {
+            var bestHypothesis = GetHypotheses(question).FirstOrDefault();
+            if (bestHypothesis == null)
+                return false;
+
+            if (bestHypothesis.Item2 < 0.6)
+                //this is different hypothesis
+                return false;
+
+            var pool = Pool.Clone();
+            runActions(pool, bestHypothesis.Item1.ActionBlock, bestHypothesis.Item1.Substitutions, false);
+            if (pool.ActiveNodes.Contains(correctAnswerNode))
+            {
+                setFilter(correctAnswerNode, bestHypothesis.Item1.ActionBlock, pool);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool createNewActions(string question, bool isBasedOnContext, NodeReference correctAnswerNode)
+        {
+            ActionBlock actionBlock;
+            if (isBasedOnContext)
+            {
+                actionBlock = extendAdvice(correctAnswerNode);
+            }
+            else
+            {
+                actionBlock = pushAdvice(question, correctAnswerNode);
+            }
+
+            var pool = Pool.Clone();
+            runActions(pool, actionBlock);
+            if (!pool.ActiveNodes.Contains(correctAnswerNode))
+                //we are not able to get this advice
+                return false;
+
+            setFilter(correctAnswerNode, actionBlock, pool);
+
+            //we want to update mapping of question answering frame
+            Triggers.SetMapping(question, actionBlock);
+            return true;
+        }
+
+        private void setFilter(NodeReference correctAnswerNode, ActionBlock actionBlock, ContextPool pool)
+        {
+            foreach (var node in pool.ActiveNodes)
+            {
+                var isInOutput = node.Equals(correctAnswerNode);
+                actionBlock.OutputFilter.Advice(node, isInOutput);
+            }
+
+            ConsoleServices.Print(actionBlock.OutputFilter.Root);
+        }
+
+        private static void runActions(ContextPool pool, ActionBlock actionBlock, IEnumerable<KeyValuePair<NodeReference, NodeReference>> substitutions = null, bool useFiltering = true)
+        {
+            if (substitutions != null)
+                pool.SetSubstitutions(substitutions);
+
+            foreach (var action in actionBlock.Actions)
+            {
+                action.Run(pool);
+            }
+
+            if (useFiltering && pool.ActiveCount > 1)
+            {
+                pool.Filter(actionBlock.OutputFilter);
+            }
+        }
+
         private static double getDistance(KnowledgePath path)
         {
             if (path == null)
@@ -193,7 +329,7 @@ namespace KnowledgeDialog.PoolComputation
             var pool = Pool.Clone();
 
             pool.SetSubstitutions(hypothesis.Substitutions);
-            foreach (var action in hypothesis.Actions)
+            foreach (var action in hypothesis.ActionBlock.Actions)
             {
                 action.Run(pool);
             }
@@ -222,7 +358,7 @@ namespace KnowledgeDialog.PoolComputation
                 throw new NotImplementedException("There is no extending path");
 
             var poolAction = new ExtendAction(shortestPath);
-            return new ActionBlock(new[] { poolAction });
+            return new ActionBlock(Pool.Graph, new[] { poolAction });
         }
 
         private ActionBlock pushAdvice(string question, NodeReference correctAnswer)
@@ -233,7 +369,7 @@ namespace KnowledgeDialog.PoolComputation
             if (!orderedUtterances.Any())
             {
                 //we don't have more evidence - we just have to push given answer
-                var block = new ActionBlock(new InsertAction(correctAnswer));
+                var block = new ActionBlock(Pool.Graph, new InsertAction(correctAnswer));
                 return block;
             }
 
@@ -257,7 +393,7 @@ namespace KnowledgeDialog.PoolComputation
             actions.Add(pushAction);
             actions.AddRange(constraints);
 
-            return new ActionBlock(actions);
+            return new ActionBlock(Pool.Graph, actions);
         }
 
         private IEnumerable<SemanticPart> lastRelevantUtterances(string question, NodeReference answer)
@@ -397,6 +533,5 @@ namespace KnowledgeDialog.PoolComputation
             var nodeEdges = (from nodeTarget in nodeTargets select Tuple.Create(nodeTarget.Item1, nodeTarget.Item2)).ToArray();
             return nodeEdges;
         }
-
     }
 }

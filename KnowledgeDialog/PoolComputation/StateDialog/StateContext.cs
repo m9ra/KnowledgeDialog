@@ -4,11 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.Database;
 using KnowledgeDialog.Knowledge;
 
 namespace KnowledgeDialog.PoolComputation.StateDialog
 {
-    class StateContext
+    public class StateContext
     {
 
         internal readonly QuestionAnsweringModule QuestionAnsweringModule;
@@ -31,12 +32,20 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
 
         private readonly List<string> _substitutions = new List<string>();
 
+        internal readonly CallStorage CallStorage;
+
         public int MaximumUserReport = 3;
 
-        public StateContext(ComposedGraph composedGraph)
+        public StateContext(ComposedGraph composedGraph, string serializationPath = null)
+            :this( new QuestionAnsweringModule(composedGraph, new CallStorage(serializationPath)))
         {
-            Graph = composedGraph;            
-            QuestionAnsweringModule = new QuestionAnsweringModule(Graph);
+        }
+
+        public StateContext(QuestionAnsweringModule module)
+        {
+            QuestionAnsweringModule = module;
+            CallStorage = module.Storage;
+            Graph = module.Graph;
         }
 
         internal void StartTurn(string utterance)
@@ -67,7 +76,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
         {
             var key = Tuple.Create(owner, typeof(T));
 
-            
+
             return (T)_storage[key];
         }
 

@@ -49,6 +49,11 @@ namespace KnowledgeDialog.PoolComputation
         internal void SetSubstitutions(IEnumerable<KeyValuePair<NodeReference, NodeReference>> substitutions)
         {
             _substitutions = new Dictionary<NodeReference, NodeReference>();
+
+            if (substitutions == null)
+                //nothing more to substitute
+                return;
+
             foreach (var substitution in substitutions)
             {
                 _substitutions[substitution.Key] = substitution.Value;
@@ -109,6 +114,23 @@ namespace KnowledgeDialog.PoolComputation
                 if (condition(node))
                     _accumulator.Remove(node);
             }
+        }
+
+        internal void Filter(KnowledgeClassifier<bool> knowledgeClassifier)
+        {
+            if (knowledgeClassifier.Root == null)
+                //there is no initialization yet
+                return;
+
+            var newLayer = new HashSet<NodeReference>();
+            foreach (var node in _accumulator)
+            {
+                var isAccepted = knowledgeClassifier.Classify(node);
+                if (isAccepted)
+                    newLayer.Add(node);
+            }
+
+            _accumulator = newLayer;
         }
     }
 }

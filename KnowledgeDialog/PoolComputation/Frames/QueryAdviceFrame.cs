@@ -122,7 +122,8 @@ namespace KnowledgeDialog.PoolComputation.Frames
                 throw new NotImplementedException("There is no extending path");
 
             var poolAction = new ExtendAction(shortestPath);
-            return new ActionBlock(new[] { poolAction });
+
+            return new ActionBlock(_context.Graph, poolAction);
         }
 
         private ActionBlock pushAdvice()
@@ -150,7 +151,7 @@ namespace KnowledgeDialog.PoolComputation.Frames
             actions.Add(pushAction);
             actions.AddRange(constraints);
 
-            return new ActionBlock(actions);
+            return new ActionBlock(_context.Graph,actions);
         }
 
         private HashSet<NodeReference> getFowardTargets(SemanticPart part, IEnumerable<NodeReference> startingNodes = null)

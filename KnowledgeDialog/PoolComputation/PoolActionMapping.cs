@@ -56,9 +56,11 @@ namespace KnowledgeDialog.PoolComputation
 
             actions.Sort((a, b) => b.Priority.CompareTo(a.Priority));
 
-            return new[]{
+       /*     return new[]{
                 new PoolHypothesis(substitutions,actions)
-            };
+            };*/
+
+            throw new NotImplementedException();
         }
 
         private Dictionary<GroupContext, double> getMappingScore(string[] words, HashSet<string> skipWords)

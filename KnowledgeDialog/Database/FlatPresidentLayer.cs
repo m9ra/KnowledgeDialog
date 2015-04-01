@@ -9,9 +9,11 @@ using KnowledgeDialog.Knowledge;
 
 namespace KnowledgeDialog.Database
 {
-    class FlatPresidentLayer : ExplicitLayer
+    public class FlatPresidentLayer : ExplicitLayer
     {
         private string _lastPresidentName;
+
+        public readonly static string ExPresidentNode = "expresident";
 
         public FlatPresidentLayer()
         {
@@ -20,10 +22,21 @@ namespace KnowledgeDialog.Database
                 .Wife("Michelle Obama")
                 .Children("Malia Obama", "Sasha Obama");
 
+            President("George Bush")
+                .ReignsIn("USA")
+                .Wife("Laura Bush")
+                .IsExPresident();
+
             President("Miloš Zeman")
                 .ReignsIn("CZ")
                 .Wife("Ivana Zemanová")
                 .Children("Kateřina Zemanová");
+
+            President("Václav Klaus")
+                .ReignsIn("CZ")
+                .Wife("Livia Klausová")
+                .IsExPresident();
+            
 
             President("Andrej Kiska")
                 .Wife("Martina Kisková")
@@ -32,6 +45,13 @@ namespace KnowledgeDialog.Database
             President("Joachim Gauck")
                 .Wife("Gerhild Radtke")
                 .ReignsIn("D");
+        }
+
+        private FlatPresidentLayer IsExPresident()
+        {
+            AddEdge(N(_lastPresidentName), ComposedGraph.IsRelation, N(ExPresidentNode));
+
+            return this;
         }
 
         private FlatPresidentLayer President(string name)

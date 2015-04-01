@@ -32,6 +32,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -41,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Database\CallStorage.cs" />
     <Compile Include="Database\FlatPresidentLayer.cs" />
     <Compile Include="Database\FreebaseConnector.cs" />
     <Compile Include="Database\PresidentLayer.cs" />
@@ -106,6 +111,8 @@
     <Compile Include="PoolComputation\StateDialog\States\AcceptAdvice.cs" />
     <Compile Include="PoolComputation\StateDialog\States\CantHelp.cs" />
     <Compile Include="PoolComputation\StateDialog\States\EmptyState.cs" />
+    <Compile Include="PoolComputation\StateDialog\States\EquivalenceAdvice.cs" />
+    <Compile Include="PoolComputation\StateDialog\States\EquivalenceQuestion.cs" />
     <Compile Include="PoolComputation\StateDialog\States\HowCanIHelp.cs" />
     <Compile Include="PoolComputation\StateDialog\States\QuestionAnswering.cs" />
     <Compile Include="PoolComputation\StateDialog\States\AdviceRouting.cs" />
@@ -137,6 +144,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

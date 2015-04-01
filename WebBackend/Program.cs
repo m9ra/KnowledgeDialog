@@ -36,8 +36,6 @@ namespace WebBackend
 
             ServerEnvironment.AddApplication(webApp);
             var server = ServerEnvironment.Start(4000);
-
-
         }
 
         private static void runConsole()

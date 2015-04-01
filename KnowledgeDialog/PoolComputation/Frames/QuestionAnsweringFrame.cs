@@ -54,10 +54,12 @@ namespace KnowledgeDialog.PoolComputation.Frames
             _lastQuestion = utterance;
 
             Pool.SetSubstitutions(bestHypothesis.Item1.Substitutions);
-            foreach (var action in bestHypothesis.Item1.Actions)
+            foreach (var action in bestHypothesis.Item1.ActionBlock.Actions)
             {
                 action.Run(Pool);
             }
+            Pool.Filter(bestHypothesis.Item1.ActionBlock.OutputFilter);
+
 
             if (Pool.ActiveCount <= MaximumUserReport)
             {
@@ -93,7 +95,7 @@ namespace KnowledgeDialog.PoolComputation.Frames
                     substitutions.Add(node, nearestNode);
                 }
 
-                var scoredHypothesis = Tuple.Create(new PoolHypothesis(substitutions, scoredAction.Item1.Actions), scoredAction.Item2);
+                var scoredHypothesis = Tuple.Create(new PoolHypothesis(substitutions, scoredAction.Item1), scoredAction.Item2);
                 result.Add(scoredHypothesis);
             }
 

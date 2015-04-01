@@ -19,7 +19,7 @@ using KnowledgeDialog.PoolComputation.StateDialog.States;
 
 namespace KnowledgeDialog.PoolComputation
 {
-    class StateDialogManager : IDialogManager
+    public class StateDialogManager : IDialogManager
     {
         private readonly StateContext _context;
 
@@ -27,12 +27,19 @@ namespace KnowledgeDialog.PoolComputation
 
         private readonly List<StateGraphBuilder> _createdBuilders = new List<StateGraphBuilder>();
 
+        private readonly StateGraphBuilder _equivalenceQuestionState;
+
         private StateGraphBuilder _currentState = null;
 
-        public StateDialogManager(params GraphLayerBase[] layers)
+        public StateDialogManager(string serializationOutput, params GraphLayerBase[] layers)
+            : this(new StateContext(new ComposedGraph(layers), serializationOutput))
         {
-            _context = new StateContext(new ComposedGraph(layers));
+        }
 
+        public StateDialogManager(StateContext context)
+        {
+            _context = context;
+            _context.CallStorage.ReadStorage();
 
             S<Welcome>()
                 .Default(S<HowCanIHelp>());
@@ -57,6 +64,7 @@ namespace KnowledgeDialog.PoolComputation
                 //we know requested question
                 .HasMatch(_context.QuestionAnsweringModule.Triggers, S<QuestionAnswering>(), AdviceRouting.QuestionProperty)
 
+                .Edge(EquivalenceQuestion.EquivalenceEdge, S<EquivalenceQuestion>())
                 .Edge("it is *", S<RepairAnswer>(), AcceptAdvice.CorrectAnswerProperty)
                 .Edge("* is the correct answer", S<RepairAnswer>(), AcceptAdvice.CorrectAnswerProperty)
 
@@ -70,6 +78,13 @@ namespace KnowledgeDialog.PoolComputation
             S<RepairAnswer>()
                 .Edge(RepairAnswer.NoQuestionForRepair, S<HowCanIHelp>())
                 .Edge(RepairAnswer.AdviceAccepted, S<HowCanIHelp>());
+
+            _equivalenceQuestionState = S<EquivalenceQuestion>()
+                .YesNoEdge(S<EquivalenceAdvice>(), EquivalenceAdvice.IsEquivalent);
+
+            S<EquivalenceAdvice>()
+                .Edge(EquivalenceAdvice.NoEquivalency, S<AdviceRouting>())
+                .Default(S<QuestionAnswering>());
         }
 
         #region State graph building
@@ -124,7 +139,6 @@ namespace KnowledgeDialog.PoolComputation
                 if (scores.Any())
                 {
                     var bestHypothesis = scores.First();
-
                     var confidence = bestHypothesis.Item3;
 
                     if (confidence < 0.5)
@@ -133,7 +147,10 @@ namespace KnowledgeDialog.PoolComputation
                     }
                     else if (confidence < 0.9)
                     {
-                        throw new NotImplementedException("Ask for equivalence");
+                        _context.SetValue(EquivalenceQuestion.QueriedQuestion, utterance);
+                        _context.SetValue(EquivalenceQuestion.PatternQuestion, bestHypothesis.Item4);
+                        edgeInput = new EdgeInput(EquivalenceQuestion.EquivalenceEdge);
+                        continue;
                     }
                     else
                     {

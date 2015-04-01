@@ -22,9 +22,11 @@ namespace WebBackend
         {
             var manager = new ResponseManager(this, _root);
             manager.AddDirectoryContent("");
-            manager.AddDirectoryContent("images");            
+            manager.AddDirectoryContent("images");
             manager.AddDirectoryContent("js");
             manager.AddDirectoryContent("css");
+            manager.AddDirectoryContent("data/tasks");  
+
             return manager;
         }
 

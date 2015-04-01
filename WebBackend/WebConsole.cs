@@ -24,13 +24,15 @@ namespace WebBackend
             AskUtterance.TryParse
         };
 
-        private readonly DialogManager _manager = new DialogManager(new PresidentLayer());
+        private readonly StateDialogManager _manager;
 
         internal string CurrentHTML { get; private set; }
 
-        internal WebConsole()
+        internal WebConsole(string storageFullPath)
         {
             CurrentHTML = systemTextHTML("Hello, how can I help you?");
+
+            _manager = new StateDialogManager(storageFullPath, new FlatPresidentLayer());
         }
 
         internal void Input(string utterance)

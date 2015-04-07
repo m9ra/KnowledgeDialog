@@ -37,7 +37,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
         public int MaximumUserReport = 3;
 
         public StateContext(ComposedGraph composedGraph, string serializationPath = null)
-            :this( new QuestionAnsweringModule(composedGraph, new CallStorage(serializationPath)))
+            : this(new QuestionAnsweringModule(composedGraph, new CallStorage(serializationPath)))
         {
         }
 

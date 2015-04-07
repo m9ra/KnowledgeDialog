@@ -12,6 +12,8 @@ namespace WebBackend
 {
     class Program
     {
+        public static string RootPath { get; private set; }
+
         static void Main(string[] args)
         {
             if (args.Length != 1)
@@ -25,6 +27,7 @@ namespace WebBackend
             if (!Directory.Exists(wwwPath))
                 throw new NotSupportedException("Given path doesn't exists. " + Path.GetFullPath(wwwPath));
 
+            RootPath = wwwPath;
             runServer(wwwPath);
             runConsole();
         }

@@ -19,6 +19,7 @@ namespace KnowledgeDialog.Database
         {
             President("Barack Obama")
                 .ReignsIn("USA")
+                .ReignsIn("United states of America")
                 .Wife("Michelle Obama")
                 .Children("Malia Obama", "Sasha Obama");
 

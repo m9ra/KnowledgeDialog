@@ -6,17 +6,25 @@ using System.Threading.Tasks;
 
 using ServeRick;
 
+using KnowledgeDialog.Knowledge;
+
 namespace WebBackend
 {
     class DialogWeb : WebApplication
     {
+        public static readonly ComposedGraph Graph;
+
         private readonly string _root;
+
+        static DialogWeb()
+        {
+            Graph = new ComposedGraph(new KnowledgeDialog.Database.FlatPresidentLayer());
+        }
 
         public DialogWeb(string wwwPath)
         {
             _root = wwwPath;
         }
-
 
         protected override ResponseManagerBase createResponseManager()
         {
@@ -36,7 +44,6 @@ namespace WebBackend
                 
             };
         }
-
 
         protected override InputManagerBase createInputManager()
         {

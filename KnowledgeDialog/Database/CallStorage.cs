@@ -12,9 +12,9 @@ using KnowledgeDialog.Knowledge;
 
 namespace KnowledgeDialog.Database
 {
-    delegate void StorageCallback(StorageReader reader);
+    public delegate void StorageCallback(StorageReader reader);
 
-    class CallStorage
+    public class CallStorage
     {
         internal static readonly string CallNameEntry = "_callname";
 
@@ -86,7 +86,7 @@ namespace KnowledgeDialog.Database
         }
     }
 
-    internal class CallSerializer
+    public class CallSerializer
     {
         private readonly string _callName;
 
@@ -103,18 +103,23 @@ namespace KnowledgeDialog.Database
             _owner = owner;
         }
 
-        internal void ReportParameter(string name, object value)
+        public void ReportParameter(string name, string value)
         {
             _storage.Add(name, value);
         }
 
-        internal void ReportParameter(string name, NodeReference node)
+        public void ReportParameter(string name, bool value)
+        {
+            _storage.Add(name, value);
+        }
+
+        public void ReportParameter(string name, NodeReference node)
         {
             var value = node.Data;
             _storage.Add(name, value);
         }
 
-        internal void ReportParameter(string name, IEnumerable<NodeReference> nodes)
+        public void ReportParameter(string name, IEnumerable<NodeReference> nodes)
         {
             var data = new List<object>();
             foreach (var node in nodes)
@@ -125,7 +130,7 @@ namespace KnowledgeDialog.Database
             _storage.Add(name, data.ToArray());
         }
 
-        internal void SaveReport()
+        public void SaveReport()
         {
             _storage.Add(CallStorage.CallNameEntry, _callName);
             _owner.Save(_storage);
@@ -138,7 +143,7 @@ namespace KnowledgeDialog.Database
         }
     }
 
-    class StorageReader
+    public class StorageReader
     {
         private readonly Dictionary<string, object> _storage;
 
@@ -147,23 +152,24 @@ namespace KnowledgeDialog.Database
             _storage = storage;
         }
 
-        internal string String(string p)
+        public string String(string p)
         {
             return _storage[p] as string;
         }
 
-        internal bool Bool(string p)
+        public bool Bool(string p)
         {
             return (bool)_storage[p];
         }
 
-        internal NodeReference Node(string p, ComposedGraph graph)
+
+        public NodeReference Node(string p, ComposedGraph graph)
         {
             //TODO not only strings can be present as node data
             return graph.GetNode(_storage[p].ToString());
         }
 
-        internal IEnumerable<NodeReference> Nodes(string p, ComposedGraph graph)
+        public IEnumerable<NodeReference> Nodes(string p, ComposedGraph graph)
         {
             var result = new List<NodeReference>();
             var data = _storage[p] as IEnumerable<object>;

@@ -1,4 +1,5 @@
 ﻿@dialog string
+@task string
 
 .container
 	%nav{class: "navbar navbar-inverse navbar-fixed-top"}
@@ -18,22 +19,43 @@
 	.container
 		%h1 Task definition
 		%p 
-			= yield :task
+			= raw @task
 
 
-.container
-	%article{class: "alert alert-info"}
-		%strong Info
-		%p If system gets lost in dialog, you can write <strong>reset</strong> to start dialog from the begining.
+
 
 .container
 	.row
-		.dialog_log
-			= raw @dialog
-		%input{class:"utterance", type: "text"}
-			=""
-		%input{class:"utterance_submit", type: "submit", value: "Send"}
-			=""
+		.col-md-6
+			%h2 Your task
+
+			%article{class: "alert alert-success"}
+					%strong Info
+					%ul
+						%li Task is completed after at least <b>4</b> interactions with the system and fullfilling task described above.
+						%li When task is completed, <b>your code</b> will appear in chat window.
+						%li If the system gets lost in a dialog, you can write <strong>reset</strong> to start the dialog from the begining.
+
+			.dialog_log
+				= raw @dialog
+			%input{class:"utterance", type: "text"}
+				=""
+			%input{class:"utterance_submit", type: "submit", value: "Send"}
+				=""
+
+		.col-md-6
+			%h2 Feedback
+			
+			%article{class: "alert alert-info"}
+				%strong Feedback
+				%p
+					We would like to get feedback from you. If you have ideas how to improve our service, experiments or user interface, let us know!
+								
+			%p
+				%textarea.feedback_textarea 
+					=""
+				%input{class:"feedback_submit", type: "submit", value: "Send"}
+					=""
 
 %script{src: "js/chat.js"}
 	=""

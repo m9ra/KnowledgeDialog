@@ -16,6 +16,8 @@ namespace KnowledgeDialog.PoolComputation
 {
     public class QuestionAnsweringModule
     {
+        private readonly object _L_input = new object();
+
         internal readonly ContextPool Pool;
 
         internal ComposedGraph Graph { get { return Pool.Graph; } }
@@ -36,7 +38,7 @@ namespace KnowledgeDialog.PoolComputation
 
         internal readonly CallStorage Storage;
 
-        internal QuestionAnsweringModule(ComposedGraph graph, CallStorage storage)
+        public QuestionAnsweringModule(ComposedGraph graph, CallStorage storage)
         {
             Storage = storage;
             Pool = new ContextPool(graph);
@@ -67,7 +69,10 @@ namespace KnowledgeDialog.PoolComputation
 
         public bool AdviceAnswer(string question, bool isBasedOnContext, NodeReference correctAnswerNode)
         {
-            return _AdviceAnswer(question, isBasedOnContext, correctAnswerNode, Pool.ActiveNodes);
+            lock (_L_input)
+            {
+                return _AdviceAnswer(question, isBasedOnContext, correctAnswerNode, Pool.ActiveNodes);
+            }
         }
 
         private bool _AdviceAnswer(string question, bool isBasedOnContext, NodeReference correctAnswerNode, IEnumerable<NodeReference> context)
@@ -87,7 +92,10 @@ namespace KnowledgeDialog.PoolComputation
 
         public void RepairAnswer(string question, NodeReference suggestedAnswer)
         {
-            _RepairAnswer(question, suggestedAnswer, Pool.ActiveNodes);
+            lock (_L_input)
+            {
+                _RepairAnswer(question, suggestedAnswer, Pool.ActiveNodes);
+            }
         }
 
         public void _RepairAnswer(string question, NodeReference suggestedAnswer, IEnumerable<NodeReference> context)
@@ -117,27 +125,33 @@ namespace KnowledgeDialog.PoolComputation
 
         public void SetEquivalence(string patternQuestion, string queriedQuestion, bool isEquivalent)
         {
-            _setEquivalencies.ReportParameter("patternQuestion", patternQuestion);
-            _setEquivalencies.ReportParameter("queriedQuestion", queriedQuestion);
-            _setEquivalencies.ReportParameter("isEquivalent", isEquivalent);
-            _setEquivalencies.SaveReport();
+            lock (_L_input)
+            {
+                _setEquivalencies.ReportParameter("patternQuestion", patternQuestion);
+                _setEquivalencies.ReportParameter("queriedQuestion", queriedQuestion);
+                _setEquivalencies.ReportParameter("isEquivalent", isEquivalent);
+                _setEquivalencies.SaveReport();
 
-            if (isEquivalent)
-            {
-                var bestHyp = Triggers.BestMap(patternQuestion);
-                Triggers.SetMapping(queriedQuestion, bestHyp);
-            }
-            else
-            {
-                Triggers.DisableEquivalence(patternQuestion, queriedQuestion);
+                if (isEquivalent)
+                {
+                    var bestHyp = Triggers.BestMap(patternQuestion);
+                    Triggers.SetMapping(queriedQuestion, bestHyp);
+                }
+                else
+                {
+                    Triggers.DisableEquivalence(patternQuestion, queriedQuestion);
+                }
             }
         }
 
         public void Negate(string question)
         {
-            _negate.ReportParameter("question", question);
-            _negate.SaveReport();
-            throw new NotImplementedException();
+            lock (_L_input)
+            {
+                _negate.ReportParameter("question", question);
+                _negate.SaveReport();
+                throw new NotImplementedException();
+            }
         }
 
         #endregion

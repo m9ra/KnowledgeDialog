@@ -36,6 +36,11 @@ namespace WebBackend
                 tracker.Remove();
             }
 
+            if (tracker.ActualConsole != null && tracker.ActualConsole.Task != null && tracker.ActualConsole.Task.IsComplete)
+                //user is returning to experiment page after task completition - we can reset it
+                tracker.Reset();
+
+
             Layout("layout.haml");
             if (tracker.ActualConsole == null || tracker.ActualConsole.Task == null)
             {
@@ -43,11 +48,6 @@ namespace WebBackend
             }
             else
             {
-
-                if (tracker.ActualConsole.Task.IsComplete)
-                    //user is returning to experiment page after task completition - we can reset it
-                    tracker.Reset();
-
                 SetParam("dialog", tracker.GetDialogHTML());
                 SetParam("task", tracker.ActualConsole.Task.Text);
 

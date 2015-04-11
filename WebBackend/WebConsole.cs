@@ -20,16 +20,7 @@ namespace WebBackend
         /// Lock for QA index
         /// </summary>
         private static readonly object _L_qa_index = new object();
-
-        /// <summary>
-        /// Parsers that are used for basic utterance recognition.
-        /// </summary>
-        private static readonly Func<string, UtteranceBase>[] _utteranceParsers = new Func<string, UtteranceBase>[]{
-            AdviceUtterance.TryParse,
-            NoUtterance.TryParse,
-            AskUtterance.TryParse
-        };
-
+        
         /// <summary>
         /// Mapping of QA modules according to their storages
         /// </summary>
@@ -59,11 +50,7 @@ namespace WebBackend
             var formattedUtterance = utterance.Trim();
             CurrentHTML += userTextHTML(formattedUtterance);
 
-            var parsed = parseUtterance(utterance);
-            if (parsed == null)
-                return;
-
-            var response = parsed.HandleManager(_manager);
+            var response = _manager.Input(utterance);
             if (Task != null)
                 Task.Register(response);
 
@@ -103,28 +90,7 @@ namespace WebBackend
         {
             return "<div class='user_text'>" + text + "</div>";
         }
-
-        private UtteranceBase parseUtterance(string utterance)
-        {
-            //handle console commands
-            switch (utterance)
-            {
-                case "end":
-                case "exit":
-                case "esc":
-                    return null;
-            }
-
-            foreach (var parser in _utteranceParsers)
-            {
-                var result = parser(utterance);
-                if (result != null)
-                    return result;
-            }
-
-            return null;
-        }
-
+        
         internal void Close()
         {
             _manager.Close();

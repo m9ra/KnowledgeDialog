@@ -61,7 +61,7 @@ namespace WebBackend
 
 
             //handle dialog initialization
-            var id = GET(experimentName + "taskid");
+            var id = experimentName + GET("taskid");
             if (experimentData.CheckIdChange(id))
             {
                 //id of task has changed - we have to remove old dialog console

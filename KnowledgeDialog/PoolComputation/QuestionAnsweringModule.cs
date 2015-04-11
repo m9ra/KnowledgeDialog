@@ -150,7 +150,17 @@ namespace KnowledgeDialog.PoolComputation
             {
                 _negate.ReportParameter("question", question);
                 _negate.SaveReport();
-                throw new NotImplementedException();
+
+                var bestHypothesis = GetHypotheses(question).FirstOrDefault();
+                if (bestHypothesis == null)
+                    //we cannot learn anything
+                    return;
+
+                var currentAnswer = getActualAnswer(bestHypothesis.Item1);
+                foreach (var answer in currentAnswer)
+                {
+                    bestHypothesis.Item1.ActionBlock.OutputFilter.Advice(answer, false);
+                }
             }
         }
 

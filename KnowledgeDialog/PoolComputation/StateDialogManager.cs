@@ -247,6 +247,11 @@ namespace KnowledgeDialog.PoolComputation
             return getResponse(originalUtterance);
         }
 
+        public ResponseBase Input(string input)
+        {
+            return getResponse(input);
+        }
+
         #endregion
 
         public void Close()

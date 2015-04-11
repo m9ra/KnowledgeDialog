@@ -42,7 +42,8 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
             }
             else
             {
-                throw new NotImplementedException("Find criterion");
+                //TODO find criterion
+                response = Response("There is too much information for output. Please be more specific");
             }
 
 

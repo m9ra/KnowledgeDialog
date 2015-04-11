@@ -11,9 +11,6 @@ using KnowledgeDialog.Dialog.Responses;
 
 using KnowledgeDialog.PoolComputation.PoolActions;
 
-using KnowledgeDialog.PoolComputation.Frames;
-using KnowledgeDialog.PoolComputation.ModifiableResponses;
-
 using KnowledgeDialog.PoolComputation.StateDialog;
 using KnowledgeDialog.PoolComputation.StateDialog.States;
 

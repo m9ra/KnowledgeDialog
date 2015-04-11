@@ -13,7 +13,5 @@ namespace KnowledgeDialog.PoolComputation
         int Priority { get; }
 
         void Run(ContextPool context);
-
-        bool HasSamePoolEffectAs(IPoolAction action);
     }
 }

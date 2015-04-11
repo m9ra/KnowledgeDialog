@@ -133,52 +133,7 @@ namespace KnowledgeDialog
             var test2 = classifier.Classify(node5);
         }
 
-        private static void ExtendLearningDialog()
-        {
-            var manager = new PoolComputation.DialogManager(new Database.PresidentLayer());
-            var provider = new DialogConsole(new PoolComputation.ConsoleDecorator(manager));
-
-            provider.SimulateInput(
-             "president of USA?",
-             "it is Barack_Obama",
-             "president of CZ?",
-             "name of his wife?",
-             "yes",
-             "it is Ivana_Zemanová",
-             "president of D?",
-             "his wife?"
-             );
-
-            provider.Run();
-        }
-
-        private static void PoolDialog()
-        {
-            var manager = new PoolComputation.DialogManager(new Database.PresidentLayer());
-            var provider = new DialogConsole(new PoolComputation.ConsoleDecorator(manager));
-
-            provider.SimulateInput(
-             "president of USA?",
-             "it is Barack_Obama",
-             "president of USA?",
-             "you should say his name i_s Barack_Obama",
-             "president of USA?",
-             "wife of president in USA?",
-             "it is Michelle_Obama",
-             "no",
-             "wife of president in CZ?",
-             "you should say her name i_s Ivana_Zemanová",
-             "wife of president in D?",
-             "you should say her name i_s Gerhild_Radtke?",
-             "president of SK?",
-             "you should say his name i_s Andrej_Kiska",
-             "wife of president in SK?",
-             "president of CZ?"
-             );
-
-            provider.Run();
-        }
-   
+       
         private static void debugDialog1(DialogConsole provider)
         {
             provider.SimulateInput(

@@ -280,6 +280,10 @@ namespace KnowledgeDialog.PoolComputation
                 actionBlock = pushAdvice(question, correctAnswerNode);
             }
 
+            if (actionBlock == null)
+                //we are not able to learn this
+                return false;
+
             var pool = Pool.Clone();
             runActions(pool, actionBlock);
             if (!pool.ActiveNodes.Contains(correctAnswerNode))
@@ -369,7 +373,8 @@ namespace KnowledgeDialog.PoolComputation
             }
 
             if (shortestPath == null)
-                throw new NotImplementedException("There is no extending path");
+                //we cannot learn this for now
+                return null;
 
             var poolAction = new ExtendAction(shortestPath);
             return new ActionBlock(Pool.Graph, new[] { poolAction });
@@ -490,43 +495,6 @@ namespace KnowledgeDialog.PoolComputation
         private NodeReference getNode(string word)
         {
             return Graph.GetNode(word);
-        }
-
-        private KnowledgePath getCommonPath(IEnumerable<NodeReference> nodesEnumeration)
-        {
-            var nodes = nodesEnumeration.ToArray();
-            if (nodes.Length < 2)
-                throw new NotImplementedException();
-
-            //TODO this is simple implementation - should be improved
-            foreach (var path in Graph.GetPaths(nodes[0], nodes[1], MaximumGraphDepth, MaximumGraphWidth))
-            {
-                //Test if path is a pallindrome
-                if (path.Length % 2 == 1)
-                    //path has to be even to be pallindrome
-                    continue;
-
-                var isPallindrome = true;
-                for (var i = 0; i < path.Length / 2; ++i)
-                {
-                    var j = path.Length - i - 1;
-                    var edge1 = path.Edge(i);
-                    var edge2 = path.Edge(j);
-                    var isOut1 = path.IsOutcomming(i);
-                    var isOut2 = path.IsOutcomming(j);
-
-                    if (edge1 != edge2 || isOut1 == isOut2)
-                    {
-                        isPallindrome = false;
-                        break;
-                    }
-                }
-
-                if (isPallindrome)
-                    return path.TakeEnding(path.Length / 2);
-            }
-
-            return null;
         }
 
         private HashSet<Tuple<string, bool>> getCommonEdges(IEnumerable<NodeReference> nodes)

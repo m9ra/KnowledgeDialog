@@ -47,7 +47,6 @@
   <ItemGroup>
     <Compile Include="Database\CallStorage.cs" />
     <Compile Include="Database\FlatPresidentLayer.cs" />
-    <Compile Include="Database\FreebaseConnector.cs" />
     <Compile Include="Database\PresidentLayer.cs" />
     <Compile Include="Dialog\DoubleMetaphone.cs" />
     <Compile Include="Database\TripletLoader\Loader.cs" />
@@ -74,12 +73,8 @@
     <Compile Include="Knowledge\NodeReference.cs" />
     <Compile Include="Knowledge\PathSegment.cs" />
     <Compile Include="PoolComputation\ActionBlock.cs" />
-    <Compile Include="PoolComputation\ActionGroup.cs" />
-    <Compile Include="PoolComputation\ConsoleDecorator.cs" />
-    <Compile Include="PoolComputation\Frames\YesNoFrame.cs" />
     <Compile Include="PoolComputation\IMappingProvider.cs" />
     <Compile Include="PoolComputation\MappingControl.cs" />
-    <Compile Include="PoolComputation\ModifiableResponses\FrameResponse.cs" />
     <Compile Include="PoolComputation\PoolActions\ExtendAction.cs" />
     <Compile Include="PoolComputation\PoolActions\InsertAction.cs" />
     <Compile Include="PoolComputation\QuestionAnsweringModule.cs" />
@@ -105,22 +100,13 @@
     <Compile Include="PoolComputation\StateDialog\Trigger.cs" />
     <Compile Include="PoolComputation\TriggerGroup.cs" />
     <Compile Include="PoolComputation\UtteranceMapping.cs" />
-    <Compile Include="PoolComputation\ConversationFrameBase.cs" />
-    <Compile Include="PoolComputation\DialogContext.cs" />
-    <Compile Include="PoolComputation\Frames\ChangeResponseFrame.cs" />
-    <Compile Include="PoolComputation\Frames\AskAction.cs" />
-    <Compile Include="PoolComputation\Frames\QueryAdviceFrame.cs" />
-    <Compile Include="PoolComputation\Frames\QuestionAnsweringFrame.cs" />
-    <Compile Include="PoolComputation\GroupContext.cs" />
     <Compile Include="PoolComputation\ModifiableResponse.cs" />
     <Compile Include="PoolComputation\ModifiableResponses\NoContextResponse.cs" />
     <Compile Include="PoolComputation\ModifiableResponses\SurroundedResponse.cs" />
     <Compile Include="PoolComputation\PoolActions\ConstraintAction.cs" />
     <Compile Include="PoolComputation\PoolHypothesis.cs" />
     <Compile Include="PoolComputation\SemanticPart.cs" />
-    <Compile Include="PoolComputation\PoolActionMapping.cs" />
     <Compile Include="PoolComputation\ContextPool.cs" />
-    <Compile Include="PoolComputation\DialogManager.cs" />
     <Compile Include="PoolComputation\IPoolAction.cs" />
     <Compile Include="PoolComputation\PoolActions\PushAction.cs" />
     <Compile Include="Program.cs" />

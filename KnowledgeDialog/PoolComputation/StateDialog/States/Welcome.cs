@@ -8,11 +8,9 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
 {
     class Welcome:StateBase
     {
-
-
         protected override ModifiableResponse execute()
         {
-            throw new NotImplementedException();
+            return Response("Welcome, how can I help you?");
         }
     }
 }

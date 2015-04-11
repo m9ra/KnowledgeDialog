@@ -27,10 +27,5 @@ namespace KnowledgeDialog.PoolComputation.PoolActions
             context.ClearAccumulator();
             context.Insert(Node);
         }
-
-        public bool HasSamePoolEffectAs(IPoolAction action)
-        {
-            throw new NotImplementedException();
-        }
-    }
+            }
 }

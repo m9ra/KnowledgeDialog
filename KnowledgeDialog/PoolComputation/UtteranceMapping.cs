@@ -203,7 +203,7 @@ namespace KnowledgeDialog.PoolComputation
 
         public void DesiredScore(object index, double score)
         {
-            //throw new NotImplementedException();
+            //TODO don't use this information for now
         }
     }
 }

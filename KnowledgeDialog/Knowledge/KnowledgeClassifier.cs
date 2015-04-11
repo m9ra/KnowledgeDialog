@@ -54,16 +54,6 @@ namespace KnowledgeDialog.Knowledge
             retrain();
         }
 
-        /// <summary>
-        /// Negate class presence for given node.
-        /// </summary>
-        /// <param name="node">Node which classification is improved.</param>
-        /// <param name="cls">Negated class.</param>
-        public void Negate(NodeReference node, ClassType cls)
-        {
-            throw new NotImplementedException();
-        }
-
         #region Classification utilities
 
         private ClassType classify(NodeReference node, KnowledgeRule rule)

@@ -30,10 +30,5 @@ namespace KnowledgeDialog.PoolComputation.PoolActions
         {
             context.ExtendBy(_path);
         }
-
-        public bool HasSamePoolEffectAs(IPoolAction action)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

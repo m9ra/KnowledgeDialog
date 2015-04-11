@@ -95,7 +95,7 @@ namespace KnowledgeDialog.PoolComputation.ModifiableResponses
             switch (nodes.Count())
             {
                 case 0:
-                    throw new NotImplementedException();
+                    throw new NotSupportedException("Cannot get patter for zero nodes");
 
                 case 1:
                     if (_singleDefaultValue != null)
@@ -119,7 +119,7 @@ namespace KnowledgeDialog.PoolComputation.ModifiableResponses
             switch (nodes.Count())
             {
                 case 0:
-                    throw new NotImplementedException();
+                    throw new NotSupportedException("Cannot set patter for zero nodes");
 
                 case 1:
                     _singleDefaultValue = null;

@@ -102,7 +102,7 @@ namespace KnowledgeDialog.Dialog
                         var startIndex = sentence.IndexOf(unigrams[ngramOffset]);
 
                         var endWord = unigrams[ngramOffset + n - 1];
-                        var endIndex = sentence.IndexOf(endWord)+endWord.Length;
+                        var endIndex = sentence.IndexOf(endWord) + endWord.Length;
 
                         var original = sentence.Substring(startIndex, endIndex - startIndex);
                         var searchResult = new StringSearchResult(startIndex, match.Item1, original);

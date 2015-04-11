@@ -26,6 +26,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
 
             _edge = edge;
         }
+
         internal IEnumerable<Tuple<Trigger, string, double, string>> GetScore(StateGraphBuilder state)
         {
             if (_utterance != null)
@@ -37,7 +38,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
                 return state.DirectEdge(_edge);
             }
             {
-                throw new NotImplementedException();
+                throw new NotSupportedException("Current transition is not supported");
             }
         }
     }

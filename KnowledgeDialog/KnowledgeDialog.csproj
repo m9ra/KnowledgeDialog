@@ -87,7 +87,6 @@
     <Compile Include="PoolComputation\StateDialog\StateProperty.cs" />
     <Compile Include="PoolComputation\StateDialog\States\AcceptAdvice.cs" />
     <Compile Include="PoolComputation\StateDialog\States\ApologizeState.cs" />
-    <Compile Include="PoolComputation\StateDialog\States\CantHelp.cs" />
     <Compile Include="PoolComputation\StateDialog\States\RequestContext.cs" />
     <Compile Include="PoolComputation\StateDialog\States\EmptyState.cs" />
     <Compile Include="PoolComputation\StateDialog\States\EquivalenceAdvice.cs" />

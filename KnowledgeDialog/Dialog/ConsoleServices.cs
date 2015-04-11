@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 using KnowledgeDialog.Knowledge;
-using KnowledgeDialog.PatternComputation;
 
 using KnowledgeDialog.Dialog.Responses;
 
@@ -44,23 +43,7 @@ namespace KnowledgeDialog.Dialog
             Print(": ", OperatorColor);
             PrintLine(hypothesis.Item2, ConfidenceColor);
         }
-
-        /// <summary>
-        /// Print formated pattern.
-        /// </summary>
-        /// <param name="pattern">Formated pattern.</param>
-        internal static void Print(WeightedPattern pattern)
-        {
-            var contextNodes = string.Join(",", pattern.Action.ContextNodes);
-            ConsoleServices.PrintLine("[" + contextNodes + "]", NodeColor);
-            ConsoleServices.Indent(1);
-            foreach (var feature in pattern.Features)
-            {
-                ConsoleServices.Print(feature.Path);
-            }
-            ConsoleServices.Indent(-1);
-        }
-
+     
         /// <summary>
         /// Begin new section with given name.
         /// </summary>

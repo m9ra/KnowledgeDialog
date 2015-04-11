@@ -8,7 +8,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Database;
 using KnowledgeDialog.Knowledge;
-using KnowledgeDialog.PatternComputation;
 
 using DialogTesting.Utilities;
 

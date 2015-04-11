@@ -8,7 +8,6 @@ using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Knowledge;
 
 using KnowledgeDialog.Database;
-using KnowledgeDialog.PatternComputation;
 
 namespace KnowledgeDialog
 {
@@ -134,20 +133,6 @@ namespace KnowledgeDialog
             var test2 = classifier.Classify(node5);
         }
 
-        private static void PatternDialog()
-        {
-            var manager = new PatternComputation.DialogManager(new Database.PresidentLayer());
-            var decoratedManager = new PatternComputation.ConsoleDecorator(manager);
-            var provider = new DialogConsole(decoratedManager);
-
-            //demoMatching();
-            //demoDialog1(provider);
-            contextDialog(provider);
-            //debugDialog1(provider);
-
-            provider.Run();
-        }
-
         private static void ExtendLearningDialog()
         {
             var manager = new PoolComputation.DialogManager(new Database.PresidentLayer());
@@ -193,26 +178,7 @@ namespace KnowledgeDialog
 
             provider.Run();
         }
-
-        private static void demoMatching()
-        {
-            var dataLayer = new PresidentLayer();
-            var dialogLayer = new MultiTurnDialogLayer();
-            var graph = new ComposedGraph(dataLayer, dialogLayer);
-
-            var node1 = ComposedGraph.Active;
-            var node2 = "USA";
-
-            DialogManager.FillDialogLayer(dialogLayer, "president of USA");
-
-            var paths = new[] { graph.GetPaths(graph.GetNode(node1), graph.GetNode(node2), 100, 100).First() };
-            var group = new KnowledgeGroup(paths);
-
-            DialogManager.FillDialogLayer(dialogLayer, "president2 of USA");
-
-            var evaluation = new PatternComputation.PartialMatching.PartialEvaluation(group, graph);
-        }
-
+   
         private static void debugDialog1(DialogConsole provider)
         {
             provider.SimulateInput(

@@ -52,7 +52,6 @@
   <ItemGroup>
     <Compile Include="Utilities\Graphs.cs" />
     <Compile Include="KnowledgeClassifierTests.cs" />
-    <Compile Include="DialogLayerTests.cs" />
     <Compile Include="Utilities\KnowledgeClassifierUtilities.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

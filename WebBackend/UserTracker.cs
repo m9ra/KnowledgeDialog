@@ -26,6 +26,10 @@ namespace WebBackend
         /// </summary>
         private static readonly Dictionary<string, UserTracker> _trackers = new Dictionary<string, UserTracker>();
 
+        private static readonly CallStorage _feedbackStorage;
+
+        private static readonly CallSerializer _feedbackCall;
+
         /// <summary>
         /// Mapping between storages and consolas.
         /// </summary>
@@ -51,12 +55,21 @@ namespace WebBackend
         /// </summary>
         public readonly string UserID;
 
+        public bool HasTaskLimit;
+
         /// <summary>
         /// Tasks that has been completed by user.
         /// </summary>
         public IEnumerable<string> CompletedTasks { get { return _tasks; } }
 
         public WebConsole ActualConsole { get { return getConsole(); } }
+
+        static UserTracker()
+        {
+            var feedbackPath = Path.Combine(Program.RootPath, "data/storages", "feedback" + ".json");
+            _feedbackStorage = new CallStorage(feedbackPath);
+            _feedbackCall = _feedbackStorage.RegisterCall("Feedback", (c) => { });
+        }
 
         private UserTracker(string id)
         {
@@ -71,7 +84,7 @@ namespace WebBackend
             _storage.ReadStorage();
 
             if (!isInitialized)
-                logInfo("user trakcer initialized");
+                logInfo("tracker initialized");
         }
 
         /// <summary>
@@ -97,14 +110,21 @@ namespace WebBackend
         }
 
         /// <summary>
-        /// Reset tracker associated with given storage.
+        /// Reset console associated with given storage.
         /// </summary>
         /// <param name="storageFullPath">Full path of associated storage.</param>
-        internal void Reset()
+        internal void ResetConsole()
         {
             logUtterance("reset");
-            if (_actualStorageFullpath != null)
-                _consoleMapping.Remove(_actualStorageFullpath);
+            if (_actualStorageFullpath == null)
+                _actualStorageFullpath = "";
+            WebConsole console;
+            if (!_consoleMapping.TryGetValue(_actualStorageFullpath, out console))
+                //nothing to do
+                return;
+
+            console.Close();
+            _consoleMapping.Remove(_actualStorageFullpath);
         }
 
         /// <summary>
@@ -117,6 +137,18 @@ namespace WebBackend
             var console = getConsole();
             if (utterance != null)
                 console.Input(utterance);
+        }
+
+        internal void Feedback(string message)
+        {
+            lock (_L_trackers)
+            {
+                _feedbackCall.ReportParameter("time", DateTime.Now.ToString());
+                _feedbackCall.ReportParameter("user_id", UserID);
+                _feedbackCall.ReportParameter("message", message);
+                _feedbackCall.ReportParameter("actual_storage", _actualStorageFullpath);
+                _feedbackCall.SaveReport();
+            }
         }
 
         internal void SetActualStorage(string storageFullPath)
@@ -184,12 +216,6 @@ namespace WebBackend
             _infoCall.ReportParameter("time", DateTime.Now.ToString());
             _infoCall.ReportParameter("message", info);
             _infoCall.SaveReport();
-        }
-
-
-        internal void Remove()
-        {
-            _trackers.Remove(_actualStorageFullpath);
         }
     }
 }

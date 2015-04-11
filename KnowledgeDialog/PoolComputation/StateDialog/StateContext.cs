@@ -114,5 +114,10 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
         {
             return _storedValues.ContainsKey(property);
         }
+
+        internal void Close()
+        {
+            CallStorage.Close();
+        }
     }
 }

@@ -18,7 +18,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
 
         protected override ModifiableResponse execute()
         {
-            var question = Context.Get(AdviceRouting.QuestionProperty);
+            var question = Context.Get(RequestAnswer.QuestionProperty);
             if (question == null)
                 throw new NotSupportedException("Cannot provide answer without question");
 
@@ -46,7 +46,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
             }
 
 
-            Context.Remove(AdviceRouting.QuestionProperty);
+            Context.Remove(RequestAnswer.QuestionProperty);
 
             EmitEdge(QuestionAnswered);
             return response;

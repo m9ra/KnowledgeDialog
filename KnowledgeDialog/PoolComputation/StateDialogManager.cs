@@ -31,6 +31,8 @@ namespace KnowledgeDialog.PoolComputation
 
         private StateGraphBuilder _currentState = null;
 
+        private readonly StateGraphBuilder QuestionRouting;
+
         public StateDialogManager(string serializationOutput, params GraphLayerBase[] layers)
             : this(new StateContext(new ComposedGraph(layers), serializationOutput))
         {
@@ -44,35 +46,40 @@ namespace KnowledgeDialog.PoolComputation
             S<Welcome>()
                 .Default(S<HowCanIHelp>());
 
-            var QuestionRouting = EmptyState(true);
+            QuestionRouting = EmptyState(true);
             S<HowCanIHelp>()
                 .Default(QuestionRouting);
 
-            S<AdviceRouting>()
-                .Edge("it is *", S<AcceptAdvice>(), AcceptAdvice.CorrectAnswerProperty)
-                .Edge("* is the correct answer", S<AcceptAdvice>(), AcceptAdvice.CorrectAnswerProperty)
-                .YesNoEdge(S<AcceptAdvice>(), AcceptAdvice.IsBasedOnContextProperty)
-                .Default(S<AdviceRouting>());
+            S<ApologizeState>()
+                .Default(QuestionRouting);
+
+            S<RequestContext>()
+                .YesNoEdge(S<RequestContext>(), AcceptAdvice.IsBasedOnContextProperty)
+                .Default(S<ApologizeState>());
+
+            S<RequestAnswer>()
+                .IsEdge(S<AcceptAdvice>(), AcceptAdvice.CorrectAnswerProperty)                
+                .Default(S<ApologizeState>());
 
             S<AcceptAdvice>()
                 //when info is missing, we have to go back to advice routing
-                .Edge(AcceptAdvice.MissingInfoEdge, S<AdviceRouting>())
+                .Edge(AcceptAdvice.MissingInfoEdge, S<RequestAnswer>())
                 //when advice handling is completed go to QuestionRouting
                 .Default(QuestionRouting);
 
             QuestionRouting
                 //we know requested question
-                .HasMatch(_context.QuestionAnsweringModule.Triggers, S<QuestionAnswering>(), AdviceRouting.QuestionProperty)
+                .HasMatch(_context.QuestionAnsweringModule.Triggers, S<QuestionAnswering>(), RequestAnswer.QuestionProperty)
 
                 .Edge(EquivalenceQuestion.EquivalenceEdge, S<EquivalenceQuestion>())
-                .Edge("it is *", S<RepairAnswer>(), AcceptAdvice.CorrectAnswerProperty)
-                .Edge("* is the correct answer", S<RepairAnswer>(), AcceptAdvice.CorrectAnswerProperty)
+
+                .IsEdge(S<AcceptAdvice>(), AcceptAdvice.CorrectAnswerProperty)             
 
                 //question is not recognized as advice
-                .Default(S<AdviceRouting>(), AdviceRouting.QuestionProperty);
+                .Default(S<RequestAnswer>(), RequestAnswer.QuestionProperty);
 
             S<QuestionAnswering>()
-                .TakeEdgesFrom(S<AdviceRouting>())
+                .TakeEdgesFrom(S<RequestAnswer>())
                 .Default(QuestionRouting);
 
             S<RepairAnswer>()
@@ -83,7 +90,7 @@ namespace KnowledgeDialog.PoolComputation
                 .YesNoEdge(S<EquivalenceAdvice>(), EquivalenceAdvice.IsEquivalent);
 
             S<EquivalenceAdvice>()
-                .Edge(EquivalenceAdvice.NoEquivalency, S<AdviceRouting>())
+                .Edge(EquivalenceAdvice.NoEquivalency, S<RequestAnswer>())
                 .Default(S<QuestionAnswering>());
         }
 
@@ -145,10 +152,11 @@ namespace KnowledgeDialog.PoolComputation
                     {
                         trigger = _currentState.DefaultTrigger;
                     }
-                    else if (confidence < 0.9)
+                    else if (confidence < 0.9 && _currentState==QuestionRouting)
                     {
                         _context.SetValue(EquivalenceQuestion.QueriedQuestion, utterance);
-                        _context.SetValue(EquivalenceQuestion.PatternQuestion, bestHypothesis.Item4);
+                        var substitution = substitute(bestHypothesis.Item4, utterance);
+                        _context.SetValue(EquivalenceQuestion.PatternQuestion, substitution);
                         edgeInput = new EdgeInput(EquivalenceQuestion.EquivalenceEdge);
                         continue;
                     }
@@ -177,6 +185,36 @@ namespace KnowledgeDialog.PoolComputation
 
             var concatenation = from response in responses select response.CreateResponse().ToString();
             return new SimpleResponse(string.Join(".", concatenation));
+        }
+
+        private string substitute(string pattern, string utterance)
+        {
+            var patternNodes = QuestionAnsweringModule.GetRelatedNodes(pattern, _context.Graph);
+            var utteranceNodes = QuestionAnsweringModule.GetRelatedNodes(utterance, _context.Graph);
+
+            var result = repairSpelling(pattern);
+            foreach (var patternNode in patternNodes)
+            {
+                var nearest = QuestionAnsweringModule.GetNearest(patternNode, utteranceNodes, _context.Graph);
+                result = result.Replace(patternNode.Data.ToString(), nearest.Data.ToString());
+            }
+
+            return result;
+        }
+
+        private string repairSpelling(string utterance)
+        {
+            var sentence = SentenceParser.Parse(utterance);
+            var builder = new StringBuilder();
+            foreach (var word in sentence.Words)
+            {
+                if (builder.Length > 0)
+                    builder.Append(' ');
+
+                builder.Append(word);
+            }
+
+            return builder.ToString();
         }
 
         private ModifiableResponse fireTrigger(Trigger trigger)
@@ -213,5 +251,10 @@ namespace KnowledgeDialog.PoolComputation
         }
 
         #endregion
+
+        public void Close()
+        {
+            _context.Close();
+        }
     }
 }

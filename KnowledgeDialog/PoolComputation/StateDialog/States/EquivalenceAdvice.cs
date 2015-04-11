@@ -19,7 +19,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
             var queriedQuestion = Context.Get(EquivalenceQuestion.QueriedQuestion);
 
             Context.QuestionAnsweringModule.SetEquivalence(patternQuestion, queriedQuestion, isEquivalent);
-            Context.SetValue(AdviceRouting.QuestionProperty, queriedQuestion);
+            Context.SetValue(RequestAnswer.QuestionProperty, queriedQuestion);
 
             if (isEquivalent)
             {

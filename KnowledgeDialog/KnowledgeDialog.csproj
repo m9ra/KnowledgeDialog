@@ -109,13 +109,15 @@
     <Compile Include="PoolComputation\StateDialog\StateGraphBuilder.cs" />
     <Compile Include="PoolComputation\StateDialog\StateProperty.cs" />
     <Compile Include="PoolComputation\StateDialog\States\AcceptAdvice.cs" />
+    <Compile Include="PoolComputation\StateDialog\States\ApologizeState.cs" />
     <Compile Include="PoolComputation\StateDialog\States\CantHelp.cs" />
+    <Compile Include="PoolComputation\StateDialog\States\RequestContext.cs" />
     <Compile Include="PoolComputation\StateDialog\States\EmptyState.cs" />
     <Compile Include="PoolComputation\StateDialog\States\EquivalenceAdvice.cs" />
     <Compile Include="PoolComputation\StateDialog\States\EquivalenceQuestion.cs" />
     <Compile Include="PoolComputation\StateDialog\States\HowCanIHelp.cs" />
     <Compile Include="PoolComputation\StateDialog\States\QuestionAnswering.cs" />
-    <Compile Include="PoolComputation\StateDialog\States\AdviceRouting.cs" />
+    <Compile Include="PoolComputation\StateDialog\States\RequestAnswer.cs" />
     <Compile Include="PoolComputation\StateDialog\States\RepairAnswer.cs" />
     <Compile Include="PoolComputation\StateDialog\States\Welcome.cs" />
     <Compile Include="PoolComputation\StateDialog\Trigger.cs" />

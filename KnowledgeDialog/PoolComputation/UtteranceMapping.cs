@@ -131,15 +131,17 @@ namespace KnowledgeDialog.PoolComputation
                 return Tuple.Create<string, double>(null, 0);
             }
 
-            var patternWords = new HashSet<string>(pattern.Words);
-            var sentenceWords = new HashSet<string>(sentence.Words);
+            var comparer = StringComparer.InvariantCultureIgnoreCase;
+
+            var patternWords = new HashSet<string>(pattern.Words, comparer);
+            var sentenceWords = new HashSet<string>(sentence.Words, comparer);
 
             var isPattern = patternWords.Remove("*");
-            var union = patternWords.Union(sentenceWords).ToArray();
-            var intersection = patternWords.Intersect(sentenceWords).ToArray();
+            var union = patternWords.Union(sentenceWords, comparer).ToArray();
+            var intersection = patternWords.Intersect(sentenceWords, comparer).ToArray();
 
             var nodeWords = union.Where(w => _graph.HasEvidence(w)).ToArray();
-            var syntacticWords = union.Except(nodeWords).ToArray();
+            var syntacticWords = union.Except(nodeWords, comparer).ToArray();
 
             string substitution = null;
             if (isPattern)
@@ -150,9 +152,9 @@ namespace KnowledgeDialog.PoolComputation
                 var minIndex = int.MaxValue;
                 var maxIndex = int.MinValue;
                 string minWord = null, maxWord = null;
-                foreach (var word in sentenceWords.Except(intersection))
+                foreach (var word in sentenceWords.Except(intersection, comparer))
                 {
-                    var index = sentence.OriginalSentence.IndexOf(word);
+                    var index = sentence.OriginalSentence.IndexOf(word, StringComparison.InvariantCultureIgnoreCase);
                     if (index < minIndex)
                     {
                         minIndex = index;
@@ -174,12 +176,12 @@ namespace KnowledgeDialog.PoolComputation
 
             var substitutionBonus = isPattern ? 1.0 : 0.0;
 
-            var syntacticUnion = union.Intersect(syntacticWords).ToArray();
-            var syntacticIntersection = intersection.Intersect(syntacticWords).ToArray();
+            var syntacticUnion = union.Intersect(syntacticWords, comparer).ToArray();
+            var syntacticIntersection = intersection.Intersect(syntacticWords, comparer).ToArray();
             var syntacticSimilarity = 1.0 * (syntacticIntersection.Length + 1) / (syntacticUnion.Length + 1);
 
-            var nodeUnion = union.Intersect(nodeWords).ToArray();
-            var nodeIntersection = intersection.Intersect(nodeWords).ToArray();
+            var nodeUnion = union.Intersect(nodeWords, comparer).ToArray();
+            var nodeIntersection = intersection.Intersect(nodeWords, comparer).ToArray();
             var nodeSimilarity = 1.0 * (nodeIntersection.Length + 1 + substitutionBonus) / (nodeUnion.Length + 1);
 
             var similarity = 0.9 * syntacticSimilarity + 0.1 * nodeSimilarity;
@@ -196,7 +198,7 @@ namespace KnowledgeDialog.PoolComputation
             return !(
                 _disabledEquivalencies.TryGetValue(patternSignature, out disabled) &&
                 disabled.Contains(sentenceSignature)
-                );            
+                );
         }
 
         public void DesiredScore(object index, double score)

@@ -19,7 +19,10 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
 
         protected override ModifiableResponse execute()
         {
-            var unknownQuestion = Context.Get(AdviceRouting.QuestionProperty);
+            var unknownQuestion = Context.Get(RequestAnswer.QuestionProperty);
+            if (unknownQuestion == null)
+                unknownQuestion = Context.Get(QuestionAnswering.LastQuestion);
+
             var correctAnswer = Context.Get(CorrectAnswerProperty);
             var isBasedOnContext = Context.IsTrue(IsBasedOnContextProperty);
             var hasContextAnswer = Context.IsSet(IsBasedOnContextProperty);
@@ -48,7 +51,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
 
             Context.Remove(CorrectAnswerProperty);
             Context.Remove(IsBasedOnContextProperty);
-            Context.Remove(AdviceRouting.QuestionProperty);
+            Context.Remove(RequestAnswer.QuestionProperty);
 
             EmitEdge(AdviceAcceptedEdge);
             return Response("Thank you");

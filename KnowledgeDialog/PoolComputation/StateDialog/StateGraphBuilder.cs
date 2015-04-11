@@ -37,7 +37,6 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
             return this;
         }
 
-
         internal StateGraphBuilder DefaultForward(StateGraphBuilder nextState, StateProperty inputProperty = null)
         {
             DefaultTrigger = new Trigger(nextState, (c) =>
@@ -60,6 +59,15 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
         {
             var trigger = new Trigger(nextState, (c) => c.SetValue(inputProperty, c.Input));
             _externalTriggers.Add(group, trigger);
+            return this;
+        }
+
+        internal StateGraphBuilder IsEdge(StateGraphBuilder stateGraphBuilder, StateProperty stateProperty)
+        {
+            this
+                .Edge("it is *", stateGraphBuilder, stateProperty)
+                .Edge("* is the correct answer", stateGraphBuilder, stateProperty);
+
             return this;
         }
 

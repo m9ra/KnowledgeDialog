@@ -25,7 +25,7 @@ namespace WebBackend
             _tasks.Add(task);
         }
 
-        public static TaskInstance GetTask(UserTracker user)
+        public static TaskInstance GetTask(UserTracker user, bool hasTaskLimit)
         {
             foreach (var task in _tasks)
             {
@@ -34,6 +34,14 @@ namespace WebBackend
                 {
                     return createInstance(task, user);
                 }
+            }
+
+            if (!hasTaskLimit)
+            {
+                var rndIndex = _rnd.Next(_tasks.Count);
+                var task = _tasks[rndIndex];
+
+                return createInstance(task, user);
             }
 
             return null;

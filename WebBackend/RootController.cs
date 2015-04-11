@@ -15,42 +15,75 @@ namespace WebBackend
         public void index()
         {
             var dialogStorage = GET("storage");
-            var tracker = fillAndGetTracker(dialogStorage);
+            var tracker = fillAndGetUserTracker(dialogStorage);
 
             SetParam("dialog", tracker.GetDialogHTML());
             Layout("layout.haml");
             Render("index.haml");
         }
 
-        public void experiment()
+        public void experiment0()
         {
+            var experimentName = "experiment0";
+
+            experimetHandler(experimentName, true);
+        }
+
+        public void public_experiment()
+        {
+            var experimentName = "public_experiment";
+
+            experimetHandler(experimentName, false);
+        }
+
+        private void experimetHandler(string experimentName, bool enableTaskLimit)
+        {
+
+            //require experiment data for each user
             var experimentData = Session<ExperimentData>();
             if (experimentData == null)
                 experimentData = Session<ExperimentData>(new ExperimentData());
 
-            var tracker = fillAndGetTracker("experiment");
-            var id = GET("taskid");
-            if (experimentData.CheckIdChange(id))
+            var user = fillAndGetUserTracker(experimentName);
+            user.HasTaskLimit = enableTaskLimit;
+
+            //handle feedback
+            var feedback = GET("feedback");
+            if (feedback != null)
             {
-                tracker.LogMessage("start " + id);
-                tracker.Remove();
+                user.Feedback(feedback);
+
+                //redirect because of avoiding multiple feedback sending
+                Flash("message", "<h3>Your feedback has been saved. Thank you!</h3>");
+                RedirectTo(experimentName);
+                return;
             }
 
-            if (tracker.ActualConsole != null && tracker.ActualConsole.Task != null && tracker.ActualConsole.Task.IsComplete)
+
+            //handle dialog initialization
+            var id = GET(experimentName + "taskid");
+            if (experimentData.CheckIdChange(id))
+            {
+                //id of task has changed - we have to remove old dialog console
+                user.LogMessage("start " + id);
+                user.ResetConsole();
+            }
+
+            if (user.ActualConsole != null && user.ActualConsole.Task != null && user.ActualConsole.Task.IsComplete)
                 //user is returning to experiment page after task completition - we can reset it
-                tracker.Reset();
+                user.ResetConsole();
 
 
+            //render the page
             Layout("layout.haml");
-            if (tracker.ActualConsole == null || tracker.ActualConsole.Task == null)
+            if (user.ActualConsole == null || user.ActualConsole.Task == null)
             {
                 Render("no_tasks.haml");
             }
             else
             {
-                SetParam("dialog", tracker.GetDialogHTML());
-                SetParam("task", tracker.ActualConsole.Task.Text);
-
+                SetParam("dialog", user.GetDialogHTML());
+                SetParam("task", user.ActualConsole.Task.Text);
 
                 Render("experiment.haml");
             }
@@ -59,7 +92,7 @@ namespace WebBackend
         public void dialog_data()
         {
             var utterance = GET("utterance");
-            var tracker = fillAndGetTracker(null, utterance);
+            var tracker = fillAndGetUserTracker(null, utterance);
             if (tracker.ActualConsole == null)
                 return;
 
@@ -90,7 +123,7 @@ namespace WebBackend
             return data.GetCurrentSuccessCode();
         }
 
-        private UserTracker fillAndGetTracker(string dialogStorageName, string utterance = null)
+        private UserTracker fillAndGetUserTracker(string dialogStorageName, string utterance = null)
         {
             var storageFullPath = dialogStorageName == null ? null : Path.Combine(RootPath, "data/storages", dialogStorageName) + ".dialog";
 
@@ -101,8 +134,8 @@ namespace WebBackend
             var isReset = (utterance != null && utterance.Trim() == "reset");
 
             if (isReset)
-                tracker.Reset();
-            else
+                tracker.ResetConsole();
+            else if (utterance != null)
                 tracker.Input(utterance);
 
             return tracker;

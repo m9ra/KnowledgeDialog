@@ -24,9 +24,9 @@ namespace KnowledgeDialog.PoolComputation
 
         internal readonly UtteranceMapping<ActionBlock> Triggers;
 
-        internal readonly int MaximumGraphDepth = 3;
+        internal static readonly int MaximumGraphDepth = 3;
 
-        internal readonly int MaximumGraphWidth = 1000;
+        internal static readonly int MaximumGraphWidth = 1000;
 
         private readonly CallSerializer _adviceAnswer;
 
@@ -46,12 +46,12 @@ namespace KnowledgeDialog.PoolComputation
 
             _adviceAnswer = storage.RegisterCall("AdviceAnswer", c =>
             {
-                _AdviceAnswer(c.String("question"), c.Bool("isBasedOnContext"), c.Node("correctAnswerNode", Graph), c.Nodes("context",Graph));
+                _AdviceAnswer(c.String("question"), c.Bool("isBasedOnContext"), c.Node("correctAnswerNode", Graph), c.Nodes("context", Graph));
             });
 
             _repairAnswer = storage.RegisterCall("RepairAnswer", c =>
             {
-                _RepairAnswer(c.String("question"), c.Node("suggestedAnswer", Graph),c.Nodes("context",Graph));
+                _RepairAnswer(c.String("question"), c.Node("suggestedAnswer", Graph), c.Nodes("context", Graph));
             });
 
             _setEquivalencies = storage.RegisterCall("SetEquivalence", c =>
@@ -184,7 +184,7 @@ namespace KnowledgeDialog.PoolComputation
         internal IEnumerable<Tuple<PoolHypothesis, MappingControl>> GetControlledHypotheses(string utterance)
         {
             var scoredActions = Triggers.ControlledMap(utterance);
-            var availableNodes = GetRelatedNodes(utterance).ToArray();
+            var availableNodes = GetRelatedNodes(utterance, Graph).ToArray();
 
             var result = new List<Tuple<PoolHypothesis, MappingControl>>();
             foreach (var scoredAction in scoredActions)
@@ -192,7 +192,7 @@ namespace KnowledgeDialog.PoolComputation
                 var substitutions = new Dictionary<NodeReference, NodeReference>();
                 foreach (var node in scoredAction.Item1.RequiredSubstitutions)
                 {
-                    var nearestNode = GetNearest(node, availableNodes);
+                    var nearestNode = GetNearest(node, availableNodes, Graph);
                     substitutions.Add(node, nearestNode);
                 }
 
@@ -203,21 +203,21 @@ namespace KnowledgeDialog.PoolComputation
             return result;
         }
 
-        internal IEnumerable<NodeReference> GetRelatedNodes(string utterance)
+        internal static IEnumerable<NodeReference> GetRelatedNodes(string utterance, ComposedGraph graph)
         {
             foreach (var node in utterance.Split(' '))
             {
-                if (Graph.HasEvidence(node))
-                    yield return Graph.GetNode(node);
+                if (graph.HasEvidence(node))
+                    yield return graph.GetNode(node);
             }
         }
 
-        internal NodeReference GetNearest(NodeReference pivot, IEnumerable<NodeReference> nodes)
+        internal static NodeReference GetNearest(NodeReference pivot, IEnumerable<NodeReference> nodes, ComposedGraph graph)
         {
             var measuredNodes = new List<Tuple<NodeReference, double>>();
             foreach (var node in nodes)
             {
-                var paths = Graph.GetPaths(pivot, node, MaximumGraphDepth, MaximumGraphWidth).Take(1000);
+                var paths = graph.GetPaths(pivot, node, MaximumGraphDepth, MaximumGraphWidth).Take(1000);
 
                 double minDistance = double.MaxValue;
                 foreach (var path in paths)

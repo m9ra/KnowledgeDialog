@@ -84,6 +84,12 @@ namespace KnowledgeDialog.Database
             _writer.WriteLine(json);
             _writer.Flush();
         }
+
+        internal void Close()
+        {
+            if (_writer != null)
+                _writer.Close();
+        }
     }
 
     public class CallSerializer

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.PoolComputation.StateDialog.States
 {
-    class AdviceRouting : StateBase
+    class RequestAnswer : StateBase
     {
         public readonly static StateProperty QuestionProperty = new StateProperty();
 
@@ -21,7 +21,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
 
 
             if (!Context.IsSet(AcceptAdvice.CorrectAnswerProperty))
-                return Response("Please, can you give me correct answer for your question?");
+                return Response("I don't know. Please, can you give me correct answer for your question?");
 
             throw new NotSupportedException("Current state is not supported");
         }

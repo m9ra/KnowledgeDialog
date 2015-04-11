@@ -45,7 +45,7 @@ namespace WebBackend
         {
             var isExperiment = storageFullpath.EndsWith("experiment.dialog");
             if (isExperiment)
-                Task = TaskFactory.GetTask(tracker);
+                Task = TaskFactory.GetTask(tracker, tracker.HasTaskLimit);
 
             if (storageFullpath == "")
                 storageFullpath = null;
@@ -123,6 +123,11 @@ namespace WebBackend
             }
 
             return null;
+        }
+
+        internal void Close()
+        {
+            _manager.Close();
         }
     }
 }

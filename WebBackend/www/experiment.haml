@@ -45,6 +45,9 @@
 
 		.col-md-6
 			%h2 Feedback
+
+			%p
+				= raw Flash("message")
 			
 			%article{class: "alert alert-info"}
 				%strong Feedback
@@ -52,10 +55,11 @@
 					We would like to get feedback from you. If you have ideas how to improve our service, experiments or user interface, let us know!
 								
 			%p
-				%textarea.feedback_textarea 
-					=""
-				%input{class:"feedback_submit", type: "submit", value: "Send"}
-					=""
+				%form{method: "GET"}
+					%textarea{name: "feedback", class: "feedback_textarea"}
+						=""
+					%input{class:"feedback_submit", type: "submit", value: "Send"}
+						=""
 
 %script{src: "js/chat.js"}
 	=""

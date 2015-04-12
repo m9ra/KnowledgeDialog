@@ -12,6 +12,7 @@ using KnowledgeDialog.PoolComputation;
 using KnowledgeDialog.PoolComputation.StateDialog;
 
 using KnowledgeDialog.Dialog.Utterances;
+using KnowledgeDialog.Dialog.Responses;
 
 namespace WebBackend
 {
@@ -21,7 +22,7 @@ namespace WebBackend
         /// Lock for QA index
         /// </summary>
         private static readonly object _L_qa_index = new object();
-        
+
         /// <summary>
         /// Mapping of QA modules according to their storages
         /// </summary>
@@ -31,12 +32,15 @@ namespace WebBackend
 
         internal string CurrentHTML { get; private set; }
 
+        internal ResponseBase LastResponse { get; private set; }
+
         internal WebConsole(string storageFullpath)
         {
             if (storageFullpath == "")
                 storageFullpath = null;
 
-            CurrentHTML = systemTextHTML("Hello, how can I help you?");
+            LastResponse = new SimpleResponse("Hello, how can I help you?");
+            CurrentHTML = systemTextHTML(LastResponse.ToString());
             _manager = createManager(storageFullpath);
         }
 
@@ -45,7 +49,7 @@ namespace WebBackend
             var formattedUtterance = utterance.Trim();
             CurrentHTML += userTextHTML(formattedUtterance);
 
-            var response = _manager.Input(utterance);           
+            var response = _manager.Input(utterance);
             CurrentHTML += systemTextHTML(response.ToString());
 
             return response;
@@ -84,7 +88,7 @@ namespace WebBackend
         {
             return "<div class='user_text'>" + text + "</div>";
         }
-        
+
         internal void Close()
         {
             _manager.Close();

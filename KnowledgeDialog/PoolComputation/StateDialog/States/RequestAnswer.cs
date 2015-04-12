@@ -10,6 +10,8 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
     {
         public readonly static StateProperty QuestionProperty = new StateProperty();
 
+        public readonly static EdgeIdentifier HasCorrectAnswerEdge = new EdgeIdentifier();
+
         protected override ModifiableResponse execute()
         {
             var hasPossibleContext = Context.Pool.ActiveCount > 0;
@@ -19,7 +21,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
             if (!Context.IsSet(AcceptAdvice.CorrectAnswerProperty))
                 return Response("Please, can you give me correct answer for your question?");
 
-            throw new NotSupportedException("Current state is not supported");
+            return EmitEdge(HasCorrectAnswerEdge);
         }
     }
 }

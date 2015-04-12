@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.Dialog.Responses
 {
-    class SimpleResponse : ResponseBase
+    public class SimpleResponse : ResponseBase
     {
         public readonly string ResponseText;
 

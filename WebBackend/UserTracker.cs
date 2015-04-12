@@ -9,6 +9,7 @@ using System.IO;
 using ServeRick;
 using ServeRick.Networking;
 
+using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Database;
 using KnowledgeDialog.Knowledge;
 
@@ -144,6 +145,7 @@ namespace WebBackend
             {
                 LastResponse = console.Input(utterance);
             }
+            logResponse(LastResponse);
         }
 
         internal void Feedback(string message)
@@ -212,6 +214,7 @@ namespace WebBackend
             if (!_consoleMapping.TryGetValue(storageFullpath, out console))
             {
                 _consoleMapping[storageFullpath] = console = new WebConsole(storageFullpath);
+                logResponse(console.LastResponse);
                 logInfo("new console " + storageFullpath);
             }
 
@@ -223,6 +226,16 @@ namespace WebBackend
             _infoCall.ReportParameter("time", DateTime.Now.ToString());
             _infoCall.ReportParameter("storage", _actualStorageFullpath);
             _infoCall.ReportParameter("utterance", utterance);
+            _infoCall.SaveReport();
+        }
+
+        private void logResponse(ResponseBase response)
+        {
+            _infoCall.ReportParameter("time", DateTime.Now.ToString());
+            _infoCall.ReportParameter("storage", _actualStorageFullpath);
+
+            var responseText = response == null ? null : response.ToString();
+            _infoCall.ReportParameter("response", responseText);
             _infoCall.SaveReport();
         }
 

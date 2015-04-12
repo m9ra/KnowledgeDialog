@@ -199,43 +199,49 @@ namespace KnowledgeDialog.PoolComputation
             var result = new List<Tuple<PoolHypothesis, MappingControl>>();
             foreach (var scoredAction in scoredActions)
             {
-                var substitutions = new Dictionary<NodeReference, NodeReference>();
-                var missingSubstitutionsSet = new HashSet<NodeReference>(scoredAction.Item1.RequiredSubstitutions);
-                var availableNodesSet = new HashSet<NodeReference>(availableNodes);
-
-                while (missingSubstitutionsSet.Count > 0)
-                {
-                    NodeReference bestSubstitution = null;
-                    NodeReference substitutionValue = null;
-                    double bestDistance=double.MaxValue;
-
-                    foreach (var substitution in missingSubstitutionsSet)
-                    {
-                        var nearest = GetNearest(substitution, availableNodesSet, Graph);
-                        var distance = getDistance(substitution, nearest,Graph);
-
-                        if (distance < bestDistance)
-                        {
-                            bestDistance = distance;
-                            bestSubstitution = substitution;
-                            substitutionValue = nearest;
-                        }
-                    }
-
-                    if (substitutionValue == null)
-                        //there are no other substitutions
-                        break;
-
-                    missingSubstitutionsSet.Remove(bestSubstitution);
-                    availableNodesSet.Remove(substitutionValue);
-                    substitutions.Add(bestSubstitution, substitutionValue);
-                }
+                var substitutions = GetSubstitutions(availableNodes, scoredAction.Item1.RequiredSubstitutions, Graph);
 
                 var scoredHypothesis = Tuple.Create(new PoolHypothesis(substitutions, scoredAction.Item1), scoredAction.Item2);
                 result.Add(scoredHypothesis);
             }
 
             return result;
+        }
+
+        internal static Dictionary<NodeReference, NodeReference> GetSubstitutions(IEnumerable<NodeReference> availableNodes,IEnumerable<NodeReference> requiredSubstitutions, ComposedGraph graph)
+        {
+            var substitutions = new Dictionary<NodeReference, NodeReference>();
+            var missingSubstitutionsSet = new HashSet<NodeReference>();
+            var availableNodesSet = new HashSet<NodeReference>(availableNodes);
+
+            while (missingSubstitutionsSet.Count > 0)
+            {
+                NodeReference bestSubstitution = null;
+                NodeReference substitutionValue = null;
+                double bestDistance = double.MaxValue;
+
+                foreach (var substitution in missingSubstitutionsSet)
+                {
+                    var nearest = GetNearest(substitution, availableNodesSet, graph);
+                    var distance = getDistance(substitution, nearest, graph);
+
+                    if (distance < bestDistance)
+                    {
+                        bestDistance = distance;
+                        bestSubstitution = substitution;
+                        substitutionValue = nearest;
+                    }
+                }
+
+                if (substitutionValue == null)
+                    //there are no other substitutions
+                    break;
+
+                missingSubstitutionsSet.Remove(bestSubstitution);
+                availableNodesSet.Remove(substitutionValue);
+                substitutions.Add(bestSubstitution, substitutionValue);
+            }
+            return substitutions;
         }
 
         internal static IEnumerable<NodeReference> GetRelatedNodes(string utterance, ComposedGraph graph)
@@ -276,7 +282,7 @@ namespace KnowledgeDialog.PoolComputation
             if (bestHypothesis == null)
                 return false;
 
-            if (bestHypothesis.Item2 < 0.6)
+            if (bestHypothesis.Item2 < 0.9)
                 //this is different hypothesis
                 return false;
 
@@ -414,12 +420,14 @@ namespace KnowledgeDialog.PoolComputation
                 }
             }
 
+            IPoolAction action;
             if (shortestPath == null)
-                //we cannot learn this for now
-                return null;
+                //we doesn't have enough evidence in DB
+                action = new InsertAction(correctAnswer);
+            else
+                action = new ExtendAction(shortestPath);
 
-            var poolAction = new ExtendAction(shortestPath);
-            return new ActionBlock(Pool.Graph, new[] { poolAction });
+            return new ActionBlock(Pool.Graph, new[] { action });
         }
 
         private ActionBlock pushAdvice(string question, NodeReference correctAnswer)

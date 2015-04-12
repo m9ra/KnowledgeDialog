@@ -52,10 +52,12 @@ namespace KnowledgeDialog.PoolComputation
 
             S<RequestContext>()
                 .YesNoEdge(S<RequestAnswer>(), AcceptAdvice.IsBasedOnContextProperty)
+                .Edge(RequestContext.HasContextAnswerEdge, S<RequestAnswer>())
                 .Default(S<ApologizeState>());
 
             S<RequestAnswer>()
-                .IsEdge(S<AcceptAdvice>(), AcceptAdvice.CorrectAnswerProperty)                
+                .IsEdge(S<AcceptAdvice>(), AcceptAdvice.CorrectAnswerProperty)
+                .Edge(RequestAnswer.HasCorrectAnswerEdge, S<AcceptAdvice>())
                 .Default(S<ApologizeState>());
 
             S<AcceptAdvice>()
@@ -70,7 +72,7 @@ namespace KnowledgeDialog.PoolComputation
 
                 .Edge(EquivalenceQuestion.EquivalenceEdge, S<EquivalenceQuestion>())
 
-                .IsEdge(S<AcceptAdvice>(), AcceptAdvice.CorrectAnswerProperty)             
+                .IsEdge(S<AcceptAdvice>(), AcceptAdvice.CorrectAnswerProperty)
 
                 //question is not recognized as advice
                 .Default(S<RequestContext>(), RequestAnswer.QuestionProperty);
@@ -89,7 +91,7 @@ namespace KnowledgeDialog.PoolComputation
                 ;
 
             S<EquivalenceAdvice>()
-                .Edge(EquivalenceAdvice.NoEquivalency, S<RequestAnswer>())
+                .Edge(EquivalenceAdvice.NoEquivalency, S<RequestContext>())
                 .Default(S<QuestionAnswering>());
         }
 
@@ -146,18 +148,23 @@ namespace KnowledgeDialog.PoolComputation
                 {
                     var bestHypothesis = scores.First();
                     var confidence = bestHypothesis.Item3;
+                    var nonPatternQuestion = getBestNonPattern(scores);
 
                     if (confidence < 0.5)
                     {
                         trigger = _currentState.DefaultTrigger;
                     }
-                    else if (confidence < 0.9 && _currentState==QuestionRouting)
+                    else if (nonPatternQuestion != null && nonPatternQuestion.Item3 < 0.9 && _currentState == QuestionRouting)
                     {
                         _context.SetValue(EquivalenceQuestion.QueriedQuestion, utterance);
-                        var substitution = substitute(bestHypothesis.Item4, utterance);
+                        var substitution = substitute(nonPatternQuestion.Item4, utterance);
                         _context.SetValue(EquivalenceQuestion.PatternQuestion, substitution);
                         edgeInput = new EdgeInput(EquivalenceQuestion.EquivalenceEdge);
                         continue;
+                    }
+                    else if (confidence < 0.9)
+                    {
+                        trigger = _currentState.DefaultTrigger;
                     }
                     else
                     {
@@ -186,16 +193,30 @@ namespace KnowledgeDialog.PoolComputation
             return new SimpleResponse(string.Join(".", concatenation));
         }
 
+        private Tuple<Trigger, string, double, string> getBestNonPattern(IEnumerable<Tuple<Trigger, string, double, string>> hypotheses)
+        {
+            foreach (var hypothesis in hypotheses)
+            {
+                if (hypothesis.Item4 != null && !hypothesis.Item4.Contains('*'))
+                    return hypothesis;
+            }
+            return null;
+        }
+
         private string substitute(string pattern, string utterance)
         {
             var patternNodes = QuestionAnsweringModule.GetRelatedNodes(pattern, _context.Graph);
             var utteranceNodes = QuestionAnsweringModule.GetRelatedNodes(utterance, _context.Graph);
+            var substitutions = QuestionAnsweringModule.GetSubstitutions(utteranceNodes, patternNodes, _context.Graph);
 
             var result = repairSpelling(pattern);
             foreach (var patternNode in patternNodes)
             {
-                var nearest = QuestionAnsweringModule.GetNearest(patternNode, utteranceNodes, _context.Graph);
-                result = result.Replace(patternNode.Data.ToString(), nearest.Data.ToString());
+                NodeReference substitution;
+                if (!substitutions.TryGetValue(patternNode, out substitution))
+                    substitution = patternNode;
+
+                result = result.Replace(patternNode.Data.ToString(), substitution.Data.ToString());
             }
 
             return result;

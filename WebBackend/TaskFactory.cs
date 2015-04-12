@@ -16,6 +16,9 @@ namespace WebBackend
         {
             var g = DialogWeb.Graph;
             Add(new PresidentChildrenTask(g));
+            Add(new PresidentOfStateTask(g));
+            Add(new StateOfPresidentTask(g));
+            Add(new WifeOfPresidentTask(g));
         }
 
         private static void Add(TaskPatternBase task)

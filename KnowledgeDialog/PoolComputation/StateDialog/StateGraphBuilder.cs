@@ -50,7 +50,13 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
         internal StateGraphBuilder YesNoEdge(StateGraphBuilder nextState, StateProperty property)
         {
             addEdge("yes", nextState, (c) => c.SetValue(property, StateProperty.TrueValue));
+            addEdge("of course", nextState, (c) => c.SetValue(property, StateProperty.TrueValue));
+            addEdge("yeah", nextState, (c) => c.SetValue(property, StateProperty.TrueValue));
+            addEdge("y", nextState, (c) => c.SetValue(property, StateProperty.TrueValue));
             addEdge("no", nextState, (c) => c.SetValue(property, StateProperty.FalseValue));
+            addEdge("not", nextState, (c) => c.SetValue(property, StateProperty.FalseValue));
+            addEdge("none", nextState, (c) => c.SetValue(property, StateProperty.FalseValue));
+            addEdge("n", nextState, (c) => c.SetValue(property, StateProperty.FalseValue));
 
             return this;
         }
@@ -65,7 +71,13 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
         internal StateGraphBuilder IsEdge(StateGraphBuilder stateGraphBuilder, StateProperty stateProperty)
         {
             this
+                .Edge("*", stateGraphBuilder, stateProperty)
+                .Edge("his name is *", stateGraphBuilder, stateProperty)
+                .Edge("her name is *", stateGraphBuilder, stateProperty)
+                .Edge("he is *", stateGraphBuilder, stateProperty)
+                .Edge("she is *", stateGraphBuilder, stateProperty)
                 .Edge("it is *", stateGraphBuilder, stateProperty)
+                .Edge("correct answer is *", stateGraphBuilder, stateProperty)
                 .Edge("* is the correct answer", stateGraphBuilder, stateProperty);
 
             return this;
@@ -103,7 +115,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
             foreach (var triggerPair in _externalTriggers)
             {
                 var bestHypothesis = triggerPair.Key.ScoredSubstitutionMap(utterance).FirstOrDefault();
-                if (bestHypothesis != null && bestHypothesis.Item3 > 0.3)
+                if (bestHypothesis != null && bestHypothesis.Item3 > 0.5)
                 {
                     return new[]{
                         Tuple.Create<Trigger,string,double,string>(triggerPair.Value,null,bestHypothesis.Item3,bestHypothesis.Item4)

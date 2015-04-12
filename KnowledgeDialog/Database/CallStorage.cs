@@ -26,6 +26,8 @@ namespace KnowledgeDialog.Database
 
         private bool _supressOutput;
 
+        private bool _wasRead = false;
+
         private readonly JsonSerializerSettings _serializationSettings = new JsonSerializerSettings()
         {
             Formatting = Formatting.None
@@ -38,9 +40,10 @@ namespace KnowledgeDialog.Database
 
         public void ReadStorage()
         {
-            if (_file == null || !File.Exists(_file))
+            if (_file == null || !File.Exists(_file) || _wasRead)
                 return;
 
+            _wasRead = true;
             _supressOutput = true;
 
             try

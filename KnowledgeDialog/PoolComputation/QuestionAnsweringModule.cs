@@ -200,10 +200,35 @@ namespace KnowledgeDialog.PoolComputation
             foreach (var scoredAction in scoredActions)
             {
                 var substitutions = new Dictionary<NodeReference, NodeReference>();
-                foreach (var node in scoredAction.Item1.RequiredSubstitutions)
+                var missingSubstitutionsSet = new HashSet<NodeReference>(scoredAction.Item1.RequiredSubstitutions);
+                var availableNodesSet = new HashSet<NodeReference>(availableNodes);
+
+                while (missingSubstitutionsSet.Count > 0)
                 {
-                    var nearestNode = GetNearest(node, availableNodes, Graph);
-                    substitutions.Add(node, nearestNode);
+                    NodeReference bestSubstitution = null;
+                    NodeReference substitutionValue = null;
+                    double bestDistance=double.MaxValue;
+
+                    foreach (var substitution in missingSubstitutionsSet)
+                    {
+                        var nearest = GetNearest(substitution, availableNodesSet, Graph);
+                        var distance = getDistance(substitution, nearest,Graph);
+
+                        if (distance < bestDistance)
+                        {
+                            bestDistance = distance;
+                            bestSubstitution = substitution;
+                            substitutionValue = nearest;
+                        }
+                    }
+
+                    if (substitutionValue == null)
+                        //there are no other substitutions
+                        break;
+
+                    missingSubstitutionsSet.Remove(bestSubstitution);
+                    availableNodesSet.Remove(substitutionValue);
+                    substitutions.Add(bestSubstitution, substitutionValue);
                 }
 
                 var scoredHypothesis = Tuple.Create(new PoolHypothesis(substitutions, scoredAction.Item1), scoredAction.Item2);
@@ -227,20 +252,8 @@ namespace KnowledgeDialog.PoolComputation
             var measuredNodes = new List<Tuple<NodeReference, double>>();
             foreach (var node in nodes)
             {
-                var paths = graph.GetPaths(pivot, node, MaximumGraphDepth, MaximumGraphWidth).Take(1000);
-
-                double minDistance = double.MaxValue;
-                foreach (var path in paths)
-                {
-                    ConsoleServices.Print(path);
-                    var distance = getDistance(path);
-
-                    if (minDistance > distance)
-                    {
-                        minDistance = distance;
-                    }
-                }
-                var measuredNode = Tuple.Create(node, minDistance);
+                var distance = getDistance(pivot, node, graph);
+                var measuredNode = Tuple.Create(node, distance);
                 measuredNodes.Add(measuredNode);
             }
 
@@ -332,6 +345,25 @@ namespace KnowledgeDialog.PoolComputation
             {
                 pool.Filter(actionBlock.OutputFilter);
             }
+        }
+
+        private static double getDistance(NodeReference node1, NodeReference node2, ComposedGraph graph)
+        {
+            var paths = graph.GetPaths(node1, node2, MaximumGraphDepth, MaximumGraphWidth).Take(1000);
+
+            double minDistance = double.MaxValue;
+            foreach (var path in paths)
+            {
+                ConsoleServices.Print(path);
+                var distance = getDistance(path);
+
+                if (minDistance > distance)
+                {
+                    minDistance = distance;
+                }
+            }
+
+            return minDistance;
         }
 
         private static double getDistance(KnowledgePath path)

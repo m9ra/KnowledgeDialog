@@ -10,9 +10,13 @@ namespace WebBackend.TaskPatterns
 {
     class PresidentChildrenTask : TaskPatternBase
     {
-        PresidentChildrenTask(ComposedGraph graph)
+        internal PresidentChildrenTask(ComposedGraph graph)
             : base(graph)
         {
+            SetPattern("Check if system can search some child of president of {0}." + TaskPatternUtilities.CheckAndLearn);
+
+            Substitutions(TaskPatternUtilities.StateSubstitutions);
+            ExpectedAnswerRule(TaskPatternUtilities.PresidentChildFromState);
         }
     }
 }

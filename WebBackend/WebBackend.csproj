@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TaskPatternUtilities.cs" />
     <Compile Include="DialogWeb.cs" />
     <Compile Include="ExperimentData.cs" />
     <Compile Include="InputManager.cs" />
@@ -50,7 +51,6 @@
     <Compile Include="RootController.cs" />
     <Compile Include="TaskFactory.cs" />
     <Compile Include="TaskInstance.cs" />
-    <Compile Include="TaskPatterns\HusbandOfPresidentWifeTask.cs" />
     <Compile Include="TaskPatterns\PresidentChildrenTask.cs" />
     <Compile Include="TaskPatterns\PresidentOfStateTask.cs" />
     <Compile Include="TaskPatterns\StateOfPresidentTask.cs" />

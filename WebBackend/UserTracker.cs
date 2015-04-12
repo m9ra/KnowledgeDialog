@@ -56,6 +56,7 @@ namespace WebBackend
         public readonly string UserID;
 
         public bool HasTaskLimit;
+        public KnowledgeDialog.Dialog.ResponseBase LastResponse { get; private set; }
 
         /// <summary>
         /// Tasks that has been completed by user.
@@ -135,8 +136,14 @@ namespace WebBackend
         {
             logUtterance(utterance);
             var console = getConsole();
-            if (utterance != null)
-                console.Input(utterance);
+            if (utterance == null)
+            {
+                LastResponse = null;
+            }
+            else
+            {
+                LastResponse = console.Input(utterance);
+            }
         }
 
         internal void Feedback(string message)
@@ -175,6 +182,14 @@ namespace WebBackend
             _tasks.Add(task);
         }
 
+        internal void ReportTaskStart(string task, string format, IEnumerable<NodeReference> substitutions)
+        {
+            _infoCall.ReportParameter("task", task);
+            _infoCall.ReportParameter("format", format);
+            _infoCall.ReportParameter("substitutions", substitutions);
+            _infoCall.SaveReport();
+        }
+
         internal void LogMessage(string message)
         {
             _infoCall.ReportParameter("time", message);
@@ -196,7 +211,7 @@ namespace WebBackend
             WebConsole console;
             if (!_consoleMapping.TryGetValue(storageFullpath, out console))
             {
-                _consoleMapping[storageFullpath] = console = new WebConsole(storageFullpath, this);
+                _consoleMapping[storageFullpath] = console = new WebConsole(storageFullpath);
                 logInfo("new console " + storageFullpath);
             }
 

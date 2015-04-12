@@ -10,14 +10,12 @@ namespace WebBackend
 {
     static class TaskFactory
     {
-        private static readonly Random _rnd = new Random(1);
-
         private static readonly List<TaskPatternBase> _tasks = new List<TaskPatternBase>();
 
         static TaskFactory()
         {
             var g = DialogWeb.Graph;
-            Add(new StateOfPresidentTask(g));
+            Add(new PresidentChildrenTask(g));
         }
 
         private static void Add(TaskPatternBase task)
@@ -25,23 +23,25 @@ namespace WebBackend
             _tasks.Add(task);
         }
 
-        public static TaskInstance GetTask(UserTracker user, bool hasTaskLimit)
+        public static TaskInstance GetTask(int seed, UserTracker user, bool hasTaskLimit)
         {
+            var rnd = new Random(seed);
+
             foreach (var task in _tasks)
             {
                 var key = getKey(task);
                 if (!user.CompletedTasks.Contains(key))
                 {
-                    return createInstance(task, user);
+                    return createInstance(task, user, rnd);
                 }
             }
 
             if (!hasTaskLimit)
             {
-                var rndIndex = _rnd.Next(_tasks.Count);
+                var rndIndex = rnd.Next(_tasks.Count);
                 var task = _tasks[rndIndex];
 
-                return createInstance(task, user);
+                return createInstance(task, user, rnd);
             }
 
             return null;
@@ -52,10 +52,10 @@ namespace WebBackend
             return task.GetType().ToString();
         }
 
-        private static TaskInstance createInstance(TaskPatternBase task, UserTracker user)
+        private static TaskInstance createInstance(TaskPatternBase task, UserTracker user, Random rnd)
         {
             var substitutionsCount = task.SubstitutionCount;
-            var substitutionIndex = _rnd.Next(substitutionsCount);
+            var substitutionIndex = rnd.Next(substitutionsCount);
 
             var substitution = task.GetSubstitution(substitutionIndex);
             var expectedAnswers = task.GetExpectedAnswers(substitutionIndex);

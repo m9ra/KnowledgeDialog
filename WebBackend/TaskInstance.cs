@@ -47,6 +47,9 @@ namespace WebBackend
 
         internal void Register(ResponseBase response)
         {
+            if (response == null)
+                return;
+
             ++_turns;
 
             if (_containsAnswer)
@@ -65,6 +68,11 @@ namespace WebBackend
         {
             CompletitionReported = true;
             _user.ReportTaskCompletition(_key, TaskFormat, Substitutions);
+        }
+
+        internal void ReportStart()
+        {
+            _user.ReportTaskStart(_key, TaskFormat, Substitutions);
         }
     }
 }

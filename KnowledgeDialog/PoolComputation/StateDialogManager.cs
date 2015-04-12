@@ -51,7 +51,7 @@ namespace KnowledgeDialog.PoolComputation
                 .Default(QuestionRouting);
 
             S<RequestContext>()
-                .YesNoEdge(S<RequestContext>(), AcceptAdvice.IsBasedOnContextProperty)
+                .YesNoEdge(S<RequestAnswer>(), AcceptAdvice.IsBasedOnContextProperty)
                 .Default(S<ApologizeState>());
 
             S<RequestAnswer>()
@@ -60,7 +60,7 @@ namespace KnowledgeDialog.PoolComputation
 
             S<AcceptAdvice>()
                 //when info is missing, we have to go back to advice routing
-                .Edge(AcceptAdvice.MissingInfoEdge, S<RequestAnswer>())
+                .Edge(AcceptAdvice.MissingInfoEdge, S<RequestContext>())
                 //when advice handling is completed go to QuestionRouting
                 .Default(QuestionRouting);
 
@@ -73,7 +73,7 @@ namespace KnowledgeDialog.PoolComputation
                 .IsEdge(S<AcceptAdvice>(), AcceptAdvice.CorrectAnswerProperty)             
 
                 //question is not recognized as advice
-                .Default(S<RequestAnswer>(), RequestAnswer.QuestionProperty);
+                .Default(S<RequestContext>(), RequestAnswer.QuestionProperty);
 
             S<QuestionAnswering>()
                 .TakeEdgesFrom(S<RequestAnswer>())
@@ -84,7 +84,9 @@ namespace KnowledgeDialog.PoolComputation
                 .Edge(RepairAnswer.AdviceAccepted, S<HowCanIHelp>());
 
             _equivalenceQuestionState = S<EquivalenceQuestion>()
-                .YesNoEdge(S<EquivalenceAdvice>(), EquivalenceAdvice.IsEquivalent);
+                .YesNoEdge(S<EquivalenceAdvice>(), EquivalenceAdvice.IsEquivalent)
+                .Default(S<ApologizeState>())
+                ;
 
             S<EquivalenceAdvice>()
                 .Edge(EquivalenceAdvice.NoEquivalency, S<RequestAnswer>())

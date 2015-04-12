@@ -26,17 +26,17 @@ namespace WebBackend
         {
             var experimentName = "experiment0";
 
-            experimetHandler(experimentName, true);
+            experimentHandler(experimentName, true);
         }
 
         public void public_experiment()
         {
             var experimentName = "public_experiment";
 
-            experimetHandler(experimentName, false);
+            experimentHandler(experimentName, false);
         }
 
-        private void experimetHandler(string experimentName, bool enableTaskLimit)
+        private void experimentHandler(string experimentName, bool enableTaskLimit)
         {
 
             //require experiment data for each user
@@ -62,28 +62,23 @@ namespace WebBackend
 
             //handle dialog initialization
             var id = experimentName + GET("taskid");
-            if (experimentData.CheckIdChange(id))
+            if (experimentData.RefreshTask(id, user, enableTaskLimit))
             {
                 //id of task has changed - we have to remove old dialog console
                 user.LogMessage("start " + id);
                 user.ResetConsole();
             }
 
-            if (user.ActualConsole != null && user.ActualConsole.Task != null && user.ActualConsole.Task.IsComplete)
-                //user is returning to experiment page after task completition - we can reset it
-                user.ResetConsole();
-
-
             //render the page
             Layout("layout.haml");
-            if (user.ActualConsole == null || user.ActualConsole.Task == null)
+            if (user.ActualConsole == null || experimentData.Task == null)
             {
                 Render("no_tasks.haml");
             }
             else
             {
                 SetParam("dialog", user.GetDialogHTML());
-                SetParam("task", user.ActualConsole.Task.Text);
+                SetParam("task", experimentData.Task.Text);
 
                 Render("experiment.haml");
             }
@@ -92,21 +87,24 @@ namespace WebBackend
         public void dialog_data()
         {
             var utterance = GET("utterance");
-            var tracker = fillAndGetUserTracker(null, utterance);
-            if (tracker.ActualConsole == null)
+            var user = fillAndGetUserTracker(null, utterance);
+            if (user.ActualConsole == null)
                 return;
 
-            var task = tracker.ActualConsole.Task;
-            var html = tracker.GetDialogHTML();
-            if (task != null)
+            var experimentData = Session<ExperimentData>();
+
+            var html = user.GetDialogHTML();
+            if (experimentData != null && experimentData.Task != null)
             {
+                var task = experimentData.Task;
+                task.Register(user.LastResponse);
                 if (task.IsComplete)
                 {
                     if (!task.CompletitionReported)
                         task.ReportCompletition();
 
                     var code = getSuccessCode();
-                    html += "<h4>Task has been succesfully completed</h4><br>Your Crowdflower code: <b>" + code + "</b>";
+                    html += "<h4>Task has been succesfully completed</h4><br>Your Crowdflower code: <b>" + experimentData.GetCurrentSuccessCode() + "</b>";
                 }
             }
 

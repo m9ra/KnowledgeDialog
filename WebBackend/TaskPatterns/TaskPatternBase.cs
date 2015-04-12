@@ -42,9 +42,9 @@ namespace WebBackend.TaskPatterns
             }
         }
 
-        protected void ExpectedAnswerRule(string resultEdge, bool isOut)
+        protected void ExpectedAnswerRule(IEnumerable<Tuple<string,bool>> ruleEdges)
         {
-            _rules.Add(Tuple.Create(resultEdge, isOut));
+            _rules.AddRange(ruleEdges);
         }
 
         internal NodeReference GetSubstitution(int substitutionIndex)

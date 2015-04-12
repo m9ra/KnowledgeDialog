@@ -10,19 +10,14 @@ namespace WebBackend.TaskPatterns
 {
     class StateOfPresidentTask : TaskPatternBase
     {
-        public StateOfPresidentTask(ComposedGraph graph)
+        internal StateOfPresidentTask(ComposedGraph graph)
             : base(graph)
         {
-            SetPattern("Check if system can search name of president of {0}. If not, try to teach it to the system.");
 
-            Substitutions(
-                "United states of America",
-                "Mexico",
-                "Germany",
-                "Russia"
-                );
+            SetPattern("Check if system can search name of president of {0}." + TaskPatternUtilities.CheckAndLearn);
 
-            ExpectedAnswerRule("reigns in", false);
+            Substitutions(TaskPatternUtilities.StateSubstitutions);
+            ExpectedAnswerRule(TaskPatternUtilities.ReignsInFromStatePath);
         }
     }
 }

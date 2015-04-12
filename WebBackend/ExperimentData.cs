@@ -9,14 +9,20 @@ namespace WebBackend
     class ExperimentData
     {
         private string _currentId;
+        public TaskInstance Task { get; private set; }
 
-        public bool CheckIdChange(string currentId)
+        public bool RefreshTask(string currentId, UserTracker user, bool hasTaskLimit)
         {
-            var result = currentId != _currentId;
-
+            var hasNewID = currentId != _currentId;
             _currentId = currentId;
 
-            return result;
+            if (hasNewID)
+            {
+                Task = TaskFactory.GetTask(currentId.Sum(c => (int)c), user, hasTaskLimit);
+                Task.ReportStart();
+            }
+
+            return hasNewID;
         }
 
         public string CalculateMD5Hash(string input)

@@ -4,10 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using System.Text.RegularExpressions;
+
 namespace KnowledgeDialog.Dialog
 {
     public static class SentenceParser
     {
+        private static readonly Regex _inputSanitizer = new Regex("[,.?<>;-]", RegexOptions.Compiled);
+
+        private static readonly Regex _spaceSanitizer = new Regex(@"[ ]{2,}", RegexOptions.Compiled);
+
         private static readonly Dictionary<string, List<string>> _indexedEntities = new Dictionary<string, List<string>>();
 
         private static readonly DoubleMetaphone _metaphone = new DoubleMetaphone();
@@ -33,6 +39,8 @@ namespace KnowledgeDialog.Dialog
 
         internal static ParsedSentence Parse(string sentence)
         {
+            sentence = _inputSanitizer.Replace(sentence, " ");
+            sentence = _spaceSanitizer.Replace(sentence, " ").Trim();
             var validEntities = findEntities(sentence);
             return parseSentence(sentence, validEntities);
         }

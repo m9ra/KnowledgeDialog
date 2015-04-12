@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using KnowledgeDialog;
+using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Database;
 using KnowledgeDialog.Knowledge;
 using KnowledgeDialog.PoolComputation;
@@ -30,14 +31,8 @@ namespace WebBackend
 
         internal string CurrentHTML { get; private set; }
 
-        internal readonly TaskInstance Task;
-
-        internal WebConsole(string storageFullpath, UserTracker tracker)
+        internal WebConsole(string storageFullpath)
         {
-            var isExperiment = storageFullpath.EndsWith("experiment.dialog");
-            if (isExperiment)
-                Task = TaskFactory.GetTask(tracker, tracker.HasTaskLimit);
-
             if (storageFullpath == "")
                 storageFullpath = null;
 
@@ -45,16 +40,15 @@ namespace WebBackend
             _manager = createManager(storageFullpath);
         }
 
-        internal void Input(string utterance)
+        internal ResponseBase Input(string utterance)
         {
             var formattedUtterance = utterance.Trim();
             CurrentHTML += userTextHTML(formattedUtterance);
 
-            var response = _manager.Input(utterance);
-            if (Task != null)
-                Task.Register(response);
-
+            var response = _manager.Input(utterance);           
             CurrentHTML += systemTextHTML(response.ToString());
+
+            return response;
         }
 
         private static StateDialogManager createManager(string storageFullPath)

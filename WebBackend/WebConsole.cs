@@ -75,7 +75,7 @@ namespace WebBackend
 
         private static QuestionAnsweringModule createQAModule(string storageFullPath)
         {
-            var qa = new QuestionAnsweringModule(DialogWeb.Graph, new CallStorage(storageFullPath));
+            var qa = new QuestionAnsweringModule(Program.Graph, new CallStorage(storageFullPath));
             return qa;
         }
 

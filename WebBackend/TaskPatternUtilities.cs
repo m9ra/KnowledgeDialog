@@ -16,7 +16,12 @@ namespace WebBackend
             get
             {
                 if (Program.UseWikidata)
-                    throw new NotImplementedException();
+                    return new[]{
+                        "United states of America",
+                        "France",
+                        "Germany",
+                        "Russia"
+                    };
                 else
                     return new[]{
                     "United states of America",
@@ -33,7 +38,12 @@ namespace WebBackend
             get
             {
                 if (Program.UseWikidata)
-                    throw new NotImplementedException();
+                    return new[]{
+                        "Barack Obama",
+                        "François Hollande",
+                        "Joachim Gauck",
+                        "Vladimir Putin"
+                    };
                 else
                     return new[]{
                         "Barack Obama",
@@ -49,7 +59,9 @@ namespace WebBackend
             get
             {
                 if (Program.UseWikidata)
-                    throw new NotImplementedException();
+                    return new[]{
+                        Tuple.Create("en.label",false)
+                    };
                 else
                     return new[]{
                         Tuple.Create("reigns in",false)
@@ -62,7 +74,11 @@ namespace WebBackend
             get
             {
                 if (Program.UseWikidata)
-                    throw new NotImplementedException();
+                    return new[]{
+                        Tuple.Create("en.label",false),
+                        Tuple.Create("P27",true),
+                        Tuple.Create("en.label",true)
+                    };
                 else
                     return new[]{
                         Tuple.Create("reigns in",true)
@@ -75,7 +91,9 @@ namespace WebBackend
             get
             {
                 if (Program.UseWikidata)
-                    throw new NotImplementedException();
+                    return new[]{
+                        Tuple.Create("en.label",false)
+                    };
                 else
                     return new[]{
                         Tuple.Create("reigns in",false),
@@ -89,7 +107,9 @@ namespace WebBackend
             get
             {
                 if (Program.UseWikidata)
-                    throw new NotImplementedException();
+                    return new[]{
+                        Tuple.Create("en.label",false)
+                    };
                 else
                     return new[]{
                         Tuple.Create("reigns in",false),

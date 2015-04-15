@@ -81,7 +81,7 @@ namespace WebBackend
 
             var isInitialized = false;
             _infoCall = _storage.RegisterCall("Info", c => { isInitialized = true; });
-            _completitionCall = _storage.RegisterCall("ReportTaskCompletition", c => ReportTaskCompletition(c.String("task"), c.String("format"), c.Nodes("substitutions", DialogWeb.Graph)));
+            _completitionCall = _storage.RegisterCall("ReportTaskCompletition", c => ReportTaskCompletition(c.String("task"), c.String("format"), c.Nodes("substitutions", Program.Graph)));
 
             _storage.ReadStorage();
 

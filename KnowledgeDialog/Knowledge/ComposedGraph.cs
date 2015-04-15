@@ -42,12 +42,12 @@ namespace KnowledgeDialog.Knowledge
         /// </summary>
         /// <param name="data">Data of desired node.</param>
         /// <returns></returns>
-        public NodeReference GetNode(object data)
+        public NodeReference GetNode(string data)
         {
             return new NodeReference(data);
         }
 
-        internal bool HasEvidence(object data)
+        public bool HasEvidence(string data)
         {
             var node = GetNode(data);
 
@@ -245,7 +245,7 @@ namespace KnowledgeDialog.Knowledge
                 var nextLayer = new List<NodeReference>();
                 foreach (var node in currentLayer)
                 {
-                    var targets = Targets(node, part.Item1, part.Item2).ToArray();
+                    var targets = Targets(node, part.Item1,part.Item2).ToArray();
                     nextLayer.AddRange(targets);
                 }
 

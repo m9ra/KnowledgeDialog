@@ -14,9 +14,9 @@ namespace KnowledgeDialog.Knowledge
         /// <summary>
         /// Data represented by node.
         /// </summary>
-        public readonly object Data;
+        public readonly string Data;
 
-        internal NodeReference(object data)
+        internal NodeReference(string data)
         {
             Data = data;
         }
@@ -32,12 +32,12 @@ namespace KnowledgeDialog.Knowledge
             if (o == null)
                 return Data == obj;
 
-            return Data.Equals(o.Data);
+            return Data.Equals(o.Data, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public override int GetHashCode()
         {
-            return Data.GetHashCode();
+            return Data.ToLower().GetHashCode();
         }
     }
 }

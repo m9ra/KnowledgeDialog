@@ -13,7 +13,7 @@ namespace WebBackend.TaskPatterns
         internal PresidentChildrenTask(ComposedGraph graph)
             : base(graph)
         {
-            SetPattern("Check if system can search some child of president of {0}." + TaskPatternUtilities.CheckAndLearn);
+            SetPattern("Check if system can search some <b>child of president of {0}</b>." + TaskPatternUtilities.CheckAndLearn);
 
             Substitutions(TaskPatternUtilities.StateSubstitutions);
             ExpectedAnswerRule(TaskPatternUtilities.PresidentChildFromState);

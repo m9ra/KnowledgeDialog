@@ -29,6 +29,18 @@ namespace DialogTesting.Utilities
             .ReverseMultiEdge(LowerCaseNode, IsRelation, "a", "b", "c", "d")
             ;
 
+        public static readonly ComposedGraph Names = Graph
+            .ReverseMultiEdge("Human", "is_man", "Pavel", "Pepa", "Ondra", "David")
+            .ReverseMultiEdge("Human", "is_woman", "Zuzana", "Jitka", "Nikola", "Tereza")
+            ;
+
+        public static readonly ComposedGraph Alphabet2 = Graph
+            .E("A", "alias", "A_p")
+            .E("B", "alias", "B_p")
+            .E("C", "alias", "C_p")
+            .E("D", "alias", "D_p")
+            .ReverseMultiEdge(CharNode, IsRelation, "A", "B", "C", "D", "a", "b", "c", "d")
+            ;
 
         #region Graph building utilities
 

@@ -37,7 +37,6 @@ namespace KnowledgeDialog.Database
                 .ReignsIn("CZ")
                 .Wife("Livia Klausová")
                 .IsExPresident();
-            
 
             President("Andrej Kiska")
                 .Wife("Martina Kisková")

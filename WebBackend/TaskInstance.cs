@@ -19,7 +19,7 @@ namespace WebBackend
 
         public bool CompletitionReported { get; private set; }
 
-        public string Text { get { return string.Format(TaskFormat, Substitutions.Select(s => "<b>" + s.Data + "</b>").ToArray()); } }
+        public string Text { get { return string.Format(TaskFormat, Substitutions.Select(s => "'" + s.Data + "'").ToArray()); } }
 
 
         private readonly NodeReference[] _expectedAnswers;

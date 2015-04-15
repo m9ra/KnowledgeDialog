@@ -14,7 +14,7 @@ namespace WebBackend.TaskPatterns
             : base(graph)
         {
 
-            SetPattern("Check if system can search name of president of {0}." + TaskPatternUtilities.CheckAndLearn);
+            SetPattern("Check if system can search <b>name of president of {0}</b>." + TaskPatternUtilities.CheckAndLearn);
 
             Substitutions(TaskPatternUtilities.StateSubstitutions);
             ExpectedAnswerRule(TaskPatternUtilities.ReignsInFromStatePath);

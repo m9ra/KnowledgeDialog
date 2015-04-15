@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.Knowledge;
+
 using WebBackend.TaskPatterns;
 
 namespace WebBackend
@@ -12,13 +14,34 @@ namespace WebBackend
     {
         private static readonly List<TaskPatternBase> _tasks = new List<TaskPatternBase>();
 
+        private static readonly List<Tuple<TaskPatternBase, int>> _validTasks = new List<Tuple<TaskPatternBase, int>>();
+
         static TaskFactory()
         {
-            var g = DialogWeb.Graph;
-            Add(new PresidentChildrenTask(g));
+            var g = Program.Graph;
+    //        Add(new PresidentChildrenTask(g));
             Add(new PresidentOfStateTask(g));
-            Add(new StateOfPresidentTask(g));
-            Add(new WifeOfPresidentTask(g));
+    //        Add(new StateOfPresidentTask(g));
+    //        Add(new WifeOfPresidentTask(g));
+
+            GenerateTaskPairs();
+        }
+
+        private static void GenerateTaskPairs()
+        {
+            foreach (var task in _tasks)
+            {
+                for (var i = 0; i < task.SubstitutionCount; ++i)
+                {
+                    var substitution = task.GetSubstitution(i);
+                    var answers = task.GetExpectedAnswers(i);
+                    if (!answers.Any())
+                        //there is no valid answer - we will skip this task
+                        continue;
+
+                    _validTasks.Add(Tuple.Create(task, i));
+                }
+            }
         }
 
         private static void Add(TaskPatternBase task)
@@ -29,22 +52,26 @@ namespace WebBackend
         public static TaskInstance GetTask(int seed, UserTracker user, bool hasTaskLimit)
         {
             var rnd = new Random(seed);
+            var availableTasks = new HashSet<Tuple<TaskPatternBase, int>>(_validTasks);
 
-            foreach (var task in _tasks)
+            while (availableTasks.Count > 0)
             {
-                var key = getKey(task);
+                var rndIndex = rnd.Next(_validTasks.Count);
+                var taskPair = _validTasks[rndIndex];
+                if (!availableTasks.Remove(taskPair))
+                    continue;
+
+                var key = getKey(taskPair.Item1);
                 if (!user.CompletedTasks.Contains(key))
                 {
-                    return createInstance(task, user, rnd);
+                    return createInstance(taskPair, user);
                 }
             }
 
             if (!hasTaskLimit)
             {
-                var rndIndex = rnd.Next(_tasks.Count);
-                var task = _tasks[rndIndex];
-
-                return createInstance(task, user, rnd);
+                var rndIndex = rnd.Next(_validTasks.Count);
+                return createInstance(_validTasks[rndIndex], user);
             }
 
             return null;
@@ -55,10 +82,10 @@ namespace WebBackend
             return task.GetType().ToString();
         }
 
-        private static TaskInstance createInstance(TaskPatternBase task, UserTracker user, Random rnd)
+        private static TaskInstance createInstance(Tuple<TaskPatternBase, int> taskPair, UserTracker user)
         {
-            var substitutionsCount = task.SubstitutionCount;
-            var substitutionIndex = rnd.Next(substitutionsCount);
+            var task = taskPair.Item1;
+            var substitutionIndex = taskPair.Item2;
 
             var substitution = task.GetSubstitution(substitutionIndex);
             var expectedAnswers = task.GetExpectedAnswers(substitutionIndex);

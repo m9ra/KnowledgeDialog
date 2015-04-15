@@ -147,6 +147,8 @@ namespace KnowledgeDialog.Dialog
 
         private static Int32 levenshtein(String a, String b)
         {
+            a = a.ToLower();
+            b = b.ToLower();
 
             if (string.IsNullOrEmpty(a))
             {

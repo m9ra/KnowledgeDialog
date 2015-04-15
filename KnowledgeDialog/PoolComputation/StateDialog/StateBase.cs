@@ -65,7 +65,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
             return null;
         }
 
-        protected NodeReference Node(object data)
+        protected NodeReference Node(string data)
         {
             return Context.Graph.GetNode(data);
         }

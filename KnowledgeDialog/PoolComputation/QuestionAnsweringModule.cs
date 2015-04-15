@@ -24,7 +24,7 @@ namespace KnowledgeDialog.PoolComputation
 
         internal readonly UtteranceMapping<ActionBlock> Triggers;
 
-        internal static readonly int MaximumGraphDepth = 3;
+        internal static readonly int MaximumGraphDepth = 10;
 
         internal static readonly int MaximumGraphWidth = 1000;
 
@@ -211,7 +211,7 @@ namespace KnowledgeDialog.PoolComputation
         internal static Dictionary<NodeReference, NodeReference> GetSubstitutions(IEnumerable<NodeReference> availableNodes,IEnumerable<NodeReference> requiredSubstitutions, ComposedGraph graph)
         {
             var substitutions = new Dictionary<NodeReference, NodeReference>();
-            var missingSubstitutionsSet = new HashSet<NodeReference>();
+            var missingSubstitutionsSet = new HashSet<NodeReference>(requiredSubstitutions);
             var availableNodesSet = new HashSet<NodeReference>(availableNodes);
 
             while (missingSubstitutionsSet.Count > 0)

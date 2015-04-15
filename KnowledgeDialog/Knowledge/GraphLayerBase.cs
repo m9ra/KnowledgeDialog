@@ -20,7 +20,7 @@ namespace KnowledgeDialog.Knowledge
 
         abstract internal GraphLayerBase Snapshot();
 
-        public static NodeReference CreateReference(object data)
+        public static NodeReference CreateReference(string data)
         {
             return new NodeReference(data);
         }

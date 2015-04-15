@@ -12,15 +12,8 @@ namespace WebBackend
 {
     class DialogWeb : WebApplication
     {
-        public static readonly ComposedGraph Graph;
-
         private readonly string _root;
-
-        static DialogWeb()
-        {
-            Graph = new ComposedGraph(new KnowledgeDialog.Database.FlatPresidentLayer());
-        }
-
+        
         public DialogWeb(string wwwPath)
         {
             _root = wwwPath;
@@ -33,7 +26,6 @@ namespace WebBackend
             manager.AddDirectoryContent("images");
             manager.AddDirectoryContent("js");
             manager.AddDirectoryContent("css");
-            manager.AddDirectoryContent("data/tasks");  
 
             return manager;
         }

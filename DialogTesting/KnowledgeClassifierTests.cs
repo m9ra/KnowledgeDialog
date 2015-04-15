@@ -21,7 +21,7 @@ namespace DialogTesting
         /// Tests that classifier can distinguish classes according to neighbour nodes.
         /// </summary>
         [TestMethod]
-        public void BasicClassification()
+        public void NodeClassification()
         {
             Graphs.Alphabet
                 .Advice("A", "capital letter")
@@ -30,6 +30,37 @@ namespace DialogTesting
 
                 .Assert("capital letter", "A", "B", "C", "D")
                 .Assert("small letter", "a", "b", "c", "d");
+        }
+
+        /// <summary>
+        /// Tests that classifier can distinguish classes according to neighbour nodes.
+        /// </summary>
+        [TestMethod]
+        public void MissingEdgeClassification()
+        {
+            Graphs.Alphabet2
+                .Advice("A", "capital letter")
+                .Advice("B", "capital letter")
+                .Advice("c", "small letter")
+
+                .Assert("capital letter", "A", "B", "C", "D")
+                .Assert("small letter", "a", "b", "c", "d");
+        }
+
+
+        /// <summary>
+        /// Tests that classifier can distinguish classes according to edges.
+        /// </summary>
+        [TestMethod]
+        public void EdgeClassification()
+        {
+            Graphs.Names
+                .Advice("Pavel", "A")
+                .Advice("Pepa", "A")
+                .Advice("Zuzana", "B")
+
+                .Assert("A", "Pavel", "Pepa", "Ondra", "David")
+                .Assert("B", "Zuzana", "Jitka", "Nikola", "Tereza");
         }
 
         /// <summary>

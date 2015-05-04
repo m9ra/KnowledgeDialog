@@ -246,10 +246,10 @@ namespace KnowledgeDialog.PoolComputation
 
         internal static IEnumerable<NodeReference> GetRelatedNodes(string utterance, ComposedGraph graph)
         {
-            foreach (var node in utterance.Split(' '))
+            foreach (var word in SentenceParser.Parse(utterance).Words)
             {
-                if (graph.HasEvidence(node))
-                    yield return graph.GetNode(node);
+                if (graph.HasEvidence(word))
+                    yield return graph.GetNode(word);
             }
         }
 

@@ -48,7 +48,7 @@ namespace KnowledgeDialog.Knowledge
         /// <param name="from">From node.</param>
         /// <param name="edge">Edge between from and to nodes.</param>
         /// <param name="to">To node.</param>
-        protected void RemoveEdge(NodeReference from, string edge, NodeReference to)
+        public void RemoveEdge(NodeReference from, string edge, NodeReference to)
         {
             Dictionary<string, List<NodeReference>> outEdgeNodes;
             Dictionary<string, List<NodeReference>> inEdgeNodes;

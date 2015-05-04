@@ -61,6 +61,7 @@
     <Compile Include="TaskPatterns\WifeOfPresidentTask.cs" />
     <Compile Include="UserTracker.cs" />
     <Compile Include="WebConsole.cs" />
+    <Compile Include="WikidataHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

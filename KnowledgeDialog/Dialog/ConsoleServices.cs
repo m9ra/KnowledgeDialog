@@ -43,6 +43,15 @@ namespace KnowledgeDialog.Dialog
             Print(": ", OperatorColor);
             PrintLine(hypothesis.Item2, ConfidenceColor);
         }
+
+
+        internal static void Print(IEnumerable<Tuple<string, bool>> path)
+        {
+            var buffer=new StringBuilder();
+            fillWithPath(buffer, path);
+
+            PrintLine(buffer.ToString(), NodeColor);
+        }
      
         /// <summary>
         /// Begin new section with given name.
@@ -79,34 +88,40 @@ namespace KnowledgeDialog.Dialog
 
         internal static void Print(KnowledgeRule rule)
         {
-            var path = new StringBuilder();
-            path.Append("[");
+            var pathBuffer = new StringBuilder();
+            pathBuffer.Append("[");
 
             if (rule == null)
             {
-                path.Append('*');
+                pathBuffer.Append('*');
             }
             else
             {
-                path.Append('#');
+                pathBuffer.Append('#');
 
-                foreach (var tuple in rule.Path)
-                {
-                    var isOut = tuple.Item2;
+                var path = rule.Path;
+                fillWithPath(pathBuffer, path);
 
-                    var prefix = isOut ? "--" : "<--";
-                    var suffix = isOut ? "-->" : "--";
-
-                    path.Append(prefix);
-                    path.Append(tuple.Item1);
-                    path.Append(suffix);
-                }
-
-                path.Append(rule.EndNode.Data);
+                pathBuffer.Append(rule.EndNode.Data);
             }
 
-            path.Append("]");
-            PrintLine(path.ToString(), NodeColor);
+            pathBuffer.Append("]");
+            PrintLine(pathBuffer.ToString(), NodeColor);
+        }
+
+        private static void fillWithPath(StringBuilder pathBuffer, IEnumerable<Tuple<string, bool>> path)
+        {
+            foreach (var tuple in path)
+            {
+                var isOut = tuple.Item2;
+
+                var prefix = isOut ? "--" : "<--";
+                var suffix = isOut ? "-->" : "--";
+
+                pathBuffer.Append(prefix);
+                pathBuffer.Append(tuple.Item1);
+                pathBuffer.Append(suffix);
+            }
         }
 
         internal static void PrintPrompt()

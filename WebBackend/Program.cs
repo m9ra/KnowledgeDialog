@@ -34,6 +34,17 @@ namespace WebBackend
                 UseWikidata = true;
                 var loader = new KnowledgeDialog.Database.TripletLoader.Loader(args[1]);
                 Graph = new ComposedGraph(loader.DataLayer);
+
+                WikidataHelper.PreprocessData(loader, Graph);
+
+
+                //DB TESTING - debug only
+                var node1 = Graph.GetNode("president");
+                var node2 = Graph.GetNode("Barack Obama");
+                var paths = Graph.GetPaths(node1, node2, 10, 1000).Take(5).ToArray();
+                paths = paths;
+
+
             }
             else
             {
@@ -47,7 +58,6 @@ namespace WebBackend
             runServer(wwwPath);
             runConsole();
         }
-
 
         private static void runServer(string wwwPath)
         {

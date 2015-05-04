@@ -30,7 +30,7 @@ namespace KnowledgeDialog.Knowledge
         {
             var o = obj as NodeReference;
             if (o == null)
-                return Data == obj;
+                return false;
 
             return Data.Equals(o.Data, StringComparison.InvariantCultureIgnoreCase);
         }

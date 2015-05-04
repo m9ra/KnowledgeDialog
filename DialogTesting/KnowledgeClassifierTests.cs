@@ -24,11 +24,11 @@ namespace DialogTesting
         public void NodeClassification()
         {
             Graphs.Alphabet
-                .Advice("A", "capital letter")
-                .Advice("B", "capital letter")
+                .Advice(".A", "capital letter")
+                .Advice(".B", "capital letter")
                 .Advice("c", "small letter")
 
-                .Assert("capital letter", "A", "B", "C", "D")
+                .Assert("capital letter", ".A", ".B", ".C", ".D")
                 .Assert("small letter", "a", "b", "c", "d");
         }
 

@@ -24,7 +24,7 @@ namespace DialogTesting.Utilities
 
 
         public static readonly ComposedGraph Alphabet = Graph
-            .ReverseMultiEdge(CharNode, IsRelation, "A", "B", "C", "D", "a", "b", "c", "d")
+            .ReverseMultiEdge(CharNode, IsRelation, ".A", ".B", ".C", ".D", "a", "b", "c", "d")
             .ReverseMultiEdge(UpperCaseNode, IsRelation, "A", "B", "C", "D")
             .ReverseMultiEdge(LowerCaseNode, IsRelation, "a", "b", "c", "d")
             ;
@@ -35,11 +35,11 @@ namespace DialogTesting.Utilities
             ;
 
         public static readonly ComposedGraph Alphabet2 = Graph
-            .E("A", "alias", "A_p")
-            .E("B", "alias", "B_p")
-            .E("C", "alias", "C_p")
-            .E("D", "alias", "D_p")
-            .ReverseMultiEdge(CharNode, IsRelation, "A", "B", "C", "D", "a", "b", "c", "d")
+            .E(".A", "alias", "A_p")
+            .E(".B", "alias", "B_p")
+            .E(".C", "alias", "C_p")
+            .E(".D", "alias", "D_p")
+            .ReverseMultiEdge(CharNode, IsRelation, ".A", ".B", ".C", ".D", "a", "b", "c", "d")
             ;
 
         #region Graph building utilities

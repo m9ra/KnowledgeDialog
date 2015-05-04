@@ -17,9 +17,11 @@ namespace KnowledgeDialog.Database.TripletLoader
 
         private readonly Dictionary<string, string> _myInterning = new Dictionary<string, string>();
 
-        private readonly Dictionary<string, IList<string>> _neighbours = new Dictionary<string, IList<string>>();
+        private readonly HashSet<NodeReference> _nodes = new HashSet<NodeReference>();
 
         public readonly ExplicitLayer DataLayer;
+
+        public IEnumerable<NodeReference> Nodes { get { return _nodes; } }
 
         public Loader(string path)
         {
@@ -51,14 +53,11 @@ namespace KnowledgeDialog.Database.TripletLoader
                 var edge = intern(parts[1]);
                 var target = intern(parts[2]);
 
-                IList<string> neighbours;
-                if (!_neighbours.TryGetValue(source, out neighbours))
-                    _neighbours[source] = neighbours = new List<string>();
-
-                neighbours.Add(target);
-
                 var sourceNode = GraphLayerBase.CreateReference(source);
                 var targetNode = GraphLayerBase.CreateReference(target);
+
+                _nodes.Add(sourceNode);
+                _nodes.Add(targetNode);
                 DataLayer.AddEdge(sourceNode, edge, targetNode);
                 SentenceParser.RegisterEntity(target);
 
@@ -71,19 +70,6 @@ namespace KnowledgeDialog.Database.TripletLoader
                     lastPercent = currentPercent;
                 }
             }
-
-            var maxLen = 0;
-            KeyValuePair<string, IList<string>> max = new KeyValuePair<string,IList<string>>();
-            foreach (var pair in _neighbours)
-            {
-                if (pair.Value.Count > maxLen)
-                {
-                    maxLen = pair.Value.Count;
-                    max = pair;
-                }
-            }
-
-            Console.WriteLine(max.Key + " " + maxLen);
         }
 
         private string[] split(string str)

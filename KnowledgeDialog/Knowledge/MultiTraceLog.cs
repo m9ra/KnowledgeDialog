@@ -8,7 +8,9 @@ namespace KnowledgeDialog.Knowledge
 {
     class MultiTraceLog
     {
-        public static readonly int Width = 20;
+        public static readonly int Width = 2000;
+
+        public static readonly int MaxPathLength = 4;
 
         /// <summary>
         /// Trace nodes where whole trace ends. (All traces for the route are joined here or no other way for trace is possible.)
@@ -64,11 +66,13 @@ namespace KnowledgeDialog.Knowledge
     class TraceNode
     {
 
-        internal IEnumerable<Trace> Traces { get; private set; }
+        internal IEnumerable<Trace> Traces { get { return _traceIndex.Values; } }
 
         internal IEnumerable<NodeReference> CurrentNodes { get { return _traceIndex.Keys; } }
 
-        internal bool HasContinuation { get { return _traceIndex.Count > 1; } }
+        internal readonly bool HasContinuation;
+
+        internal readonly TraceNode PreviousNode;
 
         internal IEnumerable<Tuple<string, bool>> Path
         {
@@ -88,11 +92,9 @@ namespace KnowledgeDialog.Knowledge
             }
         }
 
-        internal readonly TraceNode PreviousNode;
-
         protected readonly HashSet<NodeReference> VisitedNodes = new HashSet<NodeReference>();
 
-        private readonly Dictionary<NodeReference, List<Trace>> _traceIndex = new Dictionary<NodeReference, List<Trace>>();
+        private readonly Dictionary<NodeReference, Trace> _traceIndex = new Dictionary<NodeReference, Trace>();
 
 
         /// <summary>
@@ -102,23 +104,18 @@ namespace KnowledgeDialog.Knowledge
 
         internal TraceNode(IEnumerable<NodeReference> initialNodes)
         {
-            var allTraces = new List<Trace>();
             foreach (var node in initialNodes)
             {
                 if (node == null)
                     throw new NullReferenceException("node cannot be null");
 
                 var trace = new Trace(node);
-                allTraces.Add(trace);
-
-                var nodeTraces = new List<Trace>();
-                nodeTraces.Add(trace);
-
-                _traceIndex[node] = nodeTraces;
+                _traceIndex[node] = trace;
             }
 
             VisitedNodes.UnionWith(initialNodes);
-            Traces = allTraces;
+            //if there is more than one node, we could try to merge them
+            HasContinuation = initialNodes.Skip(1).Any();
         }
 
         internal TraceNode(TraceNode previousNode, Tuple<string, bool> edge, ComposedGraph graph)
@@ -134,39 +131,47 @@ namespace KnowledgeDialog.Knowledge
             VisitedNodes.UnionWith(previousNode.VisitedNodes);
 
             var currentlyVisitedNodes = new HashSet<NodeReference>();
-            var allTraces = new List<Trace>();
 
-            var traceTargetIndex = new Dictionary<NodeReference, HashSet<Trace>>();
+            var traceTargetIndex = new Dictionary<NodeReference, List<Trace>>();
             //fill index with previous nodes for each trace target
             foreach (var node in previousNode.CurrentNodes)
-            {                
-                var previousTraces = previousNode.GetTraces(node);
+            {
+                var previousTrace = previousNode.GetTrace(node);
+                //check whether we still need to trace the previousTrace 
+                //if it contains all input nodes - we don't need to trace it further
+
+
                 foreach (var target in graph.Targets(node, edge.Item1, edge.Item2))
                 {
                     if (VisitedNodes.Contains(target))
                         continue;
 
-                    currentlyVisitedNodes.Add(target);                    
-                    HashSet<Trace> traces;
+                    currentlyVisitedNodes.Add(target);
+                    List<Trace> traces;
                     if (!traceTargetIndex.TryGetValue(target, out traces))
-                        traceTargetIndex[target] = traces = new HashSet<Trace>();
+                        traceTargetIndex[target] = traces = new List<Trace>();
 
-                    traces.UnionWith(previousTraces);
+                    traces.Add(previousTrace);
                 }
             }
+            VisitedNodes.UnionWith(currentlyVisitedNodes);
 
-            //create traces from index
+            var inputInitialNodes = new HashSet<NodeReference>();
+            //merge traces that points to same node and check saturation of nodes
             foreach (var pair in traceTargetIndex)
             {
-                var trace = new Trace(pair.Key, pair.Value);
-                allTraces.Add(trace);
+                var trace = new Trace(pair.Key, pair.Value.Distinct());
+                _traceIndex.Add(pair.Key, trace);
+                inputInitialNodes.UnionWith(trace.InitialNodes);
             }
 
-            VisitedNodes.UnionWith(currentlyVisitedNodes);
-            Traces = allTraces;
+            //If there is node, that is not saturated - we will trace path further (because it can add more information)
+            var hasNonSaturatedTrace = _traceIndex.Any(p => p.Value.InitialNodes.Count() != inputInitialNodes.Count);
+            HasContinuation = hasNonSaturatedTrace && Path.Count() < MultiTraceLog.MaxPathLength;
+            KnowledgeDialog.Dialog.ConsoleServices.Print(Path);
         }
 
-        internal IEnumerable<Trace> GetTraces(NodeReference node)
+        internal Trace GetTrace(NodeReference node)
         {
             return _traceIndex[node];
         }

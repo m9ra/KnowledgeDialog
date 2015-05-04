@@ -205,8 +205,8 @@ namespace KnowledgeDialog.PoolComputation
 
         private string substitute(string pattern, string utterance)
         {
-            var patternNodes = QuestionAnsweringModule.GetRelatedNodes(pattern, _context.Graph);
-            var utteranceNodes = QuestionAnsweringModule.GetRelatedNodes(utterance, _context.Graph);
+            var patternNodes = QuestionAnsweringModule.GetRelatedNodes(pattern, _context.Graph).ToArray();
+            var utteranceNodes = QuestionAnsweringModule.GetRelatedNodes(utterance, _context.Graph).ToArray();
             var substitutions = QuestionAnsweringModule.GetSubstitutions(utteranceNodes, patternNodes, _context.Graph);
 
             var result = repairSpelling(pattern);

@@ -51,7 +51,10 @@ namespace KnowledgeDialog.Database
                 using (var reader = new StreamReader(_file))
                     while (!reader.EndOfStream)
                     {
-                        var line = reader.ReadLine();
+                        var line = reader.ReadLine().Trim();
+                        if (line == "")
+                            continue;
+
                         var storage = JsonConvert.DeserializeObject<Dictionary<string, object>>(line);
 
                         var callName = storage[CallNameEntry] as string;

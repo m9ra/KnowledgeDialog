@@ -27,7 +27,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
             _edge = edge;
         }
 
-        internal IEnumerable<Tuple<Trigger, string, double, string>> GetScore(StateGraphBuilder state)
+        internal IEnumerable<MappingControl<Trigger>> GetScore(StateGraphBuilder state)
         {
             if (_utterance != null)
             {

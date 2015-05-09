@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.PoolComputation
 {
-    interface IMappingProvider
+    interface IMappingProvider<T>
     {
-        void DesiredScore(object _index, double p);
     }
 }

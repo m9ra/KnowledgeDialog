@@ -48,10 +48,17 @@ namespace KnowledgeDialog.Knowledge
         /// </summary>
         /// <param name="node">Node which classification is improved.</param>
         /// <param name="cls">Adviced class.</param>
-        public void Advice(NodeReference node, ClassType cls)
+        public void Advice(NodeReference node, ClassType cls, bool autoRetrain=true)
         {
             _knownClassifications[node] = cls;
-            retrain();
+            if (autoRetrain)
+                Retrain();
+        }
+
+        internal void Retrain()
+        {
+            var log = new MultiTraceLog(_knownClassifications.Keys, Knowledge);
+            Root = createRuleTree(new HashSet<NodeReference>(_knownClassifications.Keys), log);
         }
 
         #region Classification utilities
@@ -85,12 +92,6 @@ namespace KnowledgeDialog.Knowledge
         #endregion
 
         #region Training utilities
-
-        private void retrain()
-        {
-            var log = new MultiTraceLog(_knownClassifications.Keys, Knowledge);
-            Root = createRuleTree(new HashSet<NodeReference>(_knownClassifications.Keys), log);
-        }
 
         private IEnumerable<NodeReference> getCoverage(TraceNode node)
         {

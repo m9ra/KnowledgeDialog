@@ -9,7 +9,7 @@ using KnowledgeDialog.Knowledge;
 
 namespace KnowledgeDialog.PoolComputation
 {
-    class UtteranceMapping<T> : IMappingProvider
+    class UtteranceMapping<T> : IMappingProvider<T>
     {
         protected readonly Dictionary<ParsedSentence, T> Mapping = new Dictionary<ParsedSentence, T>();
 
@@ -22,59 +22,25 @@ namespace KnowledgeDialog.PoolComputation
             _graph = graph;
         }
 
-        public T BestMap(string utterance)
+        public MappingControl<T> BestMap(string utterance)
         {
-            return ScoredMap(utterance).First().Item1;
+            return FindMapping(utterance).FirstOrDefault();
         }
 
-        public IEnumerable<Tuple<T, double>> ScoredMap(string utterance)
+        internal IEnumerable<MappingControl<T>> FindMapping(string utterance)
         {
-            var result = new List<Tuple<T, double>>();
+            var result = new List<MappingControl<T>>();
             var parsedSentence = SentenceParser.Parse(utterance);
 
             foreach (var pair in Mapping)
             {
                 var similarity = getSimilarity(pair.Key, parsedSentence);
 
-                result.Add(Tuple.Create(pair.Value, similarity.Item2));
+                var control = new MappingControl<T>(similarity.Item1, similarity.Item2, this, pair.Value, pair.Key);
+                result.Add(control);
             }
 
-            result.Sort((a, b) => b.Item2.CompareTo(a.Item2));
-
-            return result;
-        }
-
-        public IEnumerable<Tuple<T, string, double, string>> ScoredSubstitutionMap(string utterance)
-        {
-            var result = new List<Tuple<T, string, double, string>>();
-            var parsedSentence = SentenceParser.Parse(utterance);
-
-            foreach (var pair in Mapping)
-            {
-                var similarity = getSimilarity(pair.Key, parsedSentence);
-
-                result.Add(Tuple.Create(pair.Value, similarity.Item1, similarity.Item2, pair.Key.OriginalSentence));
-            }
-
-            result.Sort((a, b) => b.Item3.CompareTo(a.Item3));
-
-            return result;
-        }
-
-        internal IEnumerable<Tuple<T, MappingControl>> ControlledMap(string utterance)
-        {
-            var result = new List<Tuple<T, MappingControl>>();
-            var parsedSentence = SentenceParser.Parse(utterance);
-
-            foreach (var pair in Mapping)
-            {
-                var similarity = getSimilarity(pair.Key, parsedSentence);
-
-                var control = new MappingControl(similarity.Item1, similarity.Item2, null, this);
-                result.Add(Tuple.Create(pair.Value, control));
-            }
-
-            result.Sort((a, b) => b.Item2.Score.CompareTo(a.Item2.Score));
+            result.Sort((a, b) => b.Score.CompareTo(a.Score));
 
             return result;
         }

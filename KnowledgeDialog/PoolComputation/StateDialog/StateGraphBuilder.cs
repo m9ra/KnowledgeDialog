@@ -110,29 +110,29 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
             return this;
         }
 
-        internal IEnumerable<Tuple<Trigger, string, double, string>> UtteranceEdge(string utterance)
+        internal IEnumerable<MappingControl<Trigger>> UtteranceEdge(string utterance)
         {
             foreach (var triggerPair in _externalTriggers)
             {
-                var bestHypothesis = triggerPair.Key.ScoredSubstitutionMap(utterance).FirstOrDefault();
-                if (bestHypothesis != null && bestHypothesis.Item3 > 0.5)
+                var bestHypothesis = triggerPair.Key.BestMap(utterance);
+                if (bestHypothesis != null && bestHypothesis.Score > 0.5)
                 {
                     return new[]{
-                        Tuple.Create<Trigger,string,double,string>(triggerPair.Value,null,bestHypothesis.Item3,bestHypothesis.Item4)
+                        bestHypothesis.ChangeValue(triggerPair.Value)
                     };
                 }
             }
 
-            return Triggers.ScoredSubstitutionMap(utterance);
+            return Triggers.FindMapping(utterance);
         }
 
-        internal IEnumerable<Tuple<Trigger, string, double, string>> DirectEdge(EdgeIdentifier edgeId)
+        internal IEnumerable<MappingControl<Trigger>> DirectEdge(EdgeIdentifier edgeId)
         {
             Trigger trigger;
             if (!_directEdges.TryGetValue(edgeId, out trigger))
                 yield break;
 
-            yield return Tuple.Create<Trigger, string, double, string>(trigger, null, 1.0, null);
+            yield return new MappingControl<Trigger>(null, 1.0, null, trigger, null);
         }
 
         private void addEdge(string pattern, StateGraphBuilder nextState, TriggerAction action)

@@ -147,29 +147,29 @@ namespace KnowledgeDialog.PoolComputation
                 if (scores.Any())
                 {
                     var bestHypothesis = scores.First();
-                    var confidence = bestHypothesis.Item3;
+                    var score = bestHypothesis.Score;
                     var nonPatternQuestion = getBestNonPattern(scores);
 
-                    if (confidence < 0.5)
+                    if (score < 0.5)
                     {
                         trigger = _currentState.DefaultTrigger;
                     }
-                    else if (nonPatternQuestion != null && nonPatternQuestion.Item3 < 0.9 && _currentState == QuestionRouting)
+                    else if (nonPatternQuestion != null && nonPatternQuestion.Score < 0.9 && _currentState == QuestionRouting)
                     {
                         _context.SetValue(EquivalenceQuestion.QueriedQuestion, utterance);
-                        var substitution = substitute(nonPatternQuestion.Item4, utterance);
+                        var substitution = substitute(nonPatternQuestion.ParsedSentence.OriginalSentence, utterance);
                         _context.SetValue(EquivalenceQuestion.PatternQuestion, substitution);
                         edgeInput = new EdgeInput(EquivalenceQuestion.EquivalenceEdge);
                         continue;
                     }
-                    else if (confidence < 0.9)
+                    else if (score < 0.9)
                     {
                         trigger = _currentState.DefaultTrigger;
                     }
                     else
                     {
-                        var substitution = bestHypothesis.Item2;
-                        trigger = bestHypothesis.Item1;
+                        var substitution = bestHypothesis.Substitution;
+                        trigger = bestHypothesis.Value;
                         _context.AddSubstitution(substitution);
                     }
                 }
@@ -193,11 +193,11 @@ namespace KnowledgeDialog.PoolComputation
             return new SimpleResponse(string.Join(".", concatenation));
         }
 
-        private Tuple<Trigger, string, double, string> getBestNonPattern(IEnumerable<Tuple<Trigger, string, double, string>> hypotheses)
+        private MappingControl<Trigger> getBestNonPattern(IEnumerable<MappingControl<Trigger>> hypotheses)
         {
             foreach (var hypothesis in hypotheses)
             {
-                if (hypothesis.Item4 != null && !hypothesis.Item4.Contains('*'))
+                if (hypothesis.ParsedSentence.OriginalSentence != null && !hypothesis.ParsedSentence.OriginalSentence.Contains('*'))
                     return hypothesis;
             }
             return null;

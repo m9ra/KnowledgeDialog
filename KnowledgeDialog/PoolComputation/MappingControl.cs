@@ -9,35 +9,36 @@ using KnowledgeDialog.Knowledge;
 
 namespace KnowledgeDialog.PoolComputation
 {
-    class MappingControl
+    class MappingControl<T>
     {
         public readonly string Substitution;
 
         public readonly double Score;
 
-        private readonly object _index;
+        public readonly T Value;
 
-        private readonly IMappingProvider _provider;
+        public readonly ParsedSentence ParsedSentence;
 
-        public MappingControl(string substitution, double score, object index, IMappingProvider provider)
+        private readonly IMappingProvider<T> _provider;
+
+        public MappingControl(string substitution, double score, IMappingProvider<T> provider, T value, ParsedSentence originalSentence)
         {
             Substitution = substitution;
             Score = score;
-            _provider = provider;
+            Value = value;
+            ParsedSentence = originalSentence;
 
-            _index = index;
+            _provider = provider;
         }
 
         internal void Suggest(bool isCorrect)
         {
-            if (isCorrect)
-            {
-                _provider.DesiredScore(_index, 1.0);
-            }
-            else
-            {
-                _provider.DesiredScore(_index, Score * 0.5);
-            }
+            //Now we don't take advantage from these suggestions
+        }
+
+        internal MappingControl<NewT> ChangeValue<NewT>(NewT value)
+        {
+            return new MappingControl<NewT>(Substitution, Score, null, value, ParsedSentence);
         }
     }
 }

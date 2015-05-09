@@ -134,8 +134,11 @@ namespace KnowledgeDialog.PoolComputation
 
                 if (isEquivalent)
                 {
-                    var bestHyp = Triggers.BestMap(patternQuestion);
-                    Triggers.SetMapping(queriedQuestion, bestHyp);
+                    var bestMap = Triggers.BestMap(patternQuestion);
+                    if (bestMap == null)
+                        return;
+
+                    Triggers.SetMapping(queriedQuestion, bestMap.Value);
                 }
                 else
                 {
@@ -159,8 +162,10 @@ namespace KnowledgeDialog.PoolComputation
                 var currentAnswer = getActualAnswer(bestHypothesis.Item1);
                 foreach (var answer in currentAnswer)
                 {
-                    bestHypothesis.Item1.ActionBlock.OutputFilter.Advice(answer, false);
+                    bestHypothesis.Item1.ActionBlock.OutputFilter.Advice(answer, false, false);
                 }
+
+                bestHypothesis.Item1.ActionBlock.OutputFilter.Retrain();
             }
         }
 
@@ -191,24 +196,24 @@ namespace KnowledgeDialog.PoolComputation
             return from h in GetControlledHypotheses(utterance) select Tuple.Create(h.Item1, h.Item2.Score);
         }
 
-        internal IEnumerable<Tuple<PoolHypothesis, MappingControl>> GetControlledHypotheses(string utterance)
+        internal IEnumerable<Tuple<PoolHypothesis, MappingControl<ActionBlock>>> GetControlledHypotheses(string utterance)
         {
-            var scoredActions = Triggers.ControlledMap(utterance);
+            var scoredActions = Triggers.FindMapping(utterance);
             var availableNodes = GetRelatedNodes(utterance, Graph).ToArray();
 
-            var result = new List<Tuple<PoolHypothesis, MappingControl>>();
+            var result = new List<Tuple<PoolHypothesis, MappingControl<ActionBlock>>>();
             foreach (var scoredAction in scoredActions)
             {
-                var substitutions = GetSubstitutions(availableNodes, scoredAction.Item1.RequiredSubstitutions, Graph);
+                var substitutions = GetSubstitutions(availableNodes, scoredAction.Value.RequiredSubstitutions, Graph);
 
-                var scoredHypothesis = Tuple.Create(new PoolHypothesis(substitutions, scoredAction.Item1), scoredAction.Item2);
+                var scoredHypothesis = Tuple.Create(new PoolHypothesis(substitutions, scoredAction.Value), scoredAction);
                 result.Add(scoredHypothesis);
             }
 
             return result;
         }
 
-        internal static Dictionary<NodeReference, NodeReference> GetSubstitutions(IEnumerable<NodeReference> availableNodes,IEnumerable<NodeReference> requiredSubstitutions, ComposedGraph graph)
+        internal static Dictionary<NodeReference, NodeReference> GetSubstitutions(IEnumerable<NodeReference> availableNodes, IEnumerable<NodeReference> requiredSubstitutions, ComposedGraph graph)
         {
             var substitutions = new Dictionary<NodeReference, NodeReference>();
             var missingSubstitutionsSet = new HashSet<NodeReference>(requiredSubstitutions);
@@ -331,9 +336,10 @@ namespace KnowledgeDialog.PoolComputation
             foreach (var node in pool.ActiveNodes)
             {
                 var isInOutput = node.Equals(correctAnswerNode);
-                actionBlock.OutputFilter.Advice(node, isInOutput);
+                actionBlock.OutputFilter.Advice(node, isInOutput, false);
             }
 
+            actionBlock.OutputFilter.Retrain();
             ConsoleServices.Print(actionBlock.OutputFilter.Root);
         }
 

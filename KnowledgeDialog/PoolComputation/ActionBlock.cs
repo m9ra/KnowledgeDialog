@@ -5,29 +5,54 @@ using System.Text;
 using System.Threading.Tasks;
 
 using KnowledgeDialog.Knowledge;
+using KnowledgeDialog.PoolComputation.PoolActions;
 
 namespace KnowledgeDialog.PoolComputation
 {
     class ActionBlock
     {
-        internal readonly IEnumerable<IPoolAction> Actions;
+        private List<IPoolAction> _actions = new List<IPoolAction>();
 
-        internal readonly IEnumerable<NodeReference> RequiredSubstitutions;
+        internal IEnumerable<IPoolAction> Actions { get { return _actions; } }
+
+        internal NodesEnumeration RequiredSubstitutions { get; private set; }
 
         internal readonly KnowledgeClassifier<bool> OutputFilter;
 
-        internal ActionBlock(ComposedGraph graph,params IPoolAction[] actions)
-            : this(graph,(IEnumerable<IPoolAction>)actions)
+        internal ActionBlock(ComposedGraph graph, params IPoolAction[] actions)
+            : this(graph, (IEnumerable<IPoolAction>)actions)
         {
-            
+
+        }
+
+        internal ActionBlock(ComposedGraph graph, IEnumerable<IPoolAction> actions)
+        {
+            OutputFilter = new KnowledgeClassifier<bool>(graph);
+            _actions.AddRange(actions);
+            RequiredSubstitutions = findRequiredSubstitutions(actions);
         }
 
 
-        internal ActionBlock(ComposedGraph graph,IEnumerable<IPoolAction> actions)
+        internal void UpdatePush(IEnumerable<PushAction> pushActions)
         {
-            OutputFilter = new KnowledgeClassifier<bool>(graph);
+            _actions.RemoveAll(action => action is PushAction);
+            _actions.AddRange(pushActions);
+
+            RequiredSubstitutions = findRequiredSubstitutions(_actions);
+        }
+
+        internal void UpdateInsert(IEnumerable<InsertAction> insertActions)
+        {
+            _actions.RemoveAll(action => action is InsertAction);
+            _actions.AddRange(insertActions);
+
+            RequiredSubstitutions = findRequiredSubstitutions(_actions);
+        }
+
+        private NodesEnumeration findRequiredSubstitutions(IEnumerable<IPoolAction> actions)
+        {
             var nodes = new List<NodeReference>();
-            foreach (var action in actions)
+            foreach (var action in Actions)
             {
                 if (action.SemanticOrigin == null)
                     continue;
@@ -39,9 +64,7 @@ namespace KnowledgeDialog.PoolComputation
                 nodes.Add(substitutedNode);
             }
 
-            Actions = actions.ToArray();
-            RequiredSubstitutions = nodes.ToArray();
+            return new NodesEnumeration(nodes.ToArray());
         }
-
     }
 }

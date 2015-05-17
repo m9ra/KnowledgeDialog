@@ -18,15 +18,9 @@ namespace KnowledgeDialog.PoolComputation
     {
         private readonly object _L_input = new object();
 
-        internal readonly ContextPool Pool;
+        private readonly Dictionary<string, QuestionEntry> _questions = new Dictionary<string, QuestionEntry>();
 
-        internal ComposedGraph Graph { get { return Pool.Graph; } }
-
-        internal readonly UtteranceMapping<ActionBlock> Triggers;
-
-        internal static readonly int MaximumGraphDepth = 10;
-
-        internal static readonly int MaximumGraphWidth = 1000;
+        private readonly Dictionary<string, List<QuestionEntry>> _questionsPatternIndex = new Dictionary<string, List<QuestionEntry>>();
 
         private readonly CallSerializer _adviceAnswer;
 
@@ -37,6 +31,16 @@ namespace KnowledgeDialog.PoolComputation
         private readonly CallSerializer _negate;
 
         internal readonly CallStorage Storage;
+
+        internal readonly ContextPool Pool;
+
+        internal ComposedGraph Graph { get { return Pool.Graph; } }
+
+        internal readonly UtteranceMapping<ActionBlock> Triggers;
+
+        internal static readonly int MaximumGraphDepth = 10;
+
+        internal static readonly int MaximumGraphWidth = 1000;
 
         public QuestionAnsweringModule(ComposedGraph graph, CallStorage storage)
         {
@@ -84,6 +88,9 @@ namespace KnowledgeDialog.PoolComputation
             _adviceAnswer.SaveReport();
 
             fillPool(context);
+
+            var questionEntry = GetQuestionEntry(question);
+            questionEntry.RegisterAnswer(isBasedOnContext, correctAnswerNode);
 
             return
                 updateOldActions(question, isBasedOnContext, correctAnswerNode) ||
@@ -186,6 +193,31 @@ namespace KnowledgeDialog.PoolComputation
             return pool.ActiveNodes;
         }
 
+        internal NodesEnumeration GetPatternNodes(string question)
+        {
+            var entry = _questions[question];
+
+            return entry.QuestionNodes;
+        }
+
+        internal QuestionEntry GetQuestionEntry(string question)
+        {
+            QuestionEntry entry;
+            if (!_questions.TryGetValue(question, out entry))
+            {
+                _questions[question] = entry = new QuestionEntry(question, Graph);
+                var pattern = getPatternQuestion(entry);
+
+                List<QuestionEntry> patternQuestions;
+                if (!_questionsPatternIndex.TryGetValue(pattern, out patternQuestions))
+                    _questionsPatternIndex[pattern] = patternQuestions = new List<QuestionEntry>();
+
+                patternQuestions.Add(entry);
+            }
+
+            return entry;
+        }
+
         internal Tuple<PoolHypothesis, double> GetBestHypothesis(string question)
         {
             return GetHypotheses(question).FirstOrDefault();
@@ -213,10 +245,10 @@ namespace KnowledgeDialog.PoolComputation
             return result;
         }
 
-        internal static Dictionary<NodeReference, NodeReference> GetSubstitutions(IEnumerable<NodeReference> availableNodes, IEnumerable<NodeReference> requiredSubstitutions, ComposedGraph graph)
+        internal static NodesSubstitution GetSubstitutions(IEnumerable<NodeReference> availableNodes, NodesEnumeration originalNodes, ComposedGraph graph)
         {
             var substitutions = new Dictionary<NodeReference, NodeReference>();
-            var missingSubstitutionsSet = new HashSet<NodeReference>(requiredSubstitutions);
+            var missingSubstitutionsSet = new HashSet<NodeReference>(originalNodes);
             var availableNodesSet = new HashSet<NodeReference>(availableNodes);
 
             while (missingSubstitutionsSet.Count > 0)
@@ -246,16 +278,12 @@ namespace KnowledgeDialog.PoolComputation
                 availableNodesSet.Remove(substitutionValue);
                 substitutions.Add(bestSubstitution, substitutionValue);
             }
-            return substitutions;
+            return new NodesSubstitution(originalNodes, substitutions);
         }
 
-        internal static IEnumerable<NodeReference> GetRelatedNodes(string utterance, ComposedGraph graph)
+        internal IEnumerable<NodeReference> GetRelatedNodes(string utterance, ComposedGraph graph)
         {
-            foreach (var word in SentenceParser.Parse(utterance).Words)
-            {
-                if (graph.HasEvidence(word))
-                    yield return graph.GetNode(word);
-            }
+            return GetQuestionEntry(utterance).QuestionNodes;
         }
 
         internal static NodeReference GetNearest(NodeReference pivot, IEnumerable<NodeReference> nodes, ComposedGraph graph)
@@ -291,6 +319,18 @@ namespace KnowledgeDialog.PoolComputation
                 //this is different hypothesis
                 return false;
 
+            var questionEntry = GetQuestionEntry(question);
+
+            //update push part of rule
+            if (!updatePushPart(questionEntry, bestHypothesis.Item1, Pool))
+                return false;
+
+            //update context filter
+            return updateFilterPart(correctAnswerNode, bestHypothesis);
+        }
+
+        private bool updateFilterPart(NodeReference correctAnswerNode, Tuple<PoolHypothesis, double> bestHypothesis)
+        {
             var pool = Pool.Clone();
             runActions(pool, bestHypothesis.Item1.ActionBlock, bestHypothesis.Item1.Substitutions, false);
             if (pool.ActiveNodes.Contains(correctAnswerNode))
@@ -300,6 +340,59 @@ namespace KnowledgeDialog.PoolComputation
             }
 
             return false;
+        }
+
+        private bool updatePushPart(QuestionEntry questionEntry, PoolHypothesis hypothesis, ContextPool pool)
+        {
+            pool = pool.Clone();
+            if (!questionEntry.IsContextFree)
+                //TODO: we are now not able to learn this
+                return false;
+
+            pool.ClearAccumulator();
+            //we don't need substitute anything - we ran rules with original nodes only
+            pool.SetSubstitutions(null);
+
+            var pushActions = new List<PushAction>();
+            var insertActions = new List<InsertAction>();
+
+            //traverse all entries and collect all update/insert rules, that will 
+            //cover every correct answer
+            var equivalentEntries = getPatternEquivalentEntries(questionEntry);
+            foreach (var entry in equivalentEntries)
+            {
+                if (!entry.HasAnswer)
+                    continue;
+
+                if (!pool.ContainsInAccumulator(entry.CorrectAnswer))
+                {
+                    var action = createPushAction(entry.Question, entry.CorrectAnswer);
+                    if (action == null)
+                    {
+                        //we cannot derive push rule
+                        insertActions.Add(new InsertAction(entry.CorrectAnswer));
+                        pool.Insert(entry.CorrectAnswer);
+                    }
+                    else
+                    {
+                        //we have got push rule - we will apply it without constraining and filtering
+                        action.Run(pool);
+                        action = action.Resubstitution(entry.QuestionNodes, hypothesis.Substitutions.OriginalNodes);
+                        pushActions.Add(action);
+                    }
+                }
+            }
+
+            hypothesis.ActionBlock.UpdatePush(pushActions);
+            hypothesis.ActionBlock.UpdateInsert(insertActions);
+            return true;
+        }
+
+        private IEnumerable<QuestionEntry> getPatternEquivalentEntries(QuestionEntry entry)
+        {
+            var pattern = getPatternQuestion(entry);
+
+            return _questionsPatternIndex[pattern];
         }
 
         private bool createNewActions(string question, bool isBasedOnContext, NodeReference correctAnswerNode)
@@ -343,12 +436,18 @@ namespace KnowledgeDialog.PoolComputation
             ConsoleServices.Print(actionBlock.OutputFilter.Root);
         }
 
-        private static void runActions(ContextPool pool, ActionBlock actionBlock, IEnumerable<KeyValuePair<NodeReference, NodeReference>> substitutions = null, bool useFiltering = true)
+        private static void runActions(ContextPool pool, ActionBlock actionBlock, NodesSubstitution substitutions = null, bool useFiltering = true)
         {
             if (substitutions != null)
                 pool.SetSubstitutions(substitutions);
 
-            foreach (var action in actionBlock.Actions)
+            var sortedActions = actionBlock.Actions.OrderByDescending((a) => a.Priority).ToArray();
+            var hasPushAction = sortedActions.Any(action => action is PushAction);
+            if (hasPushAction)
+                //start new topic - but only once! (multiple pushes can appear)
+                pool.ClearAccumulator();
+
+            foreach (var action in sortedActions)
             {
                 action.Run(pool);
             }
@@ -436,22 +535,33 @@ namespace KnowledgeDialog.PoolComputation
             return new ActionBlock(Pool.Graph, new[] { action });
         }
 
-        private ActionBlock pushAdvice(string question, NodeReference correctAnswer)
+        private PushAction createPushAction(string question, NodeReference correctAnswer)
         {
             var relevantUtterances = lastRelevantUtterances(question, correctAnswer);
             var orderedUtterances = (from utterance in relevantUtterances orderby getFowardTargets(utterance).Count select utterance).ToArray();
 
             if (!orderedUtterances.Any())
+                return null;
+
+            var pushPart = orderedUtterances.Last();
+            var pushAction = new PushAction(pushPart);
+            return pushAction;
+        }
+
+        private ActionBlock pushAdvice(string question, NodeReference correctAnswer)
+        {
+            var pushAction = createPushAction(question, correctAnswer);
+            if (pushAction == null)
             {
                 //we don't have more evidence - we just have to push given answer
                 var block = new ActionBlock(Pool.Graph, new InsertAction(correctAnswer));
                 return block;
             }
 
-            var pushPart = orderedUtterances.Last();
-            var pushAction = new PushAction(pushPart);
-            var pushedNodes = getFowardTargets(pushPart);
+            var pushedNodes = getFowardTargets(pushAction.SemanticOrigin);
 
+            var relevantUtterances = lastRelevantUtterances(question, correctAnswer);
+            var orderedUtterances = (from utterance in relevantUtterances orderby getFowardTargets(utterance).Count select utterance).ToArray();
             var constraints = new List<ConstraintAction>();
             for (var i = 0; i < orderedUtterances.Length - 1; ++i)
             {
@@ -571,5 +681,23 @@ namespace KnowledgeDialog.PoolComputation
             var nodeEdges = (from nodeTarget in nodeTargets select Tuple.Create(nodeTarget.Item1, nodeTarget.Item2)).ToArray();
             return nodeEdges;
         }
+
+        private string getPatternQuestion(QuestionEntry question)
+        {
+            var builder = new StringBuilder();
+            foreach (var word in question.ParsedQuestion.Words)
+            {
+                if (builder.Length > 0)
+                    builder.Append(' ');
+
+                if (Graph.HasEvidence(word))
+                    builder.Append("#");
+                else
+                    builder.Append(word);
+            }
+
+            return builder.ToString();
+        }
+
     }
 }

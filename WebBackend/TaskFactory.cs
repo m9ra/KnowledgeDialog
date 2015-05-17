@@ -19,10 +19,10 @@ namespace WebBackend
         static TaskFactory()
         {
             var g = Program.Graph;
-    //        Add(new PresidentChildrenTask(g));
+            Add(new PresidentChildrenTask(g));
             Add(new PresidentOfStateTask(g));
-    //        Add(new StateOfPresidentTask(g));
-    //        Add(new WifeOfPresidentTask(g));
+            Add(new StateOfPresidentTask(g));
+            Add(new WifeOfPresidentTask(g));
 
             GenerateTaskPairs();
         }

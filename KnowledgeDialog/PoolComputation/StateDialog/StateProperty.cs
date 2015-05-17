@@ -11,5 +11,10 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
         internal static readonly string TrueValue = "$true";
 
         internal static readonly string FalseValue = "$false";
+
+        internal static string ToPropertyValue(bool boolValue)
+        {
+            return boolValue ? TrueValue : FalseValue;
+        }
     }
 }

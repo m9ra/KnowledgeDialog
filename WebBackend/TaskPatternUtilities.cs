@@ -60,7 +60,9 @@ namespace WebBackend
             {
                 if (Program.UseWikidata)
                     return new[]{
-                        Tuple.Create("en.label",false)
+                        Tuple.Create("en.label",false),
+                        Tuple.Create("P27",false),
+                        Tuple.Create("en.label",true)
                     };
                 else
                     return new[]{
@@ -92,7 +94,10 @@ namespace WebBackend
             {
                 if (Program.UseWikidata)
                     return new[]{
-                        Tuple.Create("en.label",false)
+                        Tuple.Create("en.label",false),
+                        Tuple.Create("P27",false),
+                        Tuple.Create("P26",true),
+                        Tuple.Create("en.label",true)
                     };
                 else
                     return new[]{
@@ -108,7 +113,10 @@ namespace WebBackend
             {
                 if (Program.UseWikidata)
                     return new[]{
-                        Tuple.Create("en.label",false)
+                        Tuple.Create("en.label",false),
+                        Tuple.Create("P27",false),
+                        Tuple.Create("P40.main",true),
+                        Tuple.Create("en.label",true)
                     };
                 else
                     return new[]{

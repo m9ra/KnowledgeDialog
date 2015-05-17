@@ -10,12 +10,12 @@ namespace KnowledgeDialog.PoolComputation
 {
     class PoolHypothesis
     {
-        public readonly IEnumerable<KeyValuePair<NodeReference, NodeReference>> Substitutions;
+        public readonly NodesSubstitution Substitutions;
 
         public readonly ActionBlock ActionBlock;
 
 
-        public PoolHypothesis(IEnumerable<KeyValuePair<NodeReference, NodeReference>> substitutions, ActionBlock block)
+        public PoolHypothesis(NodesSubstitution substitutions, ActionBlock block)
         {
             Substitutions = substitutions;
             ActionBlock = block;

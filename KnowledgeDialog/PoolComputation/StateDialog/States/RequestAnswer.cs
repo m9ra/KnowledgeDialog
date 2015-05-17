@@ -19,7 +19,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
                 Context.SetValue(AcceptAdvice.IsBasedOnContextProperty, StateProperty.FalseValue);
                       
             if (!Context.IsSet(AcceptAdvice.CorrectAnswerProperty))
-                return Response("Please, can you give me correct answer for your question?");
+                return Response("I don't know, can you give me correct answer for your question please?");
 
             return EmitEdge(HasCorrectAnswerEdge);
         }

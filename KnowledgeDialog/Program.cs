@@ -15,7 +15,30 @@ namespace KnowledgeDialog
     {
         static void Main(string[] args)
         {
-            PersistentInformationConsole();
+            InconsistencyDBTesting(args[0]);
+        }
+
+        private static void InconsistencyDBTesting(string dbPath)
+        {
+            var loader = new Database.TripletLoader.Loader(dbPath);
+            var graph = new ComposedGraph(loader.DataLayer);
+            WikidataHelper.PreprocessData(loader, graph);
+
+            var manager = new PoolComputation.StateDialogManager(null, loader.DataLayer);
+            var provider = new DialogConsole(manager);
+
+            provider.SimulateInput(
+                "name of Czech Republic president",
+                "it is Miloš Zeman",
+                "name of Russia president",
+                "it is Vladimir Putin",
+                "name of United States of America president",
+                "it is Barack Obama",
+                "name of United States of America president",
+                "name of Czech Republic president"
+                );
+
+            provider.Run();
         }
 
         private static void PersistentInformationConsole()
@@ -133,7 +156,7 @@ namespace KnowledgeDialog
             var test2 = classifier.Classify(node5);
         }
 
-       
+
         private static void debugDialog1(DialogConsole provider)
         {
             provider.SimulateInput(

@@ -46,7 +46,7 @@ namespace KnowledgeDialog.PoolComputation
             return substitution;
         }
 
-        internal void SetSubstitutions(IEnumerable<KeyValuePair<NodeReference, NodeReference>> substitutions)
+        internal void SetSubstitutions(NodesSubstitution substitutions)
         {
             _substitutions = new Dictionary<NodeReference, NodeReference>();
 
@@ -54,9 +54,11 @@ namespace KnowledgeDialog.PoolComputation
                 //nothing more to substitute
                 return;
 
-            foreach (var substitution in substitutions)
+            for (var nodeIndex = 0; nodeIndex < substitutions.NodeCount; ++nodeIndex)
             {
-                _substitutions[substitution.Key] = substitution.Value;
+                var key = substitutions.GetOriginalNode(nodeIndex);
+                var substitution = substitutions.GetSubstitution(nodeIndex);
+                _substitutions[key] = substitution;
             }
         }
 
@@ -68,8 +70,7 @@ namespace KnowledgeDialog.PoolComputation
         internal void Push(NodeReference pushStart, KnowledgePath path)
         {
             var layer = GetPathLayer(pushStart, path);
-
-            _accumulator = layer;
+            _accumulator.UnionWith(layer);
         }
 
         internal void ExtendBy(KnowledgePath path)
@@ -131,6 +132,11 @@ namespace KnowledgeDialog.PoolComputation
             }
 
             _accumulator = newLayer;
+        }
+
+        internal bool ContainsInAccumulator(NodeReference nodeReference)
+        {
+            return _accumulator.Contains(nodeReference);
         }
     }
 }

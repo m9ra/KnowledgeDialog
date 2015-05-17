@@ -71,7 +71,6 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
         internal StateGraphBuilder IsEdge(StateGraphBuilder stateGraphBuilder, StateProperty stateProperty)
         {
             this
-                .Edge("*", stateGraphBuilder, stateProperty)
                 .Edge("his name is *", stateGraphBuilder, stateProperty)
                 .Edge("her name is *", stateGraphBuilder, stateProperty)
                 .Edge("he is *", stateGraphBuilder, stateProperty)

@@ -61,8 +61,10 @@ namespace WebBackend
 
 
             //handle dialog initialization
-            var id = experimentName + GET("taskid");
-            if (experimentData.RefreshTask(id, user, enableTaskLimit))
+            int taskId;
+            int.TryParse(GET("taskid"), out taskId);
+            var id = experimentName + taskId;
+            if (experimentData.RefreshTask(taskId, experimentName, user, enableTaskLimit))
             {
                 //id of task has changed - we have to remove old dialog console
                 user.LogMessage("start " + id);

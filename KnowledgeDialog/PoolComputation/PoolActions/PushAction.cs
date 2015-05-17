@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.Knowledge;
+
 namespace KnowledgeDialog.PoolComputation.PoolActions
 {
     class PushAction : IPoolAction
@@ -20,7 +22,6 @@ namespace KnowledgeDialog.PoolComputation.PoolActions
         public void Run(ContextPool context)
         {
             var pushStart = context.GetSubstitution(SemanticOrigin.StartNode);
-            context.ClearAccumulator();
             foreach (var path in SemanticOrigin.Paths)
             {
                 context.Push(pushStart, path);
@@ -47,6 +48,23 @@ namespace KnowledgeDialog.PoolComputation.PoolActions
             }
 
             return true;
+        }
+
+        internal PushAction Resubstitution(NodesEnumeration originalNodes, NodesEnumeration substitutedNodes)
+        {
+            NodeReference substitutedNode=null;
+            for (var i = 0; i < originalNodes.Count; ++i)
+            {
+                var originalNode = originalNodes.GetNode(i);
+                if (originalNode.Equals(SemanticOrigin.StartNode))
+                    substitutedNode = substitutedNodes.GetNode(i);
+            }
+
+            var substitutedOrigin = SemanticOrigin;
+            if (substitutedNode != null)
+                substitutedOrigin = substitutedOrigin.Substitute(SemanticOrigin.StartNode, substitutedNode);
+
+            return new PushAction(substitutedOrigin);
         }
     }
 }

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.Dialog;
+
 namespace KnowledgeDialog.Knowledge
 {
     class MultiTraceLog
@@ -168,12 +170,18 @@ namespace KnowledgeDialog.Knowledge
             //If there is node, that is not saturated - we will trace path further (because it can add more information)
             var hasNonSaturatedTrace = _traceIndex.Any(p => p.Value.InitialNodes.Count() != inputInitialNodes.Count);
             HasContinuation = hasNonSaturatedTrace && Path.Count() < MultiTraceLog.MaxPathLength;
-            KnowledgeDialog.Dialog.ConsoleServices.Print(Path);
         }
 
         internal Trace GetTrace(NodeReference node)
         {
             return _traceIndex[node];
+        }
+
+        public override string ToString()
+        {
+            var builder = new StringBuilder();
+            ConsoleServices.FillWithPath(builder, Path);
+            return "[TraceNode]" + builder.ToString();
         }
     }
 

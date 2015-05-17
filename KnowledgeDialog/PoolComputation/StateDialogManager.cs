@@ -197,7 +197,7 @@ namespace KnowledgeDialog.PoolComputation
         {
             foreach (var hypothesis in hypotheses)
             {
-                if (hypothesis.ParsedSentence.OriginalSentence != null && !hypothesis.ParsedSentence.OriginalSentence.Contains('*'))
+                if (hypothesis.ParsedSentence!= null && !hypothesis.ParsedSentence.OriginalSentence.Contains('*'))
                     return hypothesis;
             }
             return null;
@@ -205,8 +205,8 @@ namespace KnowledgeDialog.PoolComputation
 
         private string substitute(string pattern, string utterance)
         {
-            var patternNodes = QuestionAnsweringModule.GetRelatedNodes(pattern, _context.Graph).ToArray();
-            var utteranceNodes = QuestionAnsweringModule.GetRelatedNodes(utterance, _context.Graph).ToArray();
+            var patternNodes = _context.QuestionAnsweringModule.GetPatternNodes(pattern);
+            var utteranceNodes = _context.QuestionAnsweringModule.GetRelatedNodes(utterance, _context.Graph).ToArray();
             var substitutions = QuestionAnsweringModule.GetSubstitutions(utteranceNodes, patternNodes, _context.Graph);
 
             var result = repairSpelling(pattern);

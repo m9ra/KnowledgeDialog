@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExperimentCodeWriter.cs" />
     <Compile Include="TaskPatternUtilities.cs" />
     <Compile Include="DialogWeb.cs" />
     <Compile Include="ExperimentData.cs" />
@@ -61,7 +62,6 @@
     <Compile Include="TaskPatterns\WifeOfPresidentTask.cs" />
     <Compile Include="UserTracker.cs" />
     <Compile Include="WebConsole.cs" />
-    <Compile Include="WikidataHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

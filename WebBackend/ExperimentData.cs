@@ -8,24 +8,38 @@ namespace WebBackend
 {
     class ExperimentData
     {
-        private string _currentId;
+        private int _currentId;
+
+        private string _experimentId;
+
+        internal static readonly string ExperimentId = "experiment0";
+
         public TaskInstance Task { get; private set; }
 
-        public bool RefreshTask(string currentId, UserTracker user, bool hasTaskLimit)
+        public bool RefreshTask(int currentId, string experimentId, UserTracker user, bool hasTaskLimit)
         {
-            var hasNewID = currentId != _currentId;
+            var hasNewID = (currentId != _currentId) || (experimentId != _experimentId);
             _currentId = currentId;
+            _experimentId = experimentId;
 
             if (hasNewID)
             {
-                Task = TaskFactory.GetTask(currentId.Sum(c => (int)c), user, hasTaskLimit);
+                Task = TaskFactory.GetTask(_currentId, user, hasTaskLimit);
+                if (Task == null)
+                    return false;
+
                 Task.ReportStart();
             }
 
             return hasNewID;
         }
 
-        public string CalculateMD5Hash(string input)
+        internal string GetCurrentSuccessCode()
+        {
+            return GetSuccessCode(_experimentId, _currentId);
+        }
+
+        internal static string CalculateMD5Hash(string input)
         {
             // step 1, calculate MD5 hash from input
             var md5 = System.Security.Cryptography.MD5.Create();
@@ -41,10 +55,9 @@ namespace WebBackend
             return sb.ToString();
         }
 
-
-        internal string GetCurrentSuccessCode()
+        internal static string GetSuccessCode(string experimentId, int taskId)
         {
-            var md5 = CalculateMD5Hash("experiment1" + _currentId);
+            var md5 = CalculateMD5Hash(experimentId + taskId);
 
             var sum = md5.Sum(c => (int)c);
             var code = sum % 100000;

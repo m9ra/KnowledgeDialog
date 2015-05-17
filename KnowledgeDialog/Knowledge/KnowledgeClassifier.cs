@@ -48,7 +48,7 @@ namespace KnowledgeDialog.Knowledge
         /// </summary>
         /// <param name="node">Node which classification is improved.</param>
         /// <param name="cls">Adviced class.</param>
-        public void Advice(NodeReference node, ClassType cls, bool autoRetrain=true)
+        public void Advice(NodeReference node, ClassType cls, bool autoRetrain = true)
         {
             _knownClassifications[node] = cls;
             if (autoRetrain)
@@ -121,6 +121,8 @@ namespace KnowledgeDialog.Knowledge
         private KnowledgeRule createRuleTree(IEnumerable<NodeReference> toCover, MultiTraceLog log)
         {
             var rule = createBestRule(toCover, log);
+            if (rule == null)
+                return null;
 
             if (
                 rule.InitialYesNodes.Count() == 0 ||
@@ -150,6 +152,7 @@ namespace KnowledgeDialog.Knowledge
             //find best classification rule
             foreach (var traceNode in log.TraceNodes)
             {
+                var debug = traceNode.ToString();
                 foreach (var trace in traceNode.Traces)
                 {
                     var coverage = trace.InitialNodes;
@@ -163,6 +166,9 @@ namespace KnowledgeDialog.Knowledge
                     }
                 }
             }
+
+            if (bestCoverage == null)
+                return null;
 
             var yesNodes = bestCoverage.Intersect(classifiedNodes);
             var noNodes = classifiedNodes.Except(yesNodes);
@@ -185,8 +191,11 @@ namespace KnowledgeDialog.Knowledge
                 discount += Math.Min(yesCounts[cls], noCounts[cls]);
             }
 
-            var totalYesCounts = getTotalCounts(yesCounts);
-            var totalNoCounts = getTotalCounts(noCounts);
+            var totalYesCounts = yesCounts.Count;
+            var totalNoCounts = noCounts.Count;
+
+            if (Math.Min(totalYesCounts, totalNoCounts) == 0)
+                return double.NegativeInfinity;
 
             var binaryDiscount = 1.0 * Math.Abs(totalYesCounts - totalNoCounts) / Math.Abs(totalYesCounts + totalNoCounts);
             if (_knownClassifications.Keys.Contains(trace.CurrentNode))
@@ -195,8 +204,40 @@ namespace KnowledgeDialog.Knowledge
 
             //prefer more generalizing rules
             var magnitude = Knowledge.GetNeighbours(trace.CurrentNode, 10).Count() / 10.0;
+            var ratio = separationRatio(classifiedNodes, coverage);
 
             return -discount - binaryDiscount;
+        }
+
+        private double separationRatio(IEnumerable<NodeReference> classifiedNodes, IEnumerable<NodeReference> coverage)
+        {
+            var separation = coverage.ToArray();
+            var complement = classifiedNodes.Except(coverage).ToArray();
+
+            //we want separation to be the smaller part of nodes
+            if (separation.Length > complement.Length)
+                separation = complement;
+
+            if (separation.Length == 0)
+                //there is no separation gain
+                return 0;
+
+            var separationCounts = getClassCounts(separation);
+            var classifiedCounts = getClassCounts(classifiedNodes);
+
+            //comput how well were classes separated
+            var separationSum = 0.0;
+            foreach (var separationCount in separationCounts)
+            {
+                var originalCount = classifiedCounts[separationCount.Key];
+                var separatedCount = separationCount.Value;
+
+                var classSeparationRatio = 1.0 * separatedCount / originalCount;
+                separationSum += classSeparationRatio;
+            }
+
+            var ratio = separationSum / separationCounts.Count;
+            return ratio;
         }
 
         private bool isClassConsistent(IEnumerable<NodeReference> nodes)

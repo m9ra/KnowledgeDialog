@@ -48,7 +48,7 @@ namespace KnowledgeDialog.Dialog
         internal static void Print(IEnumerable<Tuple<string, bool>> path)
         {
             var buffer=new StringBuilder();
-            fillWithPath(buffer, path);
+            FillWithPath(buffer, path);
 
             PrintLine(buffer.ToString(), NodeColor);
         }
@@ -100,7 +100,7 @@ namespace KnowledgeDialog.Dialog
                 pathBuffer.Append('#');
 
                 var path = rule.Path;
-                fillWithPath(pathBuffer, path);
+                FillWithPath(pathBuffer, path);
 
                 pathBuffer.Append(rule.EndNode.Data);
             }
@@ -109,7 +109,7 @@ namespace KnowledgeDialog.Dialog
             PrintLine(pathBuffer.ToString(), NodeColor);
         }
 
-        private static void fillWithPath(StringBuilder pathBuffer, IEnumerable<Tuple<string, bool>> path)
+        internal static void FillWithPath(StringBuilder pathBuffer, IEnumerable<Tuple<string, bool>> path)
         {
             foreach (var tuple in path)
             {

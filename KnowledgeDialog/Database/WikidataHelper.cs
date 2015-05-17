@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using KnowledgeDialog.Knowledge;
 using KnowledgeDialog.Database.TripletLoader;
 
-namespace WebBackend
+namespace KnowledgeDialog.Database
 {
-    static class WikidataHelper
+    public static class WikidataHelper
     {
         static readonly string PresidentNode = "Q30461";
 

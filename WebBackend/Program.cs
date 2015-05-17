@@ -8,6 +8,7 @@ using System.IO;
 
 using ServeRick;
 
+using KnowledgeDialog.Database;
 using KnowledgeDialog.Knowledge;
 
 namespace WebBackend
@@ -22,11 +23,19 @@ namespace WebBackend
 
         static void Main(string[] args)
         {
-            if (args.Length < 1)
+            if (args.Length < 2)
             {
                 Console.WriteLine("Expects path to root folder of web and wikidata DB path");
                 return;
             }
+
+            var writer = new ExperimentCodeWriter(ExperimentData.ExperimentId + ".csv");
+            for (var i = 0; i < 15; ++i)
+            {
+                writer.Write(ExperimentData.ExperimentId, i);
+            }
+            writer.Close();
+
 
             var wwwPath = args[0];
             if (args.Length > 1)
@@ -43,8 +52,6 @@ namespace WebBackend
                 var node2 = Graph.GetNode("Barack Obama");
                 var paths = Graph.GetPaths(node1, node2, 10, 1000).Take(5).ToArray();
                 paths = paths;
-
-
             }
             else
             {

@@ -52,7 +52,7 @@ namespace KnowledgeDialog.Dialog
         /// <summary>
         /// Run dialog service (is blocking)
         /// </summary>
-        public void Run()
+        public void Run(bool useDirectInput = false)
         {
             for (; ; )
             {
@@ -61,7 +61,15 @@ namespace KnowledgeDialog.Dialog
                 if (parsedUtterance == null)
                     return;
 
-                var response = parsedUtterance.HandleManager(_manager);
+                ResponseBase response;
+                if (useDirectInput)
+                {
+                    response = _manager.Ask(utterance);
+                }
+                else
+                {
+                    response = parsedUtterance.HandleManager(_manager);
+                }
                 ConsoleServices.PrintOutput(response);
             }
         }

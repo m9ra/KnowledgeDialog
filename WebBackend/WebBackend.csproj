@@ -45,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ExperimentCodeWriter.cs" />
+    <Compile Include="PresidentInfo.cs" />
     <Compile Include="TaskPatternUtilities.cs" />
     <Compile Include="DialogWeb.cs" />
     <Compile Include="ExperimentData.cs" />

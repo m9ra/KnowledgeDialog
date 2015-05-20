@@ -61,6 +61,7 @@ namespace WebBackend
             if (!Directory.Exists(wwwPath))
                 throw new NotSupportedException("Given path doesn't exists. " + Path.GetFullPath(wwwPath));
 
+            TaskFactory.Init();
             RootPath = wwwPath;
             runServer(wwwPath);
             runConsole();

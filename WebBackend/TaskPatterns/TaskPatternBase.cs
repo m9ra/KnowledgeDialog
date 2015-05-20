@@ -16,9 +16,9 @@ namespace WebBackend.TaskPatterns
 
         private readonly List<NodeReference> _substitutions = new List<NodeReference>();
 
-        private readonly ComposedGraph _graph;
+        private readonly List<IEnumerable<NodeReference>> _correctAnswers = new List<IEnumerable<NodeReference>>();
 
-        private readonly List<Tuple<string, bool>> _rules = new List<Tuple<string, bool>>();
+        private readonly ComposedGraph _graph;
 
         protected TaskPatternBase(ComposedGraph graph)
         {
@@ -33,18 +33,23 @@ namespace WebBackend.TaskPatterns
             PatternFormat = patternFormat;
         }
 
-        protected void Substitutions(params string[] nodesData)
+        internal void AddTaskSubstitution(string substitution, IEnumerable<string> correctAnswers)
         {
-            foreach (var nodeData in nodesData)
-            {
-                var node = _graph.GetNode(nodeData);
-                _substitutions.Add(node);
-            }
-        }
+            if (!_graph.HasEvidence(substitution))
+                throw new NotSupportedException("Cannot create task with unknown substitution node " + substitution);
 
-        protected void ExpectedAnswerRule(IEnumerable<Tuple<string,bool>> ruleEdges)
-        {
-            _rules.AddRange(ruleEdges);
+            if (!correctAnswers.Any())
+                throw new NotSupportedException("Cannot create task with no answer nodes for substitution node " + substitution);
+
+            foreach (var answer in correctAnswers)
+                if (!_graph.HasEvidence(answer))
+                    throw new NotSupportedException("Cannot create task with unknown answer node " + answer);
+
+            var substitutionNode = _graph.GetNode(substitution);
+            var correctAnswerNodes = from answer in correctAnswers select _graph.GetNode(answer);
+
+            _substitutions.Add(substitutionNode);
+            _correctAnswers.Add(correctAnswerNodes);
         }
 
         internal NodeReference GetSubstitution(int substitutionIndex)
@@ -54,7 +59,7 @@ namespace WebBackend.TaskPatterns
 
         internal IEnumerable<NodeReference> GetExpectedAnswers(int substitutionIndex)
         {
-            return _graph.GetForwardTargets(new[] { GetSubstitution(substitutionIndex) }, _rules);
+            return _correctAnswers[substitutionIndex];
         }
     }
 }

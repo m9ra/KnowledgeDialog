@@ -17,12 +17,14 @@ namespace WebBackend
         internal ExperimentCodeWriter(string path)
         {
             _writer = new StreamWriter(path);
+
+            _writer.WriteLine("task_url,verification_code");
         }
 
         internal void Write(string experimentId, int taskId)
         {
             var code = ExperimentData.GetSuccessCode(experimentId, taskId);
-            _writer.Write(WebPath + "?taskid=" + taskId + ";" + code + Environment.NewLine);
+            _writer.WriteLine(WebPath + "?taskid=" + taskId + "," + code);
         }
 
         internal void Close()

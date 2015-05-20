@@ -15,8 +15,10 @@ namespace WebBackend.TaskPatterns
         {
             SetPattern("Check if system can search <b>state which president is {0}</b>." + TaskPatternUtilities.CheckAndLearn);
 
-            Substitutions(TaskPatternUtilities.PresidentSubstitutions);
-            ExpectedAnswerRule(TaskPatternUtilities.ReignsInFromPresidentPath);
+            TaskPatternUtilities.FillPresidentTask(this,
+                president => president.Name,
+                president => president.State
+                    );
         }
     }
 }

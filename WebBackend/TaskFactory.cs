@@ -16,7 +16,7 @@ namespace WebBackend
 
         private static readonly List<Tuple<TaskPatternBase, int>> _validTasks = new List<Tuple<TaskPatternBase, int>>();
 
-        static TaskFactory()
+        internal static void Init()
         {
             var g = Program.Graph;
             Add(new PresidentChildrenTask(g));

@@ -15,7 +15,26 @@ namespace KnowledgeDialog
     {
         static void Main(string[] args)
         {
-            InconsistencyDBTesting(args[0]);
+            FirstAnswerProblemTesting(args[0]);
+        }
+
+
+        private static void FirstAnswerProblemTesting(string dbPath)
+        {
+            var loader = new Database.TripletLoader.Loader(dbPath);
+            var graph = new ComposedGraph(loader.DataLayer);
+            WikidataHelper.PreprocessData(loader, graph);
+
+            var manager = new PoolComputation.StateDialogManager(null, loader.DataLayer);
+            var provider = new DialogConsole(manager);
+
+            provider.SimulateInput(
+                "François Hollande is president in which state ?",
+                "France abc",
+                "François Hollande is president in which state ?"
+                );
+
+            provider.Run();
         }
 
         private static void InconsistencyDBTesting(string dbPath)

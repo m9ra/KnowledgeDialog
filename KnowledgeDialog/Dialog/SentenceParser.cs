@@ -10,7 +10,7 @@ namespace KnowledgeDialog.Dialog
 {
     public static class SentenceParser
     {
-        private static readonly Regex _inputSanitizer = new Regex("[,.?<>;-]", RegexOptions.Compiled);
+        private static readonly Regex _inputSanitizer = new Regex("[,.?<>;'\"-]", RegexOptions.Compiled);
 
         private static readonly Regex _spaceSanitizer = new Regex(@"[ ]{2,}", RegexOptions.Compiled);
 

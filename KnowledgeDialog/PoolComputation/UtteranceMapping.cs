@@ -22,15 +22,14 @@ namespace KnowledgeDialog.PoolComputation
             _graph = graph;
         }
 
-        public MappingControl<T> BestMap(string utterance)
+        public MappingControl<T> BestMap(ParsedSentence utterance)
         {
             return FindMapping(utterance).FirstOrDefault();
         }
 
-        internal IEnumerable<MappingControl<T>> FindMapping(string utterance)
+        internal IEnumerable<MappingControl<T>> FindMapping(ParsedSentence parsedSentence)
         {
             var result = new List<MappingControl<T>>();
-            var parsedSentence = SentenceParser.Parse(utterance);
 
             foreach (var pair in Mapping)
             {

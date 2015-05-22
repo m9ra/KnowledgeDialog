@@ -16,6 +16,8 @@ namespace KnowledgeDialog.Database
 
     public class CallStorage
     {
+        internal static readonly string TimeEntry = "_time";
+
         internal static readonly string CallNameEntry = "_callname";
 
         private readonly Dictionary<string, CallSerializer> _calls = new Dictionary<string, CallSerializer>();
@@ -145,6 +147,7 @@ namespace KnowledgeDialog.Database
         public void SaveReport()
         {
             _storage.Add(CallStorage.CallNameEntry, _callName);
+            _storage.Add(CallStorage.TimeEntry, DateTime.Now);
             _owner.Save(_storage);
             _storage.Clear();
         }

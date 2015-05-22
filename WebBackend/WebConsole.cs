@@ -47,10 +47,13 @@ namespace WebBackend
         internal ResponseBase Input(string utterance)
         {
             var formattedUtterance = utterance.Trim();
-            CurrentHTML += userTextHTML(formattedUtterance);
-
-            var response = _manager.Input(utterance);
-            CurrentHTML += systemTextHTML(response.ToString());
+            ResponseBase response;
+            lock (_L_qa_index)
+            {
+                CurrentHTML += userTextHTML(formattedUtterance);
+                response = _manager.Input(utterance);
+                CurrentHTML += systemTextHTML(response.ToString());
+            }
 
             return response;
         }

@@ -157,7 +157,8 @@ namespace KnowledgeDialog.PoolComputation
                     else if (nonPatternQuestion != null && nonPatternQuestion.Score < 0.9 && _currentState == QuestionRouting)
                     {
                         _context.SetValue(EquivalenceQuestion.QueriedQuestion, utterance);
-                        var substitution = substitute(nonPatternQuestion.ParsedSentence.OriginalSentence, utterance);
+                        var parsedUtterance = SentenceParser.Parse(utterance);
+                        var substitution = substitute(nonPatternQuestion.ParsedSentence, parsedUtterance);
                         _context.SetValue(EquivalenceQuestion.PatternQuestion, substitution);
                         edgeInput = new EdgeInput(EquivalenceQuestion.EquivalenceEdge);
                         continue;
@@ -203,13 +204,13 @@ namespace KnowledgeDialog.PoolComputation
             return null;
         }
 
-        private string substitute(string pattern, string utterance)
+        private string substitute(ParsedSentence pattern, ParsedSentence utterance)
         {
             var patternNodes = _context.QuestionAnsweringModule.GetPatternNodes(pattern);
             var utteranceNodes = _context.QuestionAnsweringModule.GetRelatedNodes(utterance, _context.Graph).ToArray();
             var substitutions = QuestionAnsweringModule.GetSubstitutions(utteranceNodes, patternNodes, _context.Graph);
 
-            var result = repairSpelling(pattern);
+            var result = repairSpelling(pattern.OriginalSentence);
             foreach (var patternNode in patternNodes)
             {
                 NodeReference substitution;

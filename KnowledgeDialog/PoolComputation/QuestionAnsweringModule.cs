@@ -88,8 +88,7 @@ namespace KnowledgeDialog.PoolComputation
             _adviceAnswer.SaveReport();
 
             fillPool(context);
-
-            var questionEntry = GetQuestionEntry(question);
+            var questionEntry = GetQuestionEntry(SentenceParser.Parse(question));
             questionEntry.RegisterAnswer(isBasedOnContext, correctAnswerNode);
 
             return
@@ -113,7 +112,7 @@ namespace KnowledgeDialog.PoolComputation
             _repairAnswer.SaveReport();
 
             fillPool(context);
-            var hypotheses = GetControlledHypotheses(question).ToArray();
+            var hypotheses = GetControlledHypotheses(SentenceParser.Parse(question)).ToArray();
 
             foreach (var hypothesis in hypotheses)
             {
@@ -139,9 +138,11 @@ namespace KnowledgeDialog.PoolComputation
                 _setEquivalencies.ReportParameter("isEquivalent", isEquivalent);
                 _setEquivalencies.SaveReport();
 
+                var parsedQuestion = SentenceParser.Parse(patternQuestion);
+
                 if (isEquivalent)
                 {
-                    var bestMap = Triggers.BestMap(patternQuestion);
+                    var bestMap = Triggers.BestMap(parsedQuestion);
                     if (bestMap == null)
                         return;
 
@@ -156,12 +157,14 @@ namespace KnowledgeDialog.PoolComputation
 
         public void Negate(string question)
         {
+            var parsedSentence = SentenceParser.Parse(question);
+
             lock (_L_input)
             {
                 _negate.ReportParameter("question", question);
                 _negate.SaveReport();
 
-                var bestHypothesis = GetHypotheses(question).FirstOrDefault();
+                var bestHypothesis = GetHypotheses(parsedSentence).FirstOrDefault();
                 if (bestHypothesis == null)
                     //we cannot learn anything
                     return;
@@ -180,7 +183,8 @@ namespace KnowledgeDialog.PoolComputation
 
         public IEnumerable<NodeReference> GetAnswer(string question)
         {
-            var bestHypothesis = GetBestHypothesis(question);
+            var parsedQuestion = SentenceParser.Parse(question);
+            var bestHypothesis = GetBestHypothesis(parsedQuestion);
             if (bestHypothesis == null)
                 return new NodeReference[0];
 
@@ -193,19 +197,22 @@ namespace KnowledgeDialog.PoolComputation
             return pool.ActiveNodes;
         }
 
-        internal NodesEnumeration GetPatternNodes(string question)
+        internal NodesEnumeration GetPatternNodes(ParsedSentence sentence)
         {
-            var entry = _questions[question];
+            if (!_questions.ContainsKey(sentence.OriginalSentence))
+                throw new KeyNotFoundException("GetPatternNodes: " + sentence.OriginalSentence);
+
+            var entry = _questions[sentence.OriginalSentence];
 
             return entry.QuestionNodes;
         }
 
-        internal QuestionEntry GetQuestionEntry(string question)
+        internal QuestionEntry GetQuestionEntry(ParsedSentence question)
         {
             QuestionEntry entry;
-            if (!_questions.TryGetValue(question, out entry))
+            if (!_questions.TryGetValue(question.OriginalSentence, out entry))
             {
-                _questions[question] = entry = new QuestionEntry(question, Graph);
+                _questions[question.OriginalSentence] = entry = new QuestionEntry(question.OriginalSentence, Graph);
                 var pattern = getPatternQuestion(entry);
 
                 List<QuestionEntry> patternQuestions;
@@ -218,17 +225,17 @@ namespace KnowledgeDialog.PoolComputation
             return entry;
         }
 
-        internal Tuple<PoolHypothesis, double> GetBestHypothesis(string question)
+        internal Tuple<PoolHypothesis, double> GetBestHypothesis(ParsedSentence question)
         {
             return GetHypotheses(question).FirstOrDefault();
         }
 
-        internal IEnumerable<Tuple<PoolHypothesis, double>> GetHypotheses(string utterance)
+        internal IEnumerable<Tuple<PoolHypothesis, double>> GetHypotheses(ParsedSentence utterance)
         {
             return from h in GetControlledHypotheses(utterance) select Tuple.Create(h.Item1, h.Item2.Score);
         }
 
-        internal IEnumerable<Tuple<PoolHypothesis, MappingControl<ActionBlock>>> GetControlledHypotheses(string utterance)
+        internal IEnumerable<Tuple<PoolHypothesis, MappingControl<ActionBlock>>> GetControlledHypotheses(ParsedSentence utterance)
         {
             var scoredActions = Triggers.FindMapping(utterance);
             var availableNodes = GetRelatedNodes(utterance, Graph).ToArray();
@@ -281,9 +288,9 @@ namespace KnowledgeDialog.PoolComputation
             return new NodesSubstitution(originalNodes, substitutions);
         }
 
-        internal IEnumerable<NodeReference> GetRelatedNodes(string utterance, ComposedGraph graph)
+        internal IEnumerable<NodeReference> GetRelatedNodes(ParsedSentence sentence, ComposedGraph graph)
         {
-            return GetQuestionEntry(utterance).QuestionNodes;
+            return GetQuestionEntry(sentence).QuestionNodes;
         }
 
         internal static NodeReference GetNearest(NodeReference pivot, IEnumerable<NodeReference> nodes, ComposedGraph graph)
@@ -311,7 +318,8 @@ namespace KnowledgeDialog.PoolComputation
 
         private bool updateOldActions(string question, bool isBasedOnContext, NodeReference correctAnswerNode)
         {
-            var bestHypothesis = GetHypotheses(question).FirstOrDefault();
+            var parsedQuestion = SentenceParser.Parse(question);
+            var bestHypothesis = GetHypotheses(parsedQuestion).FirstOrDefault();
             if (bestHypothesis == null)
                 return false;
 
@@ -319,7 +327,7 @@ namespace KnowledgeDialog.PoolComputation
                 //this is different hypothesis
                 return false;
 
-            var questionEntry = GetQuestionEntry(question);
+            var questionEntry = GetQuestionEntry(parsedQuestion);
 
             //update push part of rule
             if (!updatePushPart(questionEntry, bestHypothesis.Item1, Pool))

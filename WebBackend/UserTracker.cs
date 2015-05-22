@@ -47,11 +47,6 @@ namespace WebBackend
         private string _actualStorageFullpath;
 
         /// <summary>
-        /// Time when user has been seen for first time.
-        /// </summary>
-        public readonly DateTime EntryTime = DateTime.Now;
-
-        /// <summary>
         /// ID of session.
         /// </summary>
         public readonly string UserID;
@@ -152,7 +147,6 @@ namespace WebBackend
         {
             lock (_L_trackers)
             {
-                _feedbackCall.ReportParameter("time", DateTime.Now.ToString());
                 _feedbackCall.ReportParameter("user_id", UserID);
                 _feedbackCall.ReportParameter("message", message);
                 _feedbackCall.ReportParameter("actual_storage", _actualStorageFullpath);
@@ -194,7 +188,7 @@ namespace WebBackend
 
         internal void LogMessage(string message)
         {
-            _infoCall.ReportParameter("time", message);
+            _infoCall.ReportParameter("message", message);
             _infoCall.SaveReport();
         }
 
@@ -223,7 +217,6 @@ namespace WebBackend
 
         private void logUtterance(string utterance)
         {
-            _infoCall.ReportParameter("time", DateTime.Now.ToString());
             _infoCall.ReportParameter("storage", _actualStorageFullpath);
             _infoCall.ReportParameter("utterance", utterance);
             _infoCall.SaveReport();
@@ -231,7 +224,6 @@ namespace WebBackend
 
         private void logResponse(ResponseBase response)
         {
-            _infoCall.ReportParameter("time", DateTime.Now.ToString());
             _infoCall.ReportParameter("storage", _actualStorageFullpath);
 
             var responseText = response == null ? null : response.ToString();
@@ -241,7 +233,6 @@ namespace WebBackend
 
         private void logInfo(string info)
         {
-            _infoCall.ReportParameter("time", DateTime.Now.ToString());
             _infoCall.ReportParameter("message", info);
             _infoCall.SaveReport();
         }

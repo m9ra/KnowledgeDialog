@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using KnowledgeDialog.Knowledge;
+using KnowledgeDialog.Dialog;
 
 namespace KnowledgeDialog.PoolComputation.StateDialog
 {
@@ -71,6 +72,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
         internal StateGraphBuilder IsEdge(StateGraphBuilder stateGraphBuilder, StateProperty stateProperty)
         {
             this
+                .Edge("*", stateGraphBuilder, stateProperty)
                 .Edge("his name is *", stateGraphBuilder, stateProperty)
                 .Edge("her name is *", stateGraphBuilder, stateProperty)
                 .Edge("he is *", stateGraphBuilder, stateProperty)
@@ -111,9 +113,11 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
 
         internal IEnumerable<MappingControl<Trigger>> UtteranceEdge(string utterance)
         {
+            var parsedUtterance = SentenceParser.Parse(utterance);
+
             foreach (var triggerPair in _externalTriggers)
             {
-                var bestHypothesis = triggerPair.Key.BestMap(utterance);
+                var bestHypothesis = triggerPair.Key.BestMap(parsedUtterance);
                 if (bestHypothesis != null && bestHypothesis.Score > 0.5)
                 {
                     return new[]{
@@ -122,7 +126,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
                 }
             }
 
-            return Triggers.FindMapping(utterance);
+            return Triggers.FindMapping(parsedUtterance);
         }
 
         internal IEnumerable<MappingControl<Trigger>> DirectEdge(EdgeIdentifier edgeId)

@@ -12,7 +12,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
         {
             EmitEdge(ForwardEdge);
 
-            return Response("I'm sorry, give me another question please.");
+            return Response("I'm sorry, I cannot understand you properly. Give me another question please.");
         }
     }
 }

@@ -94,7 +94,8 @@ namespace WebBackend
 
         internal void Close()
         {
-            _manager.Close();
+            //Closing dialog manager will cause
+            //closing output of question answering modul call storage!!!
         }
     }
 }

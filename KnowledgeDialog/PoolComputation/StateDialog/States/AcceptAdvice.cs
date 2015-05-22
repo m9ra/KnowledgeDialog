@@ -15,6 +15,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
         public static readonly StateProperty CorrectAnswerProperty = new StateProperty();
         public static readonly StateProperty IsBasedOnContextProperty = new StateProperty();
         public static readonly EdgeIdentifier MissingInfoEdge = new EdgeIdentifier();
+        public static readonly EdgeIdentifier MissingQuestionEdge = new EdgeIdentifier();
         public static readonly EdgeIdentifier AdviceAcceptedEdge = new EdgeIdentifier();
 
         protected override ModifiableResponse execute()
@@ -28,7 +29,10 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
             var hasContextAnswer = Context.IsSet(IsBasedOnContextProperty);
 
             if (unknownQuestion == null)
-                throw new NotSupportedException("Cannot take advice when no unknown question is available");
+            {
+                EmitEdge(MissingQuestionEdge);
+                return Response("I don't understand you. Please give me some question.");
+            }
 
             var needContextQuestion = Context.Pool.ActiveCount > 0;
             if (needContextQuestion && !hasContextAnswer)

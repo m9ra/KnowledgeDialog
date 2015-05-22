@@ -15,11 +15,11 @@ namespace KnowledgeDialog
     {
         static void Main(string[] args)
         {
-            FirstAnswerProblemTesting(args[0]);
+            MultipleAdvice(args[0]);
         }
 
 
-        private static void FirstAnswerProblemTesting(string dbPath)
+        private static void MultipleAdvice(string dbPath)
         {
             var loader = new Database.TripletLoader.Loader(dbPath);
             var graph = new ComposedGraph(loader.DataLayer);
@@ -30,7 +30,8 @@ namespace KnowledgeDialog
 
             provider.SimulateInput(
                 "François Hollande is president in which state ?",
-                "France abc",
+                "France",
+                "France",
                 "François Hollande is president in which state ?"
                 );
 

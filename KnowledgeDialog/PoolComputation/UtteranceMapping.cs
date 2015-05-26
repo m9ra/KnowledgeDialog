@@ -101,7 +101,7 @@ namespace KnowledgeDialog.PoolComputation
             var patternWords = new HashSet<string>(pattern.Words, comparer);
             var sentenceWords = new HashSet<string>(sentence.Words, comparer);
 
-            var isStartPattern = patternWords.First() == "*";
+            var isStartPattern = patternWords.FirstOrDefault() == "*";
             var isPattern = patternWords.Remove("*");
             var union = patternWords.Union(sentenceWords, comparer).ToArray();
             var intersection = patternWords.Intersect(sentenceWords, comparer).ToArray();

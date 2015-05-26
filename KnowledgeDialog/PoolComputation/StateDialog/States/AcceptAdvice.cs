@@ -28,10 +28,10 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
             var isBasedOnContext = Context.IsTrue(IsBasedOnContextProperty);
             var hasContextAnswer = Context.IsSet(IsBasedOnContextProperty);
 
-            if (unknownQuestion == null)
+            if (unknownQuestion == null || unknownQuestion.Trim() == "")
             {
                 EmitEdge(MissingQuestionEdge);
-                return Response("I don't understand you. Please give me some question.");
+                return Response("I don't understand your advice. Please give me some question.");
             }
 
             var needContextQuestion = Context.Pool.ActiveCount > 0;
@@ -59,6 +59,6 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
 
             EmitEdge(AdviceAcceptedEdge);
             return Response("Thank you");
-        }      
+        }
     }
 }

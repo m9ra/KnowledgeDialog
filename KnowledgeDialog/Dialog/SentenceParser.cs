@@ -110,7 +110,7 @@ namespace KnowledgeDialog.Dialog
                         var startIndex = sentence.IndexOf(unigrams[ngramOffset]);
 
                         var endWord = unigrams[ngramOffset + n - 1];
-                        var endIndex = sentence.IndexOf(endWord) + endWord.Length;
+                        var endIndex = sentence.IndexOf(endWord, startIndex) + endWord.Length;
 
                         var original = sentence.Substring(startIndex, endIndex - startIndex);
                         var searchResult = new StringSearchResult(startIndex, match.Item1, original);
@@ -216,11 +216,17 @@ namespace KnowledgeDialog.Dialog
                     nextEntityStart = validEntities[currentEntityIndex].Index;
                 }
 
-                var currentSentencePart = sentence.Substring(currentIndex, nextEntityStart - currentIndex);
-                if (currentSentencePart != "")
-                    parsedWords.AddRange(currentSentencePart.Trim().Split(' '));
+                var length = nextEntityStart - currentEntityIndex;
+                if (length > 0)
+                {
 
-                currentIndex += currentSentencePart.Length;
+                    var currentSentencePart = sentence.Substring(currentIndex, nextEntityStart - currentIndex);
+                    if (currentSentencePart != "")
+                        parsedWords.AddRange(currentSentencePart.Trim().Split(' '));
+
+                    currentIndex += currentSentencePart.Length;
+                }
+
                 if (hasEntity)
                 {
                     var entity = validEntities[currentEntityIndex];

@@ -15,6 +15,7 @@ namespace KnowledgeDialog
     {
         static void Main(string[] args)
         {
+            var parse = SentenceParser.Parse("name of wife of Barack Obama president is Michelle Obama");
             MultipleAdvice(args[0]);
         }
 

@@ -63,7 +63,7 @@ namespace WebBackend
 
         static UserTracker()
         {
-            var feedbackPath = Path.Combine(Program.RootPath, "data/storages", "feedback" + ".json");
+            var feedbackPath = Path.Combine(Program.RootPath, Program.StoragesPath, "feedback" + ".json");
             _feedbackStorage = new CallStorage(feedbackPath);
             _feedbackCall = _feedbackStorage.RegisterCall("Feedback", (c) => { });
         }
@@ -71,7 +71,7 @@ namespace WebBackend
         private UserTracker(string id)
         {
             UserID = id;
-            var fullPath = Path.Combine(Program.RootPath, "data/storages/users", "user_" + id + ".json");
+            var fullPath = Path.Combine(Program.RootPath, Program.UserStoragesPath, "user_" + id + ".json");
             _storage = new CallStorage(fullPath);
 
             var isInitialized = false;

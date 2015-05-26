@@ -1,0 +1,42 @@
+﻿@logfiles +WebBackend.LogFile
+
+.container
+	%nav{class: "navbar navbar-inverse navbar-fixed-top"}
+		.navbar-header
+			%button{type: "button", class: "navbar-toggle", data-toggle: "collapse", data-target: "navbar-collapse"}
+				%span.sr-only
+					Expand navigation	
+				%span.icon-bar
+				%span.icon-bar
+				%span.icon-bar
+
+			%a{class: "navbar-brand", href: "/"} Mgr. Vodolán Miroslav
+.jumbotron#preface
+	.container
+		%h1 Statistics
+		%p 
+			Actual statistics about collected data
+
+.container	
+		%h1 Structured data
+
+		%p
+			%a{href: LinkToLog("feedback")} 
+				Feedback
+		%p
+			%a{href: LinkToLog("advices")}
+				Advices
+
+.container	
+		%h1 User log files
+
+
+		#logfile_list
+			- @logfiles.each do |logfile|
+				.row
+					.col-md-4
+						%a{href: LinkTo(logfile)}= logfile.Id
+					.col-md-2
+						.time= logfile.Time
+					.clol-md-1
+						.size= Size(logfile.Size)

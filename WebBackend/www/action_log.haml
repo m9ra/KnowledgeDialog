@@ -1,0 +1,48 @@
+﻿@logfile WebBackend.LogFile
+@actions +WebBackend.ActionEntry
+
+.container
+	%nav{class: "navbar navbar-inverse navbar-fixed-top"}
+		.navbar-header
+			%button{type: "button", class: "navbar-toggle", data-toggle: "collapse", data-target: "navbar-collapse"}
+				%span.sr-only
+					Expand navigation	
+				%span.icon-bar
+				%span.icon-bar
+				%span.icon-bar
+
+			%a{class: "navbar-brand", href: "/"} Mgr. Vodolán Miroslav
+.jumbotron#preface
+	.container
+		%h1 Action log
+		%p 
+			Action log for
+			= " " 
+			= @logfile.Id
+
+		%a{class: "btn btn-primary", href: "/logs"} Back to log files
+
+
+
+.container	
+		%h1 Actions
+
+
+		#logfile_list
+			- @actions.each do |action|
+				.row
+					.col-md-1
+						.type= action.Type
+					.col-md-2
+						.time= action.Time					
+					- if action.UserId
+						.col-md-4
+							%a{href: LinkToLog(action.UserId)} = action.UserId	
+						.col-md-5
+							%div{class: action.Type}= action.Text		
+									
+					- else
+						.col-md-9
+							%div{class: action.Type}= raw action.Text
+						
+						

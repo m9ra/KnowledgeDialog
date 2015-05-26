@@ -87,6 +87,9 @@ namespace KnowledgeDialog.PoolComputation
             _adviceAnswer.ReportParameter("context", context);
             _adviceAnswer.SaveReport();
 
+            if (question == null || question.Trim() == "")
+                return false;
+
             fillPool(context);
             var questionEntry = GetQuestionEntry(SentenceParser.Parse(question));
             questionEntry.RegisterAnswer(isBasedOnContext, correctAnswerNode);
@@ -112,19 +115,19 @@ namespace KnowledgeDialog.PoolComputation
             _repairAnswer.SaveReport();
 
             fillPool(context);
-            var hypotheses = GetControlledHypotheses(SentenceParser.Parse(question)).ToArray();
+            var hypotheses = GetSortedHypotheses(SentenceParser.Parse(question)).ToArray();
 
             foreach (var hypothesis in hypotheses)
             {
-                var actualAnswer = getActualAnswer(hypothesis.Item1);
+                var actualAnswer = getActualAnswer(hypothesis);
                 var isCorrect = actualAnswer.Contains(suggestedAnswer);
 
-                hypothesis.Item2.Suggest(isCorrect);
+                hypothesis.Control.Suggest(isCorrect);
             }
 
             if (suggestedAnswer != null)
             {
-                var isBasedOnContext = hypotheses.Length > 0 && hypotheses[0].Item1.ActionBlock.Actions.Any(a => a is ExtendAction);
+                var isBasedOnContext = hypotheses.Length > 0 && hypotheses[0].ActionBlock.Actions.Any(a => a is ExtendAction);
                 AdviceAnswer(question, isBasedOnContext, suggestedAnswer);
             }
         }
@@ -164,18 +167,18 @@ namespace KnowledgeDialog.PoolComputation
                 _negate.ReportParameter("question", question);
                 _negate.SaveReport();
 
-                var bestHypothesis = GetHypotheses(parsedSentence).FirstOrDefault();
+                var bestHypothesis = GetBestHypothesis(parsedSentence);
                 if (bestHypothesis == null)
                     //we cannot learn anything
                     return;
 
-                var currentAnswer = getActualAnswer(bestHypothesis.Item1);
+                var currentAnswer = getActualAnswer(bestHypothesis);
                 foreach (var answer in currentAnswer)
                 {
-                    bestHypothesis.Item1.ActionBlock.OutputFilter.Advice(answer, false, false);
+                    bestHypothesis.ActionBlock.OutputFilter.Advice(answer, false, false);
                 }
 
-                bestHypothesis.Item1.ActionBlock.OutputFilter.Retrain();
+                bestHypothesis.ActionBlock.OutputFilter.Retrain();
             }
         }
 
@@ -190,8 +193,8 @@ namespace KnowledgeDialog.PoolComputation
 
             var pool = Pool.Clone();
 
-            var substitutions = bestHypothesis.Item1.Substitutions;
-            var block = bestHypothesis.Item1.ActionBlock;
+            var substitutions = bestHypothesis.Substitutions;
+            var block = bestHypothesis.ActionBlock;
             runActions(pool, block, substitutions);
 
             return pool.ActiveNodes;
@@ -199,10 +202,10 @@ namespace KnowledgeDialog.PoolComputation
 
         internal NodesEnumeration GetPatternNodes(ParsedSentence sentence)
         {
-            if (!_questions.ContainsKey(sentence.OriginalSentence))
-                throw new KeyNotFoundException("GetPatternNodes: " + sentence.OriginalSentence);
+            //if (!_questions.ContainsKey(sentence.OriginalSentence))
+            //    throw new KeyNotFoundException("GetPatternNodes: " + sentence.OriginalSentence);
 
-            var entry = _questions[sentence.OriginalSentence];
+            var entry = GetQuestionEntry(sentence);
 
             return entry.QuestionNodes;
         }
@@ -225,30 +228,26 @@ namespace KnowledgeDialog.PoolComputation
             return entry;
         }
 
-        internal Tuple<PoolHypothesis, double> GetBestHypothesis(ParsedSentence question)
+        internal PoolHypothesis GetBestHypothesis(ParsedSentence question)
         {
-            return GetHypotheses(question).FirstOrDefault();
+            return GetSortedHypotheses(question).FirstOrDefault();
         }
 
-        internal IEnumerable<Tuple<PoolHypothesis, double>> GetHypotheses(ParsedSentence utterance)
-        {
-            return from h in GetControlledHypotheses(utterance) select Tuple.Create(h.Item1, h.Item2.Score);
-        }
-
-        internal IEnumerable<Tuple<PoolHypothesis, MappingControl<ActionBlock>>> GetControlledHypotheses(ParsedSentence utterance)
+        internal IEnumerable<PoolHypothesis> GetSortedHypotheses(ParsedSentence utterance)
         {
             var scoredActions = Triggers.FindMapping(utterance);
             var availableNodes = GetRelatedNodes(utterance, Graph).ToArray();
 
-            var result = new List<Tuple<PoolHypothesis, MappingControl<ActionBlock>>>();
+            var result = new List<PoolHypothesis>();
             foreach (var scoredAction in scoredActions)
             {
                 var substitutions = GetSubstitutions(availableNodes, scoredAction.Value.RequiredSubstitutions, Graph);
 
-                var scoredHypothesis = Tuple.Create(new PoolHypothesis(substitutions, scoredAction.Value), scoredAction);
+                var scoredHypothesis = new PoolHypothesis(substitutions, scoredAction);
                 result.Add(scoredHypothesis);
             }
 
+            result.Sort((a, b) => b.Control.Score.CompareTo(a.Control.Score));
             return result;
         }
 
@@ -319,31 +318,31 @@ namespace KnowledgeDialog.PoolComputation
         private bool updateOldActions(string question, bool isBasedOnContext, NodeReference correctAnswerNode)
         {
             var parsedQuestion = SentenceParser.Parse(question);
-            var bestHypothesis = GetHypotheses(parsedQuestion).FirstOrDefault();
+            var bestHypothesis = GetBestHypothesis(parsedQuestion);
             if (bestHypothesis == null)
                 return false;
 
-            if (bestHypothesis.Item2 < 0.9)
+            if (bestHypothesis.Control.Score < 0.9)
                 //this is different hypothesis
                 return false;
 
             var questionEntry = GetQuestionEntry(parsedQuestion);
 
             //update push part of rule
-            if (!updatePushPart(questionEntry, bestHypothesis.Item1, Pool))
+            if (!updatePushPart(questionEntry, bestHypothesis, Pool))
                 return false;
 
             //update context filter
             return updateFilterPart(correctAnswerNode, bestHypothesis);
         }
 
-        private bool updateFilterPart(NodeReference correctAnswerNode, Tuple<PoolHypothesis, double> bestHypothesis)
+        private bool updateFilterPart(NodeReference correctAnswerNode, PoolHypothesis bestHypothesis)
         {
             var pool = Pool.Clone();
-            runActions(pool, bestHypothesis.Item1.ActionBlock, bestHypothesis.Item1.Substitutions, false);
+            runActions(pool, bestHypothesis.ActionBlock, bestHypothesis.Substitutions, false);
             if (pool.ActiveNodes.Contains(correctAnswerNode))
             {
-                setFilter(correctAnswerNode, bestHypothesis.Item1.ActionBlock, pool);
+                setFilter(correctAnswerNode, bestHypothesis.ActionBlock, pool);
                 return true;
             }
 
@@ -385,6 +384,10 @@ namespace KnowledgeDialog.PoolComputation
                     {
                         //we have got push rule - we will apply it without constraining and filtering
                         action.Run(pool);
+                        if (entry.QuestionNodes.Count != hypothesis.Substitutions.OriginalNodes.Count)
+                            //TODO we are not able to update this for now
+                            return false;
+
                         action = action.Resubstitution(entry.QuestionNodes, hypothesis.Substitutions.OriginalNodes);
                         pushActions.Add(action);
                     }

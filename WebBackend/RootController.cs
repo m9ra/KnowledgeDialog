@@ -12,6 +12,39 @@ namespace WebBackend
 {
     class RootController : ResponseController
     {
+        public void logs()
+        {
+            var logfiles = LogFile.Load(Path.Combine(Program.RootPath, Program.UserStoragesPath));
+
+            SetParam("logfiles", logfiles);
+
+            Layout("layout.haml");
+            Render("logs.haml");
+        }
+
+        public void log()
+        {
+            var logFileId = GET("id");
+            switch (logFileId)
+            {
+                case "feedback":
+                    logFileId = "../feedback.json";
+                    break;
+                case "advices":
+                    logFileId = "../" + ExperimentData.ExperimentId + ".dialog";
+                    break;
+            }
+
+            var file = new LogFile(Path.Combine(Program.RootPath, Program.UserStoragesPath, logFileId));
+
+            var actions = file.LoadActions();
+
+            SetParam("actions", actions);
+            SetParam("logfile", file);
+            Layout("layout.haml");
+            Render("action_log.haml");
+        }
+
         public void index()
         {
             var dialogStorage = GET("storage");

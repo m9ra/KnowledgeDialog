@@ -19,6 +19,8 @@ namespace KnowledgeDialog.PoolComputation
 
         internal readonly KnowledgeClassifier<bool> OutputFilter;
 
+        internal readonly string OriginalSentence;
+
         internal ActionBlock(ComposedGraph graph, params IPoolAction[] actions)
             : this(graph, (IEnumerable<IPoolAction>)actions)
         {
@@ -27,6 +29,12 @@ namespace KnowledgeDialog.PoolComputation
 
         internal ActionBlock(ComposedGraph graph, IEnumerable<IPoolAction> actions)
         {
+            var semantics= actions.FirstOrDefault();
+            if (semantics != null && semantics.SemanticOrigin != null)
+            {
+                OriginalSentence = Dialog.SentenceParser.Parse(semantics.SemanticOrigin.Utterance).OriginalSentence;
+            }
+
             OutputFilter = new KnowledgeClassifier<bool>(graph);
             _actions.AddRange(actions);
             RequiredSubstitutions = findRequiredSubstitutions(actions);
@@ -38,7 +46,10 @@ namespace KnowledgeDialog.PoolComputation
             _actions.RemoveAll(action => action is PushAction);
             _actions.AddRange(pushActions);
 
+            var previousCount = RequiredSubstitutions.Count;
             RequiredSubstitutions = findRequiredSubstitutions(_actions);
+            if (previousCount != RequiredSubstitutions.Count)
+                throw new NotSupportedException("Invalid update");
         }
 
         internal void UpdateInsert(IEnumerable<InsertAction> insertActions)
@@ -46,7 +57,11 @@ namespace KnowledgeDialog.PoolComputation
             _actions.RemoveAll(action => action is InsertAction);
             _actions.AddRange(insertActions);
 
+
+            var previousCount = RequiredSubstitutions.Count;
             RequiredSubstitutions = findRequiredSubstitutions(_actions);
+            if (previousCount != RequiredSubstitutions.Count)
+                throw new NotSupportedException("Invalid update");
         }
 
         private NodesEnumeration findRequiredSubstitutions(IEnumerable<IPoolAction> actions)

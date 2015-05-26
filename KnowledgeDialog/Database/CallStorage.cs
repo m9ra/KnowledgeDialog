@@ -16,9 +16,9 @@ namespace KnowledgeDialog.Database
 
     public class CallStorage
     {
-        internal static readonly string TimeEntry = "_time";
+        public static readonly string TimeEntry = "_time";
 
-        internal static readonly string CallNameEntry = "_callname";
+        public static readonly string CallNameEntry = "_callname";
 
         private readonly Dictionary<string, CallSerializer> _calls = new Dictionary<string, CallSerializer>();
 
@@ -50,7 +50,8 @@ namespace KnowledgeDialog.Database
 
             try
             {
-                using (var reader = new StreamReader(_file))
+                var fs = new FileStream(_file, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+                using (var reader = new StreamReader(fs))
                     while (!reader.EndOfStream)
                     {
                         var line = reader.ReadLine().Trim();
@@ -86,7 +87,10 @@ namespace KnowledgeDialog.Database
                 return;
 
             if (_writer == null)
-                _writer = new StreamWriter(_file, true);
+            {
+                var fs = new FileStream(_file, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+                _writer = new StreamWriter(fs);
+            }
 
             var json = JsonConvert.SerializeObject(storage, _serializationSettings);
             _writer.WriteLine(json);

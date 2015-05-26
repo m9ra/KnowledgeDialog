@@ -33,7 +33,7 @@ namespace WebBackend
         protected override Type[] getHelpers()
         {
             return new Type[]{
-                
+                typeof(FormatHelper)
             };
         }
 

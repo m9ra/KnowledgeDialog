@@ -17,6 +17,10 @@ namespace WebBackend
     {
         public static string RootPath { get; private set; }
 
+        public static string StoragesPath { get { return "data/storages"; } }
+
+        public static string UserStoragesPath { get { return StoragesPath + "/users"; } }
+
         public static bool UseWikidata { get; private set; }
 
         public static ComposedGraph Graph { get; private set; }

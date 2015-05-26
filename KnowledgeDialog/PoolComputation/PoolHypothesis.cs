@@ -14,11 +14,13 @@ namespace KnowledgeDialog.PoolComputation
 
         public readonly ActionBlock ActionBlock;
 
+        public readonly MappingControl<ActionBlock> Control;
 
-        public PoolHypothesis(NodesSubstitution substitutions, ActionBlock block)
+        public PoolHypothesis(NodesSubstitution substitutions, MappingControl<ActionBlock> control)
         {
             Substitutions = substitutions;
-            ActionBlock = block;
+            ActionBlock = control.Value;
+            Control = control;
         }
     }
 }

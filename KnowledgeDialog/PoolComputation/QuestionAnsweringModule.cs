@@ -332,8 +332,8 @@ namespace KnowledgeDialog.PoolComputation
             if (!updatePushPart(questionEntry, bestHypothesis, Pool))
                 return false;
 
-            //update context filter
-            return updateFilterPart(correctAnswerNode, bestHypothesis);
+            //context filter is updated with push part
+            return true;
         }
 
         private bool updateFilterPart(NodeReference correctAnswerNode, PoolHypothesis bestHypothesis)
@@ -366,6 +366,7 @@ namespace KnowledgeDialog.PoolComputation
             //traverse all entries and collect all update/insert rules, that will 
             //cover every correct answer
             var equivalentEntries = getPatternEquivalentEntries(questionEntry);
+            var correctAnswers = new HashSet<NodeReference>();
             foreach (var entry in equivalentEntries)
             {
                 if (!entry.HasAnswer)
@@ -391,11 +392,20 @@ namespace KnowledgeDialog.PoolComputation
                         action = action.Resubstitution(entry.QuestionNodes, hypothesis.Substitutions.OriginalNodes);
                         pushActions.Add(action);
                     }
-                }
+
+                    correctAnswers.Add(entry.CorrectAnswer);
+                } 
             }
 
             hypothesis.ActionBlock.UpdatePush(pushActions);
             hypothesis.ActionBlock.UpdateInsert(insertActions);
+
+            foreach (var node in pool.ActiveNodes)
+            {
+                //TODO detection of inclusion collision in filter
+                var isCorrect = correctAnswers.Contains(node);
+                hypothesis.ActionBlock.OutputFilter.Advice(node, isCorrect);
+            }
             return true;
         }
 

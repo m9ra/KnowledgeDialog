@@ -32,7 +32,7 @@ namespace KnowledgeDialog.PoolComputation
             var semantics= actions.FirstOrDefault();
             if (semantics != null && semantics.SemanticOrigin != null)
             {
-                OriginalSentence = Dialog.SentenceParser.Parse(semantics.SemanticOrigin.Utterance).OriginalSentence;
+                OriginalSentence = Dialog.UtteranceParser.Parse(semantics.SemanticOrigin.Utterance).OriginalSentence;
             }
 
             OutputFilter = new KnowledgeClassifier<bool>(graph);

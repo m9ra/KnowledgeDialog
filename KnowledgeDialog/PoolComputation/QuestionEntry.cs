@@ -15,7 +15,7 @@ namespace KnowledgeDialog.PoolComputation
 
         internal readonly string Question;
 
-        internal readonly ParsedSentence ParsedQuestion;
+        internal readonly ParsedExpression ParsedQuestion;
 
         internal readonly NodesEnumeration QuestionNodes;
 
@@ -35,7 +35,7 @@ namespace KnowledgeDialog.PoolComputation
         internal QuestionEntry(string question, ComposedGraph graph)
         {
             Question = question;
-            ParsedQuestion = SentenceParser.Parse(question);
+            ParsedQuestion = UtteranceParser.Parse(question);
             QuestionNodes = findeQuestionNodes(graph);
         }
 

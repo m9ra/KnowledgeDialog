@@ -89,7 +89,7 @@ namespace KnowledgeDialog.Database
 
         private NodeReference N(string name)
         {
-            SentenceParser.RegisterEntity(name);
+            UtteranceParser.RegisterEntity(name);
             return GraphLayerBase.CreateReference(name);
         }
 

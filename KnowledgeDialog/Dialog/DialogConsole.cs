@@ -32,9 +32,15 @@ namespace KnowledgeDialog.Dialog
         /// </summary>
         private readonly IDialogManager _manager;
 
-        public DialogConsole(IDialogManager manager)
+        /// <summary>
+        /// Manager that doesn't require utterance parsing.
+        /// </summary>
+        private readonly IInputDialogManager _inputManager;
+
+        public DialogConsole(object manager)
         {
-            _manager = manager;
+            _manager = manager as IDialogManager;
+            _inputManager = manager as IInputDialogManager;
         }
 
         /// <summary>
@@ -57,18 +63,27 @@ namespace KnowledgeDialog.Dialog
             for (; ; )
             {
                 var utterance = readUtterance();
-                var parsedUtterance = parseUtterance(utterance);
-                if (parsedUtterance == null)
-                    return;
-
+          
                 ResponseBase response;
-                if (useDirectInput)
+                if (_manager == null)
                 {
-                    response = _manager.Ask(utterance);
+                    var parsedSentence = Dialog.UtteranceParser.Parse(utterance);
+                    response = _inputManager.Input(parsedSentence);
                 }
                 else
                 {
-                    response = parsedUtterance.HandleManager(_manager);
+                    var parsedUtterance = parseUtterance(utterance);
+                    if (parsedUtterance == null)
+                        return;
+
+                    if (useDirectInput)
+                    {
+                        response = _manager.Ask(utterance);
+                    }
+                    else
+                    {
+                        response = parsedUtterance.HandleManager(_manager);
+                    }
                 }
                 ConsoleServices.PrintOutput(response);
             }

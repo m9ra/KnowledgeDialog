@@ -1043,7 +1043,7 @@ namespace KnowledgeDialog.Dialog
          */
         private bool areStringsAt(int start, int length, params String[] strings)
         {
-            if (start < 0)
+            if (start < 0 || m_word.Length<start+length)
             {
                 //Sometimes, as a result of expressions like "current - 2" for start,  
                 //start ends up negative.  Since no string can be present at a negative offset, this is always false 

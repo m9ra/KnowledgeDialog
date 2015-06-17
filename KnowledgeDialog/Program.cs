@@ -15,8 +15,24 @@ namespace KnowledgeDialog
     {
         static void Main(string[] args)
         {
-            var parse = SentenceParser.Parse("name of wife of Barack Obama president is Michelle Obama");
-            MultipleAdvice(args[0]);
+            var parse = UtteranceParser.Parse("name of wife of Barack Obama president is Michelle Obama");
+            //MultipleAdvice(args[0]);
+            ExplicitStateDialog();
+        }
+
+        private static void ExplicitStateDialog()
+        {
+            var manager = new PoolComputation.ExplicitStateDialogManager();
+            var provider = new DialogConsole(manager);
+
+            provider.SimulateInput(
+                "it is correct answer",
+                "France",
+                "France",
+                "François Hollande is president in which state ?"
+            );
+
+            provider.Run();
         }
 
 

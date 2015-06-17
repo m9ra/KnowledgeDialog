@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.PoolComputation.StateDialog.States
 {
-    class Welcome:StateBase
+    class Welcome : StateBase
     {
         protected override ModifiableResponse execute()
         {

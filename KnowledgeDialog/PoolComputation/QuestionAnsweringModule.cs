@@ -91,7 +91,7 @@ namespace KnowledgeDialog.PoolComputation
                 return false;
 
             fillPool(context);
-            var questionEntry = GetQuestionEntry(SentenceParser.Parse(question));
+            var questionEntry = GetQuestionEntry(UtteranceParser.Parse(question));
             questionEntry.RegisterAnswer(isBasedOnContext, correctAnswerNode);
 
             return
@@ -115,7 +115,7 @@ namespace KnowledgeDialog.PoolComputation
             _repairAnswer.SaveReport();
 
             fillPool(context);
-            var hypotheses = GetSortedHypotheses(SentenceParser.Parse(question)).ToArray();
+            var hypotheses = GetSortedHypotheses(UtteranceParser.Parse(question)).ToArray();
 
             foreach (var hypothesis in hypotheses)
             {
@@ -141,7 +141,7 @@ namespace KnowledgeDialog.PoolComputation
                 _setEquivalencies.ReportParameter("isEquivalent", isEquivalent);
                 _setEquivalencies.SaveReport();
 
-                var parsedQuestion = SentenceParser.Parse(patternQuestion);
+                var parsedQuestion = UtteranceParser.Parse(patternQuestion);
 
                 if (isEquivalent)
                 {
@@ -160,7 +160,7 @@ namespace KnowledgeDialog.PoolComputation
 
         public void Negate(string question)
         {
-            var parsedSentence = SentenceParser.Parse(question);
+            var parsedSentence = UtteranceParser.Parse(question);
 
             lock (_L_input)
             {
@@ -186,7 +186,7 @@ namespace KnowledgeDialog.PoolComputation
 
         public IEnumerable<NodeReference> GetAnswer(string question)
         {
-            var parsedQuestion = SentenceParser.Parse(question);
+            var parsedQuestion = UtteranceParser.Parse(question);
             var bestHypothesis = GetBestHypothesis(parsedQuestion);
             if (bestHypothesis == null)
                 return new NodeReference[0];
@@ -200,7 +200,7 @@ namespace KnowledgeDialog.PoolComputation
             return pool.ActiveNodes;
         }
 
-        internal NodesEnumeration GetPatternNodes(ParsedSentence sentence)
+        internal NodesEnumeration GetPatternNodes(ParsedExpression sentence)
         {
             //if (!_questions.ContainsKey(sentence.OriginalSentence))
             //    throw new KeyNotFoundException("GetPatternNodes: " + sentence.OriginalSentence);
@@ -210,7 +210,7 @@ namespace KnowledgeDialog.PoolComputation
             return entry.QuestionNodes;
         }
 
-        internal QuestionEntry GetQuestionEntry(ParsedSentence question)
+        internal QuestionEntry GetQuestionEntry(ParsedExpression question)
         {
             QuestionEntry entry;
             if (!_questions.TryGetValue(question.OriginalSentence, out entry))
@@ -228,12 +228,12 @@ namespace KnowledgeDialog.PoolComputation
             return entry;
         }
 
-        internal PoolHypothesis GetBestHypothesis(ParsedSentence question)
+        internal PoolHypothesis GetBestHypothesis(ParsedExpression question)
         {
             return GetSortedHypotheses(question).FirstOrDefault();
         }
 
-        internal IEnumerable<PoolHypothesis> GetSortedHypotheses(ParsedSentence utterance)
+        internal IEnumerable<PoolHypothesis> GetSortedHypotheses(ParsedExpression utterance)
         {
             var scoredActions = Triggers.FindMapping(utterance);
             var availableNodes = GetRelatedNodes(utterance, Graph).ToArray();
@@ -287,7 +287,7 @@ namespace KnowledgeDialog.PoolComputation
             return new NodesSubstitution(originalNodes, substitutions);
         }
 
-        internal IEnumerable<NodeReference> GetRelatedNodes(ParsedSentence sentence, ComposedGraph graph)
+        internal IEnumerable<NodeReference> GetRelatedNodes(ParsedExpression sentence, ComposedGraph graph)
         {
             return GetQuestionEntry(sentence).QuestionNodes;
         }
@@ -317,7 +317,7 @@ namespace KnowledgeDialog.PoolComputation
 
         private bool updateOldActions(string question, bool isBasedOnContext, NodeReference correctAnswerNode)
         {
-            var parsedQuestion = SentenceParser.Parse(question);
+            var parsedQuestion = UtteranceParser.Parse(question);
             var bestHypothesis = GetBestHypothesis(parsedQuestion);
             if (bestHypothesis == null)
                 return false;
@@ -606,7 +606,7 @@ namespace KnowledgeDialog.PoolComputation
         {
             var result = new List<SemanticPart>();
 
-            foreach (var word in SentenceParser.Parse(question).Words)
+            foreach (var word in UtteranceParser.Parse(question).Words)
             {
                 var fromNode = Graph.GetNode(word);
                 var paths = Graph.GetPaths(fromNode, answer, MaximumGraphDepth, MaximumGraphWidth).Take(1).ToArray();

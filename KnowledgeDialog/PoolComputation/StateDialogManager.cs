@@ -16,7 +16,7 @@ using KnowledgeDialog.PoolComputation.StateDialog.States;
 
 namespace KnowledgeDialog.PoolComputation
 {
-    public class StateDialogManager : IDialogManager
+    public class StateDialogManager : IDialogManager, IInputDialogManager
     {
         private readonly StateContext _context;
 
@@ -133,10 +133,16 @@ namespace KnowledgeDialog.PoolComputation
 
         private ResponseBase getResponse(string utterance)
         {
-            var responses = new List<ModifiableResponse>();
+            return getResponse(UtteranceParser.Parse(utterance));
+        }
 
-            _context.StartTurn(utterance);
-            var edgeInput = new EdgeInput(utterance);
+        private ResponseBase getResponse(ParsedExpression utterance)
+        {
+            var responses = new List<ModifiableResponse>();
+            var originalUtterance = utterance.OriginalSentence;
+
+            _context.StartTurn(originalUtterance);
+            var edgeInput = new EdgeInput(originalUtterance);
             do
             {
                 _context.EdgeReset();
@@ -156,9 +162,8 @@ namespace KnowledgeDialog.PoolComputation
                     }
                     else if (nonPatternQuestion != null && nonPatternQuestion.Score < 0.9 && _currentState == QuestionRouting)
                     {
-                        _context.SetValue(EquivalenceQuestion.QueriedQuestion, utterance);
-                        var parsedUtterance = SentenceParser.Parse(utterance);
-                        var substitution = substitute(nonPatternQuestion.ParsedSentence, parsedUtterance);
+                        _context.SetValue(EquivalenceQuestion.QueriedQuestion, originalUtterance);
+                        var substitution = substitute(nonPatternQuestion.ParsedSentence, utterance);
                         _context.SetValue(EquivalenceQuestion.PatternQuestion, substitution);
                         edgeInput = new EdgeInput(EquivalenceQuestion.EquivalenceEdge);
                         continue;
@@ -198,13 +203,13 @@ namespace KnowledgeDialog.PoolComputation
         {
             foreach (var hypothesis in hypotheses)
             {
-                if (hypothesis.ParsedSentence!= null && !hypothesis.ParsedSentence.OriginalSentence.Contains('*'))
+                if (hypothesis.ParsedSentence != null && !hypothesis.ParsedSentence.OriginalSentence.Contains('*'))
                     return hypothesis;
             }
             return null;
         }
 
-        private string substitute(ParsedSentence pattern, ParsedSentence utterance)
+        private string substitute(ParsedExpression pattern, ParsedExpression utterance)
         {
             var patternNodes = _context.QuestionAnsweringModule.GetPatternNodes(pattern);
             var utteranceNodes = _context.QuestionAnsweringModule.GetRelatedNodes(utterance, _context.Graph).ToArray();
@@ -225,7 +230,7 @@ namespace KnowledgeDialog.PoolComputation
 
         private string repairSpelling(string utterance)
         {
-            var sentence = SentenceParser.Parse(utterance);
+            var sentence = UtteranceParser.Parse(utterance);
             var builder = new StringBuilder();
             foreach (var word in sentence.Words)
             {
@@ -271,9 +276,9 @@ namespace KnowledgeDialog.PoolComputation
             return getResponse(originalUtterance);
         }
 
-        public ResponseBase Input(string input)
+        public ResponseBase Input(ParsedExpression utterance)
         {
-            return getResponse(input);
+            return getResponse(utterance);
         }
 
         #endregion

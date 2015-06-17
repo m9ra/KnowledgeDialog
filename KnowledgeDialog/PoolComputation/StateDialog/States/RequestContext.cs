@@ -42,7 +42,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
 
         private bool hasContextIndicator(string question)
         {
-            var words = Dialog.SentenceParser.Parse(question).Words;
+            var words = Dialog.UtteranceParser.Parse(question).Words;
             foreach (var word in words)
             {
                 if (_contextIndicators.Contains(word))

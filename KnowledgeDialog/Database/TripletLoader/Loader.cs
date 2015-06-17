@@ -59,7 +59,7 @@ namespace KnowledgeDialog.Database.TripletLoader
                 _nodes.Add(sourceNode);
                 _nodes.Add(targetNode);
                 DataLayer.AddEdge(sourceNode, edge, targetNode);
-                SentenceParser.RegisterEntity(target);
+                UtteranceParser.RegisterEntity(target);
 
                 ++lineIndex;
                 var currentPercent = 100 * lineIndex / lineCount;

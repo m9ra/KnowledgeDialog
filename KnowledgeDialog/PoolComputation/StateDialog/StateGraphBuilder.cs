@@ -113,7 +113,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
 
         internal IEnumerable<MappingControl<Trigger>> UtteranceEdge(string utterance)
         {
-            var parsedUtterance = SentenceParser.Parse(utterance);
+            var parsedUtterance = UtteranceParser.Parse(utterance);
 
             foreach (var triggerPair in _externalTriggers)
             {

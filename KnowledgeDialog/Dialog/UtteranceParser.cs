@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace KnowledgeDialog.Dialog
 {
-    public static class SentenceParser
+    public static class UtteranceParser
     {
         private static readonly Regex _inputSanitizer = new Regex("[,.?<>;'\"-]", RegexOptions.Compiled);
 
@@ -37,7 +37,7 @@ namespace KnowledgeDialog.Dialog
             entities.Add(entity);
         }
 
-        internal static ParsedSentence Parse(string sentence)
+        public static ParsedExpression Parse(string sentence)
         {
             sentence = _inputSanitizer.Replace(sentence, " ");
             sentence = _spaceSanitizer.Replace(sentence, " ").Trim();
@@ -201,7 +201,7 @@ namespace KnowledgeDialog.Dialog
 
         }
 
-        private static ParsedSentence parseSentence(string sentence, List<StringSearchResult> validEntities)
+        private static ParsedExpression parseSentence(string sentence, List<StringSearchResult> validEntities)
         {
             var parsedWords = new List<string>();
 
@@ -236,7 +236,7 @@ namespace KnowledgeDialog.Dialog
                 }
             }
 
-            return new ParsedSentence(sentence, parsedWords);
+            return new ParsedExpression(sentence, parsedWords);
         }
 
         private static string getCode(string entity)

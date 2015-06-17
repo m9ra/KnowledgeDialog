@@ -11,7 +11,7 @@ namespace KnowledgeDialog.PoolComputation
 {
     class UtteranceMapping<T> : IMappingProvider<T>
     {
-        protected readonly Dictionary<ParsedSentence, T> Mapping = new Dictionary<ParsedSentence, T>();
+        protected readonly Dictionary<ParsedExpression, T> Mapping = new Dictionary<ParsedExpression, T>();
 
         private readonly ComposedGraph _graph;
 
@@ -22,12 +22,12 @@ namespace KnowledgeDialog.PoolComputation
             _graph = graph;
         }
 
-        public MappingControl<T> BestMap(ParsedSentence utterance)
+        public MappingControl<T> BestMap(ParsedExpression utterance)
         {
             return FindMapping(utterance).FirstOrDefault();
         }
 
-        internal IEnumerable<MappingControl<T>> FindMapping(ParsedSentence parsedSentence)
+        internal IEnumerable<MappingControl<T>> FindMapping(ParsedExpression parsedSentence)
         {
             var result = new List<MappingControl<T>>();
 
@@ -46,7 +46,7 @@ namespace KnowledgeDialog.PoolComputation
 
         public void SetMapping(string utterance, T data)
         {
-            var sentence = SentenceParser.Parse(utterance);
+            var sentence = UtteranceParser.Parse(utterance);
             Mapping[sentence] = data;
         }
 
@@ -58,8 +58,8 @@ namespace KnowledgeDialog.PoolComputation
 
         private void disableEquivalence(string utterance1, string utterance2)
         {
-            var signature1 = getSignature(SentenceParser.Parse(utterance1));
-            var signature2 = getSignature(SentenceParser.Parse(utterance2));
+            var signature1 = getSignature(UtteranceParser.Parse(utterance1));
+            var signature2 = getSignature(UtteranceParser.Parse(utterance2));
 
             HashSet<string> disabled;
             if (!_disabledEquivalencies.TryGetValue(signature1, out disabled))
@@ -68,7 +68,7 @@ namespace KnowledgeDialog.PoolComputation
             disabled.Add(signature2);
         }
 
-        private string getSignature(ParsedSentence sentence)
+        private string getSignature(ParsedExpression sentence)
         {
             var builder = new StringBuilder();
             foreach (var word in sentence.Words)
@@ -85,7 +85,7 @@ namespace KnowledgeDialog.PoolComputation
             return builder.ToString();
         }
 
-        private Tuple<string, double> getSimilarity(ParsedSentence pattern, ParsedSentence sentence)
+        private Tuple<string, double> getSimilarity(ParsedExpression pattern, ParsedExpression sentence)
         {
             if (pattern.OriginalSentence == sentence.OriginalSentence)
                 //we have exact match
@@ -153,7 +153,7 @@ namespace KnowledgeDialog.PoolComputation
             return Tuple.Create(substitution, similarity);
         }
 
-        private bool canBeEquivalent(ParsedSentence pattern, ParsedSentence sentence)
+        private bool canBeEquivalent(ParsedExpression pattern, ParsedExpression sentence)
         {
             var sentenceSignature = getSignature(pattern);
             var patternSignature = getSignature(sentence);

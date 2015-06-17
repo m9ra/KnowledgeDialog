@@ -47,11 +47,12 @@ namespace WebBackend
         internal ResponseBase Input(string utterance)
         {
             var formattedUtterance = utterance.Trim();
+            var parsedUtterance = KnowledgeDialog.Dialog.UtteranceParser.Parse(utterance);
             ResponseBase response;
             lock (_L_qa_index)
             {
                 CurrentHTML += userTextHTML(formattedUtterance);
-                response = _manager.Input(utterance);
+                response = _manager.Input(parsedUtterance);
                 CurrentHTML += systemTextHTML(response.ToString());
             }
 

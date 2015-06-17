@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.Dialog;
+using KnowledgeDialog.Dialog.Acts;
 using KnowledgeDialog.Database;
 using KnowledgeDialog.Knowledge;
 
@@ -19,6 +21,10 @@ namespace WebBackend
         public readonly string Type;
 
         public readonly string UserId;
+
+        public readonly DialogActBase Act;
+
+        private static readonly SLUFactory _factory = new SLUFactory();
 
         internal bool HasUserId()
         {
@@ -51,22 +57,24 @@ namespace WebBackend
                 Text = string.Format(data["format"].ToString(), substitutions.ToArray());
             }
 
-            if (Type == "T_advice")
+            switch (Type)
             {
-                var text = "<b>Question</b>:" + data["question"] + "<br>";
-                text += "<b>Context</b>:" + data["context"] + "<br>";
-                text += "<b>Answer</b>:" + data["correctAnswerNode"] + "<br><br>";
+                case "T_advice":
+                    Text = "<b>Question</b>:" + data["question"] + "<br>";
+                    Text += "<b>Context</b>:" + data["context"] + "<br>";
+                    Text += "<b>Answer</b>:" + data["correctAnswerNode"] + "<br><br>";
+                    break;
 
-                Text = text;
-            }
+                case "T_equivalence":
+                    Text= "<b>PatternQuestion</b>:" + data["patternQuestion"] + "<br>";
+                    Text += "<b>QueriedQuestion</b>:" + data["queriedQuestion"] + "<br>";
+                    Text += "<b>IsEquivalent</b>:" + data["isEquivalent"] + "<br><br>";
+                    break;
 
-            if (Type == "T_equivalence")
-            {
-                var text = "<b>PatternQuestion</b>:" + data["patternQuestion"] + "<br>";
-                text += "<b>QueriedQuestion</b>:" + data["queriedQuestion"] + "<br>";
-                text += "<b>IsEquivalent</b>:" + data["isEquivalent"] + "<br><br>";
-
-                Text = text;
+                case "T_utterance":
+                    var utterance = UtteranceParser.Parse(data["utterance"] as string);
+                    Act = _factory.GetDialogAct(utterance);
+                    break;
             }
         }
 

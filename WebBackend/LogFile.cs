@@ -19,7 +19,7 @@ namespace WebBackend
         public readonly DateTime Time;
 
         public readonly string FilePath;
-
+        
         public LogFile(string path)
         {
             FilePath = path;

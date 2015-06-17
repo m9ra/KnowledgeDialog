@@ -35,6 +35,10 @@
 						.type= action.Type
 					.col-md-2
 						.time= action.Time					
+
+				
+								
+
 					- if action.UserId
 						.col-md-4
 							%a{href: LinkToLog(action.UserId)} = action.UserId	
@@ -42,7 +46,13 @@
 							%div{class: action.Type}= action.Text		
 									
 					- else
-						.col-md-9
-							%div{class: action.Type}= raw action.Text
+						- if action.Act
+							.col-md-5
+								%div{class: action.Type}= raw action.Text
+							.col-md-4
+								.act= action.Act
+						- else
+							.col-md-9
+								%div{class: action.Type}= raw action.Text
 						
 						

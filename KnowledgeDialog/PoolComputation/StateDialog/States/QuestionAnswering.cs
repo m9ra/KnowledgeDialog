@@ -24,7 +24,8 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
 
             Context.SetValue(LastQuestion, question);
 
-            var answer = Context.QuestionAnsweringModule.GetAnswer(question).ToArray();
+            var parsedQuestion = UtteranceParser.Parse(question);
+            var answer = Context.QuestionAnsweringModule.GetAnswer(parsedQuestion).ToArray();
 
             ModifiableResponse response;
             if (answer.Length <= Context.MaximumUserReport)

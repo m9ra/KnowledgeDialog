@@ -56,7 +56,7 @@ namespace KnowledgeDialog.Dialog.Parsing
         {
             if (word.StartsWith(GroupPrefix))
             {
-                var groupSet = new HashSet<string>();
+                var groupSet = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
                 var groupKey = word.Substring(GroupPrefix.Length);
                 groupSet.UnionWith(configuration.GetGroup(groupKey));
                 return groupSet;

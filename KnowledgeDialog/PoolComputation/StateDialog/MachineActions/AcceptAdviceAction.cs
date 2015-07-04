@@ -39,7 +39,8 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
 
         private void acceptAdvice(ParsedExpression question, ParsedExpression advice, bool isBasedOnContext)
         {
-            throw new NotImplementedException("Accept the advice");
+            var adviceNode = InputState.QA.Graph.GetNode(advice.OriginalSentence);
+            InputState.QA.AdviceAnswer(question.OriginalSentence, isBasedOnContext, adviceNode);
         }
 
         private bool hasContextIndicator(ParsedExpression question)

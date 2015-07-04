@@ -27,9 +27,11 @@ namespace KnowledgeDialog.Dialog
             RegisterGroup("answer_preposition", "for", "of", "on");
             RegisterGroup("yes_word", "yes", "yeah", "y", "ok", "sure");
             RegisterGroup("no_word", "no", "nope", "n");
-            RegisterGroup("w_word", "which", "what", "who", "where", "when", "why");
+            RegisterGroup("w_word", "which", "what", "who", "where", "when", "why", "how");
             RegisterGroup("stronging_adjective", "definitely", "absolutely", "pretty");
-            RegisterGroup("rude_word","wtf","suck","fuck");
+            RegisterGroup("rude_word", "wtf", "suck", "fuck");
+            RegisterGroup("welcome_word","welcome", "hi", "hello");
+            RegisterGroup("bye_word", "bye");
 
 
             //yes - no handling
@@ -38,9 +40,14 @@ namespace KnowledgeDialog.Dialog
             RegisterPattern("$stronging_adjective $yes_word", (p) => new AffirmAct());
             RegisterPattern("$stronging_adjective $no_word", (p) => new NegateAct());
 
+            //chitchat handling
+            RegisterPattern("$welcome_word", (p) => new ChitChatAct(ChitChatDomain.Welcome));
+            RegisterPattern("$bye_word", (p) => new ChitChatAct(ChitChatDomain.Bye));
             RegisterPattern("$w_word are you", (p) => new ChitChatAct(ChitChatDomain.Personal));
             RegisterPattern("$rude_word", (p) => new ChitChatAct(ChitChatDomain.Rude));
 
+            //question - advice parsing
+            RegisterPattern("#1 is #2 $w_word #3", (p) => new QuestionAct(p[0]));
             RegisterPattern("$pronoun is #1", (p) => new AdviceAct(p[1]));
             RegisterPattern("$w_word #1", (p) => new QuestionAct(p[0]));
             RegisterPattern("$possesive_pronoun name is #1", (p) => new AdviceAct(p[1]));

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.Dialog.Acts
 {
-    public enum ChitChatDomain { Rude, Polite, Personal }
+    public enum ChitChatDomain { Rude, Polite, Personal, Welcome, Bye }
 
     class ChitChatAct : DialogActBase
     {

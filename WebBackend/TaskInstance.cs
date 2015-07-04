@@ -21,7 +21,6 @@ namespace WebBackend
 
         public string Text { get { return string.Format(TaskFormat, Substitutions.Select(s => "'" + s.Data + "'").ToArray()); } }
 
-
         private readonly NodeReference[] _expectedAnswers;
 
         private readonly UserTracker _user;

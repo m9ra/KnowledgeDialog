@@ -17,19 +17,20 @@ namespace KnowledgeDialog
         {
             var parse = UtteranceParser.Parse("name of wife of Barack Obama president is Michelle Obama");
             //MultipleAdvice(args[0]);
-            ExplicitStateDialog();
+            ExplicitStateDialog(args[0]);
         }
 
-        private static void ExplicitStateDialog()
+        private static void ExplicitStateDialog(string dbPath)
         {
-            var manager = new PoolComputation.ExplicitStateDialogManager();
+            var loader = loadDB(dbPath);
+            var qa = new PoolComputation.QuestionAnsweringModule(new ComposedGraph(loader.DataLayer), new CallStorage(null));
+            var manager = new PoolComputation.ExplicitStateDialogManager(qa);
             var provider = new DialogConsole(manager);
 
             provider.SimulateInput(
-                "it is correct answer",
-                "France",
-                "France",
-                "François Hollande is president in which state ?"
+                "François Hollande is president in which state ?",
+                "It is France",
+                "Barack Obama is president in which state ?"
             );
 
             provider.Run();
@@ -38,9 +39,7 @@ namespace KnowledgeDialog
 
         private static void MultipleAdvice(string dbPath)
         {
-            var loader = new Database.TripletLoader.Loader(dbPath);
-            var graph = new ComposedGraph(loader.DataLayer);
-            WikidataHelper.PreprocessData(loader, graph);
+            var loader = loadDB(dbPath);
 
             var manager = new PoolComputation.StateDialogManager(null, loader.DataLayer);
             var provider = new DialogConsole(manager);
@@ -53,6 +52,14 @@ namespace KnowledgeDialog
                 );
 
             provider.Run();
+        }
+
+        private static Database.TripletLoader.Loader loadDB(string dbPath)
+        {
+            var loader = new Database.TripletLoader.Loader(dbPath);
+            var graph = new ComposedGraph(loader.DataLayer);
+            WikidataHelper.PreprocessData(loader, graph);
+            return loader;
         }
 
         private static void InconsistencyDBTesting(string dbPath)

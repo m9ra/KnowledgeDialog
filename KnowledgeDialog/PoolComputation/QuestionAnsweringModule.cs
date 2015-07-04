@@ -184,10 +184,14 @@ namespace KnowledgeDialog.PoolComputation
 
         #endregion
 
-        public IEnumerable<NodeReference> GetAnswer(string question)
+        public IEnumerable<NodeReference> GetAnswer(ParsedExpression question)
         {
-            var parsedQuestion = UtteranceParser.Parse(question);
-            var bestHypothesis = GetBestHypothesis(parsedQuestion);
+            var bestHypothesis = GetBestHypothesis(question);
+            return GetAnswer(bestHypothesis);
+        }
+
+        internal IEnumerable<NodeReference> GetAnswer(PoolHypothesis bestHypothesis)
+        {
             if (bestHypothesis == null)
                 return new NodeReference[0];
 
@@ -719,6 +723,5 @@ namespace KnowledgeDialog.PoolComputation
 
             return builder.ToString();
         }
-
     }
 }

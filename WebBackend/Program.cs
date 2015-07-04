@@ -50,7 +50,6 @@ namespace WebBackend
 
                 WikidataHelper.PreprocessData(loader, Graph);
 
-
                 //DB TESTING - debug only
                 var node1 = Graph.GetNode("USA");
                 var node2 = Graph.GetNode("Barack Obama");

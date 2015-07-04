@@ -10,6 +10,12 @@ namespace KnowledgeDialog.Dialog
 {
     public static class UtteranceParser
     {
+        internal static readonly int MaxLookahead = 5;
+
+        internal static readonly double IsEntityThreshold = 2.5;
+
+        private static readonly HashSet<string> NonEntityWords = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase) { "is", "yes", "no" };
+
         private static readonly Regex _inputSanitizer = new Regex("[,.?<>;'\"-]", RegexOptions.Compiled);
 
         private static readonly Regex _spaceSanitizer = new Regex(@"[ ]{2,}", RegexOptions.Compiled);
@@ -41,88 +47,52 @@ namespace KnowledgeDialog.Dialog
         {
             sentence = _inputSanitizer.Replace(sentence, " ");
             sentence = _spaceSanitizer.Replace(sentence, " ").Trim();
-            var validEntities = findEntities(sentence);
-            return parseSentence(sentence, validEntities);
+            return parseExpression(sentence);
         }
 
-        private static List<StringSearchResult> findEntities(string sentence)
+        private static ParsedExpression parseExpression(string sanitizedSentence)
         {
-            var foundEntities = getRawEntities(sentence);
-
-
-            //try to find longest entities as posible
-            var validEntities = new List<StringSearchResult>();
-            foreach (var foundEntity in foundEntities.OrderByDescending(e => e.Keyword.Length))
+            var singleWords = sanitizedSentence.Split(' ');
+            var parsedWords = new List<string>();
+            for (var currentWordIndex = 0; currentWordIndex < singleWords.Length; ++currentWordIndex)
             {
-                //optimistic claim
-                var isValid = true;
-                foreach (var validEntity in validEntities)
+                var currentWord = singleWords[currentWordIndex];
+
+                //try to find named entity in the lookahead
+                var bestEntity = currentWord;
+                var bestIndex = currentWordIndex;
+                var currentEntity = currentWord;
+                for (var lookaheadOffset = 1; lookaheadOffset < MaxLookahead && currentWordIndex + lookaheadOffset < singleWords.Length; ++lookaheadOffset)
                 {
-                    //try to proove invalidity
-                    var startIndex = foundEntity.Index;
-                    var endIndex = startIndex + foundEntity.Keyword.Length;
+                    var lookAheadIndex = currentWordIndex + lookaheadOffset;
+                    var lookaheadWord = singleWords[lookAheadIndex];
 
-                    var validStartIndex = validEntity.Index;
-                    var validEndIndex = validStartIndex + validEntity.Keyword.Length;
+                    if (NonEntityWords.Contains(lookaheadWord) || NonEntityWords.Contains(currentWord))
+                        //this word cannot be part of an entity
+                        break;
 
-                    var startBefore = startIndex < validStartIndex;
-                    var endBefore = endIndex < validStartIndex;
-
-                    var startAfter = startIndex > validEndIndex;
-                    var endAfter = endIndex > validEndIndex;
-
-                    isValid = isValid && ((startBefore == endBefore) && (startAfter == endAfter) && (startBefore || startAfter));
-                }
-
-                if (isValid)
-                    validEntities.Add(foundEntity);
-            }
-            return validEntities;
-        }
-
-        private static IEnumerable<StringSearchResult> getRawEntities(string sentence)
-        {
-            var unigrams = sentence.Split(' ');
-            var maxNGram = unigrams.Length;
-
-            var result = new List<StringSearchResult>();
-            for (var n = maxNGram; n > 0; --n)
-            {
-                //each ngram that is longer than 1 may be named entity
-                for (var ngramOffset = 0; ngramOffset < unigrams.Length - n + 1; ++ngramOffset)
-                {
-                    var ngram = new StringBuilder();
-                    for (var i = 0; i < n; ++i)
+                    //StringBuilder won't be better here - we need to build all the strings
+                    currentEntity += " " + lookaheadWord;
+                    var entityDistance = getBestEntityMatch(currentEntity);
+                    if (entityDistance.Item2 < IsEntityThreshold)
                     {
-                        if (i > 0)
-                            ngram.Append(' ');
-
-                        var word = unigrams[ngramOffset + i];
-                        ngram.Append(word);
-                    }
-
-                    var ngramString = ngram.ToString();
-                    var match = getBestMatch(ngramString);
-
-                    if (match.Item2 <= 2.0)
-                    {
-                        //TODO this supposes that word has appeared only once
-                        var startIndex = sentence.IndexOf(unigrams[ngramOffset]);
-
-                        var endWord = unigrams[ngramOffset + n - 1];
-                        var endIndex = sentence.IndexOf(endWord, startIndex) + endWord.Length;
-
-                        var original = sentence.Substring(startIndex, endIndex - startIndex);
-                        var searchResult = new StringSearchResult(startIndex, match.Item1, original);
-                        result.Add(searchResult);
+                        //take the longes entity in the lookahead
+                        bestEntity = entityDistance.Item1;
+                        bestIndex = lookAheadIndex;
                     }
                 }
+
+                //consider lookahead in the loop
+                currentWordIndex = bestIndex;
+                parsedWords.Add(bestEntity);
             }
 
-            return result;
+            return new ParsedExpression(sanitizedSentence, parsedWords);
         }
 
-        private static Tuple<string, double> getBestMatch(string ngram)
+
+
+        private static Tuple<string, double> getBestEntityMatch(string ngram)
         {
             var code = getCode(ngram);
 
@@ -199,44 +169,6 @@ namespace KnowledgeDialog.Dialog
 
             return d[d.GetUpperBound(0), d.GetUpperBound(1)];
 
-        }
-
-        private static ParsedExpression parseSentence(string sentence, List<StringSearchResult> validEntities)
-        {
-            var parsedWords = new List<string>();
-
-            var currentEntityIndex = 0;
-            var currentIndex = 0;
-            while (currentIndex < sentence.Length)
-            {
-                var nextEntityStart = sentence.Length;
-                var hasEntity = currentEntityIndex < validEntities.Count;
-                if (hasEntity)
-                {
-                    nextEntityStart = validEntities[currentEntityIndex].Index;
-                }
-
-                var length = nextEntityStart - currentEntityIndex;
-                if (length > 0)
-                {
-
-                    var currentSentencePart = sentence.Substring(currentIndex, nextEntityStart - currentIndex);
-                    if (currentSentencePart != "")
-                        parsedWords.AddRange(currentSentencePart.Trim().Split(' '));
-
-                    currentIndex += currentSentencePart.Length;
-                }
-
-                if (hasEntity)
-                {
-                    var entity = validEntities[currentEntityIndex];
-                    parsedWords.Add(entity.Keyword);
-                    currentIndex = nextEntityStart + entity.OriginalText.Length;
-                    ++currentEntityIndex;
-                }
-            }
-
-            return new ParsedExpression(sentence, parsedWords);
         }
 
         private static string getCode(string entity)

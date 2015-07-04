@@ -5,59 +5,82 @@ using System.Text;
 using System.Threading.Tasks;
 
 using KnowledgeDialog.Dialog;
+using KnowledgeDialog.Dialog.Responses;
 
 namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
 {
     abstract class MachineActionBase
     {
-        protected DialogState InputState { get; private set; }
+        private DialogState _newState;
 
-        protected bool ActionIsPending { get { throw new NotImplementedException(); } }
+        private ProcessingContext _context;
+
+        protected DialogState InputState { get; private set; }
 
         protected abstract bool CouldApply();
 
         protected abstract void Apply();
 
-        internal DialogState TryApply(DialogState state)
+        internal bool CanBeApplied(DialogState state)
         {
-            throw new NotImplementedException();
+            try
+            {
+                InputState = state;
+                return CouldApply();
+            }
+            finally
+            {
+                InputState = null;
+            }
+        }
+
+        internal DialogState ApplyOn(DialogState state, ProcessingContext context)
+        {
+            try
+            {
+                //initialize state
+                InputState = state;
+                _newState = InputState;
+
+                //initialize context
+                _context = context;
+
+                //apply machine action
+                Apply();
+                return _newState;
+            }
+            finally
+            {
+                InputState = null;
+                _newState = null;
+            }
         }
 
         #region Machine action utilities
 
         protected void EmitResponse(string message)
         {
-            throw new NotImplementedException();
+            _context.Emit(new SimpleResponse(message));
         }
 
         protected void SetWelcomedFlag(bool value)
         {
-            throw new NotImplementedException();
-        }
-
-        protected void MarkActionAsPending()
-        {
-            throw new NotImplementedException();
-        }
-
-        protected void MarkQuestionAnswered()
-        {
-            throw new NotImplementedException();
+            _newState = _newState.WithWelcomedFlag(value);
         }
 
         protected void ForwardControl()
         {
-            throw new NotImplementedException();
+            _context.ForwardControl();
         }
 
         protected void RemoveQuestion()
         {
-            throw new NotImplementedException();
+            _newState = _newState.WithQuestion(null);
         }
 
         protected void RemoveUnknownQuestion()
         {
-            throw new NotImplementedException();
+            _newState = _newState.WithUnknownQuestion(null);
         }
 
         protected void RemoveNegation()
@@ -67,7 +90,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
         
         protected void RemoveAdvice()
         {
-            throw new NotImplementedException();
+            _newState = _newState.WithAdvice(null);
         }
 
         protected void SetEquivalenceHypothesis(ParsedExpression parsedSentence, ParsedExpression equivalenceCandidate)
@@ -77,7 +100,8 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
 
         protected void SetQuestionAsUnknown()
         {
-            throw new NotImplementedException();
+            var question=_newState.Question;
+            _newState = _newState.WithQuestion(null).WithUnknownQuestion(question);
         }
 
         #endregion

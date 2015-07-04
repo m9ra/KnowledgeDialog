@@ -8,6 +8,8 @@ namespace KnowledgeDialog.Dialog
 {
     public interface IInputDialogManager
     {
+        ResponseBase Initialize();
+
         ResponseBase Input(ParsedExpression utterance);
     }
 }

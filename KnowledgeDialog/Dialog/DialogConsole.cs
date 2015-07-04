@@ -60,10 +60,16 @@ namespace KnowledgeDialog.Dialog
         /// </summary>
         public void Run(bool useDirectInput = false)
         {
+            if (_inputManager != null)
+            {
+                var initializationResponse = _inputManager.Initialize();
+                ConsoleServices.PrintOutput(initializationResponse);
+            }
+
             for (; ; )
             {
                 var utterance = readUtterance();
-          
+
                 ResponseBase response;
                 if (_manager == null)
                 {

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Dialog.Acts;
+using KnowledgeDialog.Dialog.Responses;
 
 using KnowledgeDialog.Knowledge;
 
@@ -24,12 +25,16 @@ namespace KnowledgeDialog.PoolComputation
         /// <summary>
         /// Current state of the dialog.
         /// </summary>
-        private DialogState _currentState = new DialogState();
+        private DialogState _currentState;
+
+        private bool _isInitialized = false;
 
         private List<MachineActionBase> _machineActions = new List<MachineActionBase>();
 
-        internal ExplicitStateDialogManager()
+        internal ExplicitStateDialogManager(QuestionAnsweringModule qa)
         {
+            _currentState = new DialogState(qa);
+
             Add<QuestionAnsweringAction>();
             Add<NoAdviceApologizeAction>();
             Add<AcceptAdviceAction>();
@@ -38,12 +43,67 @@ namespace KnowledgeDialog.PoolComputation
             Add<HowCanIHelpYouAction>();
         }
 
+        public ResponseBase Initialize()
+        {
+            if (_isInitialized)
+                throw new InvalidOperationException("Cannot initialize twice");
+
+            //there is no input before initialization
+            _isInitialized = true;
+            return applyAction();
+        }
+
         public ResponseBase Input(ParsedExpression utterance)
         {
+            if (!_isInitialized)
+                throw new InvalidOperationException("Cannot take input before initialization");
+
             var inputAct = _factory.GetDialogAct(utterance);
             _currentState = applyInput(inputAct, _currentState);
 
-            throw new NotImplementedException();
+            return applyAction();
+        }
+
+        private ResponseBase applyAction()
+        {
+            var processedActions = new HashSet<MachineActionBase>();
+            var responses = new List<ResponseBase>();
+
+            for (var i = 0; i < _machineActions.Count; ++i)
+            {
+                var action = _machineActions[i];
+
+                if (processedActions.Contains(action))
+                    //prevent infinite loop
+                    //for now, don't allow same action to process multiple times
+                    //TODO better would be checking that same state has been reached
+                    continue;
+
+                if (action.CanBeApplied(_currentState))
+                {
+                    //we have machine action which can made the transition
+                    var context = new ProcessingContext();
+                    var newState = action.ApplyOn(_currentState, context);
+                    _currentState = newState;
+
+                    responses.AddRange(context.Responses);
+
+                    if (context.NeedNextMachineAction)
+                    {
+                        //state needs further processing
+                        //therefore we need to scan applicability of machine actions again
+                        i = 0;
+                        continue;
+                    }
+                    else
+                    {
+                        //no more machine action is required
+                        break;
+                    }
+                }
+            }
+
+            return new MultiResponse(responses);
         }
 
         /// <summary>

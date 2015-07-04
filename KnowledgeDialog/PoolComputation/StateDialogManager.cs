@@ -287,5 +287,10 @@ namespace KnowledgeDialog.PoolComputation
         {
             _context.Close();
         }
+
+        public ResponseBase Initialize()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

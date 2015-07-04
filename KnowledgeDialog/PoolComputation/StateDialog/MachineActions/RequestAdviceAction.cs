@@ -11,14 +11,13 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
         /// </inheritdoc>
         protected override bool CouldApply()
         {
-            return InputState.HasUnknownQuestion && !InputState.HasAdvice && !ActionIsPending;
+            return InputState.HasUnknownQuestion && !InputState.HasAdvice;
         }
 
         /// </inheritdoc>
         protected override void Apply()
         {
             EmitResponse("I don't know. What is the correct answer please?");
-            MarkActionAsPending();   
         }
     }
 }

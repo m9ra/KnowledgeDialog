@@ -66,6 +66,7 @@
     <Compile Include="Dialog\Parsing\UtterancePattern.cs" />
     <Compile Include="Dialog\Responses\CountResponse.cs" />
     <Compile Include="Dialog\ResponseBase.cs" />
+    <Compile Include="Dialog\Responses\MultiResponse.cs" />
     <Compile Include="Dialog\Responses\SimpleResponse.cs" />
     <Compile Include="Dialog\Acts\AdviceAct.cs" />
     <Compile Include="Dialog\Acts\AffirmAct.cs" />
@@ -98,6 +99,7 @@
     <Compile Include="PoolComputation\NodesSubstitution.cs" />
     <Compile Include="PoolComputation\PoolActions\ExtendAction.cs" />
     <Compile Include="PoolComputation\PoolActions\InsertAction.cs" />
+    <Compile Include="PoolComputation\ProcessingContext.cs" />
     <Compile Include="PoolComputation\QuestionAnsweringModule.cs" />
     <Compile Include="PoolComputation\QuestionEntry.cs" />
     <Compile Include="Dialog\SLUFactory.cs" />

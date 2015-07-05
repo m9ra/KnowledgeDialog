@@ -35,6 +35,9 @@ namespace KnowledgeDialog.PoolComputation
         {
             _currentState = new DialogState(qa);
 
+            Add<AskEquivalenceDifferenceAction>();
+            Add<AcceptEquivalenceAdvice>();            
+            Add<EquivalenceQuestionAction>();
             Add<QuestionAnsweringAction>();
             Add<NoAdviceApologizeAction>();
             Add<AcceptAdviceAction>();
@@ -66,14 +69,14 @@ namespace KnowledgeDialog.PoolComputation
 
         private ResponseBase applyAction()
         {
-            var processedActions = new HashSet<MachineActionBase>();
+            var appliedActions = new HashSet<MachineActionBase>();
             var responses = new List<ResponseBase>();
 
             for (var i = 0; i < _machineActions.Count; ++i)
             {
                 var action = _machineActions[i];
 
-                if (processedActions.Contains(action))
+                if (appliedActions.Contains(action))
                     //prevent infinite loop
                     //for now, don't allow same action to process multiple times
                     //TODO better would be checking that same state has been reached
@@ -84,6 +87,7 @@ namespace KnowledgeDialog.PoolComputation
                     //we have machine action which can made the transition
                     var context = new ProcessingContext();
                     var newState = action.ApplyOn(_currentState, context);
+                    appliedActions.Add(action);
                     _currentState = newState;
 
                     responses.AddRange(context.Responses);
@@ -92,7 +96,7 @@ namespace KnowledgeDialog.PoolComputation
                     {
                         //state needs further processing
                         //therefore we need to scan applicability of machine actions again
-                        i = 0;
+                        i = -1;
                         continue;
                     }
                     else

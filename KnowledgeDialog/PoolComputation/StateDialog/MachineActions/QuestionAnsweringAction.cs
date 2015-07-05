@@ -5,12 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 
 using KnowledgeDialog.Dialog;
+using KnowledgeDialog.Knowledge;
 
 namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
 {
     class QuestionAnsweringAction : MachineActionBase
     {
         internal static double AnswerConfidenceThreshold = 0.9;
+
+        internal static double EquivalenceConfidenceThreshold = 0.5;
 
         /// </inheritdoc>
         protected override bool CouldApply()
@@ -35,8 +38,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
             {
                 //we don't know how to answer the question
                 //however we know some similar question
-                SetEquivalenceHypothesis(InputState.Question, equivalenceCandidate);
-                RemoveQuestion();
+                SetEquivalenceCandidate(equivalenceCandidate);
 
                 //state has to be processed further - we are forwarding
                 //control into another machine action
@@ -75,7 +77,44 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
             if (bestHypothesis == null)
                 return null;
 
-            throw new NotImplementedException();
+            var score = bestHypothesis.Control.Score;
+            if (score > AnswerConfidenceThreshold || score < EquivalenceConfidenceThreshold)
+                //no equivalence here
+                return null;
+
+            var equivalenceCandidate = substitute(bestHypothesis.Control.ParsedSentence, question);
+            if (equivalenceCandidate == null)
+                //we are not able to expose equivalence question
+                return null;
+
+            return equivalenceCandidate;
+        }
+
+        private ParsedExpression substitute(ParsedExpression pattern, ParsedExpression utterance)
+        {
+            var patternNodes = InputState.QA.GetPatternNodes(pattern);
+            var utteranceNodes = InputState.QA.GetRelatedNodes(utterance).ToArray();
+
+            if (patternNodes.Count != utteranceNodes.Length)
+                //semantic equivalence is missing - we won't allow equivalence question
+                return null;
+
+            //substitute every word in pattern, according to utterance
+            var substitutions = QuestionAnsweringModule.GetSubstitutions(utteranceNodes, patternNodes, InputState.QA.Graph);
+            var substitutedWords = new List<string>();
+            foreach (var patternWord in pattern.Words)
+            {
+                var patternNode = InputState.QA.Graph.GetNode(patternWord);
+
+                NodeReference substitutedNode;
+                if (!substitutions.TryGetValue(patternNode, out substitutedNode))
+                    //there is no substitution - by default we take node from pattern
+                    substitutedNode = patternNode;
+
+                substitutedWords.Add(substitutedNode.Data);
+            }
+
+            return ParsedExpression.From(substitutedWords);
         }
     }
 }

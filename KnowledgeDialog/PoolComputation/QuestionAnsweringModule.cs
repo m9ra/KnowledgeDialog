@@ -240,7 +240,7 @@ namespace KnowledgeDialog.PoolComputation
         internal IEnumerable<PoolHypothesis> GetSortedHypotheses(ParsedExpression utterance)
         {
             var scoredActions = Triggers.FindMapping(utterance);
-            var availableNodes = GetRelatedNodes(utterance, Graph).ToArray();
+            var availableNodes = GetRelatedNodes(utterance).ToArray();
 
             var result = new List<PoolHypothesis>();
             foreach (var scoredAction in scoredActions)
@@ -291,7 +291,7 @@ namespace KnowledgeDialog.PoolComputation
             return new NodesSubstitution(originalNodes, substitutions);
         }
 
-        internal IEnumerable<NodeReference> GetRelatedNodes(ParsedExpression sentence, ComposedGraph graph)
+        internal IEnumerable<NodeReference> GetRelatedNodes(ParsedExpression sentence)
         {
             return GetQuestionEntry(sentence).QuestionNodes;
         }

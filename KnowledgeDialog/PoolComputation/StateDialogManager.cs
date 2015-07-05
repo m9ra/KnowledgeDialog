@@ -212,7 +212,7 @@ namespace KnowledgeDialog.PoolComputation
         private string substitute(ParsedExpression pattern, ParsedExpression utterance)
         {
             var patternNodes = _context.QuestionAnsweringModule.GetPatternNodes(pattern);
-            var utteranceNodes = _context.QuestionAnsweringModule.GetRelatedNodes(utterance, _context.Graph).ToArray();
+            var utteranceNodes = _context.QuestionAnsweringModule.GetRelatedNodes(utterance).ToArray();
             var substitutions = QuestionAnsweringModule.GetSubstitutions(utteranceNodes, patternNodes, _context.Graph);
 
             var result = repairSpelling(pattern.OriginalSentence);

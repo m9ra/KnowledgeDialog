@@ -29,8 +29,8 @@ namespace KnowledgeDialog
 
             provider.SimulateInput(
                 "François Hollande is president in which state ?",
-                "It is France",
-                "Barack Obama is president in which state ?"
+                "It is France",                
+                "Barack Obama is president of which state ?"
             );
 
             provider.Run();

@@ -83,24 +83,29 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
             _newState = _newState.WithUnknownQuestion(null);
         }
 
-        protected void RemoveNegation()
+        protected void RemoveConfirmation()
         {
-            throw new NotImplementedException();
+            _newState = _newState.WithConfirm(null);
         }
-        
+
         protected void RemoveAdvice()
         {
             _newState = _newState.WithAdvice(null);
         }
 
-        protected void SetEquivalenceHypothesis(ParsedExpression parsedSentence, ParsedExpression equivalenceCandidate)
+        protected void RemoveEquivalenceCandidate()
         {
-            throw new NotImplementedException();
+            _newState = _newState.WithEquivalenceCandidate(null);
+        }
+
+        protected void SetEquivalenceCandidate(ParsedExpression equivalenceCandidate)
+        {
+            _newState = _newState.WithEquivalenceCandidate(equivalenceCandidate);
         }
 
         protected void SetQuestionAsUnknown()
         {
-            var question=_newState.Question;
+            var question = _newState.Question;
             _newState = _newState.WithQuestion(null).WithUnknownQuestion(question);
         }
 

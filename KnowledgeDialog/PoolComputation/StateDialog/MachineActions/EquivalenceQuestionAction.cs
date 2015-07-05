@@ -8,20 +8,18 @@ using KnowledgeDialog.Dialog;
 
 namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
 {
-    class NoAdviceApologizeAction : MachineActionBase
+    class EquivalenceQuestionAction : MachineActionBase
     {
         /// </inheritdoc>
         protected override bool CouldApply()
         {
-            return InputState.HasUnknownQuestion && !InputState.HasAdvice && InputState.HasNegation;
+            return InputState.HasNonAnsweredQuestion && InputState.HasEquivalenceCandidate && !InputState.HasConfirmation;
         }
 
         /// </inheritdoc>
         protected override void Apply()
         {
-            RemoveUnknownQuestion();
-            RemoveConfirmation();
-            EmitResponse("I don't know correct answer. Give me another question please.");
+            EmitResponse("Is your question same as '" + InputState.EquivalenceCandidate + "'?");
         }
     }
 }

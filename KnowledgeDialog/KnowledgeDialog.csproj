@@ -109,6 +109,9 @@
     <Compile Include="PoolComputation\StateDialog\EdgeInput.cs" />
     <Compile Include="PoolComputation\StateDialog\InputProcessor.cs" />
     <Compile Include="PoolComputation\StateDialog\MachineActions\AcceptAdviceAction.cs" />
+    <Compile Include="PoolComputation\StateDialog\MachineActions\AccceptEquivalenceAdvice.cs" />
+    <Compile Include="PoolComputation\StateDialog\MachineActions\AskEquivalenceDifferenceAction.cs" />
+    <Compile Include="PoolComputation\StateDialog\MachineActions\EquivalenceQuestionAction.cs" />
     <Compile Include="PoolComputation\StateDialog\MachineActions\NoAdviceApologizeAction.cs" />
     <Compile Include="PoolComputation\StateDialog\MachineActions\HowCanIHelpYouAction.cs" />
     <Compile Include="PoolComputation\StateDialog\MachineActions\QuestionAnsweringAction.cs" />

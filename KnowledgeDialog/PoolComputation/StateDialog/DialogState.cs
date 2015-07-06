@@ -22,6 +22,8 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
 
         public readonly ParsedExpression EquivalenceCandidate;
 
+        public readonly bool DifferenceWordQuestioned;
+
         public readonly bool? ConfirmValue;
 
         public bool HasAffirmation { get { return ConfirmValue.HasValue && ConfirmValue.Value; } }
@@ -46,7 +48,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
         private DialogState(
             DialogState previous, bool isUserWelcomed, ParsedExpression advice,
             ParsedExpression question, ParsedExpression unknownQuestion,
-            ParsedExpression equivalenceCandidate,
+            ParsedExpression equivalenceCandidate, bool differenceWordQuestioned,
             bool? confirmValue)
         {
             QA = previous.QA;
@@ -56,37 +58,43 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
             Question = question;
             UnknownQuestion = unknownQuestion;
             EquivalenceCandidate = equivalenceCandidate;
+            DifferenceWordQuestioned = differenceWordQuestioned;
             ConfirmValue = confirmValue;
         }
 
         internal DialogState WithAdvice(ParsedExpression advice)
         {
-            return new DialogState(this, IsUserWelcomed, advice, Question, UnknownQuestion, EquivalenceCandidate, ConfirmValue);
+            return new DialogState(this, IsUserWelcomed, advice, Question, UnknownQuestion, EquivalenceCandidate, DifferenceWordQuestioned, ConfirmValue);
         }
 
         internal DialogState WithConfirm(bool? confirmValue)
         {
-            return new DialogState(this, IsUserWelcomed, Advice, Question, UnknownQuestion, EquivalenceCandidate, confirmValue);
+            return new DialogState(this, IsUserWelcomed, Advice, Question, UnknownQuestion, EquivalenceCandidate, DifferenceWordQuestioned, confirmValue);
         }
 
         internal DialogState WithUnknownQuestion(ParsedExpression unknownQuestion)
         {
-            return new DialogState(this, IsUserWelcomed, Advice, Question, unknownQuestion, EquivalenceCandidate, ConfirmValue);
+            return new DialogState(this, IsUserWelcomed, Advice, Question, unknownQuestion, EquivalenceCandidate, DifferenceWordQuestioned, ConfirmValue);
         }
 
         internal DialogState WithQuestion(ParsedExpression question)
         {
-            return new DialogState(this, IsUserWelcomed, Advice, question, UnknownQuestion, EquivalenceCandidate, ConfirmValue);
+            return new DialogState(this, IsUserWelcomed, Advice, question, UnknownQuestion, EquivalenceCandidate, DifferenceWordQuestioned, ConfirmValue);
         }
 
         internal DialogState WithWelcomedFlag(bool isUserWelcomed)
         {
-            return new DialogState(this, isUserWelcomed, Advice, Question, UnknownQuestion, EquivalenceCandidate, ConfirmValue);
+            return new DialogState(this, isUserWelcomed, Advice, Question, UnknownQuestion, EquivalenceCandidate, DifferenceWordQuestioned, ConfirmValue);
         }
 
         internal DialogState WithEquivalenceCandidate(ParsedExpression equivalenceCandidate)
         {
-            return new DialogState(this, IsUserWelcomed, Advice, Question, UnknownQuestion, equivalenceCandidate, ConfirmValue);
+            return new DialogState(this, IsUserWelcomed, Advice, Question, UnknownQuestion, equivalenceCandidate, DifferenceWordQuestioned, ConfirmValue);
+        }
+
+        internal DialogState WithDifferenceWordQuestion(bool differenceWordQuestioned)
+        {
+            return new DialogState(this, IsUserWelcomed, Advice, Question, UnknownQuestion, EquivalenceCandidate, differenceWordQuestioned, ConfirmValue);
         }
     }
 }

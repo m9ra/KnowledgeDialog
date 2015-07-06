@@ -61,6 +61,11 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
         {
             throw new NotImplementedException();
         }
+
+        public void Visit(DontKnowAct dontKnow)
+        {
+            throw new NotImplementedException();
+        }
         
         #region State handling
 

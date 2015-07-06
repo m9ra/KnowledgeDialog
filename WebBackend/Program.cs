@@ -50,11 +50,11 @@ namespace WebBackend
 
                 WikidataHelper.PreprocessData(loader, Graph);
 
-                //DB TESTING - debug only
-                var node1 = Graph.GetNode("USA");
-                var node2 = Graph.GetNode("Barack Obama");
-                var paths = Graph.GetPaths(node1, node2, 10, 1000).Take(5).ToArray();
-                paths = paths;
+                /*     //DB TESTING - debug only
+                 var node1 = Graph.GetNode("USA");
+                   var node2 = Graph.GetNode("Barack Obama");
+                   var paths = Graph.GetPaths(node1, node2, 10, 1000).Take(5).ToArray();
+                   paths = paths;*/
             }
             else
             {

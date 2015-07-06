@@ -23,5 +23,7 @@ namespace KnowledgeDialog.Dialog.Acts
         void Visit(UnrecognizedAct unrecognizedAct);
 
         void Visit(ChitChatAct chitChatAct);
+
+        void Visit(DontKnowAct dontKnowAct);
     }
 }

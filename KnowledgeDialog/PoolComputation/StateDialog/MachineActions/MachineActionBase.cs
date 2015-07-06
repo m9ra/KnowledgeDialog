@@ -109,6 +109,11 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
             _newState = _newState.WithQuestion(null).WithUnknownQuestion(question);
         }
 
+        protected void SetDifferenceWordQuestion(bool differenceWordQuestioned)
+        {
+            _newState = _newState.WithDifferenceWordQuestion(differenceWordQuestioned);
+        }
+
         #endregion
     }
 }

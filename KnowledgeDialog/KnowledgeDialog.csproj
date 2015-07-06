@@ -53,6 +53,7 @@
     <Compile Include="Database\PresidentLayer.cs" />
     <Compile Include="Database\WikidataHelper.cs" />
     <Compile Include="Dialog\Acts\ChitChatAct.cs" />
+    <Compile Include="Dialog\Acts\DontKnowAct.cs" />
     <Compile Include="Dialog\Acts\UnrecognizedAct.cs" />
     <Compile Include="Dialog\Acts\IActVisitor.cs" />
     <Compile Include="Dialog\Acts\QuestionAct.cs" />
@@ -120,7 +121,6 @@
     <Compile Include="PoolComputation\StateDialog\MachineActions\WelcomeAction.cs" />
     <Compile Include="PoolComputation\StateDialog\StateBase.cs" />
     <Compile Include="PoolComputation\StateDialog\StateContext.cs" />
-    <Compile Include="PoolComputation\StateDialog\StateContext2.cs" />
     <Compile Include="PoolComputation\StateDialog\StateGraphBuilder.cs" />
     <Compile Include="PoolComputation\StateDialog\StateProperty.cs" />
     <Compile Include="PoolComputation\StateDialog\States\AcceptAdvice.cs" />

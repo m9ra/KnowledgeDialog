@@ -19,6 +19,10 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
         /// </inheritdoc>
         protected override void Apply()
         {
+            //reset the difference word question
+            SetDifferenceWordQuestion(false);
+
+            //ask for equivalence advice
             EmitResponse("Is your question same as '" + InputState.EquivalenceCandidate + "'?");
         }
     }

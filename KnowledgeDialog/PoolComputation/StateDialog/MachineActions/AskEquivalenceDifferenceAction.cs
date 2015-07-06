@@ -13,7 +13,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
         /// </inheritdoc>
         protected override bool CouldApply()
         {
-            return InputState.HasNonAnsweredQuestion && InputState.HasEquivalenceCandidate && InputState.HasAffirmation;
+            return InputState.HasNonAnsweredQuestion && InputState.HasEquivalenceCandidate && InputState.HasAffirmation && !InputState.DifferenceWordQuestioned;
         }
 
         /// </inheritdoc>
@@ -22,8 +22,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
             //in case of confirmed equivalence we will ask about difference word
             var word = getImportantDifferenceWord(InputState.Question, InputState.EquivalenceCandidate);
             EmitResponse("So you think that the word '" + word + "' is irrelevant?");
-
-            throw new NotImplementedException("Notice that question has been asked");
+            SetDifferenceWordQuestion(true);
         }
 
         private string getImportantDifferenceWord(ParsedExpression utterance1, ParsedExpression utterance2)

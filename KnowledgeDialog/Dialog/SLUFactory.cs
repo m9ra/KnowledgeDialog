@@ -32,27 +32,29 @@ namespace KnowledgeDialog.Dialog
             RegisterGroup("rude_word", "wtf", "suck", "fuck");
             RegisterGroup("welcome_word","welcome", "hi", "hello");
             RegisterGroup("bye_word", "bye");
-
+            
 
             //yes - no handling
-            RegisterPattern("$yes_word", (p) => new AffirmAct());
-            RegisterPattern("$no_word", (p) => new NegateAct());
-            RegisterPattern("$stronging_adjective $yes_word", (p) => new AffirmAct());
-            RegisterPattern("$stronging_adjective $no_word", (p) => new NegateAct());
+            RegisterPattern((p) => new AffirmAct(), "$yes_word");
+            RegisterPattern((p) => new NegateAct(), "$no_word");
+            RegisterPattern((p) => new AffirmAct(), "$stronging_adjective $yes_word");
+            RegisterPattern((p) => new NegateAct(), "$stronging_adjective $no_word");
+            RegisterPattern(p=> new DontKnowAct(),"dont know", "don't know", "do not know", "no idea");
+            RegisterPattern(p => new DontKnowAct(), "I dont know", "I don't know", "I do not know", "I have no idea");
 
             //chitchat handling
-            RegisterPattern("$welcome_word", (p) => new ChitChatAct(ChitChatDomain.Welcome));
-            RegisterPattern("$bye_word", (p) => new ChitChatAct(ChitChatDomain.Bye));
-            RegisterPattern("$w_word are you", (p) => new ChitChatAct(ChitChatDomain.Personal));
-            RegisterPattern("$rude_word", (p) => new ChitChatAct(ChitChatDomain.Rude));
+            RegisterPattern((p) => new ChitChatAct(ChitChatDomain.Welcome), "$welcome_word");
+            RegisterPattern((p) => new ChitChatAct(ChitChatDomain.Bye), "$bye_word");
+            RegisterPattern((p) => new ChitChatAct(ChitChatDomain.Personal), "$w_word are you");
+            RegisterPattern((p) => new ChitChatAct(ChitChatDomain.Rude), "$rude_word");
 
             //question - advice parsing
-            RegisterPattern("#1 is #2 $w_word #3", (p) => new QuestionAct(p[0]));
-            RegisterPattern("$pronoun is #1", (p) => new AdviceAct(p[1]));
-            RegisterPattern("$w_word #1", (p) => new QuestionAct(p[0]));
-            RegisterPattern("$possesive_pronoun name is #1", (p) => new AdviceAct(p[1]));
-            RegisterPattern("#1 is #2", (p) => new ExplicitAdviceAct(p[1], p[2]));
-            RegisterPattern("correct answer $answer_preposition #1 is #2", (p) => new ExplicitAdviceAct(p[1], p[2]));
+            RegisterPattern((p) => new QuestionAct(p[0]), "#1 is #2 $w_word #3");
+            RegisterPattern((p) => new AdviceAct(p[1]), "$pronoun is #1");
+            RegisterPattern((p) => new QuestionAct(p[0]), "$w_word #1");
+            RegisterPattern((p) => new AdviceAct(p[1]), "$possesive_pronoun name is #1");
+            RegisterPattern((p) => new ExplicitAdviceAct(p[1], p[2]), "#1 is #2");
+            RegisterPattern((p) => new ExplicitAdviceAct(p[1], p[2]), "correct answer $answer_preposition #1 is #2");
         }
 
         public DialogActBase GetDialogAct(ParsedExpression utterance)
@@ -96,10 +98,13 @@ namespace KnowledgeDialog.Dialog
             return actFactory(handler);
         }
 
-        private void RegisterPattern(string patternDefinition, ActCreator creator)
+        private void RegisterPattern(ActCreator creator, params string[] patternDefinitions)
         {
-            var pattern = new UtterancePattern(patternDefinition, _configuration);
-            _patterns.Add(pattern, creator);
+            foreach (var patternDefinition in patternDefinitions)
+            {
+                var pattern = new UtterancePattern(patternDefinition, _configuration);
+                _patterns.Add(pattern, creator);
+            }
         }
 
         private void RegisterGroup(string group, params string[] words)

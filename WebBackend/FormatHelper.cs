@@ -15,12 +15,25 @@ namespace WebBackend
 
         public static string LinkTo(LogFile file)
         {
-            return LinkToLog(file.Id);
+            return LinkToLog(file.Id, file.ExperimentId);
         }
 
-        public static string LinkToLog(string id)
+        public static string LogFileId(ActionEntry action)
         {
-            return "/log?id=" + id; 
+            if (action.TaskId < 0)
+                return "user_" + action.UserId + ".json";
+            else
+                return string.Format("{0}-{1}.json", action.TaskId, action.UserId);
+        }
+
+        public static string LinkToLog(string id, string experimentId)
+        {
+            return "/log?experiment=" + experimentId + "&id=" + id;
+        }
+
+        public static string LinkToExperiment(string experimentId)
+        {
+            return "/logs?experiment=" + experimentId;
         }
 
         public static string Size(int bytes)

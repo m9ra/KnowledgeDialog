@@ -8,15 +8,26 @@ using System.IO;
 
 using ServeRick;
 
+using WebBackend.Experiment;
+
 namespace WebBackend
 {
     class RootController : ResponseController
     {
         public void logs()
         {
-            var logfiles = LogFile.Load(Path.Combine(Program.RootPath, Program.UserStoragesPath));
+            //look for all stored experiments
+            var experimentIds = new List<string>(Directory.EnumerateDirectories(Program.ExperimentsRootPath).Select(Path.GetFileNameWithoutExtension));
 
+            //select actual experiment
+            var currentExperimentId = GET("experiment");
+            if (!experimentIds.Contains(currentExperimentId))
+                currentExperimentId = experimentIds.Last();
+
+            var logfiles = LogFile.Load(Path.Combine(Program.ExperimentsRootPath, currentExperimentId, ExperimentBase.RelativeUserPath), currentExperimentId);
             SetParam("logfiles", logfiles);
+            SetParam("experiment_ids", experimentIds);
+            SetParam("current_experiment_id", currentExperimentId);
 
             Layout("layout.haml");
             Render("logs.haml");
@@ -25,17 +36,26 @@ namespace WebBackend
         public void log()
         {
             var logFileId = GET("id");
+            var experimentId = GET("experiment");
+
+            if (logFileId == null || experimentId == null)
+            {
+                RedirectTo("logs");
+                return;
+            }
+
             switch (logFileId)
             {
                 case "feedback":
                     logFileId = "../feedback.json";
                     break;
                 case "advices":
-                    logFileId = "../" + ExperimentData.ExperimentId + ".dialog";
+                    logFileId = "../" + experimentId + ".dialog";
                     break;
             }
 
-            var file = new LogFile(Path.Combine(Program.RootPath, Program.UserStoragesPath, logFileId));
+            var logfilePath = Path.Combine(Program.ExperimentsRootPath, experimentId, ExperimentBase.RelativeUserPath, logFileId);
+            var file = new LogFile(logfilePath,experimentId);
 
             var actions = file.LoadActions();
 
@@ -48,9 +68,9 @@ namespace WebBackend
         public void index()
         {
             var dialogStorage = GET("storage");
-            var tracker = fillAndGetUserTracker(dialogStorage);
+            var solution = getSolution(dialogStorage, 0);
 
-            SetParam("dialog", tracker.GetDialogHTML());
+            SetParam("dialog", solution.GetDialogHTML());
             Layout("layout.haml");
             Render("index.haml");
         }
@@ -59,32 +79,38 @@ namespace WebBackend
         {
             var experimentName = "experiment0";
 
-            experimentHandler(experimentName, true);
+            experimentHandler(experimentName);
+        }
+
+        public void experiment1()
+        {
+            var experimentName = "experiment1";
+
+            experimentHandler(experimentName);
         }
 
         public void public_experiment()
         {
             var experimentName = "public_experiment";
 
-            experimentHandler(experimentName, false);
+            experimentHandler(experimentName);
         }
 
-        private void experimentHandler(string experimentName, bool enableTaskLimit)
+        /// <summary>
+        /// Render experiment console. Also handle feedback and tracing of given experiment.
+        /// </summary>
+        /// <param name="experimentName">Name of experiment.</param>
+        private void experimentHandler(string experimentName)
         {
-
-            //require experiment data for each user
-            var experimentData = Session<ExperimentData>();
-            if (experimentData == null)
-                experimentData = Session<ExperimentData>(new ExperimentData());
-
-            var user = fillAndGetUserTracker(experimentName);
-            user.HasTaskLimit = enableTaskLimit;
+            int taskId;
+            int.TryParse(GET("taskid"), out taskId);
 
             //handle feedback
-            var feedback = GET("feedback");
-            if (feedback != null)
+            var feedbackMessage = GET("feedback");
+            if (feedbackMessage != null)
             {
-                user.Feedback(feedback);
+                var user = getUserData();
+                user.Feedback(experimentName, taskId, feedbackMessage);
 
                 //redirect because of avoiding multiple feedback sending
                 Flash("message", "<h3>Your feedback has been saved. Thank you!</h3>");
@@ -93,90 +119,70 @@ namespace WebBackend
             }
 
 
-            //handle dialog initialization
-            int taskId;
-            int.TryParse(GET("taskid"), out taskId);
-            var id = experimentName + taskId;
-            if (experimentData.RefreshTask(taskId, experimentName, user, enableTaskLimit))
-            {
-                //id of task has changed - we have to remove old dialog console
-                user.LogMessage("start " + id);
-                user.ResetConsole();
-            }
+            var solution = getSolution(experimentName, taskId);
+            solution.LogMessage("visiting " + experimentName + " " + taskId);
 
             //render the page
             Layout("layout.haml");
-            if (user.ActualConsole == null || experimentData.Task == null)
+            if (solution.HasTask)
             {
-                Render("no_tasks.haml");
+                SetParam("dialog", solution.GetDialogHTML());
+                SetParam("task", solution.GetTaskText());
+                SetParam("experiment_id", experimentName);
+                SetParam("task_id", taskId);
+
+                Render("experiment.haml");
             }
             else
             {
-                SetParam("dialog", user.GetDialogHTML());
-                SetParam("task", experimentData.Task.Text);
-
-                Render("experiment.haml");
+                Render("no_tasks.haml");
             }
         }
 
         public void dialog_data()
         {
+            int taskId;
+            int.TryParse(GET("taskid"), out taskId);
+            var experimentId = GET("experiment_id");
             var utterance = GET("utterance");
-            var user = fillAndGetUserTracker(null, utterance);
-            if (user.ActualConsole == null)
+
+            //find user
+            var solution = getSolution(experimentId, taskId);
+
+            //process solution input
+            if (solution == null)
                 return;
 
-            var experimentData = Session<ExperimentData>();
 
-            var html = user.GetDialogHTML();
-            if (experimentData != null && experimentData.Task != null)
+            solution.Input(utterance);
+
+            //build html output
+            var html = solution.GetDialogHTML();
+            if (solution.ValidationCode != null)
             {
-                var task = experimentData.Task;
-                task.Register(user.LastResponse);
-                if (task.IsComplete)
-                {
-                    if (!task.CompletitionReported)
-                        task.ReportCompletition();
-
-                    var code = getSuccessCode();
-                    html += "<h4>Task has been succesfully completed</h4><br>Your Crowdflower code: <b>" + experimentData.GetCurrentSuccessCode() + "</b>";
-                }
+                html += "<h4>Task has been succesfully completed</h4><br>Your Crowdflower code: <b>" + solution.ValidationCode + "</b>";
             }
 
             SetParam("dialog", html);
             Render("dialog.haml");
         }
 
-        private string getSuccessCode()
-        {
-            var data = Session<ExperimentData>();
-            if (data == null)
-                return "no code";
+        #region Utilities
 
-            return data.GetCurrentSuccessCode();
+        private UserData getUserData()
+        {
+            return UserData.GetUserData(this.Client, Program.Experiments);
         }
 
-        private UserTracker fillAndGetUserTracker(string dialogStorageName, string utterance = null)
+        private SolutionLog getSolution(string experimentId, int taskId)
         {
-            var storageFullPath = dialogStorageName == null ? null : Path.Combine(RootPath, "data/storages", dialogStorageName) + ".dialog";
+            if (experimentId == null)
+                experimentId = "index";
 
-            var tracker = getTracker();
-            if (storageFullPath != null)
-                tracker.SetActualStorage(storageFullPath);
-
-            var isReset = (utterance != null && utterance.Trim() == "reset");
-
-            if (isReset)
-                tracker.ResetConsole();
-            else if (utterance != null)
-                tracker.Input(utterance);
-
-            return tracker;
+            var userData = getUserData();
+            return userData.GetSolution(experimentId, taskId);
         }
 
-        private UserTracker getTracker()
-        {
-            return UserTracker.GetTracker(this.Client);
-        }
+        #endregion
     }
 }

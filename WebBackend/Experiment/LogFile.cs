@@ -19,12 +19,14 @@ namespace WebBackend
         public readonly DateTime Time;
 
         public readonly string FilePath;
-        
-        public LogFile(string path)
+
+        public readonly string ExperimentId;
+
+        public LogFile(string path, string experimentId)
         {
             FilePath = path;
-
             Id = Path.GetFileName(path);
+            ExperimentId = experimentId;
 
             Time = File.GetCreationTime(path);
 
@@ -32,13 +34,13 @@ namespace WebBackend
                 Size = (int)new FileInfo(path).Length;
         }
 
-        public static IEnumerable<LogFile> Load(string dirPath)
+        public static IEnumerable<LogFile> Load(string dirPath, string experimentId)
         {
             var result = new List<LogFile>();
             foreach (var file in Directory.GetFiles(dirPath))
             {
                 if (file.EndsWith(".json"))
-                    result.Add(new LogFile(file));
+                    result.Add(new LogFile(file,experimentId));
             }
 
             result.Sort((a, b) => b.Time.CompareTo(a.Time));

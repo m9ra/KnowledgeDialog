@@ -1,5 +1,14 @@
 ﻿@dialog string
 @task string
+@experiment_id string
+@task_id int
+
+%script{language: "javascript"}
+	var EXPERIMENT_ID="
+	= @experiment_id
+	"; var TASK_ID=
+	= @task_id
+	;
 
 .container
 	%nav{class: "navbar navbar-inverse navbar-fixed-top"}
@@ -44,9 +53,8 @@
 				=""
 
 		.col-md-6
-			%h2 Feedback
-
-			%p
+			%h2 Feedback		
+			%span{style: "color: red"}
 				= raw Flash("message")
 			
 			%article{class: "alert alert-info"}

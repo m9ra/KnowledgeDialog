@@ -1,4 +1,6 @@
 ﻿@logfiles +WebBackend.LogFile
+@experiment_ids +string
+@current_experiment_id string
 
 .container
 	%nav{class: "navbar navbar-inverse navbar-fixed-top"}
@@ -17,18 +19,33 @@
 		%p 
 			Actual statistics about collected data
 
+		%h2 Available experiments
+		%p
+			- @experiment_ids.each do |experiment_id|
+				.experiment_row
+					- if experiment_id == @current_experiment_id
+						%b
+							= experiment_id
+					- else
+						%a{href: LinkToExperiment(experiment_id)}
+							= experiment_id
+
 .container	
-		%h1 Structured data
+		%h1 
+			Experiment: 
+			%b
+				= @current_experiment_id
+		%h2 Structured data
 
 		%p
-			%a{href: LinkToLog("feedback")} 
+			%a{href: LinkToLog("feedback", @current_experiment_id)} 
 				Feedback
 		%p
-			%a{href: LinkToLog("advices")}
+			%a{href: LinkToLog("advices", @current_experiment_id)}
 				Advices
 
 .container	
-		%h1 User log files
+		%h2 User log files
 
 
 		#logfile_list

@@ -17,27 +17,25 @@ namespace WebBackend
 
         public bool IsComplete { get { return _turns > 3 && _containsAnswer; } }
 
-        public bool CompletitionReported { get; private set; }
-
         public string Text { get { return string.Format(TaskFormat, Substitutions.Select(s => "'" + s.Data + "'").ToArray()); } }
 
+        internal readonly int ValidationCode;
+
+        internal readonly string Key;
+
         private readonly NodeReference[] _expectedAnswers;
-
-        private readonly UserTracker _user;
-
-        private readonly string _key;
 
         private bool _containsAnswer;
 
         private int _turns = 0;
 
-        public TaskInstance(string taskFormat, IEnumerable<NodeReference> substitutions, IEnumerable<NodeReference> expectedAnswers, string key, UserTracker user)
+        public TaskInstance(string taskFormat, IEnumerable<NodeReference> substitutions, IEnumerable<NodeReference> expectedAnswers, string key, int validationCode)
         {
             TaskFormat = taskFormat;
             Substitutions = substitutions.ToArray();
             _expectedAnswers = expectedAnswers.ToArray();
-            _user = user;
-            _key = key;
+            ValidationCode = validationCode;
+            Key = key;
 
             if (_expectedAnswers.Length == 0)
                 //we cannot find correct answer
@@ -61,17 +59,6 @@ namespace WebBackend
                 if (str.ToLowerInvariant().Contains(expectedAnswer.Data.ToString().ToLowerInvariant()))
                     _containsAnswer = true;
             }
-        }
-
-        internal void ReportCompletition()
-        {
-            CompletitionReported = true;
-            _user.ReportTaskCompletition(_key, TaskFormat, Substitutions);
-        }
-
-        internal void ReportStart()
-        {
-            _user.ReportTaskStart(_key, TaskFormat, Substitutions);
         }
     }
 }

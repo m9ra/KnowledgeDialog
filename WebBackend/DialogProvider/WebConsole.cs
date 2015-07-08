@@ -53,6 +53,7 @@ namespace WebBackend
             {
                 CurrentHTML += userTextHTML(formattedUtterance);
                 response = _manager.Input(parsedUtterance);
+                LastResponse = response;
                 CurrentHTML += systemTextHTML(response.ToString());
             }
 

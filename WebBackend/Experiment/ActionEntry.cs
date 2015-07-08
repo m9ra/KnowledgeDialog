@@ -12,7 +12,7 @@ using KnowledgeDialog.Knowledge;
 
 namespace WebBackend
 {
-    class ActionEntry
+    public class ActionEntry
     {
         public readonly DateTime Time;
 
@@ -21,6 +21,8 @@ namespace WebBackend
         public readonly string Type;
 
         public readonly string UserId;
+
+        public readonly int TaskId = -1;
 
         public readonly DialogActBase Act;
 
@@ -37,7 +39,10 @@ namespace WebBackend
                 Time = (DateTime)data[CallStorage.TimeEntry];
 
             if (data.ContainsKey("user_id"))
-                UserId = "user_" + (data["user_id"] as string) + ".json";
+                UserId = data["user_id"] as string;
+
+            if (data.ContainsKey("task_id"))
+                TaskId = int.Parse(data["task_id"] as string);
 
             Type = "T_" + resolveType(data);
 
@@ -66,7 +71,7 @@ namespace WebBackend
                     break;
 
                 case "T_equivalence":
-                    Text= "<b>PatternQuestion</b>:" + data["patternQuestion"] + "<br>";
+                    Text = "<b>PatternQuestion</b>:" + data["patternQuestion"] + "<br>";
                     Text += "<b>QueriedQuestion</b>:" + data["queriedQuestion"] + "<br>";
                     Text += "<b>IsEquivalent</b>:" + data["isEquivalent"] + "<br><br>";
                     break;

@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DialogTesting", "DialogTest
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebBackend", "WebBackend\WebBackend.csproj", "{7C95FE30-F2D7-4E88-BDBE-0719F9B1562A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServeRick", "..\..\..\..\..\..\..\..\Projekty\SERVERICK\repository\trunk\VSProjects\ServeRick\ServeRick.csproj", "{448AA490-1B38-4C66-B915-EBA43D4695DF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServeRick", "..\..\..\..\..\..\..\..\..\Projekty\SERVERICK\repository\trunk\VSProjects\ServeRick\ServeRick.csproj", "{448AA490-1B38-4C66-B915-EBA43D4695DF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -24,8 +24,10 @@ namespace WebBackend
             if (!experimentIds.Contains(currentExperimentId))
                 currentExperimentId = experimentIds.Last();
 
-            var logfiles = LogFile.Load(Path.Combine(Program.ExperimentsRootPath, currentExperimentId, ExperimentBase.RelativeUserPath), currentExperimentId);
-            SetParam("logfiles", logfiles);
+            var experimentRootPath = Path.Combine(Program.ExperimentsRootPath, currentExperimentId);
+            var statistics = new Statistics(experimentRootPath);
+
+            SetParam("experiment_statistics", statistics);
             SetParam("experiment_ids", experimentIds);
             SetParam("current_experiment_id", currentExperimentId);
 
@@ -55,7 +57,7 @@ namespace WebBackend
             }
 
             var logfilePath = Path.Combine(Program.ExperimentsRootPath, experimentId, ExperimentBase.RelativeUserPath, logFileId);
-            var file = new LogFile(logfilePath,experimentId);
+            var file = new LogFile(logfilePath, experimentId);
 
             var actions = file.LoadActions();
 

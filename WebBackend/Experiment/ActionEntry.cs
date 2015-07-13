@@ -26,6 +26,8 @@ namespace WebBackend
 
         public readonly DialogActBase Act;
 
+        internal readonly Dictionary<string, object> Data;
+
         private static readonly SLUFactory _factory = new SLUFactory();
 
         internal bool HasUserId()
@@ -35,6 +37,8 @@ namespace WebBackend
 
         internal ActionEntry(Dictionary<string, object> data)
         {
+            Data = data;
+
             if (data.ContainsKey(CallStorage.TimeEntry))
                 Time = (DateTime)data[CallStorage.TimeEntry];
 

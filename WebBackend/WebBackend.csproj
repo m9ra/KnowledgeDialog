@@ -55,6 +55,7 @@
     <Compile Include="Experiment\CrowdFlowerCodeWriter.cs" />
     <Compile Include="Experiment\ExperimentCollection.cs" />
     <Compile Include="Experiment\ExperimentBase.cs" />
+    <Compile Include="Experiment\Statistics.cs" />
     <Compile Include="FormatHelper.cs" />
     <Compile Include="Experiment\LogFile.cs" />
     <Compile Include="Task\President\PresidentInfo.cs" />
@@ -94,7 +95,7 @@
     <Folder Include="www\images\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\..\..\..\..\Projekty\SERVERICK\repository\trunk\VSProjects\ServeRick\ServeRick.csproj">
+    <ProjectReference Include="..\..\..\..\..\..\..\..\..\..\Projekty\SERVERICK\repository\trunk\VSProjects\ServeRick\ServeRick.csproj">
       <Project>{448aa490-1b38-4c66-b915-eba43d4695df}</Project>
       <Name>ServeRick</Name>
     </ProjectReference>

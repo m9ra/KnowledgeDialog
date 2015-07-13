@@ -1,4 +1,4 @@
-﻿@logfiles +WebBackend.LogFile
+﻿@experiment_statistics WebBackend.Experiment.Statistics
 @experiment_ids +string
 @current_experiment_id string
 
@@ -35,21 +35,40 @@
 			Experiment: 
 			%b
 				= @current_experiment_id
-		%h2 Structured data
+		%h2 General statistics
+		%p
+			%p
+				%b Dialog count: 
+				= @experiment_statistics.DialogCount
+			%p
+				%b Turn count: 
+				= @experiment_statistics.TurnCount
 
+			%p
+				%b Question answer pairs: 
+				= @experiment_statistics.QuestionAnswerPairs
+
+			%p
+				%b Positive equivalencies: 
+				= @experiment_statistics.PositiveEquivalencies 
+
+			%p
+				%b Negative equivalencies: 
+				= @experiment_statistics.NegativeEquivalencies
+
+		%h2 Structured data
 		%p
 			%a{href: LinkToLog("feedback", @current_experiment_id)} 
 				Feedback
 		%p
 			%a{href: LinkToLog("advices", @current_experiment_id)}
-				Advices
+				Advice
 
 .container	
 		%h2 User log files
-
-
+		
 		#logfile_list
-			- @logfiles.each do |logfile|
+			- @experiment_statistics.LogFiles.each do |logfile|
 				.row
 					.col-md-4
 						%a{href: LinkTo(logfile)}= logfile.Id

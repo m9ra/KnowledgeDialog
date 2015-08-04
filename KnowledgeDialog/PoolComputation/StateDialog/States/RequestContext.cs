@@ -35,7 +35,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
 
             var isBasedOnContext = hasPossibleContext && hasContextIndicator(question);
 
-            Context.SetValue(AcceptAdvice.IsBasedOnContextProperty, StateProperty.ToPropertyValue(isBasedOnContext));
+            Context.SetValue(AcceptAdvice.IsBasedOnContextProperty, StateProperty2.ToPropertyValue(isBasedOnContext));
 
             return EmitEdge(HasContextAnswerEdge);
         }

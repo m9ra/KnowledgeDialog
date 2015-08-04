@@ -8,7 +8,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
 {
     class EquivalenceAdvice : StateBase
     {
-        public static readonly StateProperty IsEquivalent = new StateProperty();
+        public static readonly StateProperty2 IsEquivalent = new StateProperty2();
 
         public static readonly EdgeIdentifier NoEquivalency = new EdgeIdentifier();
 

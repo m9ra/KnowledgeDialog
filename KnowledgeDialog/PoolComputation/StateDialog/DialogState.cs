@@ -8,93 +8,252 @@ using KnowledgeDialog.Dialog;
 
 namespace KnowledgeDialog.PoolComputation.StateDialog
 {
+    /// <summary>
+    /// Represents a state of a dialog. It is immutable.
+    /// </summary>
     class DialogState
     {
-        public readonly bool IsUserWelcomed;
+        /// <summary>
+        /// Determine that user has been welcomed.
+        /// </summary>
+        public bool IsUserWelcomed { get { return getValue(_isUserWelcomed); } }
 
-        public readonly QuestionAnsweringModule QA;
+        /// <summary>
+        /// Question answering module that is used by the dialog manager.
+        /// </summary>
+        public QuestionAnsweringModule QA { get { return getValue(_qa); } }
 
-        public readonly ParsedExpression Advice;
+        /// <summary>
+        /// Available advice.
+        /// </summary>
+        public ParsedExpression Advice { get { return getValue(_advice); } }
 
-        public readonly ParsedExpression Question;
+        /// <summary>
+        /// Available question.
+        /// </summary>
+        public ParsedExpression Question { get { return getValue(_question); } }
 
-        public readonly ParsedExpression UnknownQuestion;
+        /// <summary>
+        /// Available unknown question.
+        /// </summary>
+        public ParsedExpression UnknownQuestion { get { return getValue(_unknownQuestion); } }
 
-        public readonly ParsedExpression EquivalenceCandidate;
+        /// <summary>
+        /// Possible candidate for equivalence.
+        /// </summary>
+        public ParsedExpression EquivalenceCandidate { get { return getValue(_equivalenceCandidate); } }
 
-        public readonly bool DifferenceWordQuestioned;
+        /// <summary>
+        /// Determine whether question on difference word has been asked.
+        /// </summary>
+        public bool DifferenceWordQuestioned { get { return getValue(_differenceWordQuestioned); } }
 
-        public readonly bool? ConfirmValue;
+        /// <summary>
+        /// Determine whether yes, no or don't know has been answered.
+        /// </summary>
+        public bool? ConfirmValue { get { return getValue(_confirmValue); } }
 
+        /// <summary>
+        /// Determine whether affirmation is available.
+        /// </summary>
         public bool HasAffirmation { get { return ConfirmValue.HasValue && ConfirmValue.Value; } }
 
-        public bool HasConfirmation { get { return ConfirmValue.HasValue; } }
-
-        public bool HasAdvice { get { return Advice != null; } }
-
+        /// <summary>
+        /// Determine whether negation is availble.
+        /// </summary>
         public bool HasNegation { get { return ConfirmValue.HasValue && !ConfirmValue.Value; } }
 
+        /// <summary>
+        /// Determine whether any value for confirmation is available.
+        /// </summary>
+        public bool HasConfirmation { get { return ConfirmValue.HasValue; } }
+
+        /// <summary>
+        /// Determine whether advice is available.
+        /// </summary>
+        public bool HasAdvice { get { return Advice != null; } }
+
+        /// <summary>
+        /// Determine whether there is a question which is not answered yet.
+        /// </summary>
         public bool HasNonAnsweredQuestion { get { return Question != null; } }
 
+        /// <summary>
+        /// Determine whether candidate for equivalence is available.
+        /// </summary>
         public bool HasEquivalenceCandidate { get { return EquivalenceCandidate != null; } }
 
+        /// <summary>
+        /// Determine whether unknown question is available.
+        /// </summary>
         public bool HasUnknownQuestion { get { return UnknownQuestion != null; } }
+
+        #region Property definitions
+
+        private static readonly StateProperty<bool> _isUserWelcomed;
+
+        private static readonly StateProperty<QuestionAnsweringModule> _qa;
+
+        private static readonly StateProperty<ParsedExpression> _advice;
+
+        private static readonly StateProperty<ParsedExpression> _question;
+
+        private static readonly StateProperty<ParsedExpression> _unknownQuestion;
+
+        private static readonly StateProperty<ParsedExpression> _equivalenceCandidate;
+
+        private static readonly StateProperty<bool> _differenceWordQuestioned;
+
+        private static readonly StateProperty<bool?> _confirmValue;
+
+        #endregion
+
+        /// <summary>
+        /// Storage for property values.
+        /// </summary>
+        private readonly Dictionary<object, object> _propertyToValue;
+
+        static DialogState()
+        {
+            initialize(ref _isUserWelcomed, "IsUserWelcomed");
+            initialize(ref _qa, "QA");
+            initialize(ref _advice, "Advice");
+            initialize(ref _question, "Question");
+            initialize(ref _unknownQuestion, "UnknownQuestion");
+            initialize(ref _equivalenceCandidate, "EquivalenceCandidate");
+            initialize(ref _differenceWordQuestioned, "DifferenceWordQuestioned");
+            initialize(ref _confirmValue, "ConfirmValue");
+        }
 
         internal DialogState(QuestionAnsweringModule qa)
         {
-            QA = qa;
+            _propertyToValue = new Dictionary<object, object>();
+            _qa.SetValue(_propertyToValue, qa);
         }
 
         private DialogState(
-            DialogState previous, bool isUserWelcomed, ParsedExpression advice,
-            ParsedExpression question, ParsedExpression unknownQuestion,
-            ParsedExpression equivalenceCandidate, bool differenceWordQuestioned,
-            bool? confirmValue)
+            Dictionary<object, object> propertyToValue)
         {
-            QA = previous.QA;
-
-            IsUserWelcomed = isUserWelcomed;
-            Advice = advice;
-            Question = question;
-            UnknownQuestion = unknownQuestion;
-            EquivalenceCandidate = equivalenceCandidate;
-            DifferenceWordQuestioned = differenceWordQuestioned;
-            ConfirmValue = confirmValue;
+            _propertyToValue = propertyToValue;
         }
 
+        #region State manipulation services
+
+        /// <summary>
+        /// Creates new state with given advice.
+        /// </summary>
+        /// <param name="advice">Advice for new state.</param>
+        /// <returns>The new state.</returns>
         internal DialogState WithAdvice(ParsedExpression advice)
         {
-            return new DialogState(this, IsUserWelcomed, advice, Question, UnknownQuestion, EquivalenceCandidate, DifferenceWordQuestioned, ConfirmValue);
+            return newStateWithValue(_advice, advice);
         }
 
+        /// <summary>
+        /// Creates new state with given confirm value.
+        /// </summary>
+        /// <param name="confirmValue">Confirmation value for new state.</param>
+        /// <returns>The new state.</returns>
         internal DialogState WithConfirm(bool? confirmValue)
         {
-            return new DialogState(this, IsUserWelcomed, Advice, Question, UnknownQuestion, EquivalenceCandidate, DifferenceWordQuestioned, confirmValue);
+            return newStateWithValue(_confirmValue, confirmValue);
         }
 
+        /// <summary>
+        /// Creates new state with given unknown question.
+        /// </summary>
+        /// <param name="unknownQuestion">Unknown question for new state.</param>
+        /// <returns>The new state.</returns>
         internal DialogState WithUnknownQuestion(ParsedExpression unknownQuestion)
         {
-            return new DialogState(this, IsUserWelcomed, Advice, Question, unknownQuestion, EquivalenceCandidate, DifferenceWordQuestioned, ConfirmValue);
+            return newStateWithValue(_unknownQuestion, unknownQuestion);
         }
 
+        /// <summary>
+        /// Creates new state with given question.
+        /// </summary>
+        /// <param name="question">Question for new state.</param>
+        /// <returns>The new state.</returns>
         internal DialogState WithQuestion(ParsedExpression question)
         {
-            return new DialogState(this, IsUserWelcomed, Advice, question, UnknownQuestion, EquivalenceCandidate, DifferenceWordQuestioned, ConfirmValue);
+            return newStateWithValue(_question, question);
         }
 
+        /// <summary>
+        /// Creates new state with given welcome flag.
+        /// </summary>
+        /// <param name="isUserWelcomed">Flag for new state.</param>
+        /// <returns>The new state.</returns>
         internal DialogState WithWelcomedFlag(bool isUserWelcomed)
         {
-            return new DialogState(this, isUserWelcomed, Advice, Question, UnknownQuestion, EquivalenceCandidate, DifferenceWordQuestioned, ConfirmValue);
+            return newStateWithValue(_isUserWelcomed, isUserWelcomed);
         }
 
+        /// <summary>
+        /// Creates new state with given equivalence candidate.
+        /// </summary>
+        /// <param name="equivalenceCandidate">Equivalence candidate for new state.</param>
+        /// <returns>The new state.</returns>
         internal DialogState WithEquivalenceCandidate(ParsedExpression equivalenceCandidate)
         {
-            return new DialogState(this, IsUserWelcomed, Advice, Question, UnknownQuestion, equivalenceCandidate, DifferenceWordQuestioned, ConfirmValue);
+            return newStateWithValue(_equivalenceCandidate, equivalenceCandidate);
         }
 
+        /// <summary>
+        /// Creates new state with given difference word questioned flag.
+        /// </summary>
+        /// <param name="differenceWordQuestioned">Flag for new state.</param>
+        /// <returns>The new state.</returns>
         internal DialogState WithDifferenceWordQuestion(bool differenceWordQuestioned)
         {
-            return new DialogState(this, IsUserWelcomed, Advice, Question, UnknownQuestion, EquivalenceCandidate, differenceWordQuestioned, ConfirmValue);
+            return newStateWithValue(_differenceWordQuestioned, differenceWordQuestioned);
         }
+
+        #endregion
+
+        #region Property handling utilities
+
+        /// <summary>
+        /// Creates a new state which is based on current state and has given value for given property.
+        /// </summary>
+        /// <typeparam name="PropertyType">Type of value represented by property.</typeparam>
+        /// <param name="property">Property which value will be set.</param>
+        /// <param name="value">Value which will be set to the property.</param>
+        /// <returns>The new dialog state.</returns>
+        private DialogState newStateWithValue<PropertyType>(StateProperty<PropertyType> property, PropertyType value)
+        {
+            var propertyToValueCopy = new Dictionary<object, object>(_propertyToValue);
+
+            property.SetValue(propertyToValueCopy, value);
+
+            return new DialogState(propertyToValueCopy);
+        }
+
+        /// <summary>
+        /// Gets value that is stored by given property.
+        /// </summary>
+        /// <typeparam name="PropertyType">Type of value represented by property.</typeparam>
+        /// <param name="property">Property which value is requested.</param>
+        /// <returns>Value of the property if available <c>default</c> otherwise.</returns>
+        private PropertyType getValue<PropertyType>(StateProperty<PropertyType> property)
+        {
+            return property.GetValue(_propertyToValue);
+        }
+
+        /// <summary>
+        /// Initialize given property reference with new property of given name.
+        /// </summary>
+        /// <typeparam name="PropertyType">Type of value represented by property.</typeparam>
+        /// <param name="property">Initialized property.</param>
+        /// <param name="propertyName">Name of initialized property.</param>
+        private static void initialize<PropertyType>(ref StateProperty<PropertyType> property, string propertyName)
+        {
+            if (property != null)
+                throw new NotSupportedException("Cannot initialize same property twice");
+
+            property = new StateProperty<PropertyType>(propertyName);
+        }
+
+        #endregion
     }
 }

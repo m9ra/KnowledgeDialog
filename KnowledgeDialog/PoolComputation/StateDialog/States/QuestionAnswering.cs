@@ -12,7 +12,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
 {
     class QuestionAnswering : StateBase
     {
-        public static readonly StateProperty LastQuestion = new StateProperty();
+        public static readonly StateProperty2 LastQuestion = new StateProperty2();
 
         public static readonly EdgeIdentifier QuestionAnswered = new EdgeIdentifier();
 

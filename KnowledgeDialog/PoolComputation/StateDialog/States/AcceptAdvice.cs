@@ -12,8 +12,8 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
 {
     class AcceptAdvice : StateBase
     {
-        public static readonly StateProperty CorrectAnswerProperty = new StateProperty();
-        public static readonly StateProperty IsBasedOnContextProperty = new StateProperty();
+        public static readonly StateProperty2 CorrectAnswerProperty = new StateProperty2();
+        public static readonly StateProperty2 IsBasedOnContextProperty = new StateProperty2();
         public static readonly EdgeIdentifier MissingInfoEdge = new EdgeIdentifier();
         public static readonly EdgeIdentifier MissingQuestionEdge = new EdgeIdentifier();
         public static readonly EdgeIdentifier AdviceAcceptedEdge = new EdgeIdentifier();

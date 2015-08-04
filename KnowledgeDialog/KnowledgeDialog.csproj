@@ -123,6 +123,7 @@
     <Compile Include="PoolComputation\StateDialog\StateContext.cs" />
     <Compile Include="PoolComputation\StateDialog\StateGraphBuilder.cs" />
     <Compile Include="PoolComputation\StateDialog\StateProperty.cs" />
+    <Compile Include="PoolComputation\StateDialog\StateProperty2.cs" />
     <Compile Include="PoolComputation\StateDialog\States\AcceptAdvice.cs" />
     <Compile Include="PoolComputation\StateDialog\States\ApologizeState.cs" />
     <Compile Include="PoolComputation\StateDialog\States\RequestContext.cs" />

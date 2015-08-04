@@ -6,38 +6,31 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.PoolComputation.StateDialog
 {
-    class StateProperty
+    /// <summary>
+    /// Represents strongly typed property of <see cref="DialogState"/>.
+    /// </summary>
+    /// <typeparam name="Type">Type of value the property operates with.</typeparam>
+    class StateProperty<Type> 
     {
-        internal static readonly string TrueValue = "$true";
+        internal readonly string Name;
 
-        internal static readonly string FalseValue = "$false";
-
-        internal readonly string PropertyName;
-
-        internal StateProperty()
+        internal StateProperty(string name)
         {
+            Name = name;
         }
 
-        internal StateProperty(string propertyName)
+        internal Type GetValue(Dictionary<object,object> propertyToValue) 
         {
-            PropertyName = propertyName;
+            object value;
+            if (!propertyToValue.TryGetValue(this, out value))
+                return default(Type);
+
+            return (Type)value;
         }
 
-        internal static string ToPropertyValue(bool boolValue)
+        internal void SetValue(Dictionary<object,object> propertyToValue, Type value)
         {
-            return boolValue ? TrueValue : FalseValue;
-        }
-
-        public override string ToString()
-        {
-            if (PropertyName == null)
-            {
-                return base.ToString();
-            }
-            else
-            {
-                return "[StateProperty]" + PropertyName;
-            }
+            propertyToValue[this] = value;  
         }
     }
 }

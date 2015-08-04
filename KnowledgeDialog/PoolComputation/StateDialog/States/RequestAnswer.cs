@@ -8,7 +8,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
 {
     class RequestAnswer : StateBase
     {
-        public readonly static StateProperty QuestionProperty = new StateProperty();
+        public readonly static StateProperty2 QuestionProperty = new StateProperty2();
 
         public readonly static EdgeIdentifier HasCorrectAnswerEdge = new EdgeIdentifier();
 
@@ -16,7 +16,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
         {
             var hasPossibleContext = Context.Pool.ActiveCount > 0;
             if (!hasPossibleContext)
-                Context.SetValue(AcceptAdvice.IsBasedOnContextProperty, StateProperty.FalseValue);
+                Context.SetValue(AcceptAdvice.IsBasedOnContextProperty, StateProperty2.FalseValue);
                       
             if (!Context.IsSet(AcceptAdvice.CorrectAnswerProperty))
                 return Response("I don't understand, can you give me correct answer for your question please?");

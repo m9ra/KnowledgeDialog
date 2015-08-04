@@ -26,7 +26,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
 
         internal IEnumerable<string> Substitutions { get { return _substitutions; } }
 
-        private readonly Dictionary<StateProperty, string> _storedValues = new Dictionary<StateProperty, string>();
+        private readonly Dictionary<StateProperty2, string> _storedValues = new Dictionary<StateProperty2, string>();
 
         private readonly Dictionary<Tuple<object, Type>, object> _storage = new Dictionary<Tuple<object, Type>, object>();
 
@@ -53,18 +53,18 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
             Input = utterance;
         }
 
-        internal void SetValue(StateProperty property, string p)
+        internal void SetValue(StateProperty2 property, string p)
         {
             if (property != null)
                 _storedValues[property] = p;
         }
 
-        internal void Remove(StateProperty property)
+        internal void Remove(StateProperty2 property)
         {
             _storedValues.Remove(property);
         }
 
-        internal string Get(StateProperty property)
+        internal string Get(StateProperty2 property)
         {
             string result;
             _storedValues.TryGetValue(property, out result);
@@ -105,12 +105,12 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
             _substitutions.Add(substitution);
         }
 
-        internal bool IsTrue(StateProperty property)
+        internal bool IsTrue(StateProperty2 property)
         {
-            return Get(property) == StateProperty.TrueValue;
+            return Get(property) == StateProperty2.TrueValue;
         }
 
-        internal bool IsSet(StateProperty property)
+        internal bool IsSet(StateProperty2 property)
         {
             return _storedValues.ContainsKey(property);
         }

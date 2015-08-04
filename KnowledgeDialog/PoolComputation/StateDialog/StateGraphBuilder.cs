@@ -32,13 +32,13 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
             return State.Execute(context);
         }
 
-        internal StateGraphBuilder Default(StateGraphBuilder nextState, StateProperty inputProperty = null)
+        internal StateGraphBuilder Default(StateGraphBuilder nextState, StateProperty2 inputProperty = null)
         {
             DefaultTrigger = new Trigger(nextState, (c) => c.SetValue(inputProperty, c.Input));
             return this;
         }
 
-        internal StateGraphBuilder DefaultForward(StateGraphBuilder nextState, StateProperty inputProperty = null)
+        internal StateGraphBuilder DefaultForward(StateGraphBuilder nextState, StateProperty2 inputProperty = null)
         {
             DefaultTrigger = new Trigger(nextState, (c) =>
             {
@@ -48,28 +48,28 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
             return this;
         }
 
-        internal StateGraphBuilder YesNoEdge(StateGraphBuilder nextState, StateProperty property)
+        internal StateGraphBuilder YesNoEdge(StateGraphBuilder nextState, StateProperty2 property)
         {
-            addEdge("yes", nextState, (c) => c.SetValue(property, StateProperty.TrueValue));
-            addEdge("of course", nextState, (c) => c.SetValue(property, StateProperty.TrueValue));
-            addEdge("yeah", nextState, (c) => c.SetValue(property, StateProperty.TrueValue));
-            addEdge("y", nextState, (c) => c.SetValue(property, StateProperty.TrueValue));
-            addEdge("no", nextState, (c) => c.SetValue(property, StateProperty.FalseValue));
-            addEdge("not", nextState, (c) => c.SetValue(property, StateProperty.FalseValue));
-            addEdge("none", nextState, (c) => c.SetValue(property, StateProperty.FalseValue));
-            addEdge("n", nextState, (c) => c.SetValue(property, StateProperty.FalseValue));
+            addEdge("yes", nextState, (c) => c.SetValue(property, StateProperty2.TrueValue));
+            addEdge("of course", nextState, (c) => c.SetValue(property, StateProperty2.TrueValue));
+            addEdge("yeah", nextState, (c) => c.SetValue(property, StateProperty2.TrueValue));
+            addEdge("y", nextState, (c) => c.SetValue(property, StateProperty2.TrueValue));
+            addEdge("no", nextState, (c) => c.SetValue(property, StateProperty2.FalseValue));
+            addEdge("not", nextState, (c) => c.SetValue(property, StateProperty2.FalseValue));
+            addEdge("none", nextState, (c) => c.SetValue(property, StateProperty2.FalseValue));
+            addEdge("n", nextState, (c) => c.SetValue(property, StateProperty2.FalseValue));
 
             return this;
         }
 
-        internal StateGraphBuilder HasMatch(UtteranceMapping<ActionBlock> group, StateGraphBuilder nextState, StateProperty inputProperty = null)
+        internal StateGraphBuilder HasMatch(UtteranceMapping<ActionBlock> group, StateGraphBuilder nextState, StateProperty2 inputProperty = null)
         {
             var trigger = new Trigger(nextState, (c) => c.SetValue(inputProperty, c.Input));
             _externalTriggers.Add(group, trigger);
             return this;
         }
 
-        internal StateGraphBuilder IsEdge(StateGraphBuilder stateGraphBuilder, StateProperty stateProperty)
+        internal StateGraphBuilder IsEdge(StateGraphBuilder stateGraphBuilder, StateProperty2 stateProperty)
         {
             this
                 .Edge("*", stateGraphBuilder, stateProperty)
@@ -84,7 +84,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
             return this;
         }
 
-        internal StateGraphBuilder Edge(string pattern, StateGraphBuilder nextState, params StateProperty[] properties)
+        internal StateGraphBuilder Edge(string pattern, StateGraphBuilder nextState, params StateProperty2[] properties)
         {
             addEdge(pattern, nextState, (c) => setProperties(c, properties));
             return this;
@@ -145,7 +145,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
             Triggers.SetMapping(pattern, trigger);
         }
 
-        private void setProperties(StateContext context, StateProperty[] properties)
+        private void setProperties(StateContext context, StateProperty2[] properties)
         {
             var index = 0;
             foreach (var value in context.Substitutions)

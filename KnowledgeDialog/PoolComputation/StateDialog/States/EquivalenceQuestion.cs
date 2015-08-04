@@ -10,9 +10,9 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.States
     {
         public static readonly EdgeIdentifier EquivalenceEdge = new EdgeIdentifier();
 
-        public static readonly StateProperty PatternQuestion = new StateProperty();
+        public static readonly StateProperty2 PatternQuestion = new StateProperty2();
 
-        public static readonly StateProperty QueriedQuestion = new StateProperty();
+        public static readonly StateProperty2 QueriedQuestion = new StateProperty2();
 
         protected override ModifiableResponse execute()
         {

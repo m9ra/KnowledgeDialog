@@ -17,6 +17,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
         /// </inheritdoc>
         protected override void Apply()
         {
+            SetExpectAnswer(true);
             EmitResponse("I don't know. What is the correct answer please?");
         }
     }

@@ -9,6 +9,11 @@ using KnowledgeDialog.Dialog;
 namespace KnowledgeDialog.PoolComputation.StateDialog
 {
     /// <summary>
+    /// Represents value of confirmation.
+    /// </summary>
+    internal enum Confirmation { None, Affirm, Negate, DontKnow };
+
+    /// <summary>
     /// Represents a state of a dialog. It is immutable.
     /// </summary>
     class DialogState
@@ -49,24 +54,29 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
         public bool DifferenceWordQuestioned { get { return getValue(_differenceWordQuestioned); } }
 
         /// <summary>
+        /// Determine whether answer is expected. (Is used for better parsing)
+        /// </summary>
+        public bool ExpectsAnswer { get { return getValue(_expectsAnswer); } }
+
+        /// <summary>
         /// Determine whether yes, no or don't know has been answered.
         /// </summary>
-        public bool? ConfirmValue { get { return getValue(_confirmValue); } }
+        public Confirmation ConfirmValue { get { return getValue(_confirmValue); } }
 
         /// <summary>
         /// Determine whether affirmation is available.
         /// </summary>
-        public bool HasAffirmation { get { return ConfirmValue.HasValue && ConfirmValue.Value; } }
+        public bool HasAffirmation { get { return ConfirmValue == Confirmation.Affirm; } }
 
         /// <summary>
         /// Determine whether negation is availble.
         /// </summary>
-        public bool HasNegation { get { return ConfirmValue.HasValue && !ConfirmValue.Value; } }
+        public bool HasNegation { get { return ConfirmValue == Confirmation.Negate; } }
 
         /// <summary>
         /// Determine whether any value for confirmation is available.
         /// </summary>
-        public bool HasConfirmation { get { return ConfirmValue.HasValue; } }
+        public bool HasConfirmation { get { return ConfirmValue != Confirmation.None; } }
 
         /// <summary>
         /// Determine whether advice is available.
@@ -104,7 +114,9 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
 
         private static readonly StateProperty<bool> _differenceWordQuestioned;
 
-        private static readonly StateProperty<bool?> _confirmValue;
+        private static readonly StateProperty<bool> _expectsAnswer;
+
+        private static readonly StateProperty<Confirmation> _confirmValue;
 
         #endregion
 
@@ -122,6 +134,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
             initialize(ref _unknownQuestion, "UnknownQuestion");
             initialize(ref _equivalenceCandidate, "EquivalenceCandidate");
             initialize(ref _differenceWordQuestioned, "DifferenceWordQuestioned");
+            initialize(ref _expectsAnswer, "ExpectsAnswer");
             initialize(ref _confirmValue, "ConfirmValue");
         }
 
@@ -154,7 +167,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
         /// </summary>
         /// <param name="confirmValue">Confirmation value for new state.</param>
         /// <returns>The new state.</returns>
-        internal DialogState WithConfirm(bool? confirmValue)
+        internal DialogState WithConfirm(Confirmation confirmValue)
         {
             return newStateWithValue(_confirmValue, confirmValue);
         }
@@ -207,6 +220,16 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
         internal DialogState WithDifferenceWordQuestion(bool differenceWordQuestioned)
         {
             return newStateWithValue(_differenceWordQuestioned, differenceWordQuestioned);
+        }
+
+        /// <summary>
+        /// Creates new state with given expect answer flag.
+        /// </summary>
+        /// <param name="isExpected">Flag for new state.</param>
+        /// <returns>The new state.</returns>
+        internal DialogState SetExpectAnswer(bool isExpected)
+        {
+            return newStateWithValue(_expectsAnswer, isExpected);
         }
 
         #endregion

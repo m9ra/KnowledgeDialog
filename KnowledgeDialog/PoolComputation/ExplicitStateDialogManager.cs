@@ -63,6 +63,8 @@ namespace KnowledgeDialog.PoolComputation
 
             var inputAct = _factory.GetDialogAct(utterance);
             _currentState = applyInput(inputAct, _currentState);
+            //reset expect answer flag after each input.
+            _currentState = _currentState.SetExpectAnswer(false);
 
             return applyAction();
         }

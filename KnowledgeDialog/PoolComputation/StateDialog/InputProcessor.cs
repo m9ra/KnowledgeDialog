@@ -28,7 +28,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
 
         public void Visit(AffirmAct confirmAct)
         {
-            SetConfirm(true);
+            SetConfirm(Confirmation.Affirm);
         }
 
         public void Visit(ThinkAct thinkAct)
@@ -38,7 +38,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
 
         public void Visit(NegateAct negateAct)
         {
-            SetConfirm(false);
+            SetConfirm(Confirmation.Negate);
         }
 
         public void Visit(ExplicitAdviceAct explicitAdviceAct)
@@ -51,9 +51,16 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
         {
             SetQuestion(questionAct.Question);
         }
-        
+
         public void Visit(UnrecognizedAct unrecognizedAct)
         {
+            if (InputState.ExpectsAnswer && unrecognizedAct.Utterance.Words.Count()==1)
+            {
+                //we got single entity so it is probably an advice
+                SetAdvice(unrecognizedAct.Utterance);
+                return;
+            }
+
             SetQuestion(unrecognizedAct.Utterance);
         }
 
@@ -64,9 +71,9 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
 
         public void Visit(DontKnowAct dontKnow)
         {
-            throw new NotImplementedException();
+            SetConfirm(Confirmation.DontKnow);
         }
-        
+
         #region State handling
 
         protected void SetAdvice(ParsedExpression advice)
@@ -74,7 +81,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
             Output = Output.WithAdvice(advice);
         }
 
-        protected void SetConfirm(bool confirmValue)
+        protected void SetConfirm(Confirmation confirmValue)
         {
             Output = Output.WithConfirm(confirmValue);
         }

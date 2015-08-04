@@ -85,12 +85,16 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
 
         protected void RemoveConfirmation()
         {
-            _newState = _newState.WithConfirm(null);
+            _newState = _newState.WithConfirm(Confirmation.None);
         }
 
         protected void RemoveAdvice()
         {
             _newState = _newState.WithAdvice(null);
+        }
+
+        protected void SetExpectAnswer(bool expectAnswer) {
+            _newState = _newState.SetExpectAnswer(expectAnswer);
         }
 
         protected void RemoveEquivalenceCandidate()

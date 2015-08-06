@@ -14,27 +14,11 @@ using KnowledgeDialog.Database;
 
 namespace KnowledgeDialog.PoolComputation
 {
-    public class QuestionAnsweringModule
+    public class QuestionAnsweringModule : QuestionAnsweringModuleBase
     {
-        private readonly object _L_input = new object();
-
         private readonly Dictionary<string, QuestionEntry> _questions = new Dictionary<string, QuestionEntry>();
 
         private readonly Dictionary<string, List<QuestionEntry>> _questionsPatternIndex = new Dictionary<string, List<QuestionEntry>>();
-
-        private readonly CallSerializer _adviceAnswer;
-
-        private readonly CallSerializer _repairAnswer;
-
-        private readonly CallSerializer _setEquivalencies;
-
-        private readonly CallSerializer _negate;
-
-        internal readonly CallStorage Storage;
-
-        internal readonly ContextPool Pool;
-
-        internal ComposedGraph Graph { get { return Pool.Graph; } }
 
         internal readonly UtteranceMapping<ActionBlock> Triggers;
 
@@ -43,50 +27,14 @@ namespace KnowledgeDialog.PoolComputation
         internal static readonly int MaximumGraphWidth = 1000;
 
         public QuestionAnsweringModule(ComposedGraph graph, CallStorage storage)
+            : base(graph, storage)
         {
-            Storage = storage;
-            Pool = new ContextPool(graph);
             Triggers = new UtteranceMapping<ActionBlock>(graph);
-
-            _adviceAnswer = storage.RegisterCall("AdviceAnswer", c =>
-            {
-                _AdviceAnswer(c.String("question"), c.Bool("isBasedOnContext"), c.Node("correctAnswerNode", Graph), c.Nodes("context", Graph));
-            });
-
-            _repairAnswer = storage.RegisterCall("RepairAnswer", c =>
-            {
-                _RepairAnswer(c.String("question"), c.Node("suggestedAnswer", Graph), c.Nodes("context", Graph));
-            });
-
-            _setEquivalencies = storage.RegisterCall("SetEquivalence", c =>
-            {
-                SetEquivalence(c.String("patternQuestion"), c.String("queriedQuestion"), c.Bool("isEquivalent"));
-            });
-
-            _negate = storage.RegisterCall("Negate", c =>
-            {
-                Negate(c.String("question"));
-            });
         }
 
-        #region Input methods
-
-        public bool AdviceAnswer(string question, bool isBasedOnContext, NodeReference correctAnswerNode)
+        #region Template implementation
+        protected override bool adviceAnswer(string question, bool isBasedOnContext, NodeReference correctAnswerNode, IEnumerable<NodeReference> context)
         {
-            lock (_L_input)
-            {
-                return _AdviceAnswer(question, isBasedOnContext, correctAnswerNode, Pool.ActiveNodes);
-            }
-        }
-
-        private bool _AdviceAnswer(string question, bool isBasedOnContext, NodeReference correctAnswerNode, IEnumerable<NodeReference> context)
-        {
-            _adviceAnswer.ReportParameter("question", question);
-            _adviceAnswer.ReportParameter("isBasedOnContext", isBasedOnContext);
-            _adviceAnswer.ReportParameter("correctAnswerNode", correctAnswerNode);
-            _adviceAnswer.ReportParameter("context", context);
-            _adviceAnswer.SaveReport();
-
             if (question == null || question.Trim() == "")
                 return false;
 
@@ -99,21 +47,8 @@ namespace KnowledgeDialog.PoolComputation
                 createNewActions(question, isBasedOnContext, correctAnswerNode);
         }
 
-        public void RepairAnswer(string question, NodeReference suggestedAnswer)
+        protected override void repairAnswer(string question, NodeReference suggestedAnswer, IEnumerable<NodeReference> context)
         {
-            lock (_L_input)
-            {
-                _RepairAnswer(question, suggestedAnswer, Pool.ActiveNodes);
-            }
-        }
-
-        public void _RepairAnswer(string question, NodeReference suggestedAnswer, IEnumerable<NodeReference> context)
-        {
-            _repairAnswer.ReportParameter("question", question);
-            _repairAnswer.ReportParameter("suggestedAnswer", suggestedAnswer);
-            _repairAnswer.ReportParameter("context", context);
-            _repairAnswer.SaveReport();
-
             fillPool(context);
             var hypotheses = GetSortedHypotheses(UtteranceParser.Parse(question)).ToArray();
 
@@ -132,55 +67,41 @@ namespace KnowledgeDialog.PoolComputation
             }
         }
 
-        public void SetEquivalence(string patternQuestion, string queriedQuestion, bool isEquivalent)
+        protected override void setEquivalence(string patternQuestion, string queriedQuestion, bool isEquivalent)
         {
-            lock (_L_input)
+            var parsedQuestion = UtteranceParser.Parse(patternQuestion);
+
+            if (isEquivalent)
             {
-                _setEquivalencies.ReportParameter("patternQuestion", patternQuestion);
-                _setEquivalencies.ReportParameter("queriedQuestion", queriedQuestion);
-                _setEquivalencies.ReportParameter("isEquivalent", isEquivalent);
-                _setEquivalencies.SaveReport();
-
-                var parsedQuestion = UtteranceParser.Parse(patternQuestion);
-
-                if (isEquivalent)
-                {
-                    var bestMap = Triggers.BestMap(parsedQuestion);
-                    if (bestMap == null)
-                        return;
-
-                    Triggers.SetMapping(queriedQuestion, bestMap.Value);
-                }
-                else
-                {
-                    Triggers.DisableEquivalence(patternQuestion, queriedQuestion);
-                }
-            }
-        }
-
-        public void Negate(string question)
-        {
-            var parsedSentence = UtteranceParser.Parse(question);
-
-            lock (_L_input)
-            {
-                _negate.ReportParameter("question", question);
-                _negate.SaveReport();
-
-                var bestHypothesis = GetBestHypothesis(parsedSentence);
-                if (bestHypothesis == null)
-                    //we cannot learn anything
+                var bestMap = Triggers.BestMap(parsedQuestion);
+                if (bestMap == null)
                     return;
 
-                var currentAnswer = getActualAnswer(bestHypothesis);
-                foreach (var answer in currentAnswer)
-                {
-                    bestHypothesis.ActionBlock.OutputFilter.Advice(answer, false, false);
-                }
-
-                bestHypothesis.ActionBlock.OutputFilter.Retrain();
+                Triggers.SetMapping(queriedQuestion, bestMap.Value);
+            }
+            else
+            {
+                Triggers.DisableEquivalence(patternQuestion, queriedQuestion);
             }
         }
+
+        protected override void negate(string question)
+        {
+            var parsedSentence = UtteranceParser.Parse(question);
+            var bestHypothesis = GetBestHypothesis(parsedSentence);
+            if (bestHypothesis == null)
+                //we cannot learn anything
+                return;
+
+            var currentAnswer = getActualAnswer(bestHypothesis);
+            foreach (var answer in currentAnswer)
+            {
+                bestHypothesis.ActionBlock.OutputFilter.Advice(answer, false, false);
+            }
+
+            bestHypothesis.ActionBlock.OutputFilter.Retrain();
+        }
+
 
         #endregion
 
@@ -398,7 +319,7 @@ namespace KnowledgeDialog.PoolComputation
                     }
 
                     correctAnswers.Add(entry.CorrectAnswer);
-                } 
+                }
             }
 
             hypothesis.ActionBlock.UpdatePush(pushActions);

@@ -101,6 +101,7 @@
     <Compile Include="PoolComputation\PoolActions\ExtendAction.cs" />
     <Compile Include="PoolComputation\PoolActions\InsertAction.cs" />
     <Compile Include="PoolComputation\ProcessingContext.cs" />
+    <Compile Include="PoolComputation\QuestionAnsweringModuleBase.cs" />
     <Compile Include="PoolComputation\QuestionAnsweringModule.cs" />
     <Compile Include="PoolComputation\QuestionEntry.cs" />
     <Compile Include="Dialog\SLUFactory.cs" />

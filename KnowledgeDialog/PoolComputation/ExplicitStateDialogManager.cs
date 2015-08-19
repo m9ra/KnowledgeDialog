@@ -31,7 +31,7 @@ namespace KnowledgeDialog.PoolComputation
 
         private List<MachineActionBase> _machineActions = new List<MachineActionBase>();
 
-        internal ExplicitStateDialogManager(QuestionAnsweringModule qa)
+        internal ExplicitStateDialogManager(HeuristicQAModule qa)
         {
             _currentState = new DialogState(qa);
 
@@ -56,7 +56,7 @@ namespace KnowledgeDialog.PoolComputation
             return applyAction();
         }
 
-        public ResponseBase Input(ParsedExpression utterance)
+        public ResponseBase Input(ParsedUtterance utterance)
         {
             if (!_isInitialized)
                 throw new InvalidOperationException("Cannot take input before initialization");

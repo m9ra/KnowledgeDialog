@@ -8,9 +8,9 @@ namespace KnowledgeDialog.Dialog.Acts
 {
     class AdviceAct : DialogActBase
     {
-        public readonly ParsedExpression Answer;
+        public readonly ParsedUtterance Answer;
 
-        public AdviceAct(ParsedExpression advice)
+        public AdviceAct(ParsedUtterance advice)
         {
             Answer = advice;
         }

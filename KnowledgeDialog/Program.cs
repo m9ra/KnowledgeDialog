@@ -17,19 +17,29 @@ namespace KnowledgeDialog
         {
             var parse = UtteranceParser.Parse("name of wife of Barack Obama president is Michelle Obama");
             //MultipleAdvice(args[0]);
-            ExplicitStateDialog(args[0]);
+            //ExplicitStateDialog(args[0]);
+            MappingQATest(args[0]);
+        }
+
+        private static void MappingQATest(string dbPath)
+        {
+            var loader = loadDB(dbPath);
+            var graph = new ComposedGraph(loader.DataLayer);
+            var qa = new PoolComputation.MappedQA.MappedQAModule(graph, new CallStorage(null));
+
+            qa.AdviceAnswer("Who is United States of America president?", false, graph.GetNode("Barack Obama"));
         }
 
         private static void ExplicitStateDialog(string dbPath)
         {
             var loader = loadDB(dbPath);
-            var qa = new PoolComputation.QuestionAnsweringModule(new ComposedGraph(loader.DataLayer), new CallStorage(null));
+            var qa = new PoolComputation.HeuristicQAModule(new ComposedGraph(loader.DataLayer), new CallStorage(null));
             var manager = new PoolComputation.ExplicitStateDialogManager(qa);
             var provider = new DialogConsole(manager);
 
             provider.SimulateInput(
                 "François Hollande is president in which state ?",
-                "It is France",                
+                "It is France",
                 "Barack Obama is president of which state ?",
                 "yes",
                 "dont know"

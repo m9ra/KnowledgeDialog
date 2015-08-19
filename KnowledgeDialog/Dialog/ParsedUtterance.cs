@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.Dialog
 {
-    public class ParsedExpression
+    public class ParsedUtterance
     {
         public IEnumerable<string> Words { get { return _words; } }
 
@@ -14,16 +14,16 @@ namespace KnowledgeDialog.Dialog
 
         private readonly string[] _words;
 
-        internal ParsedExpression(string originalSentence, IEnumerable<string> words)
+        internal ParsedUtterance(string originalSentence, IEnumerable<string> words)
         {
             OriginalSentence = originalSentence;
             _words = words.ToArray();
         }
 
 
-        static internal ParsedExpression From(IEnumerable<string> words)
+        static internal ParsedUtterance From(IEnumerable<string> words)
         {
-            return new ParsedExpression(string.Join(" ", words), words);
+            return new ParsedUtterance(string.Join(" ", words), words);
         }
 
         /// <inheritdoc/>
@@ -41,7 +41,7 @@ namespace KnowledgeDialog.Dialog
         /// <inheritdoc/>
         public override bool Equals(object obj)
         {
-            var o = obj as ParsedExpression;
+            var o = obj as ParsedUtterance;
             if (o == null)
                 return false;
 

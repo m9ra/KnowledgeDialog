@@ -102,7 +102,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
             _newState = _newState.WithEquivalenceCandidate(null);
         }
 
-        protected void SetEquivalenceCandidate(ParsedExpression equivalenceCandidate)
+        protected void SetEquivalenceCandidate(ParsedUtterance equivalenceCandidate)
         {
             _newState = _newState.WithEquivalenceCandidate(equivalenceCandidate);
         }

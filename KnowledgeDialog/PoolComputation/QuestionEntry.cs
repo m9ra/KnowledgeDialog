@@ -15,7 +15,7 @@ namespace KnowledgeDialog.PoolComputation
 
         internal readonly string Question;
 
-        internal readonly ParsedExpression ParsedQuestion;
+        internal readonly ParsedUtterance ParsedQuestion;
 
         internal readonly NodesEnumeration QuestionNodes;
 

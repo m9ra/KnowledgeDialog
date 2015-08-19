@@ -14,7 +14,7 @@ using KnowledgeDialog.Database;
 
 namespace KnowledgeDialog.PoolComputation
 {
-    public class QuestionAnsweringModule : QuestionAnsweringModuleBase
+    public class HeuristicQAModule : QuestionAnsweringModuleBase
     {
         private readonly Dictionary<string, QuestionEntry> _questions = new Dictionary<string, QuestionEntry>();
 
@@ -26,7 +26,7 @@ namespace KnowledgeDialog.PoolComputation
 
         internal static readonly int MaximumGraphWidth = 1000;
 
-        public QuestionAnsweringModule(ComposedGraph graph, CallStorage storage)
+        public HeuristicQAModule(ComposedGraph graph, CallStorage storage)
             : base(graph, storage)
         {
             Triggers = new UtteranceMapping<ActionBlock>(graph);
@@ -105,7 +105,7 @@ namespace KnowledgeDialog.PoolComputation
 
         #endregion
 
-        public IEnumerable<NodeReference> GetAnswer(ParsedExpression question)
+        public IEnumerable<NodeReference> GetAnswer(ParsedUtterance question)
         {
             var bestHypothesis = GetBestHypothesis(question);
             return GetAnswer(bestHypothesis);
@@ -125,7 +125,7 @@ namespace KnowledgeDialog.PoolComputation
             return pool.ActiveNodes;
         }
 
-        internal NodesEnumeration GetPatternNodes(ParsedExpression sentence)
+        internal NodesEnumeration GetPatternNodes(ParsedUtterance sentence)
         {
             //if (!_questions.ContainsKey(sentence.OriginalSentence))
             //    throw new KeyNotFoundException("GetPatternNodes: " + sentence.OriginalSentence);
@@ -135,7 +135,7 @@ namespace KnowledgeDialog.PoolComputation
             return entry.QuestionNodes;
         }
 
-        internal QuestionEntry GetQuestionEntry(ParsedExpression question)
+        internal QuestionEntry GetQuestionEntry(ParsedUtterance question)
         {
             QuestionEntry entry;
             if (!_questions.TryGetValue(question.OriginalSentence, out entry))
@@ -153,12 +153,12 @@ namespace KnowledgeDialog.PoolComputation
             return entry;
         }
 
-        internal PoolHypothesis GetBestHypothesis(ParsedExpression question)
+        internal PoolHypothesis GetBestHypothesis(ParsedUtterance question)
         {
             return GetSortedHypotheses(question).FirstOrDefault();
         }
 
-        internal IEnumerable<PoolHypothesis> GetSortedHypotheses(ParsedExpression utterance)
+        internal IEnumerable<PoolHypothesis> GetSortedHypotheses(ParsedUtterance utterance)
         {
             var scoredActions = Triggers.FindMapping(utterance);
             var availableNodes = GetRelatedNodes(utterance).ToArray();
@@ -212,7 +212,7 @@ namespace KnowledgeDialog.PoolComputation
             return new NodesSubstitution(originalNodes, substitutions);
         }
 
-        internal IEnumerable<NodeReference> GetRelatedNodes(ParsedExpression sentence)
+        internal IEnumerable<NodeReference> GetRelatedNodes(ParsedUtterance sentence)
         {
             return GetQuestionEntry(sentence).QuestionNodes;
         }

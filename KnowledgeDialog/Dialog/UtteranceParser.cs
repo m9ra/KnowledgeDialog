@@ -43,14 +43,14 @@ namespace KnowledgeDialog.Dialog
             entities.Add(entity);
         }
 
-        public static ParsedExpression Parse(string sentence)
+        public static ParsedUtterance Parse(string sentence)
         {
             sentence = _inputSanitizer.Replace(sentence, " ");
             sentence = _spaceSanitizer.Replace(sentence, " ").Trim();
             return parseExpression(sentence);
         }
 
-        private static ParsedExpression parseExpression(string sanitizedSentence)
+        private static ParsedUtterance parseExpression(string sanitizedSentence)
         {
             var singleWords = sanitizedSentence.Split(' ');
             var parsedWords = new List<string>();
@@ -87,7 +87,7 @@ namespace KnowledgeDialog.Dialog
                 parsedWords.Add(bestEntity);
             }
 
-            return new ParsedExpression(sanitizedSentence, parsedWords);
+            return new ParsedUtterance(sanitizedSentence, parsedWords);
         }
 
 

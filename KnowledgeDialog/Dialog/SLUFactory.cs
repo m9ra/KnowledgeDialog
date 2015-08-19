@@ -57,7 +57,7 @@ namespace KnowledgeDialog.Dialog
             RegisterPattern(p => new ExplicitAdviceAct(p[1], p[2]), "correct answer $answer_preposition #1 is #2");
         }
 
-        public DialogActBase GetDialogAct(ParsedExpression utterance)
+        public DialogActBase GetDialogAct(ParsedUtterance utterance)
         {
             var currentStateLayer = new List<PatternState>();
             foreach (var pattern in _patterns.Keys)
@@ -118,9 +118,9 @@ namespace KnowledgeDialog.Dialog
 
     class PatternHandler
     {
-        Dictionary<int, ParsedExpression> _sentences = new Dictionary<int, ParsedExpression>();
+        Dictionary<int, ParsedUtterance> _sentences = new Dictionary<int, ParsedUtterance>();
 
-        internal PatternHandler(ParsedExpression utterance, PatternState state)
+        internal PatternHandler(ParsedUtterance utterance, PatternState state)
         {
             var substitutions = state.Substitutions.ToArray();
             var originalPattern = state.OriginalPattern;
@@ -129,7 +129,7 @@ namespace KnowledgeDialog.Dialog
                 var sentenceKey = originalPattern.GetSentenceKey(i);
                 if (sentenceKey != null)
                 {
-                    var sentence = ParsedExpression.From(substitutions[i]);
+                    var sentence = ParsedUtterance.From(substitutions[i]);
                     _sentences[int.Parse(sentenceKey)] = sentence;
                 }
             }
@@ -137,7 +137,7 @@ namespace KnowledgeDialog.Dialog
             _sentences[0] = utterance;
         }
 
-        public ParsedExpression this[int index]
+        public ParsedUtterance this[int index]
         {
             get
             {

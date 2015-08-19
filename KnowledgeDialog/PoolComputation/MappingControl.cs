@@ -17,11 +17,11 @@ namespace KnowledgeDialog.PoolComputation
 
         public readonly T Value;
 
-        public readonly ParsedExpression ParsedSentence;
+        public readonly ParsedUtterance ParsedSentence;
 
         private readonly IMappingProvider<T> _provider;
 
-        public MappingControl(string substitution, double score, IMappingProvider<T> provider, T value, ParsedExpression originalSentence)
+        public MappingControl(string substitution, double score, IMappingProvider<T> provider, T value, ParsedUtterance originalSentence)
         {
             Substitution = substitution;
             Score = score;

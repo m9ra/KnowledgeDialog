@@ -8,9 +8,9 @@ namespace KnowledgeDialog.Dialog.Acts
 {
     class UnrecognizedAct : DialogActBase
     {
-        public readonly ParsedExpression Utterance;
+        public readonly ParsedUtterance Utterance;
 
-        public UnrecognizedAct(ParsedExpression utterance)
+        public UnrecognizedAct(ParsedUtterance utterance)
         {
             Utterance = utterance;
         }

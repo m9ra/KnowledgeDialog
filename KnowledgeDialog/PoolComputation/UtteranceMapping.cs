@@ -11,7 +11,7 @@ namespace KnowledgeDialog.PoolComputation
 {
     class UtteranceMapping<T> : IMappingProvider<T>
     {
-        protected readonly Dictionary<ParsedExpression, T> Mapping = new Dictionary<ParsedExpression, T>();
+        protected readonly Dictionary<ParsedUtterance, T> Mapping = new Dictionary<ParsedUtterance, T>();
 
         private readonly ComposedGraph _graph;
 
@@ -22,12 +22,12 @@ namespace KnowledgeDialog.PoolComputation
             _graph = graph;
         }
 
-        public MappingControl<T> BestMap(ParsedExpression utterance)
+        public MappingControl<T> BestMap(ParsedUtterance utterance)
         {
             return FindMapping(utterance).FirstOrDefault();
         }
 
-        internal IEnumerable<MappingControl<T>> FindMapping(ParsedExpression parsedSentence)
+        internal IEnumerable<MappingControl<T>> FindMapping(ParsedUtterance parsedSentence)
         {
             var result = new List<MappingControl<T>>();
 
@@ -68,7 +68,7 @@ namespace KnowledgeDialog.PoolComputation
             disabled.Add(signature2);
         }
 
-        private string getSignature(ParsedExpression sentence)
+        private string getSignature(ParsedUtterance sentence)
         {
             var builder = new StringBuilder();
             foreach (var word in sentence.Words)
@@ -85,7 +85,7 @@ namespace KnowledgeDialog.PoolComputation
             return builder.ToString();
         }
 
-        private Tuple<string, double> getSimilarity(ParsedExpression pattern, ParsedExpression sentence)
+        private Tuple<string, double> getSimilarity(ParsedUtterance pattern, ParsedUtterance sentence)
         {
             if (pattern.OriginalSentence == sentence.OriginalSentence)
                 //we have exact match
@@ -153,7 +153,7 @@ namespace KnowledgeDialog.PoolComputation
             return Tuple.Create(substitution, similarity);
         }
 
-        private bool canBeEquivalent(ParsedExpression pattern, ParsedExpression sentence)
+        private bool canBeEquivalent(ParsedUtterance pattern, ParsedUtterance sentence)
         {
             var sentenceSignature = getSignature(pattern);
             var patternSignature = getSignature(sentence);

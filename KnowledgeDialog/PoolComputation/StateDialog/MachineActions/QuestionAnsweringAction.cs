@@ -51,7 +51,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
             ForwardControl();
         }
 
-        private string getAnswer(ParsedExpression question)
+        private string getAnswer(ParsedUtterance question)
         {
             var answerHypothesis = InputState.QA.GetBestHypothesis(question);
             if (answerHypothesis == null)
@@ -71,7 +71,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
             return string.Format("It is {0}.", joinedAnswer);
         }
 
-        private ParsedExpression getEquivalenceCandidate(ParsedExpression question)
+        private ParsedUtterance getEquivalenceCandidate(ParsedUtterance question)
         {
             var bestHypothesis = InputState.QA.GetBestHypothesis(question);
             if (bestHypothesis == null)
@@ -90,7 +90,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
             return equivalenceCandidate;
         }
 
-        private ParsedExpression substitute(ParsedExpression pattern, ParsedExpression utterance)
+        private ParsedUtterance substitute(ParsedUtterance pattern, ParsedUtterance utterance)
         {
             var patternNodes = InputState.QA.GetPatternNodes(pattern);
             var utteranceNodes = InputState.QA.GetRelatedNodes(utterance).ToArray();
@@ -100,7 +100,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
                 return null;
 
             //substitute every word in pattern, according to utterance
-            var substitutions = QuestionAnsweringModule.GetSubstitutions(utteranceNodes, patternNodes, InputState.QA.Graph);
+            var substitutions = HeuristicQAModule.GetSubstitutions(utteranceNodes, patternNodes, InputState.QA.Graph);
             var substitutedWords = new List<string>();
             foreach (var patternWord in pattern.Words)
             {
@@ -114,7 +114,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
                 substitutedWords.Add(substitutedNode.Data);
             }
 
-            return ParsedExpression.From(substitutedWords);
+            return ParsedUtterance.From(substitutedWords);
         }
     }
 }

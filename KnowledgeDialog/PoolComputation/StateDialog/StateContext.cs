@@ -12,7 +12,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
     public class StateContext
     {
 
-        internal readonly QuestionAnsweringModule QuestionAnsweringModule;
+        internal readonly HeuristicQAModule QuestionAnsweringModule;
 
         internal readonly ComposedGraph Graph;
 
@@ -37,11 +37,11 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
         public int MaximumUserReport = 3;
 
         public StateContext(ComposedGraph composedGraph, string serializationPath = null)
-            : this(new QuestionAnsweringModule(composedGraph, new CallStorage(serializationPath)))
+            : this(new HeuristicQAModule(composedGraph, new CallStorage(serializationPath)))
         {
         }
 
-        public StateContext(QuestionAnsweringModule module)
+        public StateContext(HeuristicQAModule module)
         {
             QuestionAnsweringModule = module;
             CallStorage = module.Storage;

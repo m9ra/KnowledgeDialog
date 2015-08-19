@@ -8,9 +8,9 @@ namespace KnowledgeDialog.Dialog.Acts
 {
     class QuestionAct : DialogActBase
     {
-        public readonly ParsedExpression Question;
+        public readonly ParsedUtterance Question;
 
-        internal QuestionAct(ParsedExpression question)
+        internal QuestionAct(ParsedUtterance question)
         {
             Question = question;
         }

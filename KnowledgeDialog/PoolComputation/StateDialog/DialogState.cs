@@ -26,27 +26,27 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
         /// <summary>
         /// Question answering module that is used by the dialog manager.
         /// </summary>
-        public QuestionAnsweringModule QA { get { return getValue(_qa); } }
+        public HeuristicQAModule QA { get { return getValue(_qa); } }
 
         /// <summary>
         /// Available advice.
         /// </summary>
-        public ParsedExpression Advice { get { return getValue(_advice); } }
+        public ParsedUtterance Advice { get { return getValue(_advice); } }
 
         /// <summary>
         /// Available question.
         /// </summary>
-        public ParsedExpression Question { get { return getValue(_question); } }
+        public ParsedUtterance Question { get { return getValue(_question); } }
 
         /// <summary>
         /// Available unknown question.
         /// </summary>
-        public ParsedExpression UnknownQuestion { get { return getValue(_unknownQuestion); } }
+        public ParsedUtterance UnknownQuestion { get { return getValue(_unknownQuestion); } }
 
         /// <summary>
         /// Possible candidate for equivalence.
         /// </summary>
-        public ParsedExpression EquivalenceCandidate { get { return getValue(_equivalenceCandidate); } }
+        public ParsedUtterance EquivalenceCandidate { get { return getValue(_equivalenceCandidate); } }
 
         /// <summary>
         /// Determine whether question on difference word has been asked.
@@ -102,15 +102,15 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
 
         private static readonly StateProperty<bool> _isUserWelcomed;
 
-        private static readonly StateProperty<QuestionAnsweringModule> _qa;
+        private static readonly StateProperty<HeuristicQAModule> _qa;
 
-        private static readonly StateProperty<ParsedExpression> _advice;
+        private static readonly StateProperty<ParsedUtterance> _advice;
 
-        private static readonly StateProperty<ParsedExpression> _question;
+        private static readonly StateProperty<ParsedUtterance> _question;
 
-        private static readonly StateProperty<ParsedExpression> _unknownQuestion;
+        private static readonly StateProperty<ParsedUtterance> _unknownQuestion;
 
-        private static readonly StateProperty<ParsedExpression> _equivalenceCandidate;
+        private static readonly StateProperty<ParsedUtterance> _equivalenceCandidate;
 
         private static readonly StateProperty<bool> _differenceWordQuestioned;
 
@@ -138,7 +138,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
             initialize(ref _confirmValue, "ConfirmValue");
         }
 
-        internal DialogState(QuestionAnsweringModule qa)
+        internal DialogState(HeuristicQAModule qa)
         {
             _propertyToValue = new Dictionary<object, object>();
             _qa.SetValue(_propertyToValue, qa);
@@ -157,7 +157,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
         /// </summary>
         /// <param name="advice">Advice for new state.</param>
         /// <returns>The new state.</returns>
-        internal DialogState WithAdvice(ParsedExpression advice)
+        internal DialogState WithAdvice(ParsedUtterance advice)
         {
             return newStateWithValue(_advice, advice);
         }
@@ -177,7 +177,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
         /// </summary>
         /// <param name="unknownQuestion">Unknown question for new state.</param>
         /// <returns>The new state.</returns>
-        internal DialogState WithUnknownQuestion(ParsedExpression unknownQuestion)
+        internal DialogState WithUnknownQuestion(ParsedUtterance unknownQuestion)
         {
             return newStateWithValue(_unknownQuestion, unknownQuestion);
         }
@@ -187,7 +187,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
         /// </summary>
         /// <param name="question">Question for new state.</param>
         /// <returns>The new state.</returns>
-        internal DialogState WithQuestion(ParsedExpression question)
+        internal DialogState WithQuestion(ParsedUtterance question)
         {
             return newStateWithValue(_question, question);
         }
@@ -207,7 +207,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
         /// </summary>
         /// <param name="equivalenceCandidate">Equivalence candidate for new state.</param>
         /// <returns>The new state.</returns>
-        internal DialogState WithEquivalenceCandidate(ParsedExpression equivalenceCandidate)
+        internal DialogState WithEquivalenceCandidate(ParsedUtterance equivalenceCandidate)
         {
             return newStateWithValue(_equivalenceCandidate, equivalenceCandidate);
         }

@@ -26,7 +26,7 @@ namespace WebBackend
         /// <summary>
         /// Mapping of QA modules according to their storages
         /// </summary>
-        private static readonly Dictionary<string, QuestionAnsweringModule> _questionAnsweringModules = new Dictionary<string, QuestionAnsweringModule>();
+        private static readonly Dictionary<string, HeuristicQAModule> _questionAnsweringModules = new Dictionary<string, HeuristicQAModule>();
 
         private readonly StateDialogManager _manager;
 
@@ -64,7 +64,7 @@ namespace WebBackend
         {
             lock (_L_qa_index)
             {
-                QuestionAnsweringModule qa;
+                HeuristicQAModule qa;
                 if (storageFullPath == null)
                 {
                     qa = createQAModule(null);
@@ -78,9 +78,9 @@ namespace WebBackend
             }
         }
 
-        private static QuestionAnsweringModule createQAModule(string storageFullPath)
+        private static HeuristicQAModule createQAModule(string storageFullPath)
         {
-            var qa = new QuestionAnsweringModule(Program.Graph, new CallStorage(storageFullPath));
+            var qa = new HeuristicQAModule(Program.Graph, new CallStorage(storageFullPath));
             return qa;
         }
 

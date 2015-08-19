@@ -136,7 +136,7 @@ namespace KnowledgeDialog.PoolComputation
             return getResponse(UtteranceParser.Parse(utterance));
         }
 
-        private ResponseBase getResponse(ParsedExpression utterance)
+        private ResponseBase getResponse(ParsedUtterance utterance)
         {
             var responses = new List<ModifiableResponse>();
             var originalUtterance = utterance.OriginalSentence;
@@ -209,11 +209,11 @@ namespace KnowledgeDialog.PoolComputation
             return null;
         }
 
-        private string substitute(ParsedExpression pattern, ParsedExpression utterance)
+        private string substitute(ParsedUtterance pattern, ParsedUtterance utterance)
         {
             var patternNodes = _context.QuestionAnsweringModule.GetPatternNodes(pattern);
             var utteranceNodes = _context.QuestionAnsweringModule.GetRelatedNodes(utterance).ToArray();
-            var substitutions = QuestionAnsweringModule.GetSubstitutions(utteranceNodes, patternNodes, _context.Graph);
+            var substitutions = HeuristicQAModule.GetSubstitutions(utteranceNodes, patternNodes, _context.Graph);
 
             var result = repairSpelling(pattern.OriginalSentence);
             foreach (var patternNode in patternNodes)
@@ -276,7 +276,7 @@ namespace KnowledgeDialog.PoolComputation
             return getResponse(originalUtterance);
         }
 
-        public ResponseBase Input(ParsedExpression utterance)
+        public ResponseBase Input(ParsedUtterance utterance)
         {
             return getResponse(utterance);
         }

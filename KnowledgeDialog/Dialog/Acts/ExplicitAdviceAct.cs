@@ -8,11 +8,11 @@ namespace KnowledgeDialog.Dialog.Acts
 {
     class ExplicitAdviceAct : DialogActBase
     {
-        internal readonly ParsedExpression Question;
+        internal readonly ParsedUtterance Question;
 
-        internal readonly ParsedExpression Answer;
+        internal readonly ParsedUtterance Answer;
 
-        internal ExplicitAdviceAct(ParsedExpression question, ParsedExpression advice)
+        internal ExplicitAdviceAct(ParsedUtterance question, ParsedUtterance advice)
         {
             Question = question;
             Answer = advice;

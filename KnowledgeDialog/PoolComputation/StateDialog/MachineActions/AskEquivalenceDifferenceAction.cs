@@ -25,7 +25,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
             SetDifferenceWordQuestion(true);
         }
 
-        private string getImportantDifferenceWord(ParsedExpression utterance1, ParsedExpression utterance2)
+        private string getImportantDifferenceWord(ParsedUtterance utterance1, ParsedUtterance utterance2)
         {
             var utteranceWords1 = new HashSet<string>(utterance1.Words);
             var utteranceWords2 = new HashSet<string>(utterance2.Words);

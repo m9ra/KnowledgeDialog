@@ -10,6 +10,6 @@ namespace KnowledgeDialog.Dialog
     {
         ResponseBase Initialize();
 
-        ResponseBase Input(ParsedExpression utterance);
+        ResponseBase Input(ParsedUtterance utterance);
     }
 }

@@ -76,7 +76,7 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
 
         #region State handling
 
-        protected void SetAdvice(ParsedExpression advice)
+        protected void SetAdvice(ParsedUtterance advice)
         {
             Output = Output.WithAdvice(advice);
         }
@@ -86,12 +86,12 @@ namespace KnowledgeDialog.PoolComputation.StateDialog
             Output = Output.WithConfirm(confirmValue);
         }
 
-        protected void SetUnknownQuestion(ParsedExpression question)
+        protected void SetUnknownQuestion(ParsedUtterance question)
         {
             Output = Output.WithUnknownQuestion(question);
         }
 
-        protected void SetQuestion(ParsedExpression question)
+        protected void SetQuestion(ParsedUtterance question)
         {
             Output = Output.WithQuestion(question);
         }

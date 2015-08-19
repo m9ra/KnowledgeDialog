@@ -37,13 +37,13 @@ namespace KnowledgeDialog.PoolComputation.StateDialog.MachineActions
             RemoveUnknownQuestion();
         }
 
-        private void acceptAdvice(ParsedExpression question, ParsedExpression advice, bool isBasedOnContext)
+        private void acceptAdvice(ParsedUtterance question, ParsedUtterance advice, bool isBasedOnContext)
         {
             var adviceNode = InputState.QA.Graph.GetNode(advice.OriginalSentence);
             InputState.QA.AdviceAnswer(question.OriginalSentence, isBasedOnContext, adviceNode);
         }
 
-        private bool hasContextIndicator(ParsedExpression question)
+        private bool hasContextIndicator(ParsedUtterance question)
         {
             foreach (var word in question.Words)
             {

@@ -15,5 +15,17 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
         internal readonly PoolRuleBase Rule;
 
         internal readonly MappingContext PostContext;
+
+        /// <summary>
+        /// Initializes context rule, with given rule and empty context.
+        /// </summary>
+        /// <param name="rule">Initializing rule.</param>
+        internal ContextRule(PoolRuleBase rule)
+        {
+            Rule = rule;
+
+            PreContext = MappingContext.Empty;
+            PostContext = MappingContext.Empty;
+        }
     }
 }

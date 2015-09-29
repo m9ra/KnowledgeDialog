@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 {
-    class ScoredRuleMapping
+    /// <summary>
+    /// Mapping from features to <see cref="ContextRule"/>s
+    /// </summary>
+    class ContextRuleMapping
     {
     }
 }

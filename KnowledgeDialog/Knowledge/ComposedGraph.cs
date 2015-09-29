@@ -28,6 +28,12 @@ namespace KnowledgeDialog.Knowledge
         #endregion
 
         /// <summary>
+        /// Concrete value of the is relation.
+        /// TODO: make it dependent on layerbases.
+        /// </summary>
+        public readonly string IsEdge= "P31";
+
+        /// <summary>
         /// Layers that are contained within the graph.
         /// </summary>
         private readonly GraphLayerBase[] _layers;
@@ -245,7 +251,7 @@ namespace KnowledgeDialog.Knowledge
                 var nextLayer = new List<NodeReference>();
                 foreach (var node in currentLayer)
                 {
-                    var targets = Targets(node, part.Item1,part.Item2).ToArray();
+                    var targets = Targets(node, part.Item1, part.Item2).ToArray();
                     nextLayer.AddRange(targets);
                 }
 

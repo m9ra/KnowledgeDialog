@@ -33,6 +33,9 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
 
             //index features
             _features = new List<FeatureInstance>[maxIndex + 1];
+            for (var i = 0; i < _features.Length; ++i)
+                _features[i] = new List<FeatureInstance>();
+
             foreach (var feature in features)
             {
                 foreach (var position in feature.CoveredPositions)

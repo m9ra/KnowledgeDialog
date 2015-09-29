@@ -8,5 +8,13 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 {
     class Interpretation
     {
+        private readonly PoolRuleBase[] _rules;
+
+        internal IEnumerable<PoolRuleBase> Rules { get { return _rules; } }
+
+        internal Interpretation(IEnumerable<PoolRuleBase> rules)
+        {
+            _rules = rules.ToArray();
+        }
     }
 }

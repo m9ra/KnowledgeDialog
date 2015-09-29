@@ -20,12 +20,16 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
     {
         private readonly List<FeatureGeneratorBase> _generators = new List<FeatureGeneratorBase>();
 
-        private readonly FeatureMapping _mapping = new FeatureMapping();
+        private readonly FeatureMapping _mapping;
 
 
         internal MappedQAModule(ComposedGraph graph, CallStorage storage)
             : base(graph, storage)
         {
+            _generators.Add(new SimpleFeatureGenerator());
+            _generators.Add(new UnigramFeatureGenerator());
+
+            _mapping = new FeatureMapping(graph);
         }
 
         #region Template methods
@@ -67,14 +71,19 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
             var features = createFeatures(expression);
             var covers = getFeatureCovers(expression);
 
-            var allScoredMappings = new List<ScoredRuleMapping>();
+            var allRankedMappings = new List<Ranked<ContextRuleMapping>>();
             foreach (var cover in covers)
             {
-                var scoredMappings = _mapping.GetScoredMappings(cover);
-                allScoredMappings.AddRange(scoredMappings);
+                var rankedMappings = _mapping.GetRankedMappings(cover);
+                allRankedMappings.AddRange(rankedMappings);
             }
 
             throw new NotImplementedException();
+        }
+
+        internal void Optimize()
+        {
+            _mapping.Optimize();
         }
 
         #region Mapping creation
@@ -115,12 +124,12 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
                 //there are no possible covers
                 return new FeatureCover[0];
 
-            if (index.Length == currentPosition)
+            if (index.Length - 1 == currentPosition)
             {
                 //we are at bottom of recursion
                 //we will initiate covers that will be extended later through the recursion
 
-                var newCovers=new List<FeatureCover>();
+                var newCovers = new List<FeatureCover>();
                 foreach (var feature in index.GetFeatures(currentPosition))
                 {
                     var cover = new FeatureCover(feature);
@@ -145,5 +154,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
         }
 
         #endregion
+
+
     }
 }

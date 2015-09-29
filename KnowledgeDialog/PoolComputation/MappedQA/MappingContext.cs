@@ -8,5 +8,14 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
 {
     class MappingContext
     {
+        public static readonly MappingContext Empty = new MappingContext();
+
+        /// <summary>
+        /// Initializes empty context.
+        /// </summary>
+        private MappingContext()
+        {
+
+        }
     }
 }

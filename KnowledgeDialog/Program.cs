@@ -28,6 +28,7 @@ namespace KnowledgeDialog
             var qa = new PoolComputation.MappedQA.MappedQAModule(graph, new CallStorage(null));
 
             qa.AdviceAnswer("Who is United States of America president?", false, graph.GetNode("Barack Obama"));
+            qa.Optimize();
         }
 
         private static void ExplicitStateDialog(string dbPath)

@@ -112,9 +112,13 @@
     <Compile Include="PoolComputation\MappedQA\PoolRules\Interpretation.cs" />
     <Compile Include="PoolComputation\MappedQA\PoolRules\InterpretationDecomposition.cs" />
     <Compile Include="PoolComputation\MappedQA\PoolRules\InterpretationsFactory.cs" />
+    <Compile Include="PoolComputation\MappedQA\PoolRules\NodeBit.cs" />
     <Compile Include="PoolComputation\MappedQA\PoolRules\OptimizedEntry.cs" />
     <Compile Include="PoolComputation\MappedQA\PoolRules\PoolRuleBase.cs" />
     <Compile Include="PoolComputation\MappedQA\PoolRules\ContextRuleMapping.cs" />
+    <Compile Include="PoolComputation\MappedQA\PoolRules\RuleBitBase.cs" />
+    <Compile Include="PoolComputation\MappedQA\PoolRules\RuleHead.cs" />
+    <Compile Include="PoolComputation\MappedQA\PoolRules\RulePart.cs" />
     <Compile Include="PoolComputation\MappedQA\PoolRules\TransformPoolRule.cs" />
     <Compile Include="PoolComputation\MappingControl.cs" />
     <Compile Include="PoolComputation\NodesEnumeration.cs" />

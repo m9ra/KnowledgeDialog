@@ -16,5 +16,12 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
         {
             _startNode = startNode;
         }
+
+        /// <inheritdoc/>
+        protected override IEnumerable<RuleBitBase> getRuleBits()
+        {
+            yield return new RuleHead("Transform");
+            yield return new NodeBit(_startNode);
+        }
     }
 }

@@ -6,10 +6,6 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 {
-    class RulePart
-    {
-    }
-
     class InterpretationDecomposition
     {
         internal readonly IEnumerable<RulePart> Parts;

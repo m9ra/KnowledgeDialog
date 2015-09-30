@@ -114,8 +114,8 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
                     foreach (var cover in entry.Covers)
                     {
                         //score, how good are features matching to the rules
-                        var rankedMappings = getRankedMappings(cover, rankedInterpretation);
-                        entryRankedRules.AddRange(rankedMappings);
+                        var rankedMapping = getRankedMapping(cover, rankedInterpretation);
+                        entryRankedRules.Add(rankedMapping);
                     }
 
                     foreach (var rankedRule in entryRankedRules)
@@ -147,28 +147,22 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
             return new Ranked<Interpretation>(interpretation, generalizationAbility);
         }
 
-        private IEnumerable<Ranked<ContextRuleMapping>> getRankedMappings(FeatureCover cover, Ranked<Interpretation> rankedInterpretation)
+        private Ranked<ContextRuleMapping> getRankedMapping(FeatureCover cover, Ranked<Interpretation> rankedInterpretation)
         {
-            var result = new List<Ranked<ContextRuleMapping>>();
-
-            var ruleDecompositions = createInterpretationDecompositions(rankedInterpretation.Value);
-            foreach (var ruleDecomposition in ruleDecompositions)
+            var ruleDecomposition = createInterpretationDecompositions(rankedInterpretation.Value);
+            //assign rule parts to features
+            var assignments = new Dictionary<RulePart, FeatureBase>();
+            foreach (var rulePart in ruleDecomposition.Parts)
             {
-                //assign rule parts to features
-                var assignments = new Dictionary<RulePart, FeatureBase>();
-                foreach (var rulePart in ruleDecomposition.Parts)
-                {
-                    var bestFeature = getBestFeature(rulePart, cover);
-                    assignments[rulePart] = bestFeature;
-                }
-
-                var rankedMapping = createRankedContextRuleMapping(assignments);
-
-                //rerank with interpretation ranking
-                result.Add(new Ranked<ContextRuleMapping>(rankedMapping.Value, rankedMapping.Rank * rankedInterpretation.Rank));
+                var bestFeature = getBestFeature(rulePart, cover);
+                assignments[rulePart] = bestFeature;
             }
 
-            return result;
+            var rankedMapping = createRankedContextRuleMapping(assignments);
+
+            //rerank with interpretation ranking
+            var rerankedMapping = new Ranked<ContextRuleMapping>(rankedMapping.Value, rankedMapping.Rank * rankedInterpretation.Rank);
+            return rerankedMapping;
         }
 
         private FeatureBase getBestFeature(RulePart rulePart, FeatureCover cover)
@@ -198,9 +192,15 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
             return Math.Log(coocurenceProbability / (ruleProbability * featureProbability));
         }
 
-        private IEnumerable<InterpretationDecomposition> createInterpretationDecompositions(Interpretation interpretation)
+        private InterpretationDecomposition createInterpretationDecompositions(Interpretation interpretation)
         {
-            throw new NotImplementedException();
+            var ruleParts = new List<RulePart>();
+            foreach (var rule in interpretation.Rules)
+            {
+                ruleParts.AddRange(rule.Parts);
+            }
+
+            return new InterpretationDecomposition(ruleParts);
         }
 
         private Ranked<ContextRuleMapping> createRankedContextRuleMapping(Dictionary<RulePart, FeatureBase> assignments)

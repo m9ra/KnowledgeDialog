@@ -14,5 +14,10 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
         {
             _composedRules = composedRules.ToArray();
         }
+
+        protected override IEnumerable<RuleBitBase> getRuleBits()
+        {
+            return _composedRules.SelectMany(r => r.RuleBits);
+        }
     }
 }

@@ -53,7 +53,25 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
         /// </summary>
         private readonly Dictionary<RulePart, int> _registeredRuleParts = new Dictionary<RulePart, int>();
 
+        /// <summary>
+        /// Every pair with zero count has to be removed.
+        /// </summary>
+        private readonly Dictionary<Tuple<RulePart, FeatureBase>, int> _registeredRulePartFeaturePairs = new Dictionary<Tuple<RulePart, FeatureBase>, int>();
+
+        /// <summary>
+        /// Knowledge graph used for mapping.
+        /// </summary>
         internal readonly ComposedGraph Graph;
+
+        /// <summary>
+        /// Constant that is used for stabilization of math operations.
+        /// </summary>
+        internal readonly double StabilizationConstant = 0.0001;
+
+        /// <summary>
+        /// How much of heuristic probability is used for feature and rule mapping.
+        /// </summary>
+        internal readonly double HeuristicProbabilityWeight = 0.2;
 
         internal FeatureMapping(ComposedGraph graph)
         {
@@ -189,7 +207,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
             var featureProbability = P(featureInstance.Feature);
             var coocurenceProbability = P(rulePart, featureInstance.Feature);
 
-            return Math.Log(coocurenceProbability / (ruleProbability * featureProbability));
+            return Math.Log(coocurenceProbability / (ruleProbability * featureProbability + StabilizationConstant) + StabilizationConstant);
         }
 
         private InterpretationDecomposition createInterpretationDecompositions(Interpretation interpretation)
@@ -204,6 +222,66 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
         }
 
         private Ranked<ContextRuleMapping> createRankedContextRuleMapping(Dictionary<RulePart, FeatureBase> assignments)
+        {
+            var partClusters = getPartClusters(assignments);
+            var referencedPartClusters = getReferencedPartClusters(partClusters);
+
+            var featuresToRules = new Dictionary<FeatureBase, ContextRule>();
+            foreach (var referencedPart in referencedPartClusters)
+            {
+                var contextRule = createContextRule(referencedPart);
+                featuresToRules.Add(referencedPart.Feature, contextRule);
+            }
+
+            var mapping = new ContextRuleMapping(featuresToRules);
+            return Rank(mapping);
+        }
+
+        private IEnumerable<PartCluster> getPartClusters(Dictionary<RulePart, FeatureBase> assignments)
+        {
+            var featureToParts = new Dictionary<FeatureBase, List<RulePart>>();
+            foreach (var featurePair in assignments)
+            {
+                var feature = featurePair.Value;
+                var part = featurePair.Key;
+
+                List<RulePart> parts;
+                if (!featureToParts.TryGetValue(feature, out parts))
+                    featureToParts[feature] = parts = new List<RulePart>();
+
+                parts.Add(part);
+            }
+
+            var clusters = new List<PartCluster>();
+            foreach (var feature in featureToParts.Keys)
+            {
+                var partCluster = new PartCluster(feature, featureToParts[feature]);
+                clusters.Add(partCluster);
+            }
+
+            return clusters;
+        }
+
+        private IEnumerable<ReferencedPartCluster> getReferencedPartClusters(IEnumerable<PartCluster> partClusters)
+        {
+            var referencedPartClusters = new List<ReferencedPartCluster>();
+
+            foreach (var partCluster in partClusters)
+            {
+                var referencedPartCluster = new ReferencedPartCluster(partCluster);
+
+                referencedPartClusters.Add(referencedPartCluster);
+            }
+
+            return referencedPartClusters;
+        }
+
+        private ContextRule createContextRule(ReferencedPartCluster referencedPartCluster)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal Ranked<ContextRuleMapping> Rank(ContextRuleMapping mapping)
         {
             throw new NotImplementedException();
         }
@@ -244,13 +322,20 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
 
         private double P(RulePart rule, FeatureBase feature)
         {
-            var coocurenceCount = 0;
+            int coocurenceCount;
             int featureCount;
             _registeredFeatures.TryGetValue(feature, out featureCount);
+            _registeredRulePartFeaturePairs.TryGetValue(Tuple.Create(rule, feature), out coocurenceCount);
 
             var pModel = 1.0 * coocurenceCount / (1 + featureCount);
 
-            throw new NotImplementedException("compute coocurence and add heuristic model");
+            var heuristicModel = P_Heuristic(rule, feature);
+            return HeuristicProbabilityWeight * heuristicModel + (1.0 - HeuristicProbabilityWeight) * pModel;
+        }
+
+        private double P_Heuristic(RulePart rule, FeatureBase feature)
+        {
+            return feature.Probability(rule);
         }
 
         #endregion

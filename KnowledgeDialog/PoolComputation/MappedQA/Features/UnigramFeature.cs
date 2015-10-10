@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.PoolComputation.MappedQA.PoolRules;
+
 namespace KnowledgeDialog.PoolComputation.MappedQA.Features
 {
     class UnigramFeature : FeatureBase
@@ -29,6 +31,19 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
                 return false;
 
             return Word.Equals(uF.Word);
+        }
+
+        protected override double probability(RulePart part)
+        {
+            var nodeBit = part.RuleBit as NodeBit;
+            if (nodeBit == null)
+                return 0;
+
+            var nodeData=nodeBit.Node.Data.ToString();
+            if (nodeData == Word)
+                return 1.0;
+
+            return 0.0;
         }
     }
 }

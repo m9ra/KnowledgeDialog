@@ -14,6 +14,9 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
         internal NodeBit(NodeReference node)
         {
+            if (node == null)
+                throw new ArgumentNullException("node");
+
             Node = node;
         }
 

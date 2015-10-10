@@ -12,8 +12,13 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
         internal readonly RuleBitBase RuleBit;
 
+        internal readonly int PartIndex;
+
         internal RulePart(RulePart previousPart, RuleBitBase ruleBit)
         {
+            if (previousPart != null)
+                PartIndex = previousPart.PartIndex + 1;
+
             PreviousPart = previousPart;
             RuleBit = ruleBit;
         }

@@ -11,5 +11,10 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
     /// </summary>
     class ContextRuleMapping
     {
+
+        public ContextRuleMapping(Dictionary<Features.FeatureBase, ContextRule> featuresToRules)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

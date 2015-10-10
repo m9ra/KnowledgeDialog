@@ -101,6 +101,8 @@
     <Compile Include="PoolComputation\MappedQA\Features\FeatureCover.cs" />
     <Compile Include="PoolComputation\MappedQA\Features\FeatureGeneratorBase.cs" />
     <Compile Include="PoolComputation\MappedQA\Features\FeatureIndex.cs" />
+    <Compile Include="PoolComputation\MappedQA\Features\PartCluster.cs" />
+    <Compile Include="PoolComputation\MappedQA\Features\ReferencedPartCluster.cs" />
     <Compile Include="PoolComputation\MappedQA\Features\SimpleFeature.cs" />
     <Compile Include="PoolComputation\MappedQA\Features\SimpleFeatureGenerator.cs" />
     <Compile Include="PoolComputation\MappedQA\Features\UnigramFeature.cs" />

@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Dialog.Parsing;
 
+using KnowledgeDialog.PoolComputation.MappedQA.PoolRules;
+
 namespace KnowledgeDialog.PoolComputation.MappedQA.Features
 {
     abstract class FeatureBase
@@ -14,6 +16,8 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
         abstract protected int getHashCode();
 
         abstract protected bool equals(FeatureBase featureBase);
+
+        abstract protected double probability(RulePart part);
 
         public override int GetHashCode()
         {
@@ -31,6 +35,13 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
 
             return equals(f);
         }
+
+        internal protected double Probability(RulePart part)
+        {
+            return probability(part);
+        }
+
+
     }
 
     class FeatureInstance

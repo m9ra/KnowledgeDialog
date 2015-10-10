@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using KnowledgeDialog.Dialog;
+using KnowledgeDialog.PoolComputation.MappedQA.PoolRules;
 
 namespace KnowledgeDialog.PoolComputation.MappedQA.Features
 {
@@ -31,6 +32,11 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
                 return false;
 
             return _utterance.Equals(uF._utterance);
+        }
+
+        protected override double probability(RulePart part)
+        {
+            throw new NotImplementedException();
         }
     }
 }

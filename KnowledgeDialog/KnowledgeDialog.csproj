@@ -127,6 +127,11 @@
     <Compile Include="PoolComputation\NodesSubstitution.cs" />
     <Compile Include="PoolComputation\PoolActions\ExtendAction.cs" />
     <Compile Include="PoolComputation\PoolActions\InsertAction.cs" />
+    <Compile Include="PoolComputation\ProbabilisticQA\InterpretationCounter.cs" />
+    <Compile Include="PoolComputation\ProbabilisticQA\InterpretationGenerator.cs" />
+    <Compile Include="PoolComputation\ProbabilisticQA\ProbabilisticQAModule.cs" />
+    <Compile Include="PoolComputation\ProbabilisticQA\RuledInterpretation.cs" />
+    <Compile Include="PoolComputation\ProbabilisticQA\ProbabilisticMapping.cs" />
     <Compile Include="PoolComputation\ProcessingContext.cs" />
     <Compile Include="PoolComputation\QuestionAnsweringModuleBase.cs" />
     <Compile Include="PoolComputation\HeuristicQAModule.cs" />

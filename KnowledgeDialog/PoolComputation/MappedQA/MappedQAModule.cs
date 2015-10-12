@@ -18,17 +18,12 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
 {
     class MappedQAModule : QuestionAnsweringModuleBase
     {
-        private readonly List<FeatureGeneratorBase> _generators = new List<FeatureGeneratorBase>();
-
         private readonly FeatureMapping _mapping;
 
 
         internal MappedQAModule(ComposedGraph graph, CallStorage storage)
             : base(graph, storage)
         {
-            _generators.Add(new SimpleFeatureGenerator());
-            _generators.Add(new UnigramFeatureGenerator());
-
             _mapping = new FeatureMapping(graph);
         }
 
@@ -40,8 +35,8 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
 
             var interpretationsFactory = getInterpretationsFactory(parsedQuestion, isBasedOnContext, correctAnswerNode, context);
 
-            var features = createFeatures(parsedQuestion);
-            var covers = getFeatureCovers(parsedQuestion);
+            var covers = FeatureCover.GetFeatureCovers(parsedQuestion);
+
             _mapping.Add(interpretationsFactory, covers);
 
             //TODO decide whether it would be benefitial to report that
@@ -68,8 +63,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
 
         internal NodeReference GetAnswer(ParsedUtterance expression)
         {
-            var features = createFeatures(expression);
-            var covers = getFeatureCovers(expression);
+            var covers = FeatureCover.GetFeatureCovers(expression);
 
             var allRankedMappings = new List<Ranked<ContextRuleMapping>>();
             foreach (var cover in covers)
@@ -96,64 +90,6 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
 
         #endregion
 
-        #region Expression mapping
-
-
-        private IEnumerable<FeatureInstance> createFeatures(ParsedUtterance expression)
-        {
-            var features = new HashSet<FeatureInstance>();
-            foreach (var generator in _generators)
-            {
-                features.UnionWith(generator.GenerateFeatures(expression));
-            }
-
-            return features;
-        }
-
-        private IEnumerable<FeatureCover> getFeatureCovers(ParsedUtterance expression)
-        {
-            var features = createFeatures(expression);
-            var index = new FeatureIndex(features);
-
-            return generateCovers(index, 0);
-        }
-
-        private IEnumerable<FeatureCover> generateCovers(FeatureIndex index, int currentPosition)
-        {
-            if (index.Length == 0)
-                //there are no possible covers
-                return new FeatureCover[0];
-
-            if (index.Length - 1 == currentPosition)
-            {
-                //we are at bottom of recursion
-                //we will initiate covers that will be extended later through the recursion
-
-                var newCovers = new List<FeatureCover>();
-                foreach (var feature in index.GetFeatures(currentPosition))
-                {
-                    var cover = new FeatureCover(feature);
-                    newCovers.Add(cover);
-                }
-
-                return newCovers;
-            }
-
-            //extend covers that we got from deeper recursion
-            var previousCovers = generateCovers(index, currentPosition + 1);
-            var extendedCovers = new List<FeatureCover>();
-            foreach (var cover in previousCovers)
-            {
-                foreach (var feature in index.GetFeatures(currentPosition))
-                {
-                    extendedCovers.AddRange(cover.Extend(feature));
-                }
-            }
-
-            return extendedCovers;
-        }
-
-        #endregion
 
 
     }

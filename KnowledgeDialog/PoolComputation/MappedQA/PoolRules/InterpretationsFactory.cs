@@ -12,6 +12,8 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 {
     class InterpretationsFactory
     {
+        internal static readonly int MaxSearchWidth = 100;
+
         internal readonly NodeReference CorrectAnswerNode;
 
         private Dialog.ParsedUtterance parsedQuestion;
@@ -55,6 +57,10 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
         private readonly HashSet<NodeReference> _selectedNodes = new HashSet<NodeReference>();
 
+        private readonly HashSet<NodeReference> _visitedNodes = new HashSet<NodeReference>();
+
+        private readonly Stack<PathSegment> _segmentsToVisit = new Stack<PathSegment>();
+
         internal IEnumerable<NodeReference> SelectedNodes { get { return _selectedNodes; } }
 
         internal IEnumerable<PoolRuleBase> Rules { get { return _rules; } }
@@ -67,6 +73,8 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
         internal bool MoveNext()
         {
+            //only at the begining there are no rules available
+            var isBegining = _rules.Count == 0;
 
             _rules.Clear();
             _selectedNodes.Clear();
@@ -76,20 +84,43 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
                 return false;
             }
 
-            //only at the begining there are no rules available
-            var isBegining = _rules.Count == 0;
             if (isBegining)
             {
                 //first simple rule is just inserting the correct answer node.
                 _rules.Add(new TransformPoolRule(_targetNode));
                 _selectedNodes.Add(_targetNode);
+
+                addChildren(_targetNode, null, _graph);
             }
             else
             {
-                throw new NotImplementedException();
+                if (_segmentsToVisit.Count == 0)
+                    //there are no other nodes
+                    return false;
+
+                var nextSegment = _segmentsToVisit.Pop();
+                addChildren(nextSegment.Node, nextSegment, _graph);
+
+                throw new NotImplementedException("Create interpretation");
             }
 
             return true;
+        }
+
+        private void addChildren(NodeReference node, PathSegment previousSegment, ComposedGraph graph)
+        {
+            foreach (var edgeTuple in graph.GetNeighbours(node, InterpretationsFactory.MaxSearchWidth))
+            {
+                var edge = edgeTuple.Item1;
+                var isOutcomming = edgeTuple.Item2;
+                var child = edgeTuple.Item3;
+
+                if (_visitedNodes.Contains(child))
+                    //we have already visited the node
+                    continue;
+
+                _segmentsToVisit.Push(new PathSegment(previousSegment, edge, isOutcomming, child));
+            }
         }
     }
 
@@ -120,15 +151,18 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
         internal bool MoveNext()
         {
+            //there is only one possibility - no other constraints are required.
+            var isBeginning = _selectedNodes.Count == 1;
+
             if (!_hasNextConstraints)
             {
                 _rules.Clear();
+                _selectedNodes.Clear();
                 return false;
             }
 
             if (_selectedNodes.Count == 1)
             {
-                //there is only one possibility - no other constraints are required.
                 _hasNextConstraints = false;
             }
             else

@@ -18,7 +18,17 @@ namespace KnowledgeDialog
             var parse = UtteranceParser.Parse("name of wife of Barack Obama president is Michelle Obama");
             //MultipleAdvice(args[0]);
             //ExplicitStateDialog(args[0]);
-            MappingQATest(args[0]);
+            ProbabilisticMappingQATest(args[0]);
+        }
+
+        private static void ProbabilisticMappingQATest(string dbPath)
+        {
+            var loader = loadDB(dbPath);
+            var graph = new ComposedGraph(loader.DataLayer);
+            var qa = new PoolComputation.ProbabilisticQA.ProbabilisticQAModule(graph, new CallStorage(null));
+
+            qa.AdviceAnswer("Who is United States of America president?", false, graph.GetNode("Barack Obama"));
+            qa.Optimize();
         }
 
         private static void MappingQATest(string dbPath)

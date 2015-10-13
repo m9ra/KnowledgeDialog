@@ -50,7 +50,7 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
             return reportNextIntepretation(generator);
         }
 
-        protected override void repairAnswer(string question, Knowledge.NodeReference suggestedAnswer, IEnumerable<NodeReference> context)
+        protected override void repairAnswer(string question, NodeReference suggestedAnswer, IEnumerable<NodeReference> context)
         {
             throw new NotImplementedException();
         }
@@ -89,7 +89,7 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
 
             foreach (var cover in generator.Covers)
             {
-                var ruledInterpretation =  new RuledInterpretation(interpretation, cover);
+                var ruledInterpretation = new RuledInterpretation(interpretation, cover);
                 _mapping.ReportInterpretation(cover, ruledInterpretation);
             }
 

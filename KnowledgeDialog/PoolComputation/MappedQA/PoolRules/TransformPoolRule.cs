@@ -10,18 +10,32 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 {
     class TransformPoolRule : PoolRuleBase
     {
-        private readonly NodeReference _startNode;
+        private readonly bool[] _isOutgoing;
 
-        internal TransformPoolRule(NodeReference startNode)
+        private readonly string[] _edges;
+
+        internal TransformPoolRule(PathSegment startingSegment)
         {
-            _startNode = startNode;
+            var isOutgoing = new List<bool>();
+            var edges = new List<string>();
+
+            var currentSegment = startingSegment;
+            while (currentSegment != null)
+            {
+                //collect path segments
+                isOutgoing.Add(currentSegment.IsOutcoming);
+                edges.Add(currentSegment.Edge);
+
+                currentSegment = currentSegment.PreviousSegment;
+            }
+
+            _isOutgoing = isOutgoing.ToArray();
+            _edges = edges.ToArray();
         }
 
-        /// <inheritdoc/>
         protected override IEnumerable<RuleBitBase> getRuleBits()
         {
-            yield return new RuleHead("Transform");
-            yield return new NodeBit(_startNode);
+            throw new NotImplementedException();
         }
     }
 }

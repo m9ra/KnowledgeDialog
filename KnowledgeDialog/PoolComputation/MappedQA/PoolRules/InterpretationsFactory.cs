@@ -47,8 +47,6 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
     class TopicSelector
     {
-        private bool _hasMoreRules = true;
-
         private readonly ComposedGraph _graph;
 
         private readonly NodeReference _targetNode;
@@ -56,8 +54,6 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
         private readonly List<PoolRuleBase> _rules = new List<PoolRuleBase>();
 
         private readonly HashSet<NodeReference> _selectedNodes = new HashSet<NodeReference>();
-
-        private readonly HashSet<NodeReference> _visitedNodes = new HashSet<NodeReference>();
 
         private readonly Stack<PathSegment> _segmentsToVisit = new Stack<PathSegment>();
 
@@ -69,42 +65,57 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
         {
             _graph = graph;
             _targetNode = targetNode;
+
+            _segmentsToVisit.Push(new PathSegment(null, null, false, _targetNode));
         }
 
         internal bool MoveNext()
         {
-            //only at the begining there are no rules available
-            var isBegining = _rules.Count == 0;
-
             _rules.Clear();
             _selectedNodes.Clear();
-            if (!_hasMoreRules)
-            {
+
+            if (_segmentsToVisit.Count == 0)
                 //there are no more topic rules available
                 return false;
-            }
 
-            if (isBegining)
-            {
-                //first simple rule is just inserting the correct answer node.
-                _rules.Add(new TransformPoolRule(_targetNode));
-                _selectedNodes.Add(_targetNode);
+            var nextSegment = _segmentsToVisit.Pop();
+            addChildren(nextSegment.Node, nextSegment, _graph);
 
-                addChildren(_targetNode, null, _graph);
-            }
-            else
-            {
-                if (_segmentsToVisit.Count == 0)
-                    //there are no other nodes
-                    return false;
-
-                var nextSegment = _segmentsToVisit.Pop();
-                addChildren(nextSegment.Node, nextSegment, _graph);
-
-                throw new NotImplementedException("Create interpretation");
-            }
+            _rules.AddRange(createRules(nextSegment));
+            _selectedNodes.UnionWith(findSelectedNodes(nextSegment));
 
             return true;
+        }
+
+        /// <summary>
+        /// Creates rules from given segment.
+        /// </summary>
+        /// <param name="segment"></param>
+        /// <returns></returns>
+        private IEnumerable<PoolRuleBase> createRules(PathSegment segment)
+        {
+            var insertedNode = segment.Node;
+
+            yield return new InsertPoolRule(insertedNode);
+
+            if (insertedNode != _targetNode)
+                //we are not inserting the target node
+                yield return new TransformPoolRule(segment);
+        }
+
+        private IEnumerable<NodeReference> findSelectedNodes(PathSegment segment)
+        {
+            if (segment.Node == _targetNode)
+                //we are just inserting the correct node.
+                return new[] { _targetNode };
+
+            var edges = segment.GetInvertedEdges();
+            var selectedNodes = _graph.GetForwardTargets(new[] { segment.Node }, edges);
+
+            if (!selectedNodes.Contains(_targetNode))
+                throw new NotSupportedException("Target node has to be present");
+
+            return selectedNodes;
         }
 
         private void addChildren(NodeReference node, PathSegment previousSegment, ComposedGraph graph)
@@ -115,8 +126,8 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
                 var isOutcomming = edgeTuple.Item2;
                 var child = edgeTuple.Item3;
 
-                if (_visitedNodes.Contains(child))
-                    //we have already visited the node
+                if (previousSegment != null && previousSegment.Contains(child))
+                    //the node has already been visited previously in the path
                     continue;
 
                 _segmentsToVisit.Push(new PathSegment(previousSegment, edge, isOutcomming, child));

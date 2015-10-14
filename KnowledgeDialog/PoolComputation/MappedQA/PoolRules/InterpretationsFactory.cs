@@ -47,26 +47,23 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
     class TopicSelector
     {
-        private readonly ComposedGraph _graph;
-
-        private readonly NodeReference _targetNode;
+        private readonly PathFactory _factory;
 
         private readonly List<PoolRuleBase> _rules = new List<PoolRuleBase>();
 
         private readonly HashSet<NodeReference> _selectedNodes = new HashSet<NodeReference>();
 
-        private readonly Stack<PathSegment> _segmentsToVisit = new Stack<PathSegment>();
+        internal int SelectedNodesCount { get { return _selectedNodes.Count; } }
 
         internal IEnumerable<NodeReference> SelectedNodes { get { return _selectedNodes; } }
 
         internal IEnumerable<PoolRuleBase> Rules { get { return _rules; } }
 
+        internal NodeReference TargetNode { get { return _factory.StartingNode; } }
+
         internal TopicSelector(ComposedGraph graph, NodeReference targetNode)
         {
-            _graph = graph;
-            _targetNode = targetNode;
-
-            _segmentsToVisit.Push(new PathSegment(null, null, false, _targetNode));
+            _factory = new PathFactory(targetNode, graph, InterpretationsFactory.MaxSearchWidth);
         }
 
         internal bool MoveNext()
@@ -74,12 +71,13 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
             _rules.Clear();
             _selectedNodes.Clear();
 
-            if (_segmentsToVisit.Count == 0)
+            if (!_factory.HasNextPath)
                 //there are no more topic rules available
                 return false;
 
-            var nextSegment = _segmentsToVisit.Pop();
-            addChildren(nextSegment.Node, nextSegment, _graph);
+
+
+            var nextSegment = _factory.GetNextSegment();
 
             _rules.AddRange(createRules(nextSegment));
             _selectedNodes.UnionWith(findSelectedNodes(nextSegment));
@@ -98,90 +96,168 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
             yield return new InsertPoolRule(insertedNode);
 
-            if (insertedNode != _targetNode)
+            if (insertedNode != _factory.StartingNode)
                 //we are not inserting the target node
                 yield return new TransformPoolRule(segment);
         }
 
         private IEnumerable<NodeReference> findSelectedNodes(PathSegment segment)
         {
-            if (segment.Node == _targetNode)
+            if (segment.Node == TargetNode)
                 //we are just inserting the correct node.
-                return new[] { _targetNode };
+                return new[] { TargetNode };
 
             var edges = segment.GetInvertedEdges();
-            var selectedNodes = _graph.GetForwardTargets(new[] { segment.Node }, edges);
+            var selectedNodes = _factory.Graph.GetForwardTargets(new[] { segment.Node }, edges);
 
-            if (!selectedNodes.Contains(_targetNode))
+            if (!selectedNodes.Contains(TargetNode))
                 throw new NotSupportedException("Target node has to be present");
 
             return selectedNodes;
         }
 
-        private void addChildren(NodeReference node, PathSegment previousSegment, ComposedGraph graph)
-        {
-            foreach (var edgeTuple in graph.GetNeighbours(node, InterpretationsFactory.MaxSearchWidth))
-            {
-                var edge = edgeTuple.Item1;
-                var isOutcomming = edgeTuple.Item2;
-                var child = edgeTuple.Item3;
 
-                if (previousSegment != null && previousSegment.Contains(child))
-                    //the node has already been visited previously in the path
-                    continue;
-
-                _segmentsToVisit.Push(new PathSegment(previousSegment, edge, isOutcomming, child));
-            }
-        }
     }
 
     class ConstraintSelector
     {
         private bool _hasNextConstraints = true;
 
-        private readonly ComposedGraph _graph;
+        private readonly PathFactory _factory;
 
-        private readonly NodeReference _targetNode;
+        /// <summary>
+        /// Sequence of rules which has been generated.
+        /// </summary>
+        private readonly List<PoolRuleBase[]> _ruleSequence = new List<PoolRuleBase[]>();
 
-        private readonly HashSet<NodeReference> _selectedNodes = new HashSet<NodeReference>();
+        private readonly HashSet<NodeReference> _originalRemainingNodes;
 
-        private readonly List<PoolRuleBase> _rules = new List<PoolRuleBase>();
+        private readonly List<HashSet<NodeReference>> _remainingNodes = new List<HashSet<NodeReference>>();
 
-        internal IEnumerable<PoolRuleBase> Rules { get { return _rules; } }
+        /// <summary>
+        /// Last index which was combined with the <see cref="_combinationRule"/>.
+        /// </summary>
+        private int _combinationIndex = 0;
+
+        /// <summary>
+        /// Rule which will be combined with the sequence.
+        /// </summary>
+        private PoolRuleBase[] _combinationRule = null;
+
+        private HashSet<NodeReference> _combinationNodes = null;
+
+        internal bool IsEnd { get { return _combinationIndex <= 0 && !_factory.HasNextPath; } }
+
+        internal ComposedGraph Graph { get { return _factory.Graph; } }
+
+        internal IEnumerable<PoolRuleBase> Rules { get { return _ruleSequence[_ruleSequence.Count - 1]; } }
 
         internal ConstraintSelector(ComposedGraph graph, NodeReference targetNode, IEnumerable<NodeReference> selectedNodes)
         {
-            _graph = graph;
-            _targetNode = targetNode;
-            _selectedNodes.UnionWith(selectedNodes);
+            _factory = new PathFactory(targetNode, graph, InterpretationsFactory.MaxSearchWidth);
 
-            if (!_selectedNodes.Contains(_targetNode))
+            if (!selectedNodes.Contains(targetNode))
                 throw new NotSupportedException("Cannot constraint nodes without target");
 
+            _originalRemainingNodes = new HashSet<NodeReference>(selectedNodes.Except(new[] { targetNode }));
+
+            MoveNext();
         }
 
         internal bool MoveNext()
         {
-            //there is only one possibility - no other constraints are required.
-            var isBeginning = _selectedNodes.Count == 1;
-
-            if (!_hasNextConstraints)
+            while (!IsEnd)
             {
-                _rules.Clear();
-                _selectedNodes.Clear();
-                return false;
+                if (tryFindNextConstraint())
+                    return true;
             }
 
-            if (_selectedNodes.Count == 1)
+            return false;
+        }
+
+        #region Constraint discovering
+
+        private bool tryFindNextConstraint()
+        {
+            --_combinationIndex;
+            if (_combinationIndex < 0)
             {
-                _hasNextConstraints = false;
+                //create new rule from next constraint path
+                var pathSegment = _factory.GetNextSegment();
+                var newRule = createRule(pathSegment);
+                var remainingNodes = findRemainingNodes(pathSegment);
+                addRule(newRule, remainingNodes);
+
+                //set combination for next rules
+                _combinationIndex = _ruleSequence.Count - 1;
+                _combinationRule = newRule;
+                _combinationNodes = remainingNodes;
             }
             else
             {
-                throw new NotImplementedException("Create complex constraints");
+                //combine with previous rule
+                var ruleToCombine = _ruleSequence[_combinationIndex];
+                var nodesToCombine = _remainingNodes[_combinationIndex];
+
+                var combinedRule = combineRules(_combinationRule, ruleToCombine);
+                var combinedNodes = combineNodes(_combinationNodes, nodesToCombine);
+
+                addRule(combinedRule, combinedNodes);
             }
 
-            return true;
+            //if there is no node remaining - we have found the constraint
+            return _remainingNodes[_remainingNodes.Count - 1].Count == 0;
         }
+
+        private PoolRuleBase[] combineRules(PoolRuleBase[] combinationRule, PoolRuleBase[] ruleToCombine)
+        {
+            var result = new PoolRuleBase[combinationRule.Length + ruleToCombine.Length];
+
+            for (var i = 0; i < combinationRule.Length; ++i)
+                result[i] = combinationRule[i];
+
+            for (var i = 0; i < ruleToCombine.Length; ++i)
+                result[i + combinationRule.Length] = ruleToCombine[i];
+
+            return result;
+        }
+
+        private HashSet<NodeReference> combineNodes(HashSet<NodeReference> combinationNodes, HashSet<NodeReference> nodesToCombine)
+        {
+            var smallerSet = combinationNodes.Count < nodesToCombine.Count ? combinationNodes : nodesToCombine;
+            var largerSet = smallerSet == combinationNodes ? nodesToCombine : combinationNodes;
+
+            var copy = new HashSet<NodeReference>(smallerSet);
+            copy.IntersectWith(largerSet);
+
+            return copy;
+        }
+
+        private HashSet<NodeReference> findRemainingNodes(PathSegment constraintPath)
+        {
+            var edges = constraintPath.GetInvertedEdges();
+            var selectedNodes = _factory.Graph.GetForwardTargets(new[] { constraintPath.Node }, edges);
+
+            //take only those remaining nodes which have been selected
+            var remainingNodes = new HashSet<NodeReference>(_originalRemainingNodes);
+            remainingNodes.IntersectWith(selectedNodes);
+            return remainingNodes;
+        }
+        #endregion
+
+        #region Private utilities
+
+        private void addRule(PoolRuleBase[] rules, HashSet<NodeReference> remainingNodes)
+        {
+            _ruleSequence.Add(rules);
+            _remainingNodes.Add(remainingNodes);
+        }
+
+        private PoolRuleBase[] createRule(PathSegment constraintPath)
+        {
+            return new PoolRuleBase[] { new ConstraintPoolRule(constraintPath) };
+        }
+
+        #endregion
     }
 }

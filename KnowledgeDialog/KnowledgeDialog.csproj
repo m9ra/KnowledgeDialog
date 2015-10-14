@@ -91,6 +91,7 @@
     <Compile Include="Knowledge\GraphLayerBase.cs" />
     <Compile Include="Knowledge\KnowledgePath.cs" />
     <Compile Include="Knowledge\NodeReference.cs" />
+    <Compile Include="Knowledge\PathFactory.cs" />
     <Compile Include="Knowledge\PathSegment.cs" />
     <Compile Include="PoolComputation\ActionBlock.cs" />
     <Compile Include="PoolComputation\AnswerReport.cs" />
@@ -111,6 +112,7 @@
     <Compile Include="PoolComputation\MappedQA\MappingContext.cs" />
     <Compile Include="PoolComputation\MappedQA\MappingOptimizer.cs" />
     <Compile Include="PoolComputation\MappedQA\PoolRules\CompositionPoolRule.cs" />
+    <Compile Include="PoolComputation\MappedQA\PoolRules\ConstraintPoolRule.cs" />
     <Compile Include="PoolComputation\MappedQA\PoolRules\Interpretation.cs" />
     <Compile Include="PoolComputation\MappedQA\PoolRules\InterpretationDecomposition.cs" />
     <Compile Include="PoolComputation\MappedQA\PoolRules\InterpretationsFactory.cs" />

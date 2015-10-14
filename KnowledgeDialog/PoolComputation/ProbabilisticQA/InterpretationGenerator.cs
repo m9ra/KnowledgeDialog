@@ -41,6 +41,10 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
 
         internal Interpretation GetNextInterpretation()
         {
+            if (_topicSelector.SelectedNodesCount == 1)
+                //TODO strategy for better topic selection
+                _topicSelector.MoveNext();
+
             while (!_currentConstraintSelector.MoveNext())
             {
                 if (!_topicSelector.MoveNext())

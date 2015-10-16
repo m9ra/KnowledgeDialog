@@ -33,6 +33,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
             return Word.Equals(uF.Word);
         }
 
+        /// <inheritdoc/>
         protected override double probability(RulePart part)
         {
             var nodeBit = part.RuleBit as NodeBit;
@@ -44,6 +45,12 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
                 return 1.0;
 
             return 0.0;
+        }
+
+        /// <inheritdoc/>
+        protected override void setMapping(FeatureInstance featureInstance, NodeMapping mapping)
+        {
+            //nothing to do
         }
     }
 }

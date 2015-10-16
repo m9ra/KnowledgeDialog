@@ -17,14 +17,31 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
         private readonly Interpretation _interpretation;
 
         /// <summary>
-        /// Cover which belongs to interpretation
+        /// Feature which belongs to interpretation
         /// </summary>
-        private readonly FeatureCover _cover;
+        internal readonly FeatureKey FeatureKey;
 
         public RuledInterpretation(Interpretation interpretation, FeatureCover cover)
         {
-            _interpretation = interpretation;
-            _cover = cover;
+            FeatureKey = cover.CreateFeatureKey();
+
+            _interpretation = interpretation.GeneralizeBy(cover);
+        }
+
+        /// <inheritdoc/>
+        public override bool Equals(object obj)
+        {
+            var o = obj as RuledInterpretation;
+            if (o == null)
+                return false;
+
+            return FeatureKey.Equals(o.FeatureKey) && _interpretation.Equals(o._interpretation);
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            return _interpretation.GetHashCode() + FeatureKey.GetHashCode();
         }
     }
 }

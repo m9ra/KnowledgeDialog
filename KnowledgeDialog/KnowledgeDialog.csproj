@@ -102,6 +102,8 @@
     <Compile Include="PoolComputation\MappedQA\Features\FeatureCover.cs" />
     <Compile Include="PoolComputation\MappedQA\Features\FeatureGeneratorBase.cs" />
     <Compile Include="PoolComputation\MappedQA\Features\FeatureIndex.cs" />
+    <Compile Include="PoolComputation\MappedQA\Features\FeatureKey.cs" />
+    <Compile Include="PoolComputation\MappedQA\Features\NodeMapping.cs" />
     <Compile Include="PoolComputation\MappedQA\Features\PartCluster.cs" />
     <Compile Include="PoolComputation\MappedQA\Features\ReferencedPartCluster.cs" />
     <Compile Include="PoolComputation\MappedQA\Features\SimpleFeature.cs" />
@@ -135,6 +137,7 @@
     <Compile Include="PoolComputation\ProbabilisticQA\ProbabilisticQAModule.cs" />
     <Compile Include="PoolComputation\ProbabilisticQA\RuledInterpretation.cs" />
     <Compile Include="PoolComputation\ProbabilisticQA\ProbabilisticMapping.cs" />
+    <Compile Include="PoolComputation\ProbabilisticQA\RankedInterpretations.cs" />
     <Compile Include="PoolComputation\ProcessingContext.cs" />
     <Compile Include="PoolComputation\QuestionAnsweringModuleBase.cs" />
     <Compile Include="PoolComputation\HeuristicQAModule.cs" />

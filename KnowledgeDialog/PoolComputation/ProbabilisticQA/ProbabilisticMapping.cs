@@ -13,9 +13,9 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
         /// <summary>
         /// Feature to interpretation counter.
         /// </summary>
-        private readonly Dictionary<FeatureCover, InterpretationCounter> _coverIndex = new Dictionary<FeatureCover, InterpretationCounter>();
+        private readonly Dictionary<FeatureKey, InterpretationCounter> _coverIndex = new Dictionary<FeatureKey, InterpretationCounter>();
 
-        internal void ReportInterpretation(FeatureCover cover, RuledInterpretation interpretation)
+        internal void ReportInterpretation(FeatureKey cover, RuledInterpretation interpretation)
         {
             InterpretationCounter counter;
             if (!_coverIndex.TryGetValue(cover, out counter))
@@ -26,13 +26,28 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
         }
 
 
-        internal RuledInterpretation GetBestInterpretation(FeatureCover feature)
+        internal Ranked<RuledInterpretation> GetRankedInterpretation(FeatureCover cover)
         {
             InterpretationCounter counter;
-            if (!_coverIndex.TryGetValue(feature, out counter))
+            if (!_coverIndex.TryGetValue(cover.CreateFeatureKey(), out counter))
                 return null;
 
-            return counter.BestInterpretation;
+            return new Ranked<RuledInterpretation>(counter.BestInterpretation,counter.BestInterpretationRank);
+        }
+
+        internal RankedInterpretations GetRankedInterpretations(IEnumerable<FeatureCover> covers)
+        {
+            var result = new RankedInterpretations();
+            foreach (var cover in covers)
+            {
+                var rankedInterpretation = GetRankedInterpretation(cover);
+                if (rankedInterpretation == null)
+                    //we don't have interpretation fot the cover
+                    continue;
+                result.AddInterpretation(rankedInterpretation.Value, rankedInterpretation.Rank);
+            }
+
+            return result;
         }
     }
 }

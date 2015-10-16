@@ -27,8 +27,16 @@ namespace KnowledgeDialog
             var graph = new ComposedGraph(loader.DataLayer);
             var qa = new PoolComputation.ProbabilisticQA.ProbabilisticQAModule(graph, new CallStorage(null));
 
-            qa.AdviceAnswer("Who is United States of America president?", false, graph.GetNode("Barack Obama"));
-            qa.Optimize();
+
+            var obamaNode = graph.GetNode("Barack Obama");
+            var q1 = "Who is United States of America president?";
+
+            qa.AdviceAnswer(q1, false, obamaNode);
+            qa.Optimize(10000);
+
+
+            var answer = qa.GetAnswer(q1, null);
+            throw new NotImplementedException();
         }
 
         private static void MappingQATest(string dbPath)

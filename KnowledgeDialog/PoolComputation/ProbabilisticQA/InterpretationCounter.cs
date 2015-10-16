@@ -10,12 +10,18 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
     {
         internal RuledInterpretation BestInterpretation { get; private set; }
 
+        internal double BestInterpretationRank { get; private set; }
+
         private readonly Dictionary<RuledInterpretation, int> _ruleCounts = new Dictionary<RuledInterpretation, int>();
 
         private int _maxCount = 0;
 
+        private int _totalInterpretationCount = 0;
+
         internal void Add(RuledInterpretation interpretation)
         {
+            ++_totalInterpretationCount;
+
             int count;
             _ruleCounts.TryGetValue(interpretation, out count);
             ++count;
@@ -28,6 +34,7 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
                 //better interpretation has been found
                 _maxCount = count;
                 BestInterpretation = interpretation;
+                BestInterpretationRank = 1.0 * _maxCount / _totalInterpretationCount;
             }
         }
     }

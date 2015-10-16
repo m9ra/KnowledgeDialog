@@ -190,7 +190,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
             foreach (var featureInstance in cover.FeatureInstances)
             {
                 //select best feature according to pointwise mutual information
-                var featurePMI = getPointwiseMutualInformation(rulePart, featureInstance);
+                var featurePMI = getPointwiseMutualInformation(rulePart, featureInstance.Feature);
                 if (featurePMI > bestPMI)
                 {
                     bestPMI = featurePMI;
@@ -201,11 +201,11 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
             return bestFeatureInstance.Feature;
         }
 
-        private double getPointwiseMutualInformation(RulePart rulePart, FeatureInstance featureInstance)
+        private double getPointwiseMutualInformation(RulePart rulePart, FeatureBase feature)
         {
             var ruleProbability = P(rulePart);
-            var featureProbability = P(featureInstance.Feature);
-            var coocurenceProbability = P(rulePart, featureInstance.Feature);
+            var featureProbability = P(feature);
+            var coocurenceProbability = P(rulePart, feature);
 
             return Math.Log(coocurenceProbability / (ruleProbability * featureProbability + StabilizationConstant) + StabilizationConstant);
         }

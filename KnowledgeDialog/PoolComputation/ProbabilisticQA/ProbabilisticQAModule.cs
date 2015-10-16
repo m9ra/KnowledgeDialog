@@ -30,6 +30,55 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
         {
         }
 
+
+        internal IEnumerable<NodeReference> GetAnswer(string question, ContextPool pool)
+        {
+            var parsedQuestion = UtteranceParser.Parse(question);
+            var covers = FeatureCover.GetFeatureCovers(parsedQuestion);
+
+            var interpretations = _mapping.GetRankedInterpretations(covers);
+            var bestInterpretation = interpretations.BestInterpretation;
+
+            //run the interpretation on the pool
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Starts optimization routine of the module for given number of steps.
+        /// </summary>
+        /// <param name="stepCount">Number of steps to optimize if positive, otherwise infinite number of steps is applied.</param>
+        internal void Optimize(int stepCount)
+        {
+            var currentStep = 1;
+            while (currentStep == stepCount)
+            {
+                //TODO handle no next interpretation situations
+                for (var i = 0; i < _interpretationGenerators.Count; ++i)
+                {
+                    var generator = _interpretationGenerators[i];
+                    reportNextIntepretation(generator);
+                }
+
+                ++currentStep;
+            }
+        }
+
+        private bool reportNextIntepretation(InterpretationGenerator generator)
+        {
+            var interpretation = generator.GetNextInterpretation();
+            if (interpretation == null)
+                //no other interpretation available from generator
+                return false;
+
+            foreach (var cover in generator.Covers)
+            {
+                var ruledInterpretation = new RuledInterpretation(interpretation, cover);
+                _mapping.ReportInterpretation(ruledInterpretation.FeatureKey, ruledInterpretation);
+            }
+
+            return true;
+        }
+
         #region Template methods implementation
 
         protected override bool adviceAnswer(string question, bool isBasedOnContext, NodeReference correctAnswerNode, IEnumerable<NodeReference> context)
@@ -66,34 +115,5 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
         }
 
         #endregion
-
-        internal void Optimize()
-        {
-            while (true)
-            {
-                //TODO handle no next interpretation situations
-                for (var i = 0; i < _interpretationGenerators.Count; ++i)
-                {
-                    var generator = _interpretationGenerators[i];
-                    reportNextIntepretation(generator);
-                }
-            }
-        }
-
-        private bool reportNextIntepretation(InterpretationGenerator generator)
-        {
-            var interpretation = generator.GetNextInterpretation();
-            if (interpretation == null)
-                //no other interpretation available from generator
-                return false;
-
-            foreach (var cover in generator.Covers)
-            {
-                var ruledInterpretation = new RuledInterpretation(interpretation, cover);
-                _mapping.ReportInterpretation(cover, ruledInterpretation);
-            }
-
-            return true;
-        }
     }
 }

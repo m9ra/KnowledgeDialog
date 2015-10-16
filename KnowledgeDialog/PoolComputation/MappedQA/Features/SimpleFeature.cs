@@ -9,7 +9,7 @@ using KnowledgeDialog.PoolComputation.MappedQA.PoolRules;
 
 namespace KnowledgeDialog.PoolComputation.MappedQA.Features
 {
-    class SimpleFeature: FeatureBase
+    class SimpleFeature : FeatureBase
     {
         private readonly ParsedUtterance _utterance;
 
@@ -34,9 +34,17 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
             return _utterance.Equals(uF._utterance);
         }
 
+        /// <inheritdoc/>
         protected override double probability(RulePart part)
         {
             throw new NotImplementedException();
         }
+
+        /// <inheritdoc/>
+        protected override void setMapping(FeatureInstance featureInstance, NodeMapping mapping)
+        {
+            //nothing to do
+        }
+
     }
 }

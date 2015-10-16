@@ -19,11 +19,25 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
 
         abstract protected double probability(RulePart part);
 
+        abstract protected void setMapping(FeatureInstance featureInstance, NodeMapping mapping);
+
+        internal protected double Probability(RulePart part)
+        {
+            return probability(part);
+        }
+
+        internal void SetMapping(FeatureInstance featureInstance, NodeMapping mapping)
+        {
+            setMapping(featureInstance, mapping);
+        }
+
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             return getHashCode();
         }
 
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             if (object.ReferenceEquals(this, obj))
@@ -35,13 +49,6 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
 
             return equals(f);
         }
-
-        internal protected double Probability(RulePart part)
-        {
-            return probability(part);
-        }
-
-
     }
 
     class FeatureInstance
@@ -59,6 +66,11 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
             Origin = origin;
             Feature = feature;
             CoveredPositions = coveredPositions.ToArray();
+        }
+
+        internal void SetMapping(NodeMapping mapping)
+        {
+            Feature.SetMapping(this, mapping);
         }
     }
 }

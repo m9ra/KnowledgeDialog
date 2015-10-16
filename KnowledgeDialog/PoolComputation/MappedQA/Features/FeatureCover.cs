@@ -10,7 +10,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
 {
     class FeatureCover
     {
-        public readonly IEnumerable<FeatureInstance> FeatureInstances;
+        internal readonly IEnumerable<FeatureInstance> FeatureInstances;
 
         private readonly bool[] _coveredPositions;
 
@@ -19,7 +19,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
             new UnigramFeatureGenerator()
         };
 
-        public FeatureCover(FeatureInstance feature)
+        internal FeatureCover(FeatureInstance feature)
         {
             _coveredPositions = new bool[feature.MaxPosition + 1];
             FeatureInstances = new[] { feature };
@@ -33,6 +33,15 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
             FeatureInstances = previousCover.FeatureInstances.Concat(new[] { extendingFeature }).ToArray();
 
             indexPositions(extendingFeature);
+        }
+
+        /// <summary>
+        /// Creates hashable representation of features in cover.
+        /// </summary>
+        /// <returns>The feature key.</returns>
+        internal FeatureKey CreateFeatureKey()
+        {
+            return new FeatureKey(FeatureInstances.Select(f => f.Feature));
         }
 
         internal IEnumerable<FeatureCover> Extend(FeatureInstance feature)

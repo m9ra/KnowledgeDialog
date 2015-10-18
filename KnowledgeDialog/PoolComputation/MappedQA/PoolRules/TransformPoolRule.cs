@@ -5,37 +5,41 @@ using System.Text;
 using System.Threading.Tasks;
 
 using KnowledgeDialog.Knowledge;
+using KnowledgeDialog.PoolComputation.MappedQA.Features;
 
 namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 {
     class TransformPoolRule : PoolRuleBase
     {
-        private readonly bool[] _isOutgoing;
-
-        private readonly string[] _edges;
+        private readonly Tuple<string, bool>[] _edges;
 
         internal TransformPoolRule(PathSegment startingSegment)
         {
-            var isOutgoing = new List<bool>();
-            var edges = new List<string>();
-
-            var currentSegment = startingSegment;
-            while (currentSegment != null)
-            {
-                //collect path segments
-                isOutgoing.Add(currentSegment.IsOutcoming);
-                edges.Add(currentSegment.Edge);
-
-                currentSegment = currentSegment.PreviousSegment;
-            }
-
-            _isOutgoing = isOutgoing.ToArray();
-            _edges = edges.ToArray();
+            _edges = startingSegment.GetEdges().ToArray();
         }
 
+        /// <inheritdoc/>
         protected override IEnumerable<RuleBitBase> getRuleBits()
         {
+            yield return new RuleHead("Transform");
+            for (var i = 0; i < _edges.Length; ++i)
+            {
+                var edge = _edges[i];
+                yield return new EdgeBit(edge.Item1, edge.Item2);
+            }
+        }
+
+        /// <inheritdoc/>
+        protected override void execute(ContextPool pool)
+        {
             throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        protected override PoolRuleBase mapNodes(NodeMapping mapping)
+        {
+            //no nodes can be mapped in Transform rule
+            return this;
         }
     }
 }

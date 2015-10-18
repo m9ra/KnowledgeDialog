@@ -5,12 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 using KnowledgeDialog.Dialog;
+using KnowledgeDialog.Knowledge;
 
 namespace KnowledgeDialog.PoolComputation.MappedQA.Features
 {
     class SimpleFeatureGenerator : FeatureGeneratorBase
     {
-        protected override IEnumerable<FeatureInstance> generateFeatures(ParsedUtterance expression)
+        protected override IEnumerable<FeatureInstance> generateFeatures(ParsedUtterance expression, ComposedGraph graph)
         {
             return new[] { CreateSimpleFeatureInstance(expression) };
         }

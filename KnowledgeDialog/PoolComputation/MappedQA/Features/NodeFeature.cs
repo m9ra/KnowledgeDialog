@@ -4,59 +4,57 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.Knowledge;
 using KnowledgeDialog.PoolComputation.MappedQA.PoolRules;
 
 namespace KnowledgeDialog.PoolComputation.MappedQA.Features
 {
-    class UnigramFeature : FeatureBase
+    class NodeFeature : FeatureBase
     {
-        internal readonly string Word;
+        /// <summary>
+        /// Index of the feature.
+        /// </summary>
+        internal readonly int Index;
 
-        internal UnigramFeature(string word)
+        internal NodeFeature(int index)
         {
-            Word = word;
+            Index = index;
         }
 
         /// <inheritdoc/>
         protected override int getHashCode()
         {
-            return Word.GetHashCode();
+            return Index.GetHashCode();
         }
 
         /// <inheritdoc/>
         protected override bool equals(FeatureBase featureBase)
         {
-            var uF = featureBase as UnigramFeature;
-            if (uF == null)
+            var o = featureBase as NodeFeature;
+            if (o == null)
                 return false;
 
-            return Word.Equals(uF.Word);
+            return Index == o.Index;
         }
 
         /// <inheritdoc/>
         protected override string toString()
         {
-            return Word;
+            return "$" + Index;
         }
 
         /// <inheritdoc/>
         protected override double probability(RulePart part)
         {
-            var nodeBit = part.RuleBit as NodeBit;
-            if (nodeBit == null)
-                return 0;
-
-            var nodeData=nodeBit.Node.Data.ToString();
-            if (nodeData == Word)
-                return 1.0;
-
-            return 0.0;
+            throw new NotImplementedException();
         }
 
         /// <inheritdoc/>
         protected override void setMapping(FeatureInstance featureInstance, NodeMapping mapping)
         {
-            //nothing to do
+            var instanceNodeData = featureInstance.Origin.Words.Skip(Index).First();
+            var generalNodeData = "$" + Index;
+            mapping.SetMapping(instanceNodeData, generalNodeData);
         }
     }
 }

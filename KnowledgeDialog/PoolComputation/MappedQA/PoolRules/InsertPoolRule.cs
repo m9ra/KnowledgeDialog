@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using KnowledgeDialog.Knowledge;
+using KnowledgeDialog.PoolComputation.MappedQA.Features;
 
 namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 {
@@ -22,6 +23,19 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
         {
             yield return new RuleHead("Insert");
             yield return new NodeBit(_insertedNode);
+        }
+
+        /// <inheritdoc/>
+        protected override void execute(ContextPool pool)
+        {
+            pool.ClearAccumulator();
+            pool.Insert(_insertedNode);
+        }
+
+        /// <inheritdoc/>
+        protected override PoolRuleBase mapNodes(NodeMapping mapping)
+        {
+            return new InsertPoolRule(mapping.GetMappedNode(_insertedNode));
         }
     }
 }

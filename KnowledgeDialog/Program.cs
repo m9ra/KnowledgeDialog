@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Knowledge;
 
+using KnowledgeDialog.PoolComputation;
+
 using KnowledgeDialog.Database;
 
 namespace KnowledgeDialog
@@ -35,7 +37,8 @@ namespace KnowledgeDialog
             qa.Optimize(10000);
 
 
-            var answer = qa.GetAnswer(q1, null);
+            var pool = new ContextPool(graph);
+            var answer = qa.GetAnswer(q1, pool).ToArray();
             throw new NotImplementedException();
         }
 

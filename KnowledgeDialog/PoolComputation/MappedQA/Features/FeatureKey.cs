@@ -24,7 +24,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
             var acc = 0;
             foreach (var feature in _features)
             {
-                acc += feature.GetHashCode();   
+                acc += feature.GetHashCode();
             }
 
             return acc;
@@ -38,6 +38,11 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
                 return false;
 
             return _features.SequenceEqual(o._features);
+        }
+
+        public override string ToString()
+        {
+            return string.Format("[{0}]", string.Join(" ", (IEnumerable<FeatureBase>)_features));
         }
     }
 }

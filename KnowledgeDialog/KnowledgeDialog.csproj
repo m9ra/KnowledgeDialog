@@ -98,6 +98,8 @@
     <Compile Include="PoolComputation\IMappingProvider.cs" />
     <Compile Include="PoolComputation\MappedQA\ContextRule.cs" />
     <Compile Include="PoolComputation\MappedQA\FeatureMapping.cs" />
+    <Compile Include="PoolComputation\MappedQA\Features\NodeFeature.cs" />
+    <Compile Include="PoolComputation\MappedQA\Features\NodeFeatureGenerator.cs" />
     <Compile Include="PoolComputation\MappedQA\Features\FeatureBase.cs" />
     <Compile Include="PoolComputation\MappedQA\Features\FeatureCover.cs" />
     <Compile Include="PoolComputation\MappedQA\Features\FeatureGeneratorBase.cs" />
@@ -115,6 +117,7 @@
     <Compile Include="PoolComputation\MappedQA\MappingOptimizer.cs" />
     <Compile Include="PoolComputation\MappedQA\PoolRules\CompositionPoolRule.cs" />
     <Compile Include="PoolComputation\MappedQA\PoolRules\ConstraintPoolRule.cs" />
+    <Compile Include="PoolComputation\MappedQA\PoolRules\EdgeBit.cs" />
     <Compile Include="PoolComputation\MappedQA\PoolRules\Interpretation.cs" />
     <Compile Include="PoolComputation\MappedQA\PoolRules\InterpretationDecomposition.cs" />
     <Compile Include="PoolComputation\MappedQA\PoolRules\InterpretationsFactory.cs" />

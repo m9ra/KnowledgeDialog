@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using KnowledgeDialog.Dialog;
+using KnowledgeDialog.Knowledge;
 
 namespace KnowledgeDialog.PoolComputation.MappedQA.Features
 {
@@ -16,12 +17,13 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
 
         private static readonly List<FeatureGeneratorBase> _featureGenerators = new List<FeatureGeneratorBase>(){
             new SimpleFeatureGenerator(),
-            new UnigramFeatureGenerator()
+            new UnigramFeatureGenerator(),
+            new NodeFeatureGenerator()
         };
 
         internal FeatureCover(FeatureInstance feature)
         {
-            _coveredPositions = new bool[feature.MaxPosition + 1];
+            _coveredPositions = new bool[feature.MaxOriginPosition + 1];
             FeatureInstances = new[] { feature };
 
             indexPositions(feature);
@@ -30,7 +32,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
         private FeatureCover(FeatureCover previousCover, FeatureInstance extendingFeature)
         {
             _coveredPositions = previousCover._coveredPositions.ToArray();
-            FeatureInstances = previousCover.FeatureInstances.Concat(new[] { extendingFeature }).ToArray();
+            FeatureInstances = previousCover.FeatureInstances.Concat(new[] { extendingFeature }).OrderBy(f => f.CoveredPositions.First()).ToArray();
 
             indexPositions(extendingFeature);
         }
@@ -67,20 +69,20 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
 
         #region Feature cover creation
 
-        internal static IEnumerable<FeatureCover> GetFeatureCovers(ParsedUtterance expression)
+        internal static IEnumerable<FeatureCover> GetFeatureCovers(ParsedUtterance expression, ComposedGraph graph)
         {
-            var features = createFeatures(expression);
+            var features = createFeatures(expression, graph);
             var index = new FeatureIndex(features);
 
             return generateCovers(index, 0);
         }
 
-        private static IEnumerable<FeatureInstance> createFeatures(ParsedUtterance expression)
+        private static IEnumerable<FeatureInstance> createFeatures(ParsedUtterance expression, ComposedGraph graph)
         {
             var features = new HashSet<FeatureInstance>();
             foreach (var generator in _featureGenerators)
             {
-                features.UnionWith(generator.GenerateFeatures(expression));
+                features.UnionWith(generator.GenerateFeatures(expression, graph));
             }
 
             return features;

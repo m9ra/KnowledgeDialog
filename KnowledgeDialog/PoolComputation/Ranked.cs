@@ -17,5 +17,11 @@ namespace KnowledgeDialog.PoolComputation
             Value = value;
             Rank = rank;
         }
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return string.Format("({0},{1:0.00})", Value, Rank);
+        }
     }
 }

@@ -33,14 +33,22 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
 
         internal IEnumerable<NodeReference> GetAnswer(string question, ContextPool pool)
         {
+            //keep original pool non-modified
+            pool = pool.Clone();
+
             var parsedQuestion = UtteranceParser.Parse(question);
-            var covers = FeatureCover.GetFeatureCovers(parsedQuestion);
+            var covers = FeatureCover.GetFeatureCovers(parsedQuestion, Graph);
 
             var interpretations = _mapping.GetRankedInterpretations(covers);
             var bestInterpretation = interpretations.BestInterpretation;
 
             //run the interpretation on the pool
-            throw new NotImplementedException();
+            foreach (var rule in bestInterpretation.Value.Interpretation.Rules)
+            {
+                rule.Execute(pool);
+            }
+
+            return pool.ActiveNodes;
         }
 
         /// <summary>
@@ -72,7 +80,7 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
 
             foreach (var cover in generator.Covers)
             {
-                var ruledInterpretation = new RuledInterpretation(interpretation, cover);
+                var ruledInterpretation = new RuledInterpretation(interpretation, generator.ContractedInterpretation, cover, Graph);
                 _mapping.ReportInterpretation(ruledInterpretation.FeatureKey, ruledInterpretation);
             }
 
@@ -84,7 +92,7 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
         protected override bool adviceAnswer(string question, bool isBasedOnContext, NodeReference correctAnswerNode, IEnumerable<NodeReference> context)
         {
             var parsedQuestion = UtteranceParser.Parse(question);
-            var covers = FeatureCover.GetFeatureCovers(parsedQuestion);
+            var covers = FeatureCover.GetFeatureCovers(parsedQuestion, Graph);
 
             //setup interpretation generator
             var factory = new InterpretationsFactory(parsedQuestion, isBasedOnContext, correctAnswerNode, context);

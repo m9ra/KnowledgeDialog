@@ -17,6 +17,8 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
 
         abstract protected bool equals(FeatureBase featureBase);
 
+        abstract protected string toString();
+
         abstract protected double probability(RulePart part);
 
         abstract protected void setMapping(FeatureInstance featureInstance, NodeMapping mapping);
@@ -49,6 +51,12 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
 
             return equals(f);
         }
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return toString();
+        }
     }
 
     class FeatureInstance
@@ -59,7 +67,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
 
         internal readonly IEnumerable<int> CoveredPositions;
 
-        internal int MaxPosition { get { return Origin.Words.Count() - 1; } }
+        internal int MaxOriginPosition { get { return Origin.Words.Count() - 1; } }
 
         internal FeatureInstance(ParsedUtterance origin, FeatureBase feature, params int[] coveredPositions)
         {

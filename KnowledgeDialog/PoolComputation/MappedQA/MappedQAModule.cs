@@ -35,7 +35,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
 
             var interpretationsFactory = getInterpretationsFactory(parsedQuestion, isBasedOnContext, correctAnswerNode, context);
 
-            var covers = FeatureCover.GetFeatureCovers(parsedQuestion);
+            var covers = FeatureCover.GetFeatureCovers(parsedQuestion, Graph);
 
             _mapping.Add(interpretationsFactory, covers);
 
@@ -63,7 +63,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
 
         internal NodeReference GetAnswer(ParsedUtterance expression)
         {
-            var covers = FeatureCover.GetFeatureCovers(expression);
+            var covers = FeatureCover.GetFeatureCovers(expression, Graph);
 
             var allRankedMappings = new List<Ranked<ContextRuleMapping>>();
             foreach (var cover in covers)

@@ -13,6 +13,8 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
     {
         internal readonly IEnumerable<FeatureCover> Covers;
 
+        internal  Interpretation ContractedInterpretation { get { return _interpretations.ContractedInterpretation; } }
+
         private readonly ProbabilisticQAModule _owner;
 
         private readonly InterpretationsFactory _interpretations;

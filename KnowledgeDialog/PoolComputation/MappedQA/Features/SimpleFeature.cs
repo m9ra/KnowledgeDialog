@@ -34,6 +34,13 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
             return _utterance.Equals(uF._utterance);
         }
 
+
+        /// <inheritdoc/>
+        protected override string toString()
+        {
+            return _utterance.ToString();
+        }
+
         /// <inheritdoc/>
         protected override double probability(RulePart part)
         {

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Knowledge;
 
 using KnowledgeDialog.PoolComputation.MappedQA.Features;
@@ -16,22 +17,29 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
         internal readonly NodeReference CorrectAnswerNode;
 
-        private Dialog.ParsedUtterance parsedQuestion;
-        private bool isBasedOnContext;
-        private IEnumerable<NodeReference> context;
+        internal readonly Interpretation ContractedInterpretation;
+
+
+        private readonly ParsedUtterance _parsedQuestion;
+        private readonly bool _isBasedOnContext;
+        private readonly IEnumerable<NodeReference> _context;
 
         public InterpretationsFactory(Dialog.ParsedUtterance parsedQuestion, bool isBasedOnContext, NodeReference correctAnswerNode, IEnumerable<NodeReference> context)
         {
-            // TODO: Complete member initialization
-            this.parsedQuestion = parsedQuestion;
-            this.isBasedOnContext = isBasedOnContext;
-            this.CorrectAnswerNode = correctAnswerNode;
-            this.context = context;
+            if (isBasedOnContext)
+                throw new NotImplementedException();
+
+            _parsedQuestion = parsedQuestion;
+            _isBasedOnContext = isBasedOnContext;
+            CorrectAnswerNode = correctAnswerNode;            
+            ContractedInterpretation = new Interpretation(new[] { new InsertPoolRule(correctAnswerNode) });
+
+            _context = context;
         }
 
         internal FeatureInstance GetSimpleFeatureInstance()
         {
-            return SimpleFeatureGenerator.CreateSimpleFeatureInstance(parsedQuestion);
+            return SimpleFeatureGenerator.CreateSimpleFeatureInstance(_parsedQuestion);
         }
 
         internal TopicSelector GetTopicSelector(ComposedGraph graph)
@@ -121,8 +129,6 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
     class ConstraintSelector
     {
-        private bool _hasNextConstraints = true;
-
         private readonly PathFactory _factory;
 
         /// <summary>

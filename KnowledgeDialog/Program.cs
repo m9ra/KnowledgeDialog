@@ -30,15 +30,22 @@ namespace KnowledgeDialog
             var qa = new PoolComputation.ProbabilisticQA.ProbabilisticQAModule(graph, new CallStorage(null));
 
 
-            var obamaNode = graph.GetNode("Barack Obama");
+            var denotation1 = graph.GetNode("Barack Obama");
             var q1 = "Who is United States of America president?";
 
-            qa.AdviceAnswer(q1, false, obamaNode);
+            var denotation2 = graph.GetNode("Vladimir Putin");
+            var q2 = "Who is Russia president?";
+
+            var q3 = "Who is Czech republic president?";
+
+            qa.AdviceAnswer(q1, false, denotation1);
+            qa.AdviceAnswer(q2, false, denotation2);
             qa.Optimize(10000);
 
 
             var pool = new ContextPool(graph);
-            var answer = qa.GetAnswer(q1, pool).ToArray();
+         //   var a1 = qa.GetAnswer(q1, pool).ToArray();
+            var a3 = qa.GetAnswer(q3, pool).ToArray();
             throw new NotImplementedException();
         }
 

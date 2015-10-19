@@ -31,7 +31,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
             _parsedQuestion = parsedQuestion;
             _isBasedOnContext = isBasedOnContext;
-            CorrectAnswerNode = correctAnswerNode;            
+            CorrectAnswerNode = correctAnswerNode;
             ContractedInterpretation = new Interpretation(new[] { new InsertPoolRule(correctAnswerNode) });
 
             _context = context;
@@ -83,11 +83,12 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
                 //there are no more topic rules available
                 return false;
 
-
-
             var nextSegment = _factory.GetNextSegment();
 
-            _rules.AddRange(createRules(nextSegment));
+            _rules.AddRange(createRule(nextSegment));
+            if (nextSegment.GetEdges().Count() > 5)
+                return false;
+
             _selectedNodes.UnionWith(findSelectedNodes(nextSegment));
 
             return true;
@@ -98,7 +99,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
         /// </summary>
         /// <param name="segment"></param>
         /// <returns></returns>
-        private IEnumerable<PoolRuleBase> createRules(PathSegment segment)
+        private IEnumerable<PoolRuleBase> createRule(PathSegment segment)
         {
             var insertedNode = segment.Node;
 
@@ -123,21 +124,24 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
             return selectedNodes;
         }
-
-
     }
 
     class ConstraintSelector
     {
         private readonly PathFactory _factory;
 
-        /// <summary>
-        /// Sequence of rules which has been generated.
-        /// </summary>
-        private readonly List<PoolRuleBase[]> _ruleSequence = new List<PoolRuleBase[]>();
+        private readonly List<PoolRuleBase[]> _completeRules = new List<PoolRuleBase[]>();
 
         private readonly HashSet<NodeReference> _originalRemainingNodes;
 
+        /// <summary>
+        /// Sequence of rules which has been generated.
+        /// </summary>
+        private readonly List<PoolRuleBase[]> _incompleteRuleSequence = new List<PoolRuleBase[]>();
+
+        /// <summary>
+        /// Remaining nodes corresponding to incomplete rule sequence
+        /// </summary>
         private readonly List<HashSet<NodeReference>> _remainingNodes = new List<HashSet<NodeReference>>();
 
         /// <summary>
@@ -152,11 +156,11 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
         private HashSet<NodeReference> _combinationNodes = null;
 
-        internal bool IsEnd { get { return _combinationIndex <= 0 && !_factory.HasNextPath; } }
+        internal bool IsEnd { get; private set; }
 
         internal ComposedGraph Graph { get { return _factory.Graph; } }
 
-        internal IEnumerable<PoolRuleBase> Rules { get { return _ruleSequence[_ruleSequence.Count - 1]; } }
+        internal IEnumerable<PoolRuleBase> Rules { get { return _completeRules[_completeRules.Count - 1]; } }
 
         internal ConstraintSelector(ComposedGraph graph, NodeReference targetNode, IEnumerable<NodeReference> selectedNodes)
         {
@@ -185,34 +189,51 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
         private bool tryFindNextConstraint()
         {
+            var lastCompleteRuleCount = _completeRules.Count;
+
             --_combinationIndex;
-            if (_combinationIndex < 0)
+            if (_combinationIndex < 1)
             {
                 //create new rule from next constraint path
                 var pathSegment = _factory.GetNextSegment();
-                var newRule = createRule(pathSegment);
-                var remainingNodes = findRemainingNodes(pathSegment);
+                var constraint = createConstraint(pathSegment);
+                var newRule = new PoolRuleBase[] { constraint };
+
+                if (constraint.ConstraintLength > 5)
+                {
+                    IsEnd = true;
+                    return false;
+                }
+
+                var remainingNodes = findRemainingNodes(constraint);
+                var isTrivialRule = remainingNodes.Count == _originalRemainingNodes.Count;
+                if (isTrivialRule)
+                    //we don't need any trivial rule
+                    return false;
+
                 addRule(newRule, remainingNodes);
 
                 //set combination for next rules
-                _combinationIndex = _ruleSequence.Count - 1;
+                _combinationIndex = _incompleteRuleSequence.Count - 1;
                 _combinationRule = newRule;
                 _combinationNodes = remainingNodes;
             }
             else
             {
                 //combine with previous rule
-                var ruleToCombine = _ruleSequence[_combinationIndex];
+                var ruleToCombine = _incompleteRuleSequence[_combinationIndex];
                 var nodesToCombine = _remainingNodes[_combinationIndex];
 
                 var combinedRule = combineRules(_combinationRule, ruleToCombine);
                 var combinedNodes = combineNodes(_combinationNodes, nodesToCombine);
 
-                addRule(combinedRule, combinedNodes);
+                var isTrivialExtension = combinedNodes.Count == _combinationNodes.Count || nodesToCombine.Count == _combinationNodes.Count;
+                if (!isTrivialExtension)
+                    addRule(combinedRule, combinedNodes);
             }
 
-            //if there is no node remaining - we have found the constraint
-            return _remainingNodes[_remainingNodes.Count - 1].Count == 0;
+            //detect whether new complete rule has been found
+            return _completeRules.Count > lastCompleteRuleCount;
         }
 
         private PoolRuleBase[] combineRules(PoolRuleBase[] combinationRule, PoolRuleBase[] ruleToCombine)
@@ -239,14 +260,15 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
             return copy;
         }
 
-        private HashSet<NodeReference> findRemainingNodes(PathSegment constraintPath)
+        private HashSet<NodeReference> findRemainingNodes(ConstraintPoolRule rule)
         {
-            var edges = constraintPath.GetInvertedEdges();
-            var selectedNodes = _factory.Graph.GetForwardTargets(new[] { constraintPath.Node }, edges);
+            var pool = new ContextPool(Graph);
+            //TODO optimize filling the pool
+            pool.Insert(_originalRemainingNodes.ToArray());
+            rule.Execute(pool);
 
             //take only those remaining nodes which have been selected
-            var remainingNodes = new HashSet<NodeReference>(_originalRemainingNodes);
-            remainingNodes.IntersectWith(selectedNodes);
+            var remainingNodes = new HashSet<NodeReference>(pool.ActiveNodes);
             return remainingNodes;
         }
         #endregion
@@ -255,13 +277,23 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
         private void addRule(PoolRuleBase[] rules, HashSet<NodeReference> remainingNodes)
         {
-            _ruleSequence.Add(rules);
-            _remainingNodes.Add(remainingNodes);
+            var isCompleteRule = remainingNodes.Count == 0;
+            if (isCompleteRule)
+            {
+                //complete rules don't need more extending
+                _completeRules.Add(rules);
+            }
+            else
+            {
+                //rule is incomplete
+                _incompleteRuleSequence.Add(rules);
+                _remainingNodes.Add(remainingNodes);
+            }
         }
 
-        private PoolRuleBase[] createRule(PathSegment constraintPath)
+        private ConstraintPoolRule createConstraint(PathSegment constraintPath)
         {
-            return new PoolRuleBase[] { new ConstraintPoolRule(constraintPath) };
+            return new ConstraintPoolRule(constraintPath);
         }
 
         #endregion

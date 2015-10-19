@@ -94,7 +94,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
         public override string ToString()
         {
-            return string.Format("[Interpretation]{{{0}}}", string.Join(" and ", Rules));
+            return string.Format("[Interpretation]{{{0}}}", string.Join(" ", Rules));
         }
     }
 }

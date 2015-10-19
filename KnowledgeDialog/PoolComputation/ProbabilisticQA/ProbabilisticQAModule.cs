@@ -57,17 +57,16 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
         /// <param name="stepCount">Number of steps to optimize if positive, otherwise infinite number of steps is applied.</param>
         internal void Optimize(int stepCount)
         {
-            var currentStep = 1;
-            while (currentStep == stepCount)
+            var currentStep = 0;
+            while (currentStep < stepCount || stepCount < 0)
             {
                 //TODO handle no next interpretation situations
                 for (var i = 0; i < _interpretationGenerators.Count; ++i)
                 {
                     var generator = _interpretationGenerators[i];
                     reportNextIntepretation(generator);
+                    ++currentStep;
                 }
-
-                ++currentStep;
             }
         }
 

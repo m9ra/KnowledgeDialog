@@ -11,6 +11,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 {
     class ConstraintPoolRule : PoolRuleBase
     {
+        internal int ConstraintLength { get { return _edges.Length; } }
 
         private readonly Tuple<string, bool>[] _edges;
 
@@ -19,7 +20,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
         internal ConstraintPoolRule(PathSegment constraintPath)
         {
             _targetNode = constraintPath.Node;
-            _edges = constraintPath.GetEdges().ToArray();
+            _edges = constraintPath.GetInvertedEdges().ToArray();
         }
 
         private ConstraintPoolRule(NodeReference targetNode, Tuple<string, bool>[] edges)
@@ -41,7 +42,8 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
         /// <inheritdoc/>
         protected override void execute(ContextPool pool)
         {
-            throw new NotImplementedException();
+            var layer = pool.GetPathLayer(_targetNode, _edges);
+            pool.RemoveWhere((n) => !layer.Contains(n));
         }
 
         /// <inheritdoc/>

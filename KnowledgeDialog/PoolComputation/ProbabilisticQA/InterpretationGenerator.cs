@@ -13,7 +13,7 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
     {
         internal readonly IEnumerable<FeatureCover> Covers;
 
-        internal  Interpretation ContractedInterpretation { get { return _interpretations.ContractedInterpretation; } }
+        internal Interpretation ContractedInterpretation { get { return _interpretations.ContractedInterpretation; } }
 
         private readonly ProbabilisticQAModule _owner;
 
@@ -43,11 +43,7 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
 
         internal Interpretation GetNextInterpretation()
         {
-            if (_topicSelector.SelectedNodesCount == 1)
-                //TODO strategy for better topic selection
-                _topicSelector.MoveNext();
-
-            while (!_currentConstraintSelector.MoveNext())
+            while (_currentConstraintSelector == null || !_currentConstraintSelector.MoveNext())
             {
                 if (!_topicSelector.MoveNext())
                     //there are no other interpretations
@@ -56,7 +52,13 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
                 _currentConstraintSelector = _interpretations.GetConstraintSelector(_owner.Graph, _topicSelector.SelectedNodes);
             }
 
-            return new Interpretation(_topicSelector.Rules.Concat(_currentConstraintSelector.Rules));
+            var interpretation = new Interpretation(_topicSelector.Rules.Concat(_currentConstraintSelector.Rules));
+
+            if (_topicSelector.SelectedNodesCount <= 1)
+                //force new topic selector
+                _currentConstraintSelector = null;
+
+            return interpretation;
         }
 
     }

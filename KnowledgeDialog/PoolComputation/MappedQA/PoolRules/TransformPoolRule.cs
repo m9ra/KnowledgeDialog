@@ -15,7 +15,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
         internal TransformPoolRule(PathSegment startingSegment)
         {
-            _edges = startingSegment.GetEdges().ToArray();
+            _edges = startingSegment.GetInvertedEdges().ToArray();
         }
 
         /// <inheritdoc/>
@@ -32,7 +32,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
         /// <inheritdoc/>
         protected override void execute(ContextPool pool)
         {
-            throw new NotImplementedException();
+            pool.ExtendBy(_edges);
         }
 
         /// <inheritdoc/>

@@ -28,7 +28,7 @@ namespace KnowledgeDialog.PoolComputation.PoolActions
 
         public void Run(ContextPool context)
         {
-            context.ExtendBy(_path);
+            context.ExtendBy(_path.CompleteEdges);
         }
     }
 }

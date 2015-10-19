@@ -18,7 +18,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
         /// <inheritdoc/>
         protected override string getNotation()
         {
-            return HeadCaption;
+            return "(" + HeadCaption + ")";
         }
     }
 }

@@ -22,29 +22,38 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
             _rules = rules.ToArray();
         }
 
-        internal Interpretation GeneralizeBy(FeatureCover cover, Interpretation contractedInterpretation, ComposedGraph graph)
+        internal Interpretation GeneralizeBy(FeatureCover cover, ComposedGraph graph)
         {
             var mapping = initializeNodeMapping(cover, graph);
 
+            var isContractable = _rules.Any(r => r is InsertPoolRule);
             if (mapping.IsEmpty)
             {
-                //there is nothing to generalize
-                var isContractable = _rules.Any(r => r is InsertPoolRule);
+                //there is nothing to generalize                
                 if (isContractable)
-                    //contractable interpretation can be simplified
-                    return contractedInterpretation;
+                    //contractable interpretation without generalization is trivial
+                    return null;
                 else
                     return this;
             }
 
             mapping.IsGeneralizeMapping = true;
+            var newRules = mapRules(mapping);
+            if (!mapping.WasUsed && isContractable)
+                //mapping wasnt used, so the contractable interpretation is trivial
+                return null;
+
+            return new Interpretation(newRules);
+        }
+
+        private PoolRuleBase[] mapRules(NodeMapping mapping)
+        {
             var newRules = new PoolRuleBase[_rules.Length];
             for (var i = 0; i < _rules.Length; ++i)
             {
                 newRules[i] = _rules[i].MapNodes(mapping);
             }
-
-            return new Interpretation(newRules);
+            return newRules;
         }
 
         internal Interpretation InstantiateBy(FeatureCover cover, ComposedGraph graph)
@@ -55,8 +64,9 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
                 return this;
 
             mapping.IsGeneralizeMapping = false;
+            var newRules = mapRules(mapping);
 
-            throw new NotImplementedException();
+            return new Interpretation(newRules);
         }
 
         private NodeMapping initializeNodeMapping(FeatureCover cover, ComposedGraph graph)

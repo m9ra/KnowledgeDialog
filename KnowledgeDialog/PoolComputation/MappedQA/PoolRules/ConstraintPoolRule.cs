@@ -37,6 +37,8 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
                 var edge = _edges[i];
                 yield return new EdgeBit(edge.Item1, edge.Item2);
             }
+
+            yield return new NodeBit(_targetNode);
         }
 
         /// <inheritdoc/>

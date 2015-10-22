@@ -13,7 +13,11 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 {
     class InterpretationsFactory
     {
-        internal static readonly int MaxSearchWidth = 100;
+        internal static readonly int MaxSearchWidth = 1000;
+
+        internal static readonly int MaxConstraintLength = 4;
+
+        internal static readonly int MaxTopicSelectorLength = 8;
 
         internal readonly NodeReference CorrectAnswerNode;
 
@@ -71,7 +75,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
         internal TopicSelector(ComposedGraph graph, NodeReference targetNode)
         {
-            _factory = new PathFactory(targetNode, graph, InterpretationsFactory.MaxSearchWidth);
+            _factory = new PathFactory(targetNode, graph, InterpretationsFactory.MaxSearchWidth, InterpretationsFactory.MaxTopicSelectorLength);
         }
 
         internal bool MoveNext()
@@ -86,9 +90,6 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
             var nextSegment = _factory.GetNextSegment();
 
             _rules.AddRange(createRule(nextSegment));
-            if (nextSegment.GetEdges().Count() > 5)
-                return false;
-
             _selectedNodes.UnionWith(findSelectedNodes(nextSegment));
 
             return true;
@@ -154,24 +155,27 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
         /// </summary>
         private PoolRuleBase[] _combinationRule = null;
 
+        /// <summary>
+        /// Determine whether first rule is going to be generated.
+        /// </summary>
+        private bool _isFirst = true;
+
         private HashSet<NodeReference> _combinationNodes = null;
 
         internal bool IsEnd { get; private set; }
 
         internal ComposedGraph Graph { get { return _factory.Graph; } }
 
-        internal IEnumerable<PoolRuleBase> Rules { get { return _completeRules[_completeRules.Count - 1]; } }
+        internal IEnumerable<PoolRuleBase> Rules { get { return _completeRules.Count == 0 ? new PoolRuleBase[0] : _completeRules[_completeRules.Count - 1]; } }
 
         internal ConstraintSelector(ComposedGraph graph, NodeReference targetNode, IEnumerable<NodeReference> selectedNodes)
         {
-            _factory = new PathFactory(targetNode, graph, InterpretationsFactory.MaxSearchWidth);
+            _factory = new PathFactory(targetNode, graph, InterpretationsFactory.MaxSearchWidth, InterpretationsFactory.MaxConstraintLength);
 
             if (!selectedNodes.Contains(targetNode))
                 throw new NotSupportedException("Cannot constraint nodes without target");
 
             _originalRemainingNodes = new HashSet<NodeReference>(selectedNodes.Except(new[] { targetNode }));
-
-            MoveNext();
         }
 
         internal bool MoveNext()
@@ -189,21 +193,29 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
         private bool tryFindNextConstraint()
         {
+            var wasFirst = _isFirst;
+            _isFirst = false;
+            if (_originalRemainingNodes.Count == 0 || !_factory.HasNextPath)
+            {
+                //there is no need for other than empty rule
+                if (!wasFirst)
+                    IsEnd = true;
+
+                return wasFirst;
+            }
+
+
             var lastCompleteRuleCount = _completeRules.Count;
 
-            --_combinationIndex;
             if (_combinationIndex < 1)
             {
                 //create new rule from next constraint path
                 var pathSegment = _factory.GetNextSegment();
+                if (pathSegment == null)
+                    return false;
+
                 var constraint = createConstraint(pathSegment);
                 var newRule = new PoolRuleBase[] { constraint };
-
-                if (constraint.ConstraintLength > 5)
-                {
-                    IsEnd = true;
-                    return false;
-                }
 
                 var remainingNodes = findRemainingNodes(constraint);
                 var isTrivialRule = remainingNodes.Count == _originalRemainingNodes.Count;
@@ -220,6 +232,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
             }
             else
             {
+                --_combinationIndex;
                 //combine with previous rule
                 var ruleToCombine = _incompleteRuleSequence[_combinationIndex];
                 var nodesToCombine = _remainingNodes[_combinationIndex];
@@ -227,7 +240,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
                 var combinedRule = combineRules(_combinationRule, ruleToCombine);
                 var combinedNodes = combineNodes(_combinationNodes, nodesToCombine);
 
-                var isTrivialExtension = combinedNodes.Count == _combinationNodes.Count || nodesToCombine.Count == _combinationNodes.Count;
+                var isTrivialExtension = combinedNodes.Count == _combinationNodes.Count || combinedNodes.Count == nodesToCombine.Count;
                 if (!isTrivialExtension)
                     addRule(combinedRule, combinedNodes);
             }

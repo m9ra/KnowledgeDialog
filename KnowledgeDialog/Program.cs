@@ -40,7 +40,7 @@ namespace KnowledgeDialog
 
             qa.AdviceAnswer(q1, false, denotation1);
             qa.AdviceAnswer(q2, false, denotation2);
-            qa.Optimize(10000);
+            qa.Optimize(1000);
 
 
             var pool = new ContextPool(graph);

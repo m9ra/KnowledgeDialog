@@ -13,6 +13,8 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
     {
         internal readonly IEnumerable<FeatureInstance> FeatureInstances;
 
+        internal readonly FeatureKey FeatureKey;
+
         private readonly bool[] _coveredPositions;
 
         private static readonly List<FeatureGeneratorBase> _featureGenerators = new List<FeatureGeneratorBase>(){
@@ -21,12 +23,14 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
             new NodeFeatureGenerator()
         };
 
+
         internal FeatureCover(FeatureInstance feature)
         {
             _coveredPositions = new bool[feature.MaxOriginPosition + 1];
             FeatureInstances = new[] { feature };
-
             indexPositions(feature);
+
+            FeatureKey = createFeatureKey();
         }
 
         private FeatureCover(FeatureCover previousCover, FeatureInstance extendingFeature)
@@ -35,13 +39,15 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
             FeatureInstances = previousCover.FeatureInstances.Concat(new[] { extendingFeature }).OrderBy(f => f.CoveredPositions.First()).ToArray();
 
             indexPositions(extendingFeature);
+
+            FeatureKey = createFeatureKey();
         }
 
         /// <summary>
         /// Creates hashable representation of features in cover.
         /// </summary>
         /// <returns>The feature key.</returns>
-        internal FeatureKey CreateFeatureKey()
+        private FeatureKey createFeatureKey()
         {
             return new FeatureKey(FeatureInstances.Select(f => f.Feature));
         }

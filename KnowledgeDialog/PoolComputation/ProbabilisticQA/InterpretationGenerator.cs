@@ -53,11 +53,6 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
             }
 
             var interpretation = new Interpretation(_topicSelector.Rules.Concat(_currentConstraintSelector.Rules));
-
-            if (_topicSelector.SelectedNodesCount <= 1)
-                //force new topic selector
-                _currentConstraintSelector = null;
-
             return interpretation;
         }
 

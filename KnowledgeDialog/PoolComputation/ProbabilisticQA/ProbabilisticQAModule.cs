@@ -40,10 +40,17 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
             var covers = FeatureCover.GetFeatureCovers(parsedQuestion, Graph);
 
             var interpretations = _mapping.GetRankedInterpretations(covers);
-            var bestInterpretation = interpretations.BestInterpretation;
+            var bestMatch = interpretations.BestMatch;
+            if (bestMatch.Value == null)
+                //no interpretation has been found
+                return new NodeReference[0];
+
+            var bestInterpretation = bestMatch.Value.Item2.Interpretation;
+            var bestCover = bestMatch.Value.Item1;
+            var instantiatedInterpretation = bestInterpretation.InstantiateBy(bestCover, Graph);
 
             //run the interpretation on the pool
-            foreach (var rule in bestInterpretation.Value.Interpretation.Rules)
+            foreach (var rule in instantiatedInterpretation.Rules)
             {
                 rule.Execute(pool);
             }
@@ -79,8 +86,13 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
 
             foreach (var cover in generator.Covers)
             {
-                var ruledInterpretation = new RuledInterpretation(interpretation, generator.ContractedInterpretation, cover, Graph);
-                _mapping.ReportInterpretation(ruledInterpretation.FeatureKey, ruledInterpretation);
+                var generalInterpretation = interpretation.GeneralizeBy(cover, Graph);
+                if (generalInterpretation == null)
+                    //we are searchnig only general interpretations
+                    continue;
+
+                var ruledInterpretation = new RuledInterpretation(generalInterpretation, cover.FeatureKey);
+                _mapping.ReportInterpretation(ruledInterpretation);
             }
 
             return true;

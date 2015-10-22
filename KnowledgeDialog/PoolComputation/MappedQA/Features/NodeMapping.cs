@@ -13,6 +13,11 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
         internal bool IsEmpty { get { return _generalizationMapping.Count == 0; } }
 
         /// <summary>
+        /// Determine whether any node has been mapped.
+        /// </summary>
+        internal bool WasUsed { get; private set; }
+
+        /// <summary>
         /// Determine whether mapping is generalizing or instantiating
         /// </summary>
         internal bool IsGeneralizeMapping;
@@ -22,7 +27,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
         private readonly Dictionary<NodeReference, NodeReference> _instantiationMapping = new Dictionary<NodeReference, NodeReference>();
 
         private readonly ComposedGraph _graph;
-        
+
 
         internal NodeMapping(ComposedGraph graph)
         {
@@ -34,8 +39,8 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
             var instanceNode = _graph.GetNode(instanceNodeData);
             var generalNode = _graph.GetNode(generalNodeData);
 
-            _generalizationMapping.Add(generalNode, instanceNode);
-            _instantiationMapping.Add(instanceNode, generalNode);
+            _generalizationMapping.Add(instanceNode, generalNode);
+            _instantiationMapping.Add(generalNode, instanceNode);
         }
 
         internal NodeReference GetMappedNode(NodeReference node)
@@ -44,17 +49,18 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
 
             if (IsGeneralizeMapping)
             {
-                if (_generalizationMapping.TryGetValue(node, out mappedNode))
-                    return mappedNode;
+                if (!_generalizationMapping.TryGetValue(node, out mappedNode))
+                    return node;
             }
             else
             {
-                if (_instantiationMapping.TryGetValue(node, out mappedNode))
-                    return mappedNode;
+                if (!_instantiationMapping.TryGetValue(node, out mappedNode))
+                    return node;
             }
 
-            //there is no mapping available
-            return node;
+            //mapping has been found
+            WasUsed = true;
+            return mappedNode;
         }
     }
 }

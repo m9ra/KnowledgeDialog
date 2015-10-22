@@ -25,8 +25,10 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
         /// </summary>
         internal int RegisteredFeatureCount { get { return _coverIndex.Count; } }
 
-        internal void ReportInterpretation(FeatureKey key, RuledInterpretation interpretation)
+        internal void ReportInterpretation(RuledInterpretation interpretation)
         {
+            var key = interpretation.FeatureKey;
+
             InterpretationCounter counter;
             if (!_coverIndex.TryGetValue(key, out counter))
                 //create new counter
@@ -34,12 +36,14 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
 
             counter.Add(interpretation);
             ++RegisteredInterpretations;
+
+            Console.WriteLine(interpretation);
         }
 
         internal Ranked<RuledInterpretation> GetRankedInterpretation(FeatureCover cover)
         {
             InterpretationCounter counter;
-            if (!_coverIndex.TryGetValue(cover.CreateFeatureKey(), out counter))
+            if (!_coverIndex.TryGetValue(cover.FeatureKey, out counter))
                 return null;
 
             return new Ranked<RuledInterpretation>(counter.BestInterpretation, counter.BestInterpretationRank);
@@ -54,7 +58,7 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
                 if (rankedInterpretation == null)
                     //we don't have interpretation fot the cover
                     continue;
-                result.AddInterpretation(rankedInterpretation.Value, rankedInterpretation.Rank);
+                result.AddInterpretation(cover, rankedInterpretation.Value, rankedInterpretation.Rank);
             }
 
             return result;

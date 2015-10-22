@@ -16,8 +16,13 @@ namespace KnowledgeDialog.Knowledge
 
         public readonly bool IsOutcoming;
 
+        public readonly int SegmentIndex;
+
         public PathSegment(PathSegment previousSegment, string edge, bool isOutcoming, NodeReference toNode)
         {
+            if (previousSegment != null)
+                SegmentIndex += previousSegment.SegmentIndex + 1;
+
             PreviousSegment = previousSegment;
             Edge = edge;
             Node = toNode;

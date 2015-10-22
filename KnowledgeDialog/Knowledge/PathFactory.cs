@@ -33,10 +33,16 @@ namespace KnowledgeDialog.Knowledge
         /// </summary>
         private readonly int _maxSearchWidth;
 
-        internal PathFactory(NodeReference targetNode, ComposedGraph graph, int maxSearchWidth)
+        /// <summary>
+        /// Maximum depth for searching in graph.
+        /// </summary>
+        private readonly int _maxSearchDepth;
+
+        internal PathFactory(NodeReference targetNode, ComposedGraph graph, int maxSearchWidth, int maxSearchDepth)
         {
             StartingNode = targetNode;
             Graph = graph;
+            _maxSearchDepth = maxSearchDepth;
 
             _maxSearchWidth = maxSearchWidth;
             _segmentsToVisit.Push(new PathSegment(null, null, false, StartingNode));
@@ -50,11 +56,12 @@ namespace KnowledgeDialog.Knowledge
                 var isOutcomming = edgeTuple.Item2;
                 var child = edgeTuple.Item3;
 
-                if (previousSegment != null && previousSegment.Contains(child))
+                if (previousSegment != null && previousSegment.Contains(child) )
                     //the node has already been visited previously in the path
                     continue;
 
-                _segmentsToVisit.Push(new PathSegment(previousSegment, edge, isOutcomming, child));
+                if (previousSegment.SegmentIndex < _maxSearchDepth)
+                    _segmentsToVisit.Push(new PathSegment(previousSegment, edge, isOutcomming, child));
             }
         }
 

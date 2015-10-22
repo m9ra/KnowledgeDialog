@@ -22,11 +22,10 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
         /// </summary>
         internal readonly FeatureKey FeatureKey;
 
-        public RuledInterpretation(Interpretation interpretation, Interpretation contractedInterpretation, FeatureCover cover, ComposedGraph graph)
+        public RuledInterpretation(Interpretation interpretation, FeatureKey key)
         {
-            FeatureKey = cover.CreateFeatureKey();
-
-            Interpretation = interpretation.GeneralizeBy(cover, contractedInterpretation, graph);
+            Interpretation = interpretation;
+            FeatureKey = key;
         }
 
         /// <inheritdoc/>

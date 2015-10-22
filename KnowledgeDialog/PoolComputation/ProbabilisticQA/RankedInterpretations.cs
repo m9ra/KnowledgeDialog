@@ -4,28 +4,31 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.PoolComputation.MappedQA.Features;
+
 namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
 {
     class RankedInterpretations
     {
-        private Dictionary<RuledInterpretation, double> _interpretationScores = new Dictionary<RuledInterpretation, double>();
+        private Dictionary<Tuple<FeatureCover, RuledInterpretation>, double> _interpretationScores = new Dictionary<Tuple<FeatureCover, RuledInterpretation>, double>();
 
-        internal Ranked<RuledInterpretation> BestInterpretation
+        internal Ranked<Tuple<FeatureCover,RuledInterpretation>> BestMatch
         {
             get
             {
                 var bestPair = _interpretationScores.OrderByDescending(prop => prop.Value).FirstOrDefault();
 
-                return new Ranked<RuledInterpretation>(bestPair.Key, bestPair.Value);
+                return new Ranked<Tuple<FeatureCover,RuledInterpretation>>(bestPair.Key, bestPair.Value);
             }
         }
 
-        internal void AddInterpretation(RuledInterpretation interpretation, double rank)
+        internal void AddInterpretation(FeatureCover cover,RuledInterpretation interpretation, double rank)
         {
             double score;
-            _interpretationScores.TryGetValue(interpretation, out score);
+            var key = Tuple.Create(cover, interpretation);
+            _interpretationScores.TryGetValue(key, out score);
             score += rank;
-            _interpretationScores[interpretation] = score;
+            _interpretationScores[key] = score;
         }
     }
 }

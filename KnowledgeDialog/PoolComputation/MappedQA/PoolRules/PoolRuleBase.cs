@@ -66,7 +66,8 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
         internal PoolRuleBase MapNodes(NodeMapping mapping)
         {
-            return mapNodes(mapping);
+            var mappedRule = mapNodes(mapping);
+            return mappedRule;
         }
 
         private IEnumerable<RulePart> createRuleParts(IEnumerable<RuleBitBase> ruleBits)

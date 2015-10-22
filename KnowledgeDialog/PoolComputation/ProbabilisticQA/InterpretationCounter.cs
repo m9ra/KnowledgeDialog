@@ -27,7 +27,7 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
             ++count;
 
             //set new value
-            _ruleCounts[interpretation] = count + 1;
+            _ruleCounts[interpretation] = count;
 
             if (count > _maxCount)
             {

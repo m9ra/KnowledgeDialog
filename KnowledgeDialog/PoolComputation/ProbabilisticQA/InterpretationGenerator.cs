@@ -17,13 +17,15 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
 
         private readonly ProbabilisticQAModule _owner;
 
+        private readonly ContextPool _context;
+
         private readonly InterpretationsFactory _interpretations;
 
         private readonly TopicSelector _topicSelector;
 
         private ConstraintSelector _currentConstraintSelector;
 
-        internal InterpretationGenerator(IEnumerable<FeatureCover> covers, InterpretationsFactory interpretations, ProbabilisticQAModule owner)
+        internal InterpretationGenerator(IEnumerable<FeatureCover> covers, InterpretationsFactory interpretations, ContextPool context, ProbabilisticQAModule owner)
         {
             var coversCopy = covers.ToArray();
             if (coversCopy.Length == 0)
@@ -32,6 +34,7 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
             Covers = coversCopy;
 
             _interpretations = interpretations;
+            _context = context.Clone();
             _owner = owner;
             _topicSelector = interpretations.GetTopicSelector(owner.Graph);
             if (_topicSelector.MoveNext())
@@ -56,5 +59,14 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
             return interpretation;
         }
 
+        internal ContextPool CreateContextPoolCopy()
+        {
+            return _context.Clone();
+        }
+
+        internal bool ContainsCorrectAnswer(ContextPool contextPool)
+        {
+            return contextPool.ActiveCount == 1 && contextPool.ContainsInAccumulator(_topicSelector.TargetNode);
+        }
     }
 }

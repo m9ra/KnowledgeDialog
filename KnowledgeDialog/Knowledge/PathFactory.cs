@@ -56,7 +56,7 @@ namespace KnowledgeDialog.Knowledge
                 var isOutcomming = edgeTuple.Item2;
                 var child = edgeTuple.Item3;
 
-                if (previousSegment != null && previousSegment.Contains(child) )
+                if (previousSegment != null && previousSegment.Contains(child))
                     //the node has already been visited previously in the path
                     continue;
 
@@ -75,10 +75,17 @@ namespace KnowledgeDialog.Knowledge
                 return null;
 
             var nextSegment = _segmentsToVisit.Pop();
-            addChildren(nextSegment.Node, nextSegment, Graph);
 
             return nextSegment;
         }
 
+        /// <summary>
+        /// Enqueues children of the segment for visiting.
+        /// </summary>
+        /// <param name="segment">Segment which children will be enqueued.</param>
+        internal void Enqueue(PathSegment segment)
+        {
+            addChildren(segment.Node, segment, Graph);
+        }
     }
 }

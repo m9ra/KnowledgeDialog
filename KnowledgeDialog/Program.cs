@@ -37,10 +37,11 @@ namespace KnowledgeDialog
             var q2 = "Who is Russia president?";
 
             var q3 = "Who is Czech republic president?";
+            var denotation3 = graph.GetNode("Miloš Zeman");
 
             qa.AdviceAnswer(q1, false, denotation1);
             qa.AdviceAnswer(q2, false, denotation2);
-            qa.Optimize(1000);
+            qa.Optimize(10000);
 
 
             var pool = new ContextPool(graph);

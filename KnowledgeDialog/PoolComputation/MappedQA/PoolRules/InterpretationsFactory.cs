@@ -25,10 +25,10 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
 
         private readonly ParsedUtterance _parsedQuestion;
-        private readonly bool _isBasedOnContext;
-        private readonly IEnumerable<NodeReference> _context;
 
-        public InterpretationsFactory(Dialog.ParsedUtterance parsedQuestion, bool isBasedOnContext, NodeReference correctAnswerNode, IEnumerable<NodeReference> context)
+        private readonly bool _isBasedOnContext;
+
+        public InterpretationsFactory(Dialog.ParsedUtterance parsedQuestion, bool isBasedOnContext, NodeReference correctAnswerNode)
         {
             if (isBasedOnContext)
                 throw new NotImplementedException();
@@ -38,7 +38,6 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
             CorrectAnswerNode = correctAnswerNode;
             ContractedInterpretation = new Interpretation(new[] { new InsertPoolRule(correctAnswerNode) });
 
-            _context = context;
         }
 
         internal FeatureInstance GetSimpleFeatureInstance()
@@ -88,6 +87,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
                 return false;
 
             var nextSegment = _factory.GetNextSegment();
+            _factory.Enqueue(nextSegment);
 
             _rules.AddRange(createRule(nextSegment));
             _selectedNodes.UnionWith(findSelectedNodes(nextSegment));
@@ -204,9 +204,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
                 return wasFirst;
             }
 
-
             var lastCompleteRuleCount = _completeRules.Count;
-
             if (_combinationIndex < 1)
             {
                 //create new rule from next constraint path
@@ -219,6 +217,13 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
                 var remainingNodes = findRemainingNodes(constraint);
                 var isTrivialRule = remainingNodes.Count == _originalRemainingNodes.Count;
+                var isCompleteRule = remainingNodes.Count == 1;
+
+                if (!isCompleteRule)
+                    //only for non-complete rules it makes sense to 
+                    //prolong the path
+                    _factory.Enqueue(pathSegment);
+
                 if (isTrivialRule)
                     //we don't need any trivial rule
                     return false;

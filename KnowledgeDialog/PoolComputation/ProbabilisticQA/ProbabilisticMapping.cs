@@ -36,8 +36,6 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
 
             counter.Add(interpretation);
             ++RegisteredInterpretations;
-
-            Console.WriteLine(interpretation);
         }
 
         internal Ranked<RuledInterpretation> GetRankedInterpretation(FeatureCover cover)

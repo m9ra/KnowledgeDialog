@@ -84,7 +84,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
 
         private InterpretationsFactory getInterpretationsFactory(ParsedUtterance parsedQuestion, bool isBasedOnContext, NodeReference correctAnswerNode, IEnumerable<NodeReference> context)
         {
-            return new InterpretationsFactory(parsedQuestion, isBasedOnContext, correctAnswerNode, context);
+            return new InterpretationsFactory(parsedQuestion, isBasedOnContext, correctAnswerNode);
         }
 
 

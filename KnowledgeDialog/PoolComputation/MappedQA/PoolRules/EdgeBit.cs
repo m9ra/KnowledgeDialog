@@ -20,7 +20,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
                 throw new ArgumentNullException("edge");
 
             Edge = edge;
-            IsOutgoing = IsOutgoing;
+            IsOutgoing = isOutgoing;
         }
 
         /// <inheritdoc/>

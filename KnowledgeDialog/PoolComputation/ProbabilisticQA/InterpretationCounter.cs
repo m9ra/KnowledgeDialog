@@ -12,6 +12,8 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
 
         internal double BestInterpretationRank { get; private set; }
 
+        internal double BestCount { get { return _maxCount; } }
+
         private readonly Dictionary<RuledInterpretation, int> _ruleCounts = new Dictionary<RuledInterpretation, int>();
 
         private int _maxCount = 0;
@@ -34,8 +36,9 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
                 //better interpretation has been found
                 _maxCount = count;
                 BestInterpretation = interpretation;
-                BestInterpretationRank = 1.0 * _maxCount / _totalInterpretationCount;
             }
+
+            BestInterpretationRank = 1.0 * _maxCount / _totalInterpretationCount;
         }
     }
 }

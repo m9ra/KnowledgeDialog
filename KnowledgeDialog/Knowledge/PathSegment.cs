@@ -45,6 +45,22 @@ namespace KnowledgeDialog.Knowledge
             return PreviousSegment.Contains(node);
         }
 
+        /// <summary>
+        /// Determine whether edge is contained in currrent or previous segments.
+        /// </summary>
+        /// <param name="edge">Tested edge.</param>
+        /// <returns><c>true</c> whether edge is contained, <c>false</c> otherwise.</returns>
+        internal bool Contains(string edge)
+        {
+            if (Edge == edge)
+                return true;
+
+            if (PreviousSegment == null)
+                return false;
+
+            return PreviousSegment.Contains(edge);
+        }
+
         internal IEnumerable<Tuple<string, bool>> GetEdges()
         {
             var currentSegment = this;
@@ -59,7 +75,7 @@ namespace KnowledgeDialog.Knowledge
 
         internal IEnumerable<Tuple<string, bool>> GetReversedEdges()
         {
-            return GetInvertedEdges().Reverse();
+            return GetEdges().Reverse();
         }
 
         internal IEnumerable<Tuple<string, bool>> GetInvertedEdges()
@@ -73,5 +89,11 @@ namespace KnowledgeDialog.Knowledge
                 currentSegment = currentSegment.PreviousSegment;
             }
         }
+
+        internal IEnumerable<Tuple<string, bool>> GetReversedInvertedEdges()
+        {
+            return GetInvertedEdges().Reverse();
+        }
+ 
     }
 }

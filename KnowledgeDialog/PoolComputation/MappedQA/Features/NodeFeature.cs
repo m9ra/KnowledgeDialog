@@ -12,9 +12,16 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
     class NodeFeature : FeatureBase
     {
         /// <summary>
+        /// Prefix that is placed before feature index.
+        /// </summary>
+        protected static readonly string IndexPrefix = "#NF$";
+
+
+        /// <summary>
         /// Index of the feature.
         /// </summary>
         internal readonly int Index;
+
 
         internal NodeFeature(int index)
         {
@@ -40,7 +47,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
         /// <inheritdoc/>
         protected override string toString()
         {
-            return "$" + Index;
+            return IndexPrefix + Index;
         }
 
         /// <inheritdoc/>
@@ -53,8 +60,13 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
         protected override void setMapping(FeatureInstance featureInstance, NodeMapping mapping)
         {
             var instanceNodeData = featureInstance.Origin.Words.Skip(Index).First();
-            var generalNodeData = "$" + Index;
+            var generalNodeData = IndexPrefix + Index;
             mapping.SetMapping(instanceNodeData, generalNodeData);
+        }
+
+        internal NodeReference GetNode(ComposedGraph graph)
+        {
+            throw new NotImplementedException();
         }
     }
 }

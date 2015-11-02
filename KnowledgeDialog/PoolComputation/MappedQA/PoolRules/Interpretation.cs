@@ -17,14 +17,18 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
         internal IEnumerable<PoolRuleBase> Rules { get { return _rules; } }
 
         internal Interpretation(IEnumerable<PoolRuleBase> rules)
+            : this(rules.ToArray())
         {
-            //TODO check ordering
-            _rules = rules.ToArray();
+        }
+
+        private Interpretation(PoolRuleBase[] rules)
+        {
+            _rules = rules;
         }
 
         internal Interpretation GeneralizeBy(FeatureCover cover, ComposedGraph graph)
         {
-            var mapping = initializeNodeMapping(cover, graph);
+            var mapping = cover.CreateNodeMapping(graph);
 
             var isContractable = _rules.Any(r => r is InsertPoolRule);
             if (mapping.IsEmpty)
@@ -46,19 +50,9 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
             return new Interpretation(newRules);
         }
 
-        private PoolRuleBase[] mapRules(NodeMapping mapping)
-        {
-            var newRules = new PoolRuleBase[_rules.Length];
-            for (var i = 0; i < _rules.Length; ++i)
-            {
-                newRules[i] = _rules[i].MapNodes(mapping);
-            }
-            return newRules;
-        }
-
         internal Interpretation InstantiateBy(FeatureCover cover, ComposedGraph graph)
         {
-            var mapping = initializeNodeMapping(cover, graph);
+            var mapping = cover.CreateNodeMapping(graph);
 
             if (mapping.IsEmpty)
                 return this;
@@ -69,15 +63,32 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
             return new Interpretation(newRules);
         }
 
-        private NodeMapping initializeNodeMapping(FeatureCover cover, ComposedGraph graph)
+        internal IEnumerable<Interpretation> ExtendBy(IEnumerable<NodeReference> enumerable, ComposedGraph graph)
         {
-            var mapping = new NodeMapping(graph);
-            foreach (var instance in cover.FeatureInstances)
+            foreach (var node in enumerable)
             {
-                instance.SetMapping(mapping);
-            }
+                for (var i = 0; i < _rules.Length; ++i)
+                {
+                    var extendedRules = _rules[i].Extend(node, graph);
+                    foreach (var extendedRule in extendedRules)
+                    {
+                        var ruleCopy = (PoolRuleBase[])_rules.Clone();
+                        ruleCopy[i] = extendedRule;
 
-            return mapping;
+                        yield return new Interpretation(ruleCopy);
+                    }
+                }
+            }
+        }
+
+        private PoolRuleBase[] mapRules(NodeMapping mapping)
+        {
+            var newRules = new PoolRuleBase[_rules.Length];
+            for (var i = 0; i < _rules.Length; ++i)
+            {
+                newRules[i] = _rules[i].MapNodes(mapping);
+            }
+            return newRules;
         }
 
         /// <inheritdoc/>
@@ -106,5 +117,6 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
         {
             return string.Format("[Interpretation]{{{0}}}", string.Join(" ", Rules));
         }
+
     }
 }

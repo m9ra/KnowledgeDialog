@@ -22,6 +22,10 @@ namespace KnowledgeDialog.Dialog
 
         internal static readonly ConsoleColor OperatorColor = ConsoleColor.Red;
 
+        internal static readonly ConsoleColor CaptionColor = ConsoleColor.Green;
+
+        internal static readonly ConsoleColor InfoColor = ConsoleColor.Gray;
+
         internal static readonly ConsoleColor ConfidenceColor = ConsoleColor.DarkCyan;
 
         internal static readonly ConsoleColor PatternHead = ConsoleColor.DarkYellow;
@@ -47,12 +51,12 @@ namespace KnowledgeDialog.Dialog
 
         internal static void Print(IEnumerable<Tuple<string, bool>> path)
         {
-            var buffer=new StringBuilder();
+            var buffer = new StringBuilder();
             FillWithPath(buffer, path);
 
             PrintLine(buffer.ToString(), NodeColor);
         }
-     
+
         /// <summary>
         /// Begin new section with given name.
         /// </summary>
@@ -153,6 +157,28 @@ namespace KnowledgeDialog.Dialog
             Console.ForegroundColor = lastColor;
         }
 
+        internal static void Print(string caption, IEnumerable<PoolComputation.MappedQA.PoolRules.PoolRuleBase> rules)
+        {
+            PrintLine(caption, ActiveColor);
+            Indent(1);
+            PrintLine(string.Join(" | ", rules), NodeColor);
+            Indent(-1);
+        }
+
+        internal static void Print(string caption, IEnumerable<PoolComputation.MappedQA.PoolRules.PoolRuleBase> rules, HashSet<NodeReference> nodes)
+        {
+            PrintLine(caption, CaptionColor);
+            Indent(1);
+            PrintLine(string.Join(" | ", rules), NodeColor);
+            PrintLine(string.Join(", ", nodes), InfoColor);
+            Indent(-1);
+        }
+
+        internal static void PrintEmptyLine()
+        {
+            Console.WriteLine();
+        }
+
         internal static string ReadLine(ConsoleColor color)
         {
             var lastColor = Console.ForegroundColor;
@@ -168,5 +194,7 @@ namespace KnowledgeDialog.Dialog
         {
             _indentationLevel += change;
         }
+
+
     }
 }

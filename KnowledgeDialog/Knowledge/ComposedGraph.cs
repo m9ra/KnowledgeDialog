@@ -70,6 +70,40 @@ namespace KnowledgeDialog.Knowledge
         }
 
         /// <summary>
+        /// Determine whether given edge sequence cause twice visiting of some node.
+        /// </summary>
+        /// <param name="startingNodes"></param>
+        /// <param name="edgePairs"></param>
+        /// <returns></returns>
+        public bool ContainsLoop(IEnumerable<NodeReference> startingNodes, IEnumerable<Tuple<string, bool>> edgePairs)
+        {
+            var visitedNodes = new HashSet<NodeReference>(startingNodes);
+            var currentLayer = new HashSet<NodeReference>(startingNodes);
+            var nextLayer = new HashSet<NodeReference>();
+            foreach (var edgePair in edgePairs)
+            {
+                foreach (var node in currentLayer)
+                {
+                    var targets = Targets(node, edgePair.Item1, edgePair.Item2);
+                    foreach (var target in targets)
+                    {
+                        if(!visitedNodes.Add(target))
+                            //the loop has been found
+                            return true;
+
+                        nextLayer.Add(target);
+                    }
+                }
+
+                var tmpXChg = currentLayer;
+                currentLayer = nextLayer;
+                nextLayer = tmpXChg;
+                nextLayer.Clear();
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Determine whether there is an edge between from and to nodes and has specified direction.
         /// </summary>
         /// <param name="fromNode"></param>

@@ -98,6 +98,13 @@ namespace WebBackend
             experimentHandler(experimentName);
         }
 
+        public void data_collection()
+        {
+            var experimentName = "data_collection";
+
+            experimentHandler(experimentName);
+        }
+
         /// <summary>
         /// Render experiment console. Also handle feedback and tracing of given experiment.
         /// </summary>

@@ -43,13 +43,24 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
             FeatureKey = createFeatureKey();
         }
 
-        /// <summary>
-        /// Creates hashable representation of features in cover.
-        /// </summary>
-        /// <returns>The feature key.</returns>
-        private FeatureKey createFeatureKey()
+
+        internal NodeMapping CreateNodeMapping(ComposedGraph graph)
         {
-            return new FeatureKey(FeatureInstances.Select(f => f.Feature));
+            var mapping = new NodeMapping(graph);
+            foreach (var instance in FeatureInstances)
+            {
+                instance.SetMapping(mapping);
+            }
+
+            return mapping;
+        }
+
+
+        internal IEnumerable<NodeReference> GetNodes(ComposedGraph graph)
+        {
+            var mapping = CreateNodeMapping(graph);
+
+            return mapping.InstanceNodes;
         }
 
         internal IEnumerable<FeatureCover> Extend(FeatureInstance feature)
@@ -61,6 +72,15 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
             return new[]{
                 new FeatureCover(this, feature)
             };
+        }
+
+        /// <summary>
+        /// Creates hashable representation of features in cover.
+        /// </summary>
+        /// <returns>The feature key.</returns>
+        private FeatureKey createFeatureKey()
+        {
+            return new FeatureKey(FeatureInstances.Select(f => f.Feature));
         }
 
         private void indexPositions(FeatureInstance feature)
@@ -129,5 +149,6 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
             return extendedCovers;
         }
         #endregion
+
     }
 }

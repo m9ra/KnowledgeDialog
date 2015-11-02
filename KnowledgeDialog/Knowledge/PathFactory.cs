@@ -24,9 +24,9 @@ namespace KnowledgeDialog.Knowledge
         internal bool HasNextPath { get { return _segmentsToVisit.Count > 0; } }
 
         /// <summary>
-        /// Stack of segments that will be visited.
+        /// Segments that will be visited.
         /// </summary>
-        private readonly Stack<PathSegment> _segmentsToVisit = new Stack<PathSegment>();
+        private readonly Queue<PathSegment> _segmentsToVisit = new Queue<PathSegment>();
 
         /// <summary>
         /// Maximum width for neighbours searching in graph.
@@ -38,14 +38,20 @@ namespace KnowledgeDialog.Knowledge
         /// </summary>
         private readonly int _maxSearchDepth;
 
-        internal PathFactory(NodeReference targetNode, ComposedGraph graph, int maxSearchWidth, int maxSearchDepth)
+        /// <summary>
+        /// Flag determining whether we are interested in paths with distnict edges only.
+        /// </summary>
+        private readonly bool _distinctEdges;
+
+        internal PathFactory(NodeReference targetNode, ComposedGraph graph, bool distinctEdges, int maxSearchWidth, int maxSearchDepth)
         {
             StartingNode = targetNode;
             Graph = graph;
             _maxSearchDepth = maxSearchDepth;
+            _distinctEdges = distinctEdges;
 
             _maxSearchWidth = maxSearchWidth;
-            _segmentsToVisit.Push(new PathSegment(null, null, false, StartingNode));
+            _segmentsToVisit.Enqueue(new PathSegment(null, null, false, StartingNode));
         }
 
         private void addChildren(NodeReference node, PathSegment previousSegment, ComposedGraph graph)
@@ -56,12 +62,12 @@ namespace KnowledgeDialog.Knowledge
                 var isOutcomming = edgeTuple.Item2;
                 var child = edgeTuple.Item3;
 
-                if (previousSegment != null && previousSegment.Contains(child))
+                if (previousSegment != null && (previousSegment.Contains(child) || (_distinctEdges && previousSegment.Contains(edge))))
                     //the node has already been visited previously in the path
                     continue;
 
                 if (previousSegment.SegmentIndex < _maxSearchDepth)
-                    _segmentsToVisit.Push(new PathSegment(previousSegment, edge, isOutcomming, child));
+                    _segmentsToVisit.Enqueue(new PathSegment(previousSegment, edge, isOutcomming, child));
             }
         }
 
@@ -74,7 +80,7 @@ namespace KnowledgeDialog.Knowledge
             if (_segmentsToVisit.Count == 0)
                 return null;
 
-            var nextSegment = _segmentsToVisit.Pop();
+            var nextSegment = _segmentsToVisit.Dequeue();
 
             return nextSegment;
         }

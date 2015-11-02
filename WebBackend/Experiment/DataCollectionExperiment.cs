@@ -9,10 +9,7 @@ using WebBackend.DialogProvider;
 
 namespace WebBackend.Experiment
 {
-    /// <summary>
-    /// Task experiment implementatio for CrowdFlower
-    /// </summary>
-    class CrowdFlowerExperiment : ExperimentBase
+    class DataCollectionExperiment : ExperimentBase
     {
         /// <summary>
         /// Factories indexed by task id.
@@ -29,7 +26,7 @@ namespace WebBackend.Experiment
         /// </summary>
         private readonly List<int> _validationCodes = new List<int>();
 
-        public CrowdFlowerExperiment(string experimentsRoot, string experimentId, int taskCount, params TaskFactoryBase[] factories)
+        public DataCollectionExperiment(string experimentsRoot, string experimentId, int taskCount, params TaskFactoryBase[] factories)
             : base(experimentsRoot, experimentId)
         {
             var writer = new CrowdFlowerCodeWriter(ExperimentRootPath, experimentId);
@@ -50,11 +47,6 @@ namespace WebBackend.Experiment
             }
 
             writer.Close();
-        }
-
-        protected override WebConsoleBase createConsole(string databasePath)
-        {
-            return new HeuristicManagerWebConsole(databasePath);
         }
 
         internal override TaskInstance GetTask(int taskId)
@@ -88,6 +80,11 @@ namespace WebBackend.Experiment
             _validationCodes.Add(new Random(taskId).Next(1000, 9999));
 
             writer.Write(taskId,_validationCodes.Last().ToString());
+        }
+
+        protected override WebConsoleBase createConsole(string databasePath)
+        {
+            return new DataCollectionWebConsole(databasePath);
         }
     }
 }

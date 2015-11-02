@@ -10,11 +10,14 @@ using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Database;
 using KnowledgeDialog.Knowledge;
 
+using WebBackend.DialogProvider;
+
+
 namespace WebBackend.Experiment
 {
     class SolutionLog
     {
-        private WebConsole _console;
+        private WebConsoleBase _console;
 
         private readonly ExperimentBase _experiment;
 
@@ -148,11 +151,10 @@ namespace WebBackend.Experiment
 
         #region Private utilities
 
-        private WebConsole createConsole()
+        private WebConsoleBase createConsole()
         {
             logInfo("new console ");
-            var databasePath = _experiment.GetDatabasePath("dialog");
-            return new WebConsole(databasePath);
+            return _experiment.CreateConsoleWithDatabase("dialog");            
         }
 
         #endregion

@@ -59,7 +59,10 @@ namespace WebBackend
                 new CrowdFlowerExperiment(ExperimentsRootPath, "experiment1", 15, new Task.President.PresidentTaskFactory()),
 
                 //have public experiment with same settings
-                new CrowdFlowerExperiment(ExperimentsRootPath, "public_experiment", 15, new Task.President.PresidentTaskFactory())
+                new CrowdFlowerExperiment(ExperimentsRootPath, "public_experiment", 15, new Task.President.PresidentTaskFactory()),
+
+                //data collection experiment
+                new DataCollectionExperiment(ExperimentsRootPath, "data_collection", 15, new Task.President.PresidentTaskFactory())
                 );
 
             //run server
@@ -103,7 +106,7 @@ namespace WebBackend
         #region Server utilities
 
         /// <summary>
-        /// Rutn server providing web on given path.
+        /// Run server providing web on given path.
         /// </summary>
         /// <param name="wwwPath">Root path of provided web.</param>
         private static void runServer(string wwwPath)

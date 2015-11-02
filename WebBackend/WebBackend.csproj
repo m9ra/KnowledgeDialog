@@ -48,6 +48,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DialogProvider\DataCollectionWebConsole.cs" />
+    <Compile Include="DialogProvider\HeuristicManagerWebConsole.cs" />
+    <Compile Include="Experiment\DataCollectionExperiment.cs" />
     <Compile Include="Experiment\NoTaskExperiment.cs" />
     <Compile Include="Experiment\SolutionLog.cs" />
     <Compile Include="Experiment\ActionEntry.cs" />
@@ -75,7 +78,7 @@
     <Compile Include="Task\President\WifeOfPresidentTask.cs" />
     <Compile Include="Task\TaskFactoryBase.cs" />
     <Compile Include="DialogProvider\UserData.cs" />
-    <Compile Include="DialogProvider\WebConsole.cs" />
+    <Compile Include="DialogProvider\WebConsoleBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

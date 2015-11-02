@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.Knowledge;
 using KnowledgeDialog.PoolComputation.MappedQA.Features;
 
 namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
@@ -24,6 +25,8 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
         protected abstract void execute(ContextPool pool);
 
         protected abstract PoolRuleBase mapNodes(NodeMapping mapping);
+
+        protected abstract IEnumerable<PoolRuleBase> extend(NodeReference node, ComposedGraph graph);
 
         internal IEnumerable<RulePart> Parts
         {
@@ -70,6 +73,11 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
             return mappedRule;
         }
 
+        internal IEnumerable<PoolRuleBase> Extend(NodeReference node, ComposedGraph graph)
+        {
+            return extend(node, graph);
+        }
+
         private IEnumerable<RulePart> createRuleParts(IEnumerable<RuleBitBase> ruleBits)
         {
             var result = new List<RulePart>();
@@ -107,5 +115,6 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
         {
             return RuleRepresentation;
         }
+
     }
 }

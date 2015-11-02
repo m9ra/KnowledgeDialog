@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using WebBackend.DialogProvider;
+
 namespace WebBackend.Experiment
 {
     class NoTaskExperiment : ExperimentBase
@@ -19,6 +21,11 @@ namespace WebBackend.Experiment
         {
             //this experiment doesn't have any task
             return null;
+        }
+
+        protected override WebConsoleBase createConsole(string databasePath)
+        {
+            throw new NotSupportedException("Cannot create Web console for no task experiment");
         }
     }
 }

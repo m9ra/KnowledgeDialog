@@ -74,7 +74,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
         internal TopicSelector(ComposedGraph graph, NodeReference targetNode)
         {
-            _factory = new PathFactory(targetNode, graph, InterpretationsFactory.MaxSearchWidth, InterpretationsFactory.MaxTopicSelectorLength);
+            _factory = new PathFactory(targetNode, graph, false, InterpretationsFactory.MaxSearchWidth, InterpretationsFactory.MaxTopicSelectorLength);
         }
 
         internal bool MoveNext()
@@ -82,17 +82,36 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
             _rules.Clear();
             _selectedNodes.Clear();
 
-            if (!_factory.HasNextPath)
-                //there are no more topic rules available
+
+            var nextSegment = findNextSegment();
+            if (nextSegment == null)
+                //there are no more available segments.
                 return false;
 
-            var nextSegment = _factory.GetNextSegment();
             _factory.Enqueue(nextSegment);
 
             _rules.AddRange(createRule(nextSegment));
             _selectedNodes.UnionWith(findSelectedNodes(nextSegment));
 
+
+            ConsoleServices.Print("NEW TOPIC", Rules);
+            ConsoleServices.PrintEmptyLine();
+
             return true;
+        }
+
+        private PathSegment findNextSegment()
+        {
+            while (_factory.HasNextPath)
+            {
+                var nextSegment = _factory.GetNextSegment();
+                if (_factory.Graph.ContainsLoop(new[] { _factory.StartingNode },nextSegment.GetReversedEdges()))
+                    //path contains loop
+                    continue;
+
+                return nextSegment;
+            }
+            return null;
         }
 
         /// <summary>
@@ -170,7 +189,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
         internal ConstraintSelector(ComposedGraph graph, NodeReference targetNode, IEnumerable<NodeReference> selectedNodes)
         {
-            _factory = new PathFactory(targetNode, graph, InterpretationsFactory.MaxSearchWidth, InterpretationsFactory.MaxConstraintLength);
+            _factory = new PathFactory(targetNode, graph, false, InterpretationsFactory.MaxSearchWidth, InterpretationsFactory.MaxConstraintLength);
 
             if (!selectedNodes.Contains(targetNode))
                 throw new NotSupportedException("Cannot constraint nodes without target");
@@ -219,15 +238,11 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
                 var isTrivialRule = remainingNodes.Count == _originalRemainingNodes.Count;
                 var isCompleteRule = remainingNodes.Count == 1;
 
-                if (!isCompleteRule)
-                    //only for non-complete rules it makes sense to 
-                    //prolong the path
-                    _factory.Enqueue(pathSegment);
-
-                if (isTrivialRule)
+                if (isTrivialRule || Graph.ContainsLoop(new[] { _factory.StartingNode }, pathSegment.GetReversedEdges()))
                     //we don't need any trivial rule
                     return false;
 
+                _factory.Enqueue(pathSegment);
                 addRule(newRule, remainingNodes);
 
                 //set combination for next rules
@@ -307,6 +322,9 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
                 _incompleteRuleSequence.Add(rules);
                 _remainingNodes.Add(remainingNodes);
             }
+
+            ConsoleServices.Print("RULES", rules, remainingNodes);
+            ConsoleServices.PrintEmptyLine();
         }
 
         private ConstraintPoolRule createConstraint(PathSegment constraintPath)

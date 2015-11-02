@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Knowledge;
 
 using KnowledgeDialog.PoolComputation.MappedQA.Features;

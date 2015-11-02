@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.Knowledge;
 using KnowledgeDialog.PoolComputation.MappedQA.Features;
 
 namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
@@ -34,6 +35,12 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
         protected override PoolRuleBase mapNodes(NodeMapping mapping)
         {
             throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        protected override IEnumerable<PoolRuleBase> extend(NodeReference node, ComposedGraph graph)
+        {
+            yield break;
         }
     }
 }

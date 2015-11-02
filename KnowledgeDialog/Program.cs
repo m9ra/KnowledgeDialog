@@ -4,19 +4,31 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using KnowledgeDialog.Dialog;
-using KnowledgeDialog.Knowledge;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
+using KnowledgeDialog.Dialog;
+using KnowledgeDialog.Database;
+using KnowledgeDialog.Knowledge;
 using KnowledgeDialog.PoolComputation;
 
-using KnowledgeDialog.Database;
 
 namespace KnowledgeDialog
 {
     class Program
     {
+        [DllImport("user32.dll")]
+        public static extern bool ShowWindow(System.IntPtr hWnd, int cmdShow);
+
         static void Main(string[] args)
         {
+            System.Console.SetBufferSize(240, 10000);   // make sure buffer is bigger than window
+            System.Console.SetWindowSize(240, 54);   //set window size to almost full screen
+
+            Process p = Process.GetCurrentProcess();
+            ShowWindow(p.MainWindowHandle, 3); //SW_MAXIMIZE = 3
+
+
             var parse = UtteranceParser.Parse("name of wife of Barack Obama president is Michelle Obama");
             //MultipleAdvice(args[0]);
             //ExplicitStateDialog(args[0]);
@@ -41,12 +53,13 @@ namespace KnowledgeDialog
 
             qa.AdviceAnswer(q1, false, denotation1);
             qa.AdviceAnswer(q2, false, denotation2);
-            qa.Optimize(10000);
+            qa.Optimize(1000);
 
 
             var pool = new ContextPool(graph);
-         //   var a1 = qa.GetAnswer(q1, pool).ToArray();
+            //   var a1 = qa.GetAnswer(q1, pool).ToArray();
             var a3 = qa.GetAnswer(q3, pool).ToArray();
+            var repl_a1 = qa.GetAnswer(q1, pool).ToArray();
             throw new NotImplementedException();
         }
 

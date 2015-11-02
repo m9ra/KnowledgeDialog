@@ -44,7 +44,7 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
             if (!_coverIndex.TryGetValue(cover.FeatureKey, out counter))
                 return null;
 
-            return new Ranked<RuledInterpretation>(counter.BestInterpretation, counter.BestInterpretationRank);
+            return new Ranked<RuledInterpretation>(counter.BestInterpretation, counter.BestCount);
         }
 
         internal RankedInterpretations GetRankedInterpretations(IEnumerable<FeatureCover> covers)

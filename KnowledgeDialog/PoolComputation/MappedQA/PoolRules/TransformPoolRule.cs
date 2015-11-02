@@ -41,5 +41,11 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
             //no nodes can be mapped in Transform rule
             return this;
         }
+
+        /// <inheritdoc/>
+        protected override IEnumerable<PoolRuleBase> extend(NodeReference node, ComposedGraph graph)
+        {
+            yield break;
+        }
     }
 }

@@ -59,9 +59,12 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
             var instantiatedInterpretation = bestInterpretation.InstantiateBy(bestCover, Graph);
 
             //run the interpretation on the pool
+            Console.WriteLine("\n");
             foreach (var rule in instantiatedInterpretation.Rules)
             {
                 rule.Execute(pool);
+                Console.WriteLine(rule);
+                Console.WriteLine("POOL: " + string.Join(" ", pool.ActiveNodes));
             }
 
             return pool.ActiveNodes;
@@ -95,46 +98,71 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
             //check all generators for compatibility with given interpretation
             foreach (var reportingCover in reportingCovers)
             {
-                var generalInterpretation = interpretation.GeneralizeBy(reportingCover, Graph);
-                if (generalInterpretation == null || _completedGeneralInterpretations.Contains(generalInterpretation))
+                foreach (var generalInterpretation in getGeneralInterpretations(interpretation, reportingCover))
                 {
-                    //we are searchnig only for new general interpretations
-                    continue;
+                    reportToCompatibleGenerators(reportingCover, generalInterpretation);
+                }
+            }
+        }
+
+        private IEnumerable<Interpretation> getGeneralInterpretations(Interpretation interpretation, FeatureCover reportingCover)
+        {
+            var generalInterpretation = interpretation.GeneralizeBy(reportingCover, Graph);
+            if (generalInterpretation != null)
+            {
+                //report interpretation as is
+                yield return generalInterpretation;
+                yield break;
+            }
+
+            foreach (var extendedInterpretation in interpretation.ExtendBy(reportingCover.GetNodes(Graph), Graph))
+            {
+                var generalExtendedInterpretation = extendedInterpretation.GeneralizeBy(reportingCover, Graph);
+
+                if (generalExtendedInterpretation == null)
+                    throw new NotSupportedException("generalization should be successful");
+                yield return generalExtendedInterpretation;
+            }
+        }
+
+        private void reportToCompatibleGenerators(FeatureCover reportingCover, Interpretation generalInterpretation)
+        {
+            if (_completedGeneralInterpretations.Contains(generalInterpretation))
+                //we are searchnig only for new general interpretations
+                return;
+
+            //remember that we have proceed this interpretation so we don't need to repeatedly increment it
+            _completedGeneralInterpretations.Add(generalInterpretation);
+
+            //feature key has always been present in the index
+            var generatorCovers = _keyToGeneratorCovers[reportingCover.FeatureKey];
+
+            var compatibleCovers = new List<FeatureCover>();
+            foreach (var generatorCover in generatorCovers)
+            {
+                var generator = generatorCover.Item1;
+                var cover = generatorCover.Item2;
+
+                var instantiatedInterpretation = generalInterpretation.InstantiateBy(cover, Graph);
+                if (isCompatibleInterpretation(instantiatedInterpretation, generator))
+                {
+                    compatibleCovers.Add(cover);
+                    var ruledInterpretation = new RuledInterpretation(generalInterpretation, reportingCover.FeatureKey);
+                    _mapping.ReportInterpretation(ruledInterpretation);
+                }
+            }
+
+            if (compatibleCovers.Count > 1)
+            {
+                Console.WriteLine(generalInterpretation);
+                Console.WriteLine("\tCOMPATIBLE WITH:");
+                foreach (var cover in compatibleCovers)
+                {
+                    var origin = cover.FeatureInstances.First().Origin;
+                    Console.WriteLine("\t\t" + origin);
                 }
 
-                //remember that we have proceed this interpretation so we don't to repeatedly increment it
-                _completedGeneralInterpretations.Add(generalInterpretation);
-
-                //feature key has always been present in the index
-                var generatorCovers = _keyToGeneratorCovers[reportingCover.FeatureKey];
-
-                var compatibleCovers = new List<FeatureCover>();
-                foreach (var generatorCover in generatorCovers)
-                {
-                    var generator = generatorCover.Item1;
-                    var cover = generatorCover.Item2;
-
-                    var instantiatedInterpretation = generalInterpretation.InstantiateBy(cover, Graph);
-                    if (isCompatibleInterpretation(instantiatedInterpretation, generator))
-                    {
-                        compatibleCovers.Add(cover);
-                        var ruledInterpretation = new RuledInterpretation(generalInterpretation, reportingCover.FeatureKey);
-                        _mapping.ReportInterpretation(ruledInterpretation);
-                    }
-                }
-
-                if (compatibleCovers.Count > 0)
-                {
-                    Console.WriteLine(generalInterpretation);
-                    Console.WriteLine("\tCOMPATIBLE WITH:");
-                    foreach (var cover in compatibleCovers)
-                    {
-                        var origin = cover.FeatureInstances.First().Origin;
-                        Console.WriteLine("\t\t" + origin);
-                    }
-
-                    Console.WriteLine();
-                }
+                Console.WriteLine();
             }
         }
 
@@ -170,7 +198,7 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
             //register covers according to its feature keys
             foreach (var cover in generator.Covers)
             {
-                List<Tuple<InterpretationGenerator,FeatureCover>> generators;
+                List<Tuple<InterpretationGenerator, FeatureCover>> generators;
                 if (!_keyToGeneratorCovers.TryGetValue(cover.FeatureKey, out generators))
                     _keyToGeneratorCovers[cover.FeatureKey] = generators = new List<Tuple<InterpretationGenerator, FeatureCover>>();
 

@@ -290,7 +290,7 @@ namespace KnowledgeDialog.PoolComputation
 
         public ResponseBase Initialize()
         {
-            throw new NotImplementedException();
+            return new SimpleResponse("Hello, how can I help you?");
         }
     }
 }

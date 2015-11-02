@@ -37,5 +37,11 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
         {
             return new InsertPoolRule(mapping.GetMappedNode(_insertedNode));
         }
+
+        /// <inheritdoc/>
+        protected override IEnumerable<PoolRuleBase> extend(NodeReference node, ComposedGraph graph)
+        {
+            yield break;
+        }
     }
 }

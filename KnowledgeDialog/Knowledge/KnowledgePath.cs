@@ -185,5 +185,20 @@ namespace KnowledgeDialog.Knowledge
             }
         }
 
+        public IEnumerable<Tuple<string, bool>> CompleteReversedEdges
+        {
+            get
+            {
+                return CompleteEdges.Reverse();
+            }
+        }
+
+        public IEnumerable<Tuple<string, bool>> CompleteInversedEdges
+        {
+            get
+            {
+                return CompleteEdges.Select(e => Tuple.Create(e.Item1, !e.Item2));
+            }
+        }
     }
 }

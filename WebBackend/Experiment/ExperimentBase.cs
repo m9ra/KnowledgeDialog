@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 using System.IO;
 
+using WebBackend.DialogProvider;
+
 namespace WebBackend.Experiment
 {
     /// <summary>
@@ -49,7 +51,15 @@ namespace WebBackend.Experiment
             Directory.CreateDirectory(ExperimentUserPath);
         }
 
+        abstract protected WebConsoleBase createConsole(string databasePath);
+
         abstract internal TaskInstance GetTask(int taskId);
+        
+        internal WebConsoleBase CreateConsoleWithDatabase(string databaseIdentifier)
+        {
+            var databasePath = GetDatabasePath(databaseIdentifier);
+            return createConsole(databasePath);
+        }
 
         internal string GetDatabasePath(string database)
         {

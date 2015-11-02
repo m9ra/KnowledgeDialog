@@ -16,6 +16,9 @@ namespace WebBackend.Experiment
         /// </summary>
         private Dictionary<string, ExperimentBase> _idToExperiment = new Dictionary<string, ExperimentBase>();
 
+        /// <summary>
+        /// Root path of the experiment.
+        /// </summary>
         private readonly string _experimentsRootPath;
 
         /// <summary>

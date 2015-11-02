@@ -22,6 +22,11 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
         /// </summary>
         internal bool IsGeneralizeMapping;
 
+        /// <summary>
+        /// Instance nodes of the mapping.
+        /// </summary>
+        internal IEnumerable<NodeReference> InstanceNodes { get { return _generalizationMapping.Keys; } }
+
         private readonly Dictionary<NodeReference, NodeReference> _generalizationMapping = new Dictionary<NodeReference, NodeReference>();
 
         private readonly Dictionary<NodeReference, NodeReference> _instantiationMapping = new Dictionary<NodeReference, NodeReference>();

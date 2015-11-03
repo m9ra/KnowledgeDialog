@@ -1,5 +1,5 @@
 ﻿function init_chat_controls() {
-    $(".utterance_submit").on('click', chat_submit);
+    $(".utterance_submit").on('click', function () { chat_submit(EXPERIMENT_ID, TASK_ID) });
     $(".utterance").keypress(function (e) {
         if (e.which == 13) {
             //on enter

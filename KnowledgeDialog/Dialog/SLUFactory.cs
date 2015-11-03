@@ -57,7 +57,7 @@ namespace KnowledgeDialog.Dialog
             RegisterPattern(p => new ExplicitAdviceAct(p[1], p[2]), "correct answer $answer_preposition #1 is #2");
         }
 
-        public DialogActBase GetDialogAct(ParsedUtterance utterance)
+        public DialogActBase GetBestDialogAct(ParsedUtterance utterance)
         {
             var currentStateLayer = new List<PatternState>();
             foreach (var pattern in _patterns.Keys)

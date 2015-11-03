@@ -82,7 +82,7 @@ namespace WebBackend
 
                 case "T_utterance":
                     var utterance = UtteranceParser.Parse(data["utterance"] as string);
-                    Act = _factory.GetDialogAct(utterance);
+                    Act = _factory.GetBestDialogAct(utterance);
                     break;
             }
         }

@@ -61,7 +61,7 @@ namespace KnowledgeDialog.PoolComputation
             if (!_isInitialized)
                 throw new InvalidOperationException("Cannot take input before initialization");
 
-            var inputAct = _factory.GetDialogAct(utterance);
+            var inputAct = _factory.GetBestDialogAct(utterance);
             _currentState = applyInput(inputAct, _currentState);
             //reset expect answer flag after each input.
             _currentState = _currentState.SetExpectAnswer(false);

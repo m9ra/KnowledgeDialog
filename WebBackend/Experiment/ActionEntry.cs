@@ -24,7 +24,7 @@ namespace WebBackend
 
         public readonly int TaskId = -1;
 
-        public readonly DialogActBase Act;
+        public readonly string Act;
 
         internal readonly Dictionary<string, object> Data;
 
@@ -60,6 +60,13 @@ namespace WebBackend
             else
                 Text = "";
 
+            object actData;
+            if (data.TryGetValue("response_act", out actData))
+            {
+                if (actData != null)
+                    Act = actData.ToString();
+            }
+
             if (data.ContainsKey("task"))
             {
                 var substitutions = data["substitutions"] as Newtonsoft.Json.Linq.JArray;
@@ -82,7 +89,7 @@ namespace WebBackend
 
                 case "T_utterance":
                     var utterance = UtteranceParser.Parse(data["utterance"] as string);
-                    Act = _factory.GetBestDialogAct(utterance);
+                    Act = _factory.GetBestDialogAct(utterance).ToString();
                     break;
             }
         }

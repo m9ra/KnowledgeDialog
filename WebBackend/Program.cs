@@ -62,7 +62,7 @@ namespace WebBackend
                 new CrowdFlowerExperiment(ExperimentsRootPath, "public_experiment", 15, new Task.President.PresidentTaskFactory()),
 
                 //data collection experiment
-                new DataCollectionExperiment(ExperimentsRootPath, "data_collection", 15, new Task.President.PresidentTaskFactory())
+                new DataCollectionExperiment(ExperimentsRootPath, "data_collection", 15, new Task.President.PresidentCollectionTaskFactory())
                 );
 
             //run server

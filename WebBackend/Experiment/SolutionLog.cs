@@ -72,7 +72,7 @@ namespace WebBackend.Experiment
                 logResponse(_console.LastResponse);
 
                 if (HasTask)
-                    _task.Register(_console.LastResponse);
+                    _task.Register(utterance, _console.LastResponse);
 
                 if (HasTask && _task.IsComplete)
                 {
@@ -137,7 +137,11 @@ namespace WebBackend.Experiment
         private void logResponse(ResponseBase response)
         {
             var responseText = response == null ? null : response.ToString();
+            var responseAct = response == null ? null : response.GetDialogActRepresentation();
+
             _infoCall.ReportParameter("response", responseText);
+            _infoCall.ReportParameter("response_act", responseAct);
+
             _infoCall.SaveReport();
         }
 
@@ -154,7 +158,10 @@ namespace WebBackend.Experiment
         private WebConsoleBase createConsole()
         {
             logInfo("new console ");
-            return _experiment.CreateConsoleWithDatabase("dialog");            
+            var console = _experiment.CreateConsoleWithDatabase("dialog");
+            logResponse(console.FirstResponse);
+
+            return console;
         }
 
         #endregion

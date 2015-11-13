@@ -9,7 +9,8 @@ using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Knowledge;
 
 using KnowledgeDialog.Dialog.Acts;
-using KnowledgeDialog.Dialog.Responses;
+
+using KnowledgeDialog.DataCollection.MachineActs;
 
 namespace KnowledgeDialog.DataCollection
 {
@@ -21,21 +22,6 @@ namespace KnowledgeDialog.DataCollection
         /// Factory providing SLU parses of output.
         /// </summary>
         private readonly SLUFactory _factory = new SLUFactory();
-
-        /// <summary>
-        /// Mapping of denotation type to questions.
-        /// </summary>
-        private Dictionary<DenotationType, string> _questionDefinitions = new Dictionary<DenotationType, string> { 
-            {DenotationType.Explanation,"I don’t know meaning of your question. Can you explain it to me?"},
-            {DenotationType.CorrectAnswer,"I’m still not getting the idea. Can you give me the correct answer for your question?"}
-        };
-
-        private Dictionary<DenotationType, string> _atLeastQuestionDefinitions = new Dictionary<DenotationType, string>
-        {
-             {DenotationType.Explanation,"No problem, can you explain the question in detail instead?"},
-            {DenotationType.CorrectAnswer,"That's ok, can you give me the correct answer for your question instead?"}
-        };
-
 
         #region Dialog state members
 
@@ -58,7 +44,7 @@ namespace KnowledgeDialog.DataCollection
 
         public ResponseBase Initialize()
         {
-            return new SimpleResponse("Hello, how can I help you?");
+            return new WelcomeAct();
         }
 
         public ResponseBase Input(ParsedUtterance utterance)
@@ -105,20 +91,20 @@ namespace KnowledgeDialog.DataCollection
             {
                 //UNRECOGNIZED UTTERANCE WHEN QUESTION EXPECTED
 
-                return new SimpleResponse("I'm sorry, but I can't understand you. Can you ask me by different words?");
+                return new DontUnderstandAct();
             }
             else if (isExpectingDenotation && hasAffirmation)
             {
                 //USER CONFIRMS WILLINGNESS TO PROVIDE DENOTATION
 
-                return new SimpleResponse("That's great, let tell it to me.");
+                return new ContinueAct();
             }
             else if (isExpectingDenotation && hasNegation)
             {
                 if (nonAskedDenotationType == DenotationType.None)
                 {
                     _isDialogClosed = true;
-                    return new SimpleResponse("Ok. Thank you anyway. Bye.");
+                    return new IncompleteByeAct();
                 }
 
                 return askAtLeast(nonAskedDenotationType);
@@ -130,41 +116,45 @@ namespace KnowledgeDialog.DataCollection
 
             //we have already asked everything
             _isDialogClosed = true;
-            return new SimpleResponse("Thank you for your help, bye.");
+            return new ByeAct();
         }
 
         private ResponseBase ask(DenotationType denotationType)
         {
-            _askedDenotations.Add(denotationType);
-            return new SimpleResponse(_questionDefinitions[denotationType]);
+            return ask(denotationType, false);
         }
 
         private ResponseBase askAtLeast(DenotationType denotationType)
         {
+            return ask(denotationType, true);
+        }
+
+        private ResponseBase ask(DenotationType denotationType, bool atLeastRequest)
+        {
             _askedDenotations.Add(denotationType);
-            return new SimpleResponse(_atLeastQuestionDefinitions[denotationType]);
+            switch (denotationType)
+            {
+                case DenotationType.CorrectAnswer:
+                    return new RequestQuestionAsnwerAct(atLeastRequest);
+
+                case DenotationType.Explanation:
+                    return new RequestExplanationAct(atLeastRequest);
+            }
+
+            throw new NotSupportedException(denotationType.ToString());
         }
 
         private ResponseBase handleChitChat(ChitChatAct act)
         {
-            switch (act.Domain)
+            var domain = act.Domain;
+            if (domain == ChitChatDomain.Bye)
             {
-                case ChitChatDomain.Welcome:
-                    return new SimpleResponse("Can you ask me some question please?");
-
-                case ChitChatDomain.Bye:
-                    _isDialogClosed = true;
-                    return new SimpleResponse("Bye.");
-
-                case ChitChatDomain.Polite:
-                case ChitChatDomain.Personal:
-                    return new SimpleResponse("I can't talk about my personality, lets return to the question.");
-
-                case ChitChatDomain.Rude:
-                    return new SimpleResponse("I'm sorry for disappointing you, unfortunatelly we should return to the question.");
+                //ending dialog is actually not simple chit chat
+                _isDialogClosed = true;
+                return new ByeAct();
             }
 
-            return new SimpleResponse("I'm sorry, but I don't understand");
+            return new ChitChatAnswerAct(domain);
         }
 
         private DenotationType getNonaskedDenotationType()

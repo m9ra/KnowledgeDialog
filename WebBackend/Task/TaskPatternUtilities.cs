@@ -16,7 +16,9 @@ namespace WebBackend
 
     static class TaskPatternUtilities
     {
-        public static readonly string CheckAndLearn = " If not, try to teach it to the system and <b>ask it again</b>.";
+        private static bool _enableCheckAndLearn = true;
+
+        public static string CheckAndLearn { get { return _enableCheckAndLearn ? " If not, try to teach it to the system and <b>ask it again</b>." : ""; } }
 
         public static readonly string WikiLabelEdge = "en.label";
 
@@ -67,6 +69,11 @@ namespace WebBackend
 
                 target.AddTaskSubstitution(substitution, correctAnswer);
             }
+        }
+
+        public static void DisableCheckAndLearn()
+        {
+            _enableCheckAndLearn = false;
         }
 
         public static void FillPresidentTask(TaskPatternBase target, SubstitutionSelector substitutionSelector, CorrectAnswerSingleSelector correctAnswerSelector)
@@ -223,6 +230,5 @@ namespace WebBackend
 
             return result.ToArray();
         }
-
     }
 }

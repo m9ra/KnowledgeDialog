@@ -19,12 +19,19 @@ namespace WebBackend
         private readonly StreamWriter _writer;
 
         /// <summary>
+        /// ID of written experiment.
+        /// </summary>
+        private readonly string _experimentId;
+
+        /// <summary>
         /// Webpath of root folder, where experiment will be accessible.
         /// </summary>
         internal static string WebPath = "http://knowledge.packa2.cz/";
 
         internal CrowdFlowerCodeWriter(string experimentRoot, string experimentId)
         {
+            _experimentId = experimentId;
+
             var outputPath = Path.Combine(experimentRoot, "crowdflower_" + experimentId + ".csv");
             _writer = new StreamWriter(outputPath);
 
@@ -39,7 +46,7 @@ namespace WebBackend
         /// <param name="code">Completition code of task.</param>
         internal void Write(int taskId, string code)
         {
-            _writer.WriteLine(WebPath + "?taskid=" + taskId + "," + code);
+            _writer.WriteLine(WebPath + _experimentId + "?taskid=" + taskId + "," + code);
         }
 
         /// <summary>

@@ -19,6 +19,8 @@ namespace WebBackend.DialogProvider
         /// </summary>
         protected static readonly object _L_qa_index = new object();
 
+        private ResponseBase _firstResponse;
+
         private ResponseBase _lastResponse;
 
         private string _currentHTML;
@@ -45,6 +47,15 @@ namespace WebBackend.DialogProvider
             }
         }
 
+        internal ResponseBase FirstResponse
+        {
+            get
+            {
+                ensureInitialization();
+                return _firstResponse;
+            }
+        }
+
         internal ResponseBase Input(string utterance)
         {
             ensureInitialization();
@@ -57,7 +68,11 @@ namespace WebBackend.DialogProvider
                 _currentHTML += userTextHTML(formattedUtterance);
                 response = _manager.Input(parsedUtterance);
                 _lastResponse = response;
-                _currentHTML += systemTextHTML(response.ToString());
+
+                if (response == null)
+                    _currentHTML += systemTextHTML("<i>The dialog has ended, please type <b>reset</b> if you wish another dialog.</i>");
+                else
+                    _currentHTML += systemTextHTML(response.ToString());
             }
 
             return response;
@@ -76,7 +91,8 @@ namespace WebBackend.DialogProvider
                 return;
 
             _manager = createDialoggManager();
-            _lastResponse = _manager.Initialize();
+            _firstResponse  = _manager.Initialize();
+            _lastResponse = _firstResponse;
             _currentHTML = systemTextHTML(_lastResponse.ToString());
 
             if (_manager == null)

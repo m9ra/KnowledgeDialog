@@ -53,6 +53,15 @@
     <Compile Include="Database\PresidentLayer.cs" />
     <Compile Include="Database\WikidataHelper.cs" />
     <Compile Include="DataCollection\CollectionManager.cs" />
+    <Compile Include="DataCollection\MachineActs\ByeAct.cs" />
+    <Compile Include="DataCollection\MachineActs\ChitChatAnswerAct.cs" />
+    <Compile Include="DataCollection\MachineActs\ContinueAct.cs" />
+    <Compile Include="DataCollection\MachineActs\DontUnderstandAct.cs" />
+    <Compile Include="DataCollection\MachineActs\IncompleteByeAct.cs" />
+    <Compile Include="DataCollection\MachineActs\MachineActionBase.cs" />
+    <Compile Include="DataCollection\MachineActs\RequestExplanationAct.cs" />
+    <Compile Include="DataCollection\MachineActs\RequestQuestionAsnwerAct.cs" />
+    <Compile Include="DataCollection\MachineActs\WelcomeAct.cs" />
     <Compile Include="Dialog\Acts\ChitChatAct.cs" />
     <Compile Include="Dialog\Acts\DontKnowAct.cs" />
     <Compile Include="Dialog\Acts\UnrecognizedAct.cs" />

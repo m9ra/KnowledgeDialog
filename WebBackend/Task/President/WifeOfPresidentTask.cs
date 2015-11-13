@@ -13,7 +13,7 @@ namespace WebBackend.TaskPatterns
         internal WifeOfPresidentTask(ComposedGraph graph)
             : base(graph)
         {
-            SetPattern("Check if system can search <b>name of wife of {0} president</b>." + TaskPatternUtilities.CheckAndLearn);
+            SetPattern("Check if system can search <b>name of wife of the president of {0}</b>." + TaskPatternUtilities.CheckAndLearn);
 
             TaskPatternUtilities.FillPresidentTask(this,
                 president => president.Name,

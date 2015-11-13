@@ -19,10 +19,13 @@ namespace KnowledgeDialog.Dialog.Parsing
 
         public readonly static string SentencePrefix = "#";
 
+        internal readonly string PatternDefinition;
+
         internal int Length { get { return _wordSets.Length; } }
 
         internal UtterancePattern(string patternDefinition, PatternConfiguration configuration)
         {
+            PatternDefinition = patternDefinition;
             _patternWords = patternDefinition.Split(' ').ToArray();
             _sentenceKeys = new string[_patternWords.Length];
             _wordSets = new HashSet<string>[_patternWords.Length];
@@ -47,9 +50,9 @@ namespace KnowledgeDialog.Dialog.Parsing
             }
         }
 
-        internal PatternState InitialState()
+        internal PatternState InitialState(int startOffset)
         {
-            return new PatternState(this);
+            return new PatternState(this, startOffset);
         }
 
         private HashSet<string> generateTargetSet(string word, PatternConfiguration configuration)
@@ -83,6 +86,12 @@ namespace KnowledgeDialog.Dialog.Parsing
         internal string GetSentenceKey(int stateIndex)
         {
             return _sentenceKeys[stateIndex];
+        }
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return PatternDefinition;
         }
     }
 }

@@ -25,14 +25,11 @@
 
 
 .jumbotron#preface
-	.container
+	{oncopy: "return false", oncut: "return false", onpaste: "return false", onselect: "return false", onmousedown: "return false"}.container
 		%h1 Task definition
 		%p 
 			= raw @task
-
-
-
-
+			
 .container
 	.row
 		.col-md-6

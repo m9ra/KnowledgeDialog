@@ -61,6 +61,8 @@
     <Compile Include="Experiment\Statistics.cs" />
     <Compile Include="FormatHelper.cs" />
     <Compile Include="Experiment\LogFile.cs" />
+    <Compile Include="Task\CollectionTaskInstance.cs" />
+    <Compile Include="Task\President\PresidentCollectionTaskFactory.cs" />
     <Compile Include="Task\President\PresidentInfo.cs" />
     <Compile Include="Task\TaskPatternUtilities.cs" />
     <Compile Include="DialogWeb.cs" />

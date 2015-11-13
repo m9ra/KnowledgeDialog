@@ -25,7 +25,7 @@ namespace WebBackend.Experiment
 
         protected override WebConsoleBase createConsole(string databasePath)
         {
-            throw new NotSupportedException("Cannot create Web console for no task experiment");
+            return new HeuristicManagerWebConsole(databasePath);
         }
     }
 }

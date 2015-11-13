@@ -15,7 +15,9 @@ namespace WebBackend
 
         public readonly IEnumerable<NodeReference> Substitutions;
 
-        public bool IsComplete { get { return _turns > 3 && _containsAnswer; } }
+        public IEnumerable<NodeReference> ExpectedAnswers { get { return _expectedAnswers; } }
+
+        public virtual bool IsComplete { get { return _turns > 3 && _containsAnswer; } }
 
         public string Text { get { return string.Format(TaskFormat, Substitutions.Select(s => "'" + s.Data + "'").ToArray()); } }
 
@@ -42,7 +44,7 @@ namespace WebBackend
                 _containsAnswer = true;
         }
 
-        internal void Register(ResponseBase response)
+        internal virtual void Register(string utterance, ResponseBase response)
         {
             if (response == null)
                 return;

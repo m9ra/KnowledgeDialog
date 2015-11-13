@@ -29,7 +29,7 @@ namespace KnowledgeDialog.Dialog
             RegisterGroup("no_word", "no", "nope", "n");
             RegisterGroup("w_word", "which", "what", "who", "where", "when", "why", "how");
             RegisterGroup("stronging_adjective", "definitely", "absolutely", "pretty");
-            RegisterGroup("rude_word", "wtf", "suck", "fuck");
+            RegisterGroup("rude_word", "wtf", "suck", "fuck", "dude", "idiot");
             RegisterGroup("welcome_word", "welcome", "hi", "hello");
             RegisterGroup("bye_word", "bye");
 
@@ -46,7 +46,10 @@ namespace KnowledgeDialog.Dialog
             RegisterPattern(p => new ChitChatAct(ChitChatDomain.Welcome), "$welcome_word");
             RegisterPattern(p => new ChitChatAct(ChitChatDomain.Bye), "$bye_word");
             RegisterPattern(p => new ChitChatAct(ChitChatDomain.Personal), "$w_word are you");
+            RegisterPattern(p => new ChitChatAct(ChitChatDomain.Personal), "$w_word is your name");
+            RegisterPattern(p => new ChitChatAct(ChitChatDomain.Personal), "$w_word do you do");
             RegisterPattern(p => new ChitChatAct(ChitChatDomain.Rude), "$rude_word");
+            RegisterPattern(p => new ChitChatAct(ChitChatDomain.Rude), "I hate you");
 
             //question - advice parsing
             RegisterPattern(p => new QuestionAct(p[0]), "#1 is #2 $w_word #3");
@@ -57,24 +60,68 @@ namespace KnowledgeDialog.Dialog
             RegisterPattern(p => new ExplicitAdviceAct(p[1], p[2]), "correct answer $answer_preposition #1 is #2");
         }
 
+        public IEnumerable<DialogActBase> GetDialogActs(ParsedUtterance utterance)
+        {
+            var currentStateLayer = new List<PatternState>();
+            var finishedStates = new List<PatternState>();
+
+            var currentWordIndex = 0;
+            foreach (var word in utterance.Words)
+            {
+                //we allow pattern begin at every word
+                foreach (var pattern in _patterns.Keys)
+                {
+                    var state = pattern.InitialState(currentWordIndex);
+                    currentStateLayer.Add(state);
+                }
+
+                var nextStateLayer = new List<PatternState>();
+                foreach (var state in currentStateLayer)
+                {
+                    var nextStates = state.GetNextStates(word, currentWordIndex);
+                    foreach (var nextState in nextStates)
+                    {
+                        if (nextState.IsFinished)
+                        {
+                            //state has been finished - don't continue expanding from it
+                            finishedStates.Add(nextState);
+                        }
+                        else
+                        {
+                            //state still needs continuation
+                            nextStateLayer.Add(nextState);
+                        }
+                    }
+                }
+
+                currentStateLayer = nextStateLayer;
+                currentWordIndex += 1;
+            }
+
+            var stateCovers = findStateCovers(currentWordIndex - 1, finishedStates).ToArray();
+
+            throw new NotImplementedException();
+        }
+
         public DialogActBase GetBestDialogAct(ParsedUtterance utterance)
         {
             var currentStateLayer = new List<PatternState>();
             foreach (var pattern in _patterns.Keys)
             {
-                var state = pattern.InitialState();
+                var state = pattern.InitialState(0);
                 currentStateLayer.Add(state);
             }
 
             var nextStateLayer = new List<PatternState>();
+            var wordIndex = 0;
             foreach (var word in utterance.Words)
             {
                 foreach (var state in currentStateLayer)
                 {
-                    var nextStates = state.GetNextStates(word);
+                    var nextStates = state.GetNextStates(word, wordIndex);
                     nextStateLayer.AddRange(nextStates);
                 }
-
+                wordIndex += 1;
                 //swap current with next state layer
                 var swapLayer = currentStateLayer;
                 currentStateLayer = nextStateLayer;
@@ -113,6 +160,47 @@ namespace KnowledgeDialog.Dialog
                 throw new NotSupportedException("Cannot update groups when patterns are registered");
 
             _configuration.RegisterGroup(group, words);
+        }
+
+        private IEnumerable<IEnumerable<PatternState>> findStateCovers(int endOffset, IEnumerable<PatternState> finishedStates)
+        {
+            var orderedFinishedStates = finishedStates.OrderByDescending((s) => s.CoveredIndexes.Count());
+
+         //   var coveringStates = orderedFinishedStates.Select(s => s.Parent);
+
+            return findStateCovers(0, endOffset, orderedFinishedStates);
+        }
+
+        private IEnumerable<IEnumerable<PatternState>> findStateCovers(int desiredOffset, int endOffset, IEnumerable<PatternState> finishedStates)
+        {
+            var result = new List<IEnumerable<PatternState>>();
+            foreach (var finishedState in finishedStates)
+            {
+                var lowerIndexes = finishedState.CoveredIndexes.Where(index => index <= desiredOffset);
+                var isMatchingState = lowerIndexes.Count() == 1 && lowerIndexes.Contains(desiredOffset);
+
+                var isEndState = finishedState.CoveredIndexes.Contains(endOffset);
+                if (!isMatchingState)
+                    //determine whether state matches desired offset
+                    continue;
+
+                if (isEndState)
+                {
+                    //end state
+                    result.Add(new[] { finishedState });
+                    continue;
+                }
+
+                var nextOffset = finishedState.CoveredOffset;
+                var nextCovers = findStateCovers(nextOffset + 1, endOffset, finishedStates);
+
+                foreach (var nextCover in nextCovers)
+                {
+                    result.Add(new[] { finishedState }.Concat(nextCover));
+                }
+            }
+
+            return result;
         }
     }
 

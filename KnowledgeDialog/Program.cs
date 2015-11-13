@@ -22,6 +22,20 @@ namespace KnowledgeDialog
 
         static void Main(string[] args)
         {
+            var utterance = "yes, Obama is president of which state?";
+            var parsedUtterance = UtteranceParser.Parse(utterance);
+
+            var factory = new SLUFactory();
+            var bestAct = factory.GetBestDialogAct(parsedUtterance);
+            var acts = factory.GetDialogActs(parsedUtterance);
+            foreach (var act in acts)
+            {
+                Console.WriteLine(act);
+            }
+        }
+
+        static void MainQA(string[] args)
+        {
             System.Console.SetBufferSize(240, 10000);   // make sure buffer is bigger than window
             System.Console.SetWindowSize(240, 54);   //set window size to almost full screen
 

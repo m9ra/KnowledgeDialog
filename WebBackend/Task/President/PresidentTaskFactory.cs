@@ -25,9 +25,12 @@ namespace WebBackend.Task.President
         /// </summary>
         private readonly List<Tuple<TaskPatternBase, int>> _validTasks = new List<Tuple<TaskPatternBase, int>>();
 
-        internal PresidentTaskFactory()
+        internal PresidentTaskFactory(bool enableCheckAndLearn = true)
         {
             var g = Program.Graph;
+            if (!enableCheckAndLearn)
+                TaskPatternUtilities.DisableCheckAndLearn();
+
             add(new PresidentChildrenTask(g));
             add(new PresidentOfStateTask(g));
             add(new StateOfPresidentTask(g));

@@ -14,7 +14,7 @@ namespace WebBackend.TaskPatterns
             : base(graph)
         {
 
-            SetPattern("Check if system can search <b>name of president of {0}</b>." + TaskPatternUtilities.CheckAndLearn);
+            SetPattern("Check if system can search <b>name of the president of {0}</b>." + TaskPatternUtilities.CheckAndLearn);
 
             TaskPatternUtilities.FillPresidentTask(this,
                 president => president.State,

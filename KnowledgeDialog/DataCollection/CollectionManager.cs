@@ -23,6 +23,11 @@ namespace KnowledgeDialog.DataCollection
         /// </summary>
         private readonly SLUFactory _factory = new SLUFactory();
 
+        /// <summary>
+        /// Graph that represents system database.
+        /// </summary>
+        private readonly ComposedGraph _graph;
+
         #region Dialog state members
 
         /// <summary>
@@ -36,11 +41,21 @@ namespace KnowledgeDialog.DataCollection
         private HashSet<DenotationType> _askedDenotations = new HashSet<DenotationType>();
 
         /// <summary>
+        /// Denotation which has been asked lastly.
+        /// </summary>
+        private DenotationType _lastDenotationQuestion = DenotationType.None;
+
+        /// <summary>
         /// Determine whether dialog has been closed.
         /// </summary>
         private bool _isDialogClosed = false;
 
         #endregion
+
+        public CollectionManager(ComposedGraph graph)
+        {
+            _graph = graph;
+        }
 
         public ResponseBase Initialize()
         {
@@ -63,6 +78,7 @@ namespace KnowledgeDialog.DataCollection
             //dialog state collection
             var isQuestionRegistered = _reqisteredQuestion != null;
             var isExpectingDenotation = isQuestionRegistered;
+            var isExpectingAnswer = isExpectingDenotation && _askedDenotations.Contains(DenotationType.CorrectAnswer);
             var nonAskedDenotationType = getNonaskedDenotationType();
 
             //dialog handling
@@ -73,11 +89,7 @@ namespace KnowledgeDialog.DataCollection
             {
                 //QUESTION OVERRIDING
 
-                //user is asking for another question?
-                _reqisteredQuestion = utterance;
-
-                //we don't know anything about denotations for new question
-                _askedDenotations.Clear();
+                //TODO: how to distinguish between asking different question or explaining by a question?
             }
             else if (!isQuestionRegistered && questionOnInput)
             {
@@ -86,6 +98,12 @@ namespace KnowledgeDialog.DataCollection
                 //prepare question answering
                 _reqisteredQuestion = utterance;
                 _askedDenotations.Clear();
+            }
+            if (!isQuestionRegistered && hasAffirmation)
+            {
+                //AFFIRMATION AT BEGINING
+
+                return new ContinueAct();
             }
             else if (!isQuestionRegistered && !questionOnInput)
             {
@@ -109,6 +127,22 @@ namespace KnowledgeDialog.DataCollection
 
                 return askAtLeast(nonAskedDenotationType);
             }
+            else if (isExpectingAnswer)
+            {
+                var hasDatabaseEvidence = false;
+                //search whether answer contains some entity from knowledge base
+                foreach (var word in utterance.Words)
+                {
+                    if (_graph.HasEvidence(word))
+                        hasDatabaseEvidence = true;
+                }
+
+                if (!hasDatabaseEvidence)
+                    return askForMissingFact();
+            }
+
+            //reset last denotation
+            _lastDenotationQuestion = DenotationType.None;
 
             //we don't have an answer - try to ask
             if (nonAskedDenotationType != DenotationType.None)
@@ -129,9 +163,15 @@ namespace KnowledgeDialog.DataCollection
             return ask(denotationType, true);
         }
 
+        private ResponseBase askForMissingFact()
+        {
+            return new BeMoreSpecificAct();
+        }
+
         private ResponseBase ask(DenotationType denotationType, bool atLeastRequest)
         {
             _askedDenotations.Add(denotationType);
+            _lastDenotationQuestion = denotationType;
             switch (denotationType)
             {
                 case DenotationType.CorrectAnswer:

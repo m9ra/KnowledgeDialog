@@ -53,6 +53,7 @@
     <Compile Include="Database\PresidentLayer.cs" />
     <Compile Include="Database\WikidataHelper.cs" />
     <Compile Include="DataCollection\CollectionManager.cs" />
+    <Compile Include="DataCollection\MachineActs\BeMoreSpecificAct.cs" />
     <Compile Include="DataCollection\MachineActs\ByeAct.cs" />
     <Compile Include="DataCollection\MachineActs\ChitChatAnswerAct.cs" />
     <Compile Include="DataCollection\MachineActs\ContinueAct.cs" />

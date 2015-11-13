@@ -20,7 +20,7 @@ namespace WebBackend.DialogProvider
 
         protected override IInputDialogManager createDialoggManager()
         {
-            return new CollectionManager();
+            return new CollectionManager(Program.Graph);
         }
     }
 }

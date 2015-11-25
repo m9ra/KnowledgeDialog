@@ -4,22 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using KnowledgeDialog.Dialog;
-
 namespace KnowledgeDialog.DataCollection.MachineActs
 {
-    class DontUnderstandAct : MachineActionBase
+    class TooBriefAct : MachineActionBase
     {
-        ///<inheritdoc/>
+        /// <inheritdoc/>
         protected override string initializeMessage()
         {
-            return "I'm sorry, but I can't recognize a question in your utterance. Can you ask me by different words?";
+            return "Your explanation is too brief. Can you provide more details please?";
         }
 
         /// <inheritdoc/>
         protected override string initializeDialogActRepresentation()
         {
-            return "DontUnderstand()";
+            return "TooBrief()";
         }
     }
 }

@@ -19,8 +19,7 @@
 				%span.icon-bar
 				%span.icon-bar
 				%span.icon-bar
-
-			%p{class: "navbar-brand"} Mgr. Vodolán Miroslav
+							
 
 
 
@@ -38,6 +37,7 @@
 			%article{class: "alert alert-success"}
 					%strong Info
 					%ul
+						%li = raw @task
 						%li Task is completed after at least <b>4</b> interactions with the system and fullfilling task described above.
 						%li When task is completed, <b>your code</b> will appear in chat window.
 						%li If the system gets lost in a dialog, you can write <strong>reset</strong> to start the dialog from the begining.

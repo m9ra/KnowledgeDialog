@@ -18,7 +18,7 @@ namespace WebBackend.Task.President
         {
             var taskInstance = base.CreateInstance(taskIndex, validationCode);
 
-            return new CollectionTaskInstance(taskInstance.TaskFormat, taskInstance.Substitutions, taskInstance.ExpectedAnswers, taskInstance.Key, taskInstance.ValidationCode);
+            return new CollectionTaskInstance(taskInstance.TaskFormat, taskInstance.Substitutions, taskInstance.ExpectedAnswers, taskInstance.Key, taskInstance.ValidationCodeKey);
         }
     }
 }

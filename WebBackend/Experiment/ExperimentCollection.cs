@@ -37,6 +37,9 @@ namespace WebBackend.Experiment
 
         internal ExperimentBase Get(string experimentId)
         {
+            if (experimentId == null)
+                return null;
+
             ExperimentBase experiment;
             if (!_idToExperiment.TryGetValue(experimentId, out experiment))
                 _idToExperiment[experimentId] = experiment = new NoTaskExperiment(_experimentsRootPath, experimentId);

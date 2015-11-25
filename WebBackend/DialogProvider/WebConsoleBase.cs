@@ -60,8 +60,8 @@ namespace WebBackend.DialogProvider
         {
             ensureInitialization();
 
-            var formattedUtterance = utterance.Trim();
-            var parsedUtterance = KnowledgeDialog.Dialog.UtteranceParser.Parse(utterance);
+            var formattedUtterance = utterance == null ? "" : utterance.Trim();
+            var parsedUtterance = KnowledgeDialog.Dialog.UtteranceParser.Parse(formattedUtterance);
             ResponseBase response;
             lock (_L_qa_index)
             {
@@ -91,7 +91,7 @@ namespace WebBackend.DialogProvider
                 return;
 
             _manager = createDialoggManager();
-            _firstResponse  = _manager.Initialize();
+            _firstResponse = _manager.Initialize();
             _lastResponse = _firstResponse;
             _currentHTML = systemTextHTML(_lastResponse.ToString());
 

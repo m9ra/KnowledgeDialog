@@ -77,6 +77,22 @@ namespace WebBackend
             Render("index.haml");
         }
 
+        public void validate()
+        {
+            Response.SetAccessControlAllowOrigin_AllDomains();
+            int taskId;
+            int.TryParse(GET("taskid"), out taskId);
+            var code = GET("code");
+            var experimentName = GET("experimentId");
+
+            var experiment = Program.Experiments.Get(experimentName);
+            var task = experiment == null ? null : experiment.GetTask(taskId);
+
+            var result = task != null && task.ValidationCode.ToString() == code ? "ok" : "no";
+            SetParam("message", result);
+            Render("validate.haml");
+        }
+
         public void experiment0()
         {
             var experimentName = "experiment0";
@@ -108,6 +124,27 @@ namespace WebBackend
         public void data_collection2()
         {
             var experimentName = "data_collection2";
+
+            experimentHandler(experimentName);
+        }
+
+        public void data_collection3()
+        {
+            var experimentName = "data_collection3";
+
+            experimentHandler(experimentName);
+        }
+
+        public void data_collection4()
+        {
+            var experimentName = "data_collection4";
+
+            experimentHandler(experimentName);
+        }
+
+        public void data_collection5()
+        {
+            var experimentName = "data_collection5";
 
             experimentHandler(experimentName);
         }

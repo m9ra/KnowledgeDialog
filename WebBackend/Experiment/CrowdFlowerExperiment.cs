@@ -27,7 +27,7 @@ namespace WebBackend.Experiment
         /// <summary>
         /// Codes that are given for successful task completition.
         /// </summary>
-        private readonly List<int> _validationCodes = new List<int>();
+        private readonly List<int> _validationCodeKeys = new List<int>();
 
         public CrowdFlowerExperiment(string experimentsRoot, string experimentId, int taskCount, params TaskFactoryBase[] factories)
             : base(experimentsRoot, experimentId)
@@ -65,7 +65,7 @@ namespace WebBackend.Experiment
 
             var factory = _factories[taskId];
             var factoryRelatedIndex = _taskIndexes[taskId];
-            var code = _validationCodes[taskId];
+            var code = _validationCodeKeys[taskId];
 
             return factory.CreateInstance(factoryRelatedIndex, code);
         }
@@ -85,9 +85,9 @@ namespace WebBackend.Experiment
 
             _factories.Add(factory);
             _taskIndexes.Add(taskIndex);
-            _validationCodes.Add(new Random(taskId).Next(1000, 9999));
+            _validationCodeKeys.Add(new Random(taskId).Next(1000, 9999));
 
-            writer.Write(taskId,_validationCodes.Last().ToString());
+            writer.Write(taskId, _validationCodeKeys.Last().ToString());
         }
     }
 }

@@ -36,17 +36,17 @@ namespace WebBackend
             _writer = new StreamWriter(outputPath);
 
             //write csv header
-            _writer.WriteLine("task_url,verification_code");
+            _writer.WriteLine("task_url,experiment_id,taskid,key");
         }
 
         /// <summary>
         /// Writes entry of task with given taskId.
         /// </summary>
         /// <param name="taskId">Id of task.</param>
-        /// <param name="code">Completition code of task.</param>
-        internal void Write(int taskId, string code)
+        /// <param name="codeKey">Completition code of task.</param>
+        internal void Write(int taskId, string codeKey)
         {
-            _writer.WriteLine(WebPath + _experimentId + "?taskid=" + taskId + "," + code);
+            _writer.WriteLine(WebPath + _experimentId + "?taskid=" + taskId + "," + _experimentId + "," + taskId + "," + codeKey);
         }
 
         /// <summary>

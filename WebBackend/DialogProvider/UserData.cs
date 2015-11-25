@@ -39,7 +39,7 @@ namespace WebBackend
         /// <summary>
         /// All available experiments.
         /// </summary>
-        private readonly ExperimentCollection _experiments;
+        internal readonly ExperimentCollection Experiments;
 
         /// <summary>
         /// ID of session.
@@ -49,7 +49,7 @@ namespace WebBackend
         private UserData(string id, ExperimentCollection experiments)
         {
             UserID = id;
-            _experiments = experiments;
+            Experiments = experiments;
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace WebBackend
                 CallSerializer _feedbackCall;
                 if (!_experimentToFeedbackCall.TryGetValue(experimentId, out _feedbackCall))
                 {
-                    var experiment = _experiments.Get(experimentId);
+                    var experiment = Experiments.Get(experimentId);
                     var feedbackPath = experiment.GetFeedbackPath();
                     var feedbackStorage = new CallStorage(feedbackPath);
                     _feedbackCall = feedbackStorage.RegisterCall("Feedback", (c) => { });
@@ -103,7 +103,7 @@ namespace WebBackend
             var key = Tuple.Create(experimentId, taskId);
             SolutionLog log;
             if (!_taskToSolution.TryGetValue(key, out log))
-                _taskToSolution[key] = log = new SolutionLog(this, _experiments.Get(experimentId), taskId);
+                _taskToSolution[key] = log = new SolutionLog(this, Experiments.Get(experimentId), taskId);
 
 
             return log;

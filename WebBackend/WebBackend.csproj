@@ -94,6 +94,7 @@
     <None Include="www\dialog.haml" />
     <None Include="www\index.haml" />
     <None Include="www\layout.haml" />
+    <None Include="www\validate.haml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="www\data\storages\users\" />

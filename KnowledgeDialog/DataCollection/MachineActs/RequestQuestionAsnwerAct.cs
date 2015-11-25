@@ -20,7 +20,7 @@ namespace KnowledgeDialog.DataCollection.MachineActs
         {
             return _isAtLeastRequest ?
            "That's ok, can you give me the correct answer for your question instead?" :
-           "I’m still not getting the idea. Can you give me the correct answer for your question?";
+           "It sounds reasonable, however, I still can't find the answer. Can you give me the correct answer for your question please?";
         }
 
         /// <inheritdoc/>

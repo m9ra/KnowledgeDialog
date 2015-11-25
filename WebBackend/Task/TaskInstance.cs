@@ -21,6 +21,8 @@ namespace WebBackend
 
         public string Text { get { return string.Format(TaskFormat, Substitutions.Select(s => "'" + s.Data + "'").ToArray()); } }
 
+        internal readonly int ValidationCodeKey;
+
         internal readonly int ValidationCode;
 
         internal readonly string Key;
@@ -31,12 +33,13 @@ namespace WebBackend
 
         private int _turns = 0;
 
-        public TaskInstance(string taskFormat, IEnumerable<NodeReference> substitutions, IEnumerable<NodeReference> expectedAnswers, string key, int validationCode)
+        public TaskInstance(string taskFormat, IEnumerable<NodeReference> substitutions, IEnumerable<NodeReference> expectedAnswers, string key, int validationCodeKey)
         {
             TaskFormat = taskFormat;
             Substitutions = substitutions.ToArray();
             _expectedAnswers = expectedAnswers.ToArray();
-            ValidationCode = validationCode;
+            ValidationCodeKey = validationCodeKey;
+            ValidationCode = validationCodeKey * 65479 % 10000;
             Key = key;
 
             if (_expectedAnswers.Length == 0)

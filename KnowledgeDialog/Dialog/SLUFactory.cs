@@ -166,7 +166,7 @@ namespace KnowledgeDialog.Dialog
         {
             var orderedFinishedStates = finishedStates.OrderByDescending((s) => s.CoveredIndexes.Count());
 
-         //   var coveringStates = orderedFinishedStates.Select(s => s.Parent);
+            //   var coveringStates = orderedFinishedStates.Select(s => s.Parent);
 
             return findStateCovers(0, endOffset, orderedFinishedStates);
         }

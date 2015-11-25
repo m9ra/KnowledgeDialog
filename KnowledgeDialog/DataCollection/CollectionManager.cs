@@ -45,6 +45,11 @@ namespace KnowledgeDialog.DataCollection
         /// </summary>
         private DenotationType _lastDenotationQuestion = DenotationType.None;
 
+        private string[] _nonExplainingWords = new[]
+        {
+            "of","a","the","whether","what","how","who","which","when","why"
+        };
+
         /// <summary>
         /// Determine whether dialog has been closed.
         /// </summary>
@@ -78,7 +83,8 @@ namespace KnowledgeDialog.DataCollection
             //dialog state collection
             var isQuestionRegistered = _reqisteredQuestion != null;
             var isExpectingDenotation = isQuestionRegistered;
-            var isExpectingAnswer = isExpectingDenotation && _askedDenotations.Contains(DenotationType.CorrectAnswer);
+            var isExpectingAnswer = isExpectingDenotation && _lastDenotationQuestion == DenotationType.CorrectAnswer;
+            var isExpectingExplanation = isExpectingDenotation && _lastDenotationQuestion == DenotationType.Explanation;
             var nonAskedDenotationType = getNonaskedDenotationType();
 
             //dialog handling
@@ -139,6 +145,16 @@ namespace KnowledgeDialog.DataCollection
 
                 if (!hasDatabaseEvidence)
                     return askForMissingFact();
+            }
+            else if (isExpectingExplanation)
+            {
+                var explanationLength = utterance.Words.Count();
+                if (explanationLength < 5)
+                    return new TooBriefAct();
+
+                var diffWords = utterance.Words.Except(_reqisteredQuestion.Words).Except(_nonExplainingWords).ToArray();
+                if (diffWords.Length < 3)
+                    return new UnwantedRephraseDetected();
             }
 
             //reset last denotation

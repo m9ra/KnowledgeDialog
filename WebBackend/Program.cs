@@ -65,7 +65,16 @@ namespace WebBackend
                 new DataCollectionExperiment(ExperimentsRootPath, "data_collection", 15, new Task.President.PresidentCollectionTaskFactory()),
 
                 //data collection experiment2
-                new DataCollectionExperiment(ExperimentsRootPath, "data_collection2", 15, new Task.President.PresidentCollectionTaskFactory())
+                new DataCollectionExperiment(ExperimentsRootPath, "data_collection2", 15, new Task.President.PresidentCollectionTaskFactory()),
+
+                //data collection experiment3
+                new DataCollectionExperiment(ExperimentsRootPath, "data_collection3", 15, new Task.President.PresidentCollectionTaskFactory()),
+
+                //data collection experiment4
+                new DataCollectionExperiment(ExperimentsRootPath, "data_collection4", 15, new Task.President.PresidentCollectionTaskFactory()),
+                
+                //data collection experiment5
+                new DataCollectionExperiment(ExperimentsRootPath, "data_collection5", 15, new Task.President.PresidentCollectionTaskFactory())
                 );
 
             //run server

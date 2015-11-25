@@ -131,6 +131,11 @@ namespace KnowledgeDialog.Database
             _storage.Add(name, value);
         }
 
+        public void ReportParameter(string name, int value)
+        {
+            _storage.Add(name, value);
+        }
+
         public void ReportParameter(string name, NodeReference node)
         {
             var value = node.Data;

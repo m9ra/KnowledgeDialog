@@ -57,7 +57,7 @@ namespace WebBackend
             }
 
             var logfilePath = Path.Combine(Program.ExperimentsRootPath, experimentId, ExperimentBase.RelativeUserPath, logFileId);
-            var file = new LogFile(logfilePath, experimentId);
+            var file = new LogFile(logfilePath);
 
             var actions = file.LoadActions();
 

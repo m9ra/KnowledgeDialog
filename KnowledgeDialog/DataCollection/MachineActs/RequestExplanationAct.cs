@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.Dialog;
+
 namespace KnowledgeDialog.DataCollection.MachineActs
 {
     class RequestExplanationAct : MachineActionBase
@@ -24,16 +26,12 @@ namespace KnowledgeDialog.DataCollection.MachineActs
         }
 
         /// <inheritdoc/>
-        protected override string initializeDialogActRepresentation()
+        protected override ActRepresentation initializeDialogActRepresentation()
         {
-            if (_isAtLeastRequest)
-            {
-                return "RequestExplanation(at_least='true')";
-            }
-            else
-            {
-                return "RequestExplanation(at_least='false')";
-            }
+            var representation = new ActRepresentation("RequestExplanation");
+            representation.AddParameter("at_least", _isAtLeastRequest);
+
+            return representation;
         }
     }
 }

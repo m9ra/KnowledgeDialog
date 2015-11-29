@@ -19,7 +19,7 @@ namespace KnowledgeDialog.DataCollection.MachineActs
         /// <summary>
         /// Semantic representation of the machine act.
         /// </summary>
-        private string _dialogActRepresentation;
+        private ActRepresentation _dialogActRepresentation;
 
         /// <summary>
         /// Initialization for act message which will be printed to user.
@@ -31,7 +31,7 @@ namespace KnowledgeDialog.DataCollection.MachineActs
         /// Initialization for semantic dialog act representation.
         /// </summary>
         /// <returns>The representation.</returns>
-        protected abstract string initializeDialogActRepresentation();
+        protected abstract ActRepresentation initializeDialogActRepresentation();
 
         /// <inheritdoc/>
         public override string GetDialogActRepresentation()
@@ -39,7 +39,7 @@ namespace KnowledgeDialog.DataCollection.MachineActs
             if (_dialogActRepresentation == null)
                 _dialogActRepresentation = initializeDialogActRepresentation();
 
-            return _dialogActRepresentation;
+            return _dialogActRepresentation.ToFunctionalRepresentation();
         }
 
         /// <inheritdoc/>

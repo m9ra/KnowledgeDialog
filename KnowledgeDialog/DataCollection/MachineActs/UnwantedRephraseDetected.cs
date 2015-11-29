@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.Dialog;
+
 namespace KnowledgeDialog.DataCollection.MachineActs
 {
     class UnwantedRephraseDetected : MachineActionBase
@@ -15,9 +17,9 @@ namespace KnowledgeDialog.DataCollection.MachineActs
         }
 
         /// <inheritdoc/>
-        protected override string initializeDialogActRepresentation()
+        protected override ActRepresentation initializeDialogActRepresentation()        
         {
-            return "UnwantedRephraseDetected()";
+            return new ActRepresentation("UnwantedRephraseDetected");            
         }
     }
 }

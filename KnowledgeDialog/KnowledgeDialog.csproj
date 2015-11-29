@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Dialog\ActRepresentation.cs" />
     <Compile Include="Database\CallStorage.cs" />
     <Compile Include="Database\FlatPresidentLayer.cs" />
     <Compile Include="Database\PresidentLayer.cs" />

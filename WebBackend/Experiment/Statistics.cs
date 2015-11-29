@@ -50,7 +50,7 @@ namespace WebBackend.Experiment
                     ++DialogCount;
             }
 
-            var advice = new LogFile(Path.Combine(experimentRoot, experimentId + ".dialog"), experimentId);
+            var advice = new LogFile(Path.Combine(experimentRoot, experimentId + ".dialog"));
             foreach (var action in advice.LoadActions())
             {
                 if (action.Type == "T_advice")

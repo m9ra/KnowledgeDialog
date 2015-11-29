@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.Dialog;
+
 namespace KnowledgeDialog.DataCollection.MachineActs
 {
     public class ByeAct : MachineActionBase
@@ -15,9 +17,9 @@ namespace KnowledgeDialog.DataCollection.MachineActs
         }
 
         /// <inheritdoc/>
-        protected override string initializeDialogActRepresentation()
+        protected override ActRepresentation initializeDialogActRepresentation()
         {
-            return "Bye()";
+            return new ActRepresentation("Bye");
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Dialog.Acts;
 
 namespace KnowledgeDialog.DataCollection.MachineActs
@@ -37,9 +38,12 @@ namespace KnowledgeDialog.DataCollection.MachineActs
         }
 
         /// <inheritdoc/>
-        protected override string initializeDialogActRepresentation()
+        protected override ActRepresentation initializeDialogActRepresentation()
         {
-            return "ChitChatAnswer(domain='" + _domain + "')";
+            var representation=new ActRepresentation("ChitChatAnswer");
+
+            representation.AddParameter("domain", _domain);
+            return representation;
         }
     }
 }

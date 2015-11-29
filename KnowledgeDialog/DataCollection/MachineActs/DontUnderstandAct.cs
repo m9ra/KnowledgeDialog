@@ -17,9 +17,9 @@ namespace KnowledgeDialog.DataCollection.MachineActs
         }
 
         /// <inheritdoc/>
-        protected override string initializeDialogActRepresentation()
+        protected override ActRepresentation initializeDialogActRepresentation()
         {
-            return "DontUnderstand()";
+            return new ActRepresentation("DontUnderstand");
         }
     }
 }

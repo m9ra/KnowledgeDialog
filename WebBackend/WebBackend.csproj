@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Dataset\DatasetWriter.cs" />
     <Compile Include="DialogProvider\DataCollectionWebConsole.cs" />
     <Compile Include="DialogProvider\HeuristicManagerWebConsole.cs" />
     <Compile Include="Experiment\DataCollectionExperiment.cs" />

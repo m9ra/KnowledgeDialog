@@ -24,10 +24,10 @@ namespace WebBackend.Experiment
         public Statistics(string experimentRoot)
         {
             var experimentId = Path.GetFileNameWithoutExtension(experimentRoot);
-            LogFiles = LogFile.Load(Path.Combine(experimentRoot, ExperimentBase.RelativeUserPath), experimentId);
+            LogFiles = LogFile.Load(Path.Combine(experimentRoot, ExperimentBase.RelativeUserPath));
 
             foreach (var file in LogFiles)
-            {                
+            {
                 var currentDialogTurnCount = 0;
                 foreach (var action in file.LoadActions())
                 {
@@ -46,7 +46,7 @@ namespace WebBackend.Experiment
                     }
                 }
 
-                if(currentDialogTurnCount>0)
+                if (currentDialogTurnCount > 0)
                     ++DialogCount;
             }
 

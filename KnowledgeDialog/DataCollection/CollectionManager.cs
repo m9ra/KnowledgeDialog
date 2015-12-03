@@ -191,7 +191,7 @@ namespace KnowledgeDialog.DataCollection
             switch (denotationType)
             {
                 case DenotationType.CorrectAnswer:
-                    return new RequestQuestionAsnwerAct(atLeastRequest);
+                    return new RequestAnswerAct(atLeastRequest);
 
                 case DenotationType.Explanation:
                     return new RequestExplanationAct(atLeastRequest);

@@ -9,10 +9,19 @@ namespace KnowledgeDialog.Dialog
     public abstract class ResponseBase
     {
         /// <summary>
-        /// Initialization for semantic dialog act representation.
+        /// Gets semantic dialog act representation.
         /// </summary>
         /// <returns>The representation when overriden.</returns>
         public virtual string GetDialogActRepresentation()
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// Gets semantic dialog act json representation.
+        /// </summary>
+        /// <returns>The representation when overriden.</returns>
+        public virtual string GetDialogActJsonRepresentation()
         {
             return null;
         }

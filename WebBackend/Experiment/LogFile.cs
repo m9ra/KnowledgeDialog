@@ -36,7 +36,7 @@ namespace WebBackend
                 Size = (int)new FileInfo(path).Length;
         }
 
-        public static IEnumerable<LogFile> Load(string dirPath, string experimentId)
+        public static IEnumerable<LogFile> Load(string dirPath)
         {
             var result = new List<LogFile>();
             foreach (var file in Directory.GetFiles(dirPath))
@@ -64,7 +64,7 @@ namespace WebBackend
                         continue;
 
                     var data = JsonConvert.DeserializeObject<Dictionary<string, object>>(line);
-                    result.Add(new ActionEntry(data));
+                    result.Add(new ActionEntry(result.Count, data));
                 }
 
             return result;

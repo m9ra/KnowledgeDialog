@@ -1,0 +1,50 @@
+﻿@logfile WebBackend.LogFile
+@annotated_actions +WebBackend.Experiment.AnnotatedActionEntry
+
+.container
+	%nav{class: "navbar navbar-inverse navbar-fixed-top"}
+		.navbar-header
+			%button{type: "button", class: "navbar-toggle", data-toggle: "collapse", data-target: "navbar-collapse"}
+				%span.sr-only
+					Expand navigation	
+				%span.icon-bar
+				%span.icon-bar
+				%span.icon-bar
+
+			%a{class: "navbar-brand", href: "/"} Mgr. Vodolán Miroslav
+.jumbotron#preface
+	.container
+		%h1 Action log
+		%p 
+			Action log for
+			= " " 
+			= @logfile.Id
+
+		%a{class: "btn btn-primary", href: "/logs?experiment="+ (@logfile.ExperimentId) } Back to log files
+
+%script{src: "js/annotation.js"}=""
+
+
+.container	
+		%h1 Actions
+
+		%form{method: "POST"}
+			#logfile_list
+				- @annotated_actions.each do |action|
+					.row
+						.col-md-1 = ""
+						.col-md-2
+							- if action.Type == "T_utterance"
+								- if action.CorrectAnswer
+									%input{type: "text", value: action.CorrectAnswer, name: "correct_answer_" + (action.ActionIndex), class: "question_annotator"}
+								- else
+									%input{type: "text", name: "correct_answer_" + (action.ActionIndex), class: "question_annotator"}
+
+						.col-md-9
+							%div{class: action.Type}= raw action.Text
+
+					%br
+
+			.col-md-1
+				%input{type: "submit", name: "save_and_next", value: "Save & Next"}						
+						

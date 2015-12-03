@@ -138,9 +138,11 @@ namespace WebBackend.Experiment
         {
             var responseText = response == null ? null : response.ToString();
             var responseAct = response == null ? null : response.GetDialogActRepresentation();
+            var responseActJson = response == null ? null : response.GetDialogActJsonRepresentation();
 
             _infoCall.ReportParameter("response", responseText);
             _infoCall.ReportParameter("response_act", responseAct);
+            _infoCall.ReportParameter("response_act_json", responseActJson);
 
             _infoCall.SaveReport();
         }

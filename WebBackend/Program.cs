@@ -72,14 +72,27 @@ namespace WebBackend
 
                 //data collection experiment4
                 new DataCollectionExperiment(ExperimentsRootPath, "data_collection4", 15, new Task.President.PresidentCollectionTaskFactory()),
-                
+
                 //data collection experiment5
                 new DataCollectionExperiment(ExperimentsRootPath, "data_collection5", 15, new Task.President.PresidentCollectionTaskFactory())
                 );
 
+            var experiment = Experiments.Get("data_collection");
+            writeDataset(experiment);
+
             //run server
             runServer(RootPath);
             runConsole();
+        }
+
+        /// <summary>
+        /// Writes dataset from data collected during given experiment.
+        /// </summary>
+        /// <param name="experiment">Experiment which data will be written.</param>
+        private static void writeDataset(ExperimentBase experiment)
+        {
+            var writer = new Dataset.DatasetWriter(experiment);
+            writer.WriteData(".");
         }
 
         /// <summary>

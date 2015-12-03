@@ -48,10 +48,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Dataset\AnnotatedDialog.cs" />
+    <Compile Include="Dataset\AnnotatedDialogBuilder.cs" />
+    <Compile Include="Dataset\AnnotatedSemiTurn.cs" />
     <Compile Include="Dataset\DatasetWriter.cs" />
     <Compile Include="DialogProvider\DataCollectionWebConsole.cs" />
     <Compile Include="DialogProvider\HeuristicManagerWebConsole.cs" />
+    <Compile Include="Experiment\AnnotatedActionEntry.cs" />
     <Compile Include="Experiment\DataCollectionExperiment.cs" />
+    <Compile Include="Experiment\AnnotatedLogFile.cs" />
     <Compile Include="Experiment\NoTaskExperiment.cs" />
     <Compile Include="Experiment\SolutionLog.cs" />
     <Compile Include="Experiment\ActionEntry.cs" />
@@ -62,12 +67,12 @@
     <Compile Include="Experiment\Statistics.cs" />
     <Compile Include="FormatHelper.cs" />
     <Compile Include="Experiment\LogFile.cs" />
+    <Compile Include="InputManager.cs" />
     <Compile Include="Task\CollectionTaskInstance.cs" />
     <Compile Include="Task\President\PresidentCollectionTaskFactory.cs" />
     <Compile Include="Task\President\PresidentInfo.cs" />
     <Compile Include="Task\TaskPatternUtilities.cs" />
     <Compile Include="DialogWeb.cs" />
-    <Compile Include="DialogProvider\InputManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResponseManager.cs" />
@@ -88,6 +93,7 @@
     <None Include="packages.config" />
     <None Include="www\404.haml" />
     <None Include="www\action_log.haml" />
+    <None Include="www\annotate.haml" />
     <None Include="www\logs.haml" />
     <None Include="www\no_tasks.haml" />
     <None Include="www\experiment.haml" />
@@ -118,6 +124,7 @@
       <DependentUpon>style.scss</DependentUpon>
     </Content>
     <Content Include="www\css\web-default.css" />
+    <Content Include="www\js\annotation.js" />
     <Content Include="www\js\chat.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

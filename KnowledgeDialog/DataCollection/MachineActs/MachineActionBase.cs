@@ -43,6 +43,15 @@ namespace KnowledgeDialog.DataCollection.MachineActs
         }
 
         /// <inheritdoc/>
+        public override string GetDialogActJsonRepresentation()
+        {
+            if (_dialogActRepresentation == null)
+                _dialogActRepresentation = initializeDialogActRepresentation();
+
+            return _dialogActRepresentation.ToJsonRepresentation();
+        }
+
+        /// <inheritdoc/>
         public override string ToString()
         {
             if (_message == null)

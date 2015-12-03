@@ -67,6 +67,44 @@ namespace WebBackend
             Render("action_log.haml");
         }
 
+        public void annotate()
+        {
+            var logFileId = GET("id");
+            var experimentId = GET("experiment");
+
+            if (logFileId == null || experimentId == null)
+            {
+                RedirectTo("logs");
+                return;
+            }
+
+            var logfilePath = Path.Combine(Program.ExperimentsRootPath, experimentId, ExperimentBase.RelativeUserPath, logFileId);
+            var file = new LogFile(logfilePath);
+            var annotation = new AnnotatedLogFile(file);
+
+            var actions = file.LoadActions();
+            actions = actions.Where(a => a.Type == "T_response" || a.Type == "T_utterance").ToArray();
+
+            var correctAnswers = annotation.GetQuestionAnswers();
+            if (POST("save_and_next") != null)
+            {
+                foreach (var action in actions)
+                {
+                    var question_annotation = POST("correct_answer_" + action.ActionIndex);
+                    correctAnswers[action.ActionIndex] = question_annotation;
+                }
+
+                annotation.SetQuestionAnswers(correctAnswers);
+                annotation.Save();
+            }
+            var annotatedActions = annotation.Annotate(actions);
+
+            SetParam("annotated_actions", annotatedActions);
+            SetParam("logfile", file);
+            Layout("layout.haml");
+            Render("annotate.haml");
+        }
+
         public void index()
         {
             var dialogStorage = GET("storage");

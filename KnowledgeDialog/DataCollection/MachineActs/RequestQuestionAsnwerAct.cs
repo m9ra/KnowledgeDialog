@@ -8,11 +8,11 @@ using KnowledgeDialog.Dialog;
 
 namespace KnowledgeDialog.DataCollection.MachineActs
 {
-    class RequestQuestionAsnwerAct : MachineActionBase
+    class RequestAnswerAct : MachineActionBase
     {
         private readonly bool _isAtLeastRequest;
 
-        internal RequestQuestionAsnwerAct(bool isAtLeastRequest)
+        internal RequestAnswerAct(bool isAtLeastRequest)
         {
             _isAtLeastRequest = isAtLeastRequest;
         }

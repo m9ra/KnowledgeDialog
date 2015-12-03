@@ -26,17 +26,25 @@ namespace WebBackend
 
         public readonly string Act;
 
+        public readonly string MachineActJson;
+
+        public readonly int ActionIndex;
+
+        public bool IsReset { get { return Type == "T_Info" && Text.Contains("new console"); } }
+
         internal readonly Dictionary<string, object> Data;
 
         private static readonly SLUFactory _factory = new SLUFactory();
+
 
         internal bool HasUserId()
         {
             return UserId != null;
         }
 
-        internal ActionEntry(Dictionary<string, object> data)
+        internal ActionEntry(int actionIndex, Dictionary<string, object> data)
         {
+            ActionIndex = actionIndex;
             Data = data;
 
             if (data.ContainsKey(CallStorage.TimeEntry))
@@ -65,6 +73,12 @@ namespace WebBackend
             {
                 if (actData != null)
                     Act = actData.ToString();
+            }
+
+            if (data.TryGetValue("response_act_json", out actData))
+            {
+                if (actData != null)
+                    MachineActJson = actData.ToString();
             }
 
             if (data.ContainsKey("task"))

@@ -28,14 +28,14 @@ namespace WebBackend.Dataset
         /// <summary>
         /// Determine whether all substitutions are allowed for current split..
         /// </summary>
-        private readonly bool _allowAllSubstitutions = false;
+        private readonly bool _allowAllSubstitutions = true;
 
         /// <summary>
         /// Determine whether all task types are allowed for current split.
         /// </summary>
         private readonly bool _allowAllTaskTypes = false;
 
-        private SplitDescription(double ratio, IEnumerable<string> allowedTasks)
+        private SplitDescription(double ratio, IEnumerable<string> allowedTasks)   
         {
             SplitSizeRatio = ratio;
             _allowedTaskTypes.UnionWith(allowedTasks);

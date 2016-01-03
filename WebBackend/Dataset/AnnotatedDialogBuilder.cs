@@ -10,6 +10,13 @@ using WebBackend.Experiment;
 
 namespace WebBackend.Dataset
 {
+    class AnnotatedBuilderContext
+    {
+        internal string TaskType;
+
+        internal string SubstitutionData;
+    }
+
     class AnnotatedDialogBuilder
     {
         private List<AnnotatedSemiTurn> _questionTurns = new List<AnnotatedSemiTurn>();
@@ -18,9 +25,7 @@ namespace WebBackend.Dataset
 
         private List<AnnotatedSemiTurn> _answerTurns = new List<AnnotatedSemiTurn>();
 
-        private string _taskType;
-
-        private string _substitutionData;
+        private readonly AnnotatedBuilderContext _context;
 
         private bool _isQuestionComplete;
 
@@ -36,6 +41,11 @@ namespace WebBackend.Dataset
 
         internal bool IsDialogEnd { get; private set; }
 
+        internal AnnotatedDialogBuilder(AnnotatedBuilderContext builder)
+        {
+            _context = builder;
+        }
+
         internal void Register(AnnotatedActionEntry action)
         {
             if (IsDialogEnd)
@@ -48,15 +58,15 @@ namespace WebBackend.Dataset
             }
 
 
-            if (action.Type=="T_task")
+            if (action.Type == "T_task")
             {
                 //we have a task description action
-                _taskType = action.Entry.Data["task"].ToString();
+                _context.TaskType = action.Entry.Data["task"].ToString();
                 var substitutionArray = action.Entry.Data["substitutions"] as JArray;
                 if (substitutionArray.Count > 1)
                     throw new NotSupportedException("We currently doesn't support multiple substitutions");
 
-                _substitutionData = substitutionArray[0].ToString();
+                _context.SubstitutionData = substitutionArray[0].ToString();
             }
 
             var turn = new AnnotatedSemiTurn(action);
@@ -98,7 +108,7 @@ namespace WebBackend.Dataset
 
         internal AnnotatedDialog Build()
         {
-            return new AnnotatedDialog(_questionTurns, _explanationTurns, _answerTurns, _taskType, _substitutionData);
+            return new AnnotatedDialog(_questionTurns, _explanationTurns, _answerTurns, _context.TaskType, _context.SubstitutionData);
         }
 
         static internal IEnumerable<AnnotatedDialog> ParseDialogs(AnnotatedLogFile log)
@@ -107,12 +117,13 @@ namespace WebBackend.Dataset
             var builders = new List<AnnotatedDialogBuilder>();
 
             //fill builders with dialog data
+            var builderContext = new AnnotatedBuilderContext();
             AnnotatedDialogBuilder currentBuilder = null;
             foreach (var action in actions)
             {
                 if (currentBuilder == null)
                 {
-                    currentBuilder = new AnnotatedDialogBuilder();
+                    currentBuilder = new AnnotatedDialogBuilder(builderContext);
                     builders.Add(currentBuilder);
                 }
 

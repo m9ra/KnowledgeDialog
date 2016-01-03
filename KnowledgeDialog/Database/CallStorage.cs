@@ -8,6 +8,7 @@ using System.IO;
 
 using Newtonsoft.Json;
 
+using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Knowledge;
 
 namespace KnowledgeDialog.Database
@@ -122,6 +123,11 @@ namespace KnowledgeDialog.Database
         }
 
         public void ReportParameter(string name, string value)
+        {
+            _storage.Add(name, value);
+        }
+
+        public void ReportParameter(string name, ActRepresentation value)
         {
             _storage.Add(name, value);
         }

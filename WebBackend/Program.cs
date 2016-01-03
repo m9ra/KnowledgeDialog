@@ -84,7 +84,7 @@ namespace WebBackend
                 new DataCollectionExperiment(ExperimentsRootPath, "data_collection5", 15, new Task.President.PresidentCollectionTaskFactory())
                 );
 
-            var experiment = Experiments.Get("data_collection");
+            var experiment = Experiments.Get("data_collection5");
             writeDataset(experiment);
 
             //run server

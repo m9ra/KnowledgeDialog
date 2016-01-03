@@ -56,14 +56,5 @@ namespace KnowledgeDialog.Dialog
             builder.Append(")");
             return builder.ToString();
         }
-
-        /// <summary>
-        /// Creates json representation of dialog act.
-        /// </summary>
-        /// <returns>The created representation</returns>
-        public string ToJsonRepresentation()
-        {
-            throw new NotImplementedException();
-        }
     }
 }

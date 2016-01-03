@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.Dialog.Acts;
+
 namespace KnowledgeDialog.Dialog
 {
     public abstract class ResponseBase
@@ -21,7 +23,7 @@ namespace KnowledgeDialog.Dialog
         /// Gets semantic dialog act json representation.
         /// </summary>
         /// <returns>The representation when overriden.</returns>
-        public virtual string GetDialogActJsonRepresentation()
+        public virtual ActRepresentation GetDialogAct()
         {
             return null;
         }

@@ -61,13 +61,11 @@ namespace WebBackend.Dataset
             var testDialogs = new List<AnnotatedDialog>();
 
             var totalCount = allDialogs.Count;
-            var validationSize = (int)(totalCount * validationSplit.SplitSizeRatio);
-            var trainSize = (int)(totalCount * trainSplit.SplitSizeRatio);
+            var validationSize = (int)Math.Round(totalCount * validationSplit.SplitSizeRatio);
+            var trainSize = (int)Math.Round(totalCount * trainSplit.SplitSizeRatio);
 
             trainDialogs.AddRange(selectSplitDialogs(trainCompatibleDialogs, selectedDialogs, trainSize));
-
             validationDialogs.AddRange(selectSplitDialogs(validationDialogs, selectedDialogs, validationSize));
-
             testDialogs.AddRange(allDialogs.Except(selectedDialogs));
 
             //write split data

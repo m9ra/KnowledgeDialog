@@ -12,8 +12,6 @@ namespace WebBackend.Dataset
     {
         public readonly bool IsRegularTurn;
 
-        public readonly bool IsMachineAction;
-
         public readonly string SemiTurnText;
 
         public readonly DateTime Time;

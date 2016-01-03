@@ -8,25 +8,25 @@ namespace WebBackend.Experiment
 {
     class AnnotatedActionEntry
     {
-        private readonly ActionEntry _entry;
+        internal readonly ActionEntry Entry;
 
         public readonly string CorrectAnswer;
 
-        public int ActionIndex { get { return _entry.ActionIndex; } }
+        public int ActionIndex { get { return Entry.ActionIndex; } }
 
-        public string Act { get { return _entry.Act; } }
+        public string Act { get { return Entry.Act; } }
 
-        public string Text { get { return _entry.Text; } }
+        public string Text { get { return Entry.Text; } }
 
-        public string Type { get { return _entry.Type; } }
+        public string Type { get { return Entry.Type; } }
 
-        public bool IsReset { get { return _entry.IsReset; } }
+        public bool IsReset { get { return Entry.IsReset; } }
 
-        public DateTime Time { get { return _entry.Time; } }
+        public DateTime Time { get { return Entry.Time; } }
 
         internal AnnotatedActionEntry(ActionEntry entry, string correctAnswer)
         {
-            _entry = entry;
+            Entry = entry;
             CorrectAnswer = correctAnswer;
         }
     }

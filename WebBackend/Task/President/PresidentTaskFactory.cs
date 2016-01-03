@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 
 using KnowledgeDialog.Knowledge;
 
-using WebBackend.TaskPatterns;
-
 namespace WebBackend.Task.President
 {
     /// <summary>
@@ -35,6 +33,11 @@ namespace WebBackend.Task.President
             add(new PresidentOfStateTask(g));
             add(new StateOfPresidentTask(g));
             add(new WifeOfPresidentTask(g));
+            add(new DaughterOfTask(g));
+            add(new PlaceOfBornTask(g));
+            add(new PresidentFatherTask(g));
+            add(new PresidentMotherTask(g));
+            add(new SonOfTask(g));
 
             generateTaskPairs();
         }

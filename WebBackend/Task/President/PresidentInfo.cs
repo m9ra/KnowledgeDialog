@@ -10,9 +10,19 @@ namespace WebBackend
     {
         private readonly List<string> _children = new List<string>();
 
-        public string Name { get; private set; }
+        public string DaughterName { get; private set; }
+
+        public string SonName { get; private set; }
 
         public string WifeName { get; private set; }
+
+        public string MotherName { get; private set; }
+
+        public string FatherName { get; private set; }
+        
+        public string PlaceOfBorn { get; private set; }
+
+        public string Name { get; private set; }
 
         public string State { get; private set; }
 

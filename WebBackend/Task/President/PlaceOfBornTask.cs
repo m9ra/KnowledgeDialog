@@ -8,16 +8,16 @@ using KnowledgeDialog.Knowledge;
 
 namespace WebBackend.Task.President
 {
-    class PresidentChildrenTask : TaskPatternBase
+    class PlaceOfBornTask: TaskPatternBase
     {
-        internal PresidentChildrenTask(ComposedGraph graph)
+        internal PlaceOfBornTask(ComposedGraph graph)
             : base(graph)
         {
-            SetPattern("Check if system can search some <b>child of president {0}</b>." + TaskPatternUtilities.CheckAndLearn);
+            SetPattern("Check if system can search <b>place where {0} was born</b>." + TaskPatternUtilities.CheckAndLearn);
 
             TaskPatternUtilities.FillPresidentTask(this,
                 president => president.Name,
-                president => president.Children
+                president => president.PlaceOfBorn
                     );
         }
     }

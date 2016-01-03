@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Newtonsoft.Json.Linq;
+
 using WebBackend.Experiment;
 
 namespace WebBackend.Dataset
@@ -15,6 +17,10 @@ namespace WebBackend.Dataset
         private List<AnnotatedSemiTurn> _explanationTurns = new List<AnnotatedSemiTurn>();
 
         private List<AnnotatedSemiTurn> _answerTurns = new List<AnnotatedSemiTurn>();
+
+        private string _taskType;
+
+        private string _substitutionData;
 
         private bool _isQuestionComplete;
 
@@ -41,14 +47,24 @@ namespace WebBackend.Dataset
                 return;
             }
 
-            
+
+            if (action.Type=="T_task")
+            {
+                //we have a task description action
+                _taskType = action.Entry.Data["task"].ToString();
+                var substitutionArray = action.Entry.Data["substitutions"] as JArray;
+                if (substitutionArray.Count > 1)
+                    throw new NotSupportedException("We currently doesn't support multiple substitutions");
+
+                _substitutionData = substitutionArray[0].ToString();
+            }
 
             var turn = new AnnotatedSemiTurn(action);
             if (!turn.IsRegularTurn)
                 //we are interested only in regular turns
                 return;
 
-            var actDescription=action.Act;
+            var actDescription = action.Act;
             if (actDescription == null)
                 actDescription = "null";
 
@@ -82,7 +98,7 @@ namespace WebBackend.Dataset
 
         internal AnnotatedDialog Build()
         {
-            return new AnnotatedDialog(_questionTurns, _explanationTurns, _answerTurns);
+            return new AnnotatedDialog(_questionTurns, _explanationTurns, _answerTurns, _taskType, _substitutionData);
         }
 
         static internal IEnumerable<AnnotatedDialog> ParseDialogs(AnnotatedLogFile log)

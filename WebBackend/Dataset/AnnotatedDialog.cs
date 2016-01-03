@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.Knowledge;
+
 namespace WebBackend.Dataset
 {
     class AnnotatedDialog
@@ -14,21 +16,30 @@ namespace WebBackend.Dataset
 
         private readonly AnnotatedSemiTurn[] _answerTurns;
 
-        internal AnnotatedDialog(IEnumerable<AnnotatedSemiTurn> questionTurns, IEnumerable<AnnotatedSemiTurn> explanationTurns, IEnumerable<AnnotatedSemiTurn> answerTurns)
+        internal readonly string TaskType;
+
+        internal readonly string SubstitutionData;
+
+        internal AnnotatedDialog(IEnumerable<AnnotatedSemiTurn> questionTurns, IEnumerable<AnnotatedSemiTurn> explanationTurns, IEnumerable<AnnotatedSemiTurn> answerTurns, string taskType, string substitutionData)
         {
             _questionTurns = questionTurns.ToArray();
             _explanationTurns = explanationTurns.ToArray();
             _answerTurns = answerTurns.ToArray();
+
+            TaskType = taskType;
+            SubstitutionData = substitutionData;
         }
 
         internal string ToJson()
         {
             var questionRepresentations = getRepresentations(_questionTurns);
-            
+
             var jsonRepresentation = new Dictionary<string, object>();
             jsonRepresentation["QuestionTurns"] = getRepresentations(_questionTurns);
             jsonRepresentation["ExplanationTurns"] = getRepresentations(_explanationTurns);
             jsonRepresentation["AnswerTurns"] = getRepresentations(_answerTurns);
+            jsonRepresentation["TaskType"] = TaskType;
+            jsonRepresentation["SubstitutionData"] = SubstitutionData;
 
             return Newtonsoft.Json.JsonConvert.SerializeObject(jsonRepresentation);
         }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using KnowledgeDialog.Knowledge;
 
-namespace WebBackend.TaskPatterns
+namespace WebBackend.Task.President
 {
     class PresidentOfStateTask : TaskPatternBase
     {

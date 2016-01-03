@@ -52,6 +52,7 @@
     <Compile Include="Dataset\AnnotatedDialogBuilder.cs" />
     <Compile Include="Dataset\AnnotatedSemiTurn.cs" />
     <Compile Include="Dataset\DatasetWriter.cs" />
+    <Compile Include="Dataset\SplitDescription.cs" />
     <Compile Include="DialogProvider\DataCollectionWebConsole.cs" />
     <Compile Include="DialogProvider\HeuristicManagerWebConsole.cs" />
     <Compile Include="Experiment\AnnotatedActionEntry.cs" />
@@ -69,8 +70,13 @@
     <Compile Include="Experiment\LogFile.cs" />
     <Compile Include="InputManager.cs" />
     <Compile Include="Task\CollectionTaskInstance.cs" />
+    <Compile Include="Task\President\DaughterOfTask.cs" />
+    <Compile Include="Task\President\PlaceOfBornTask.cs" />
     <Compile Include="Task\President\PresidentCollectionTaskFactory.cs" />
+    <Compile Include="Task\President\PresidentFatherTask.cs" />
     <Compile Include="Task\President\PresidentInfo.cs" />
+    <Compile Include="Task\President\PresidentMotherTask.cs" />
+    <Compile Include="Task\President\SonOfTask.cs" />
     <Compile Include="Task\TaskPatternUtilities.cs" />
     <Compile Include="DialogWeb.cs" />
     <Compile Include="Program.cs" />
@@ -82,7 +88,7 @@
     <Compile Include="Task\President\PresidentChildrenTask.cs" />
     <Compile Include="Task\President\PresidentOfStateTask.cs" />
     <Compile Include="Task\President\StateOfPresidentTask.cs" />
-    <Compile Include="Task\President\TaskPatternBase.cs" />
+    <Compile Include="Task\TaskPatternBase.cs" />
     <Compile Include="Task\President\WifeOfPresidentTask.cs" />
     <Compile Include="Task\TaskFactoryBase.cs" />
     <Compile Include="DialogProvider\UserData.cs" />

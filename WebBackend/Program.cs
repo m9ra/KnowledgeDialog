@@ -11,6 +11,10 @@ using ServeRick;
 using KnowledgeDialog.Database;
 using KnowledgeDialog.Knowledge;
 
+using WebBackend.Task;
+using WebBackend.Task.President;
+
+using WebBackend.Dataset;
 using WebBackend.Experiment;
 
 namespace WebBackend
@@ -22,6 +26,9 @@ namespace WebBackend
         /// </summary>
         public static string RootPath { get; private set; }
 
+        /// <summary>
+        /// Path with stored data.
+        /// </summary>
         public static string DataPath { get { return Path.Combine(RootPath, "data"); } }
 
         /// <summary>
@@ -92,7 +99,18 @@ namespace WebBackend
         private static void writeDataset(ExperimentBase experiment)
         {
             var writer = new Dataset.DatasetWriter(experiment);
-            writer.WriteData(".");
+            var trainingSplit = SplitDescription.Ratio(0.3)
+                .Add<PresidentOfStateTask>()
+                .Add<PresidentChildrenTask>();
+
+            var validationSplit = SplitDescription.Ratio(0.2)
+                .Add<PresidentOfStateTask>()
+                .Add<PresidentChildrenTask>()
+                .Add<StateOfPresidentTask>()
+                .Add<DaughterOfTask>()
+                ;
+
+            writer.WriteData(".", trainingSplit, validationSplit);
         }
 
         /// <summary>

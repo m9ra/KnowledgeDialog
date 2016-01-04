@@ -79,6 +79,8 @@
     <Compile Include="Dialog\Parsing\PatternConfiguration.cs" />
     <Compile Include="Dialog\Parsing\PatternState.cs" />
     <Compile Include="Dialog\Parsing\UtterancePattern.cs" />
+    <Compile Include="Dialog\QuestionAnswering\SingleQuestionLog.cs" />
+    <Compile Include="Dialog\QuestionAnswering\TurnLog.cs" />
     <Compile Include="Dialog\Responses\CountResponse.cs" />
     <Compile Include="Dialog\ResponseBase.cs" />
     <Compile Include="Dialog\Responses\MultiResponse.cs" />
@@ -90,6 +92,7 @@
     <Compile Include="Dialog\Acts\NegateAct.cs" />
     <Compile Include="Dialog\StringSearch.cs" />
     <Compile Include="Dialog\UtteranceParser.cs" />
+    <Compile Include="Dialog\IQuestionAnswerManager.cs" />
     <Compile Include="Knowledge\ExplicitLayer.cs" />
     <Compile Include="Knowledge\KnowledgeClassifier.cs" />
     <Compile Include="Knowledge\MultiTraceLog.cs" />

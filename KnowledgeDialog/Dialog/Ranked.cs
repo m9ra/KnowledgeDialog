@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KnowledgeDialog.PoolComputation
+namespace KnowledgeDialog.Dialog
 {
     class Ranked<T>
     {

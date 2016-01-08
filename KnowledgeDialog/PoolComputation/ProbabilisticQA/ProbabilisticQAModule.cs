@@ -42,6 +42,11 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
 
         internal IEnumerable<NodeReference> GetAnswer(string question, ContextPool pool)
         {
+            return GetRankedAnswer(question, pool).Value;
+        }
+
+        internal Ranked<IEnumerable<NodeReference>> GetRankedAnswer(string question, ContextPool pool)
+        {
             //keep original pool non-modified
             pool = pool.Clone();
 
@@ -52,7 +57,7 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
             var bestMatch = interpretations.BestMatch;
             if (bestMatch.Value == null)
                 //no interpretation has been found
-                return new NodeReference[0];
+                return new Ranked<IEnumerable<NodeReference>>(new NodeReference[0], 0.0);
 
             var bestInterpretation = bestMatch.Value.Item2.Interpretation;
             var bestCover = bestMatch.Value.Item1;
@@ -67,7 +72,7 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
                 Console.WriteLine("POOL: " + string.Join(" ", pool.ActiveNodes));
             }
 
-            return pool.ActiveNodes;
+            return new Ranked<IEnumerable<NodeReference>>(pool.ActiveNodes, bestMatch.Rank);
         }
 
         /// <summary>

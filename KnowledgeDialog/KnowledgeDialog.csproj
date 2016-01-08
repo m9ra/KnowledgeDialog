@@ -154,6 +154,7 @@
     <Compile Include="PoolComputation\PoolActions\InsertAction.cs" />
     <Compile Include="PoolComputation\ProbabilisticQA\InterpretationCounter.cs" />
     <Compile Include="PoolComputation\ProbabilisticQA\InterpretationGenerator.cs" />
+    <Compile Include="PoolComputation\ProbabilisticQA\ProbabilisticQAManager.cs" />
     <Compile Include="PoolComputation\ProbabilisticQA\ProbabilisticQAModule.cs" />
     <Compile Include="PoolComputation\ProbabilisticQA\RuledInterpretation.cs" />
     <Compile Include="PoolComputation\ProbabilisticQA\ProbabilisticMapping.cs" />
@@ -163,7 +164,7 @@
     <Compile Include="PoolComputation\HeuristicQAModule.cs" />
     <Compile Include="PoolComputation\QuestionEntry.cs" />
     <Compile Include="Dialog\SLUFactory.cs" />
-    <Compile Include="PoolComputation\Ranked.cs" />
+    <Compile Include="Dialog\Ranked.cs" />
     <Compile Include="PoolComputation\StateDialogManager.cs" />
     <Compile Include="PoolComputation\StateDialog\DialogState.cs" />
     <Compile Include="PoolComputation\StateDialog\EdgeIdentifier.cs" />

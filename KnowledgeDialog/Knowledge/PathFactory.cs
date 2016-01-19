@@ -51,7 +51,7 @@ namespace KnowledgeDialog.Knowledge
             _distinctEdges = distinctEdges;
 
             _maxSearchWidth = maxSearchWidth;
-            _segmentsToVisit.Enqueue(new PathSegment(null, null, false, StartingNode));
+            _segmentsToVisit.Enqueue(new PathSegment(null, null, StartingNode));
         }
 
         private void addChildren(NodeReference node, PathSegment previousSegment, ComposedGraph graph)
@@ -59,15 +59,14 @@ namespace KnowledgeDialog.Knowledge
             foreach (var edgeTuple in graph.GetNeighbours(node, _maxSearchWidth))
             {
                 var edge = edgeTuple.Item1;
-                var isOutcomming = edgeTuple.Item2;
-                var child = edgeTuple.Item3;
+                var child = edgeTuple.Item2;
 
-                if (previousSegment != null && (previousSegment.Contains(child) || (_distinctEdges && previousSegment.Contains(edge))))
+                if (previousSegment != null && (previousSegment.Contains(child) || (_distinctEdges && previousSegment.Contains(edge.Name))))
                     //the node has already been visited previously in the path
                     continue;
 
                 if (previousSegment.SegmentIndex < _maxSearchDepth)
-                    _segmentsToVisit.Enqueue(new PathSegment(previousSegment, edge, isOutcomming, child));
+                    _segmentsToVisit.Enqueue(new PathSegment(previousSegment, edge, child));
             }
         }
 

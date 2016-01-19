@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.Knowledge;
+
 using WebBackend.Task;
 
 namespace WebBackend
@@ -207,13 +209,13 @@ namespace WebBackend
             {
                 var startingNodes = new[] { graph.GetNode(data) };
 
-                foreach (var outgoingEdge in aliasEdges)
+                foreach (var incommingEdge in aliasEdges)
                 {
-                    foreach (var incommingEdge in aliasEdges)
+                    foreach (var outcommingEdge in aliasEdges)
                     {
                         var targetNodes = graph.GetForwardTargets(startingNodes, new[]{
-                            Tuple.Create(outgoingEdge,false),
-                            Tuple.Create(incommingEdge,true)
+                            Edge.Incoming(incommingEdge),
+                            Edge.Outcoming(outcommingEdge)
                         }).ToArray();
 
                         var targets = from node in targetNodes select node.Data;

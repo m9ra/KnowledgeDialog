@@ -49,15 +49,15 @@ namespace KnowledgeDialog.Knowledge
             TraceNodes = allNodes;
         }
 
-        private IEnumerable<Tuple<string, bool>> getEdges(TraceNode node, ComposedGraph graph)
+        private IEnumerable<Edge> getEdges(TraceNode node, ComposedGraph graph)
         {
-            var edges = new HashSet<Tuple<string, bool>>();
+            var edges = new HashSet<Edge>();
             foreach (var currentNode in node.CurrentNodes)
             {
                 var neighbours = graph.GetNeighbours(currentNode, Width).ToArray();
                 foreach (var neighbour in neighbours.ToArray())
                 {
-                    edges.Add(Tuple.Create(neighbour.Item1, neighbour.Item2));
+                    edges.Add(neighbour.Item1);
                 }
             }
 
@@ -76,11 +76,11 @@ namespace KnowledgeDialog.Knowledge
 
         internal readonly TraceNode PreviousNode;
 
-        internal IEnumerable<Tuple<string, bool>> Path
+        internal IEnumerable<Edge> Path
         {
             get
             {
-                var path = new List<Tuple<string, bool>>();
+                var path = new List<Edge>();
                 var currentNode = this;
                 while (currentNode != null && currentNode.CurrentEdge != null)
                 {
@@ -102,7 +102,7 @@ namespace KnowledgeDialog.Knowledge
         /// <summary>
         /// Edge that was used for creating of current node
         /// </summary>
-        private readonly Tuple<string, bool> CurrentEdge;
+        private readonly Edge CurrentEdge;
 
         internal TraceNode(IEnumerable<NodeReference> initialNodes)
         {
@@ -120,7 +120,7 @@ namespace KnowledgeDialog.Knowledge
             HasContinuation = initialNodes.Skip(1).Any();
         }
 
-        internal TraceNode(TraceNode previousNode, Tuple<string, bool> edge, ComposedGraph graph)
+        internal TraceNode(TraceNode previousNode, Edge edge, ComposedGraph graph)
         {
             if (previousNode == null)
                 throw new ArgumentNullException("previousNode");
@@ -143,7 +143,7 @@ namespace KnowledgeDialog.Knowledge
                 //if it contains all input nodes - we don't need to trace it further
 
 
-                foreach (var target in graph.Targets(node, edge.Item1, edge.Item2))
+                foreach (var target in graph.Targets(node, edge))
                 {
                     if (VisitedNodes.Contains(target))
                         continue;

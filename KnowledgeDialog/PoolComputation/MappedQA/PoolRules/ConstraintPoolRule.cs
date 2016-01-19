@@ -13,9 +13,9 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
     {
         internal int ConstraintLength { get { return _edges.Length; } }
 
-        internal IEnumerable<Tuple<string, bool>> Edges { get { return _edges; } }
+        internal IEnumerable<Edge> Edges { get { return _edges; } }
 
-        private readonly Tuple<string, bool>[] _edges;
+        private readonly Edge[] _edges;
 
         private readonly NodeReference _targetNode;
 
@@ -25,7 +25,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
             _edges = constraintPath.GetInvertedEdges().ToArray();
         }
 
-        private ConstraintPoolRule(NodeReference targetNode, Tuple<string, bool>[] edges)
+        private ConstraintPoolRule(NodeReference targetNode, Edge[] edges)
         {
             _targetNode = targetNode;
             _edges = edges;
@@ -38,7 +38,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
             for (var i = 0; i < _edges.Length; ++i)
             {
                 var edge = _edges[i];
-                yield return new EdgeBit(edge.Item1, edge.Item2);
+                yield return new EdgeBit(edge);
             }
         }
 
@@ -68,7 +68,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
         private PoolRuleBase extendWith(KnowledgePath path)
         {
-            var extendingEdges = path.CompleteInversedEdges;
+            var extendingEdges = path.ReverseOrderedInverseEdges;
             var edges = extendingEdges.Concat(_edges).ToArray();
             var extendingNode = path.Node(path.Length);
             return new ConstraintPoolRule(extendingNode, edges);

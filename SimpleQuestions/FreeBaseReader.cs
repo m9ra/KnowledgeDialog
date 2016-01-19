@@ -8,6 +8,24 @@ using System.IO;
 
 namespace SimpleQuestions
 {
+    delegate void ProggressReporter(int processedCount);
+
+    class FreeBaseTriplet
+    {
+        internal readonly FreeBaseNode Source;
+
+        internal readonly FreeBaseEdge Edge;
+
+        internal readonly FreeBaseNode Target;
+
+        internal FreeBaseTriplet(FreeBaseNode source, FreeBaseEdge edge, FreeBaseNode target)
+        {
+            Source = source;
+            Edge = edge;
+            Target = target;
+        }
+    }
+
     /// <summary>
     /// Reader for large FreeBase dumps.
     /// </summary>
@@ -20,6 +38,11 @@ namespace SimpleQuestions
 
         protected abstract void ProcessEntry(FreeBaseNode source, FreeBaseEdge edge, FreeBaseNode target);
 
+        private int _tripletProcessed = 0;
+
+        internal int ProcessedCountThreshold = 100000;
+
+        internal event ProggressReporter ProgressReporter;
 
         internal FreeBaseReader(string file)
         {
@@ -29,7 +52,7 @@ namespace SimpleQuestions
         /// <summary>
         /// Reads whole file and process it.
         /// </summary>
-        internal void Process()
+        internal void Iterate()
         {
             var freeBaseStreamReader =
    new StreamReader(File);
@@ -43,6 +66,11 @@ namespace SimpleQuestions
                 var target = new FreeBaseNode(splits[2]);
 
                 ProcessEntry(source, edge, target);
+                ++_tripletProcessed;
+
+                if (_tripletProcessed % ProcessedCountThreshold == 0)
+                    if (ProgressReporter != null)
+                        ProgressReporter(_tripletProcessed);
             }
         }
     }

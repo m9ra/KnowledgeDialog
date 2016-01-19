@@ -10,26 +10,26 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 {
     class EdgeBit : RuleBitBase
     {
-        internal readonly string Edge;
+        internal readonly Edge Edge;
 
         internal readonly bool IsOutgoing;
 
-        internal EdgeBit(string edge, bool isOutgoing)
+        internal EdgeBit(Edge edge)
         {
             if (edge == null)
                 throw new ArgumentNullException("edge");
 
             Edge = edge;
-            IsOutgoing = isOutgoing;
         }
 
         /// <inheritdoc/>
         protected override string getNotation()
         {
-            if (IsOutgoing)
-                return "--" + Edge + "->";
+            var edgeName = Edge.Name;
+            if (Edge.IsOutcoming)
+                return "--" + edgeName + "->";
             else
-                return "<-" + Edge + "--";
+                return "<-" + edgeName + "--";
         }
     }
 }

@@ -49,7 +49,7 @@ namespace KnowledgeDialog.Dialog
         }
 
 
-        internal static void Print(IEnumerable<Tuple<string, bool>> path)
+        internal static void Print(IEnumerable<Edge> path)
         {
             var buffer = new StringBuilder();
             FillWithPath(buffer, path);
@@ -113,17 +113,17 @@ namespace KnowledgeDialog.Dialog
             PrintLine(pathBuffer.ToString(), NodeColor);
         }
 
-        internal static void FillWithPath(StringBuilder pathBuffer, IEnumerable<Tuple<string, bool>> path)
+        internal static void FillWithPath(StringBuilder pathBuffer, IEnumerable<Edge> path)
         {
-            foreach (var tuple in path)
+            foreach (var edge in path)
             {
-                var isOut = tuple.Item2;
+                var isOut = edge.IsOutcoming;
 
                 var prefix = isOut ? "--" : "<--";
                 var suffix = isOut ? "-->" : "--";
 
                 pathBuffer.Append(prefix);
-                pathBuffer.Append(tuple.Item1);
+                pathBuffer.Append(edge.Name);
                 pathBuffer.Append(suffix);
             }
         }

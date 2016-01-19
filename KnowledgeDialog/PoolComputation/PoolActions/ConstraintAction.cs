@@ -25,7 +25,7 @@ namespace KnowledgeDialog.PoolComputation.PoolActions
         public void Run(ContextPool context)
         {
             var start = context.GetSubstitution(SemanticOrigin.StartNode);
-            var layer = context.GetPathLayer(start, Path.CompleteEdges);
+            var layer = context.GetPathLayer(start, Path.Edges);
             context.RemoveWhere((node) => !layer.Contains(node));
         }
 

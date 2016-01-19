@@ -12,13 +12,11 @@ namespace KnowledgeDialog.Knowledge
 
         public readonly NodeReference Node;
 
-        public readonly string Edge;
-
-        public readonly bool IsOutcoming;
+        public readonly Edge Edge;
 
         public readonly int SegmentIndex;
 
-        public PathSegment(PathSegment previousSegment, string edge, bool isOutcoming, NodeReference toNode)
+        public PathSegment(PathSegment previousSegment, Edge edge, NodeReference toNode)
         {
             if (previousSegment != null)
                 SegmentIndex += previousSegment.SegmentIndex + 1;
@@ -26,7 +24,6 @@ namespace KnowledgeDialog.Knowledge
             PreviousSegment = previousSegment;
             Edge = edge;
             Node = toNode;
-            IsOutcoming = isOutcoming;
         }
 
         /// <summary>
@@ -48,52 +45,51 @@ namespace KnowledgeDialog.Knowledge
         /// <summary>
         /// Determine whether edge is contained in currrent or previous segments.
         /// </summary>
-        /// <param name="edge">Tested edge.</param>
+        /// <param name="edgeName">Tested edge.</param>
         /// <returns><c>true</c> whether edge is contained, <c>false</c> otherwise.</returns>
-        internal bool Contains(string edge)
+        internal bool Contains(string edgeName)
         {
-            if (Edge == edge)
+            if (Edge.Name == edgeName)
                 return true;
 
             if (PreviousSegment == null)
                 return false;
 
-            return PreviousSegment.Contains(edge);
+            return PreviousSegment.Contains(edgeName);
         }
 
-        internal IEnumerable<Tuple<string, bool>> GetEdges()
+        internal IEnumerable<Edge> GetEdges()
         {
             var currentSegment = this;
             while (currentSegment != null)
             {
                 if (currentSegment.Edge != null)
-                    yield return Tuple.Create(currentSegment.Edge, currentSegment.IsOutcoming);
+                    yield return currentSegment.Edge;
 
                 currentSegment = currentSegment.PreviousSegment;
             }
         }
 
-        internal IEnumerable<Tuple<string, bool>> GetReversedEdges()
+        internal IEnumerable<Edge> GetReversedEdges()
         {
             return GetEdges().Reverse();
         }
 
-        internal IEnumerable<Tuple<string, bool>> GetInvertedEdges()
+        internal IEnumerable<Edge> GetInvertedEdges()
         {
             var currentSegment = this;
             while (currentSegment != null)
             {
                 if (currentSegment.Edge != null)
-                    yield return Tuple.Create(currentSegment.Edge, !currentSegment.IsOutcoming);
+                    yield return currentSegment.Edge;
 
                 currentSegment = currentSegment.PreviousSegment;
             }
         }
 
-        internal IEnumerable<Tuple<string, bool>> GetReversedInvertedEdges()
+        internal IEnumerable<Edge> GetReversedInvertedEdges()
         {
             return GetInvertedEdges().Reverse();
         }
- 
     }
 }

@@ -19,5 +19,21 @@ namespace SimpleQuestions
 
             EdgeId = edgeRepresentation.Substring(FreebaseEdgePrefix.Length);
         }
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            return EdgeId.GetHashCode();
+        }
+
+        /// <inheritdoc/>
+        public override bool Equals(object obj)
+        {
+            var o = obj as FreeBaseEdge;
+            if (o == null)
+                return false;
+
+            return EdgeId.Equals(o.EdgeId);
+        }
     }
 }

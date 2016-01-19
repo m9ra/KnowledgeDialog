@@ -21,12 +21,7 @@ namespace KnowledgeDialog.Knowledge
         /// <summary>
         /// Edges contained in current path.
         /// </summary>
-        private readonly List<string> _edges = new List<string>();
-
-        /// <summary>
-        /// Determine whether edge is in direction (true) or reversed (false)
-        /// </summary>
-        private readonly List<bool> _edgeDirection = new List<bool>();
+        private readonly List<Edge> _edges = new List<Edge>();
 
         /// <summary>
         /// Length of current path.
@@ -41,7 +36,7 @@ namespace KnowledgeDialog.Knowledge
         /// <summary>
         /// Edges of current path.
         /// </summary>
-        public IEnumerable<string> Edges { get { return _edges; } }
+        public IEnumerable<Edge> Edges { get { return _edges; } }
 
         /// <summary>
         /// Creates path from sequence of path segments in context of given graph.
@@ -58,13 +53,10 @@ namespace KnowledgeDialog.Knowledge
             var currentSegment = previousSegment.PreviousSegment;
             while (currentSegment != null)
             {
-                var previousNode = previousSegment.Node;
                 var currentNode = currentSegment.Node;
-                var currentEdge = previousSegment.Edge;
 
                 _nodes.Add(currentNode);
-                _edges.Add(currentEdge);
-                _edgeDirection.Add(previousSegment.IsOutcoming);
+                _edges.Add(previousSegment.Edge);
 
                 previousSegment = currentSegment;
                 currentSegment = currentSegment.PreviousSegment;
@@ -72,14 +64,12 @@ namespace KnowledgeDialog.Knowledge
 
             _nodes.Reverse();
             _edges.Reverse();
-            _edgeDirection.Reverse();
         }
 
-        private KnowledgePath(IEnumerable<NodeReference> nodes, IEnumerable<string> edges, IEnumerable<bool> edgeDirection)
+        private KnowledgePath(IEnumerable<NodeReference> nodes, IEnumerable<Edge> edges)
         {
             _nodes.AddRange(nodes);
             _edges.AddRange(edges);
-            _edgeDirection.AddRange(edgeDirection);
         }
 
         /// <inheritdoc/>
@@ -91,15 +81,12 @@ namespace KnowledgeDialog.Knowledge
             {
                 var node = _nodes[i];
                 var edge = _edges[i];
-                var direction = _edgeDirection[i];
+                var isOutcoming = edge.IsOutcoming;
 
                 result.Append(node.Data);
-
-                result.Append(direction ? " --" : " <-");
-
+                result.Append(isOutcoming ? " --" : " <-");
                 result.Append(edge);
-
-                result.Append(direction ? "-> " : "-- ");
+                result.Append(isOutcoming ? "-> " : "-- ");
             }
 
             result.Append(_nodes[_nodes.Count - 1].Data);
@@ -122,20 +109,11 @@ namespace KnowledgeDialog.Knowledge
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        internal string Edge(int index)
+        internal Edge GetEdge(int index)
         {
             return _edges[index];
         }
 
-        /// <summary>
-        /// Determine that edge on given index is of out direction.
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        internal bool IsOutcomming(int index)
-        {
-            return _edgeDirection[index];
-        }
 
         /// <summary>
         /// Create new path by prepending given node and edge to current path.
@@ -144,22 +122,18 @@ namespace KnowledgeDialog.Knowledge
         /// <param name="edge"></param>
         /// <param name="isOutcome"></param>
         /// <returns></returns>
-        internal KnowledgePath PrependBy(NodeReference node, string edge, bool isOutcome)
+        internal KnowledgePath PrependBy(NodeReference node, Edge edge)
         {
             return new KnowledgePath(
                 new[] { node }.Concat(_nodes),
-                new[] { edge }.Concat(_edges),
-                new[] { isOutcome }.Concat(_edgeDirection)
-                );
+                new[] { edge }.Concat(_edges));
         }
 
         internal KnowledgePath TakeEnding(int startingOffset)
         {
             return new KnowledgePath(
                 _nodes.Skip(startingOffset),
-                _edges.Skip(startingOffset),
-                _edgeDirection.Skip(startingOffset)
-                );
+                _edges.Skip(startingOffset));
         }
 
         internal bool HasSameEdgesAs(KnowledgePath other)
@@ -169,35 +143,26 @@ namespace KnowledgeDialog.Knowledge
 
             for (var i = 0; i < Length; ++i)
             {
-                if (Edge(i) != other.Edge(i))
+                if (GetEdge(i) != other.GetEdge(i))
                     return false;
             }
 
             return true;
         }
 
-        public IEnumerable<Tuple<string, bool>> CompleteEdges
+        public IEnumerable<Edge> ReverseOrderedEdges
         {
             get
             {
-                for (var i = 0; i < Length; ++i)
-                    yield return Tuple.Create(Edge(i), IsOutcomming(i));
+                return Edges.Reverse();
             }
         }
 
-        public IEnumerable<Tuple<string, bool>> CompleteReversedEdges
+        public IEnumerable<Edge> ReverseOrderedInverseEdges
         {
             get
             {
-                return CompleteEdges.Reverse();
-            }
-        }
-
-        public IEnumerable<Tuple<string, bool>> CompleteInversedEdges
-        {
-            get
-            {
-                return CompleteEdges.Select(e => Tuple.Create(e.Item1, !e.Item2));
+                return Edges.Select(e => e.Inverse());
             }
         }
     }

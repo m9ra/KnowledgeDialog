@@ -293,11 +293,11 @@ namespace KnowledgeDialog.Knowledge
 
         internal KnowledgeRule NoRule { get; private set; }
 
-        internal readonly IEnumerable<Tuple<string, bool>> Path;
+        internal readonly IEnumerable<Edge> Path;
 
         internal readonly NodeReference EndNode;
 
-        internal KnowledgeRule(IEnumerable<Tuple<string, bool>> path, NodeReference endNode, IEnumerable<NodeReference> yesNodes, IEnumerable<NodeReference> noNodes)
+        internal KnowledgeRule(IEnumerable<Edge> path, NodeReference endNode, IEnumerable<NodeReference> yesNodes, IEnumerable<NodeReference> noNodes)
         {
             InitialYesNodes = yesNodes.ToArray();
             InitialNoNodes = noNodes.ToArray();

@@ -31,7 +31,7 @@ namespace KnowledgeDialog.Knowledge
         /// Concrete value of the is relation.
         /// TODO: make it dependent on layerbases.
         /// </summary>
-        public readonly string IsEdge= "P31";
+        public readonly string IsEdge = "P31";
 
         /// <summary>
         /// Layers that are contained within the graph.
@@ -75,19 +75,19 @@ namespace KnowledgeDialog.Knowledge
         /// <param name="startingNodes"></param>
         /// <param name="edgePairs"></param>
         /// <returns></returns>
-        public bool ContainsLoop(IEnumerable<NodeReference> startingNodes, IEnumerable<Tuple<string, bool>> edgePairs)
+        public bool ContainsLoop(IEnumerable<NodeReference> startingNodes, IEnumerable<Edge> edgePairs)
         {
             var visitedNodes = new HashSet<NodeReference>(startingNodes);
             var currentLayer = new HashSet<NodeReference>(startingNodes);
             var nextLayer = new HashSet<NodeReference>();
-            foreach (var edgePair in edgePairs)
+            foreach (var edge in edgePairs)
             {
                 foreach (var node in currentLayer)
                 {
-                    var targets = Targets(node, edgePair.Item1, edgePair.Item2);
+                    var targets = Targets(node, edge);
                     foreach (var target in targets)
                     {
-                        if(!visitedNodes.Add(target))
+                        if (!visitedNodes.Add(target))
                             //the loop has been found
                             return true;
 
@@ -180,12 +180,12 @@ namespace KnowledgeDialog.Knowledge
         /// <param name="edge"></param>
         /// <param name="isOutcomming"></param>
         /// <returns></returns>
-        public IEnumerable<NodeReference> Targets(NodeReference node, string edge, bool isOutcomming)
+        public IEnumerable<NodeReference> Targets(NodeReference node, Edge edge)
         {
-            if (isOutcomming)
-                return OutcommingTargets(node, edge);
+            if (edge.IsOutcoming)
+                return OutcommingTargets(node, edge.Name);
             else
-                return IncommingTargets(node, edge);
+                return IncommingTargets(node, edge.Name);
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace KnowledgeDialog.Knowledge
             var currentQueue = new Queue<PathSegment>();
             var visitedNodes = new HashSet<NodeReference>();
 
-            var startSegment = new PathSegment(null, null, false, from);
+            var startSegment = new PathSegment(null, null, from);
             if (from.Equals(to))
             {
                 yield return new KnowledgePath(startSegment);
@@ -235,7 +235,7 @@ namespace KnowledgeDialog.Knowledge
                 //test if we can get into end node
                 foreach (var edge in BetweenEdges(currentSegment.Node, to))
                 {
-                    var segment = new PathSegment(currentSegment, edge.Item1, edge.Item2, to);
+                    var segment = new PathSegment(currentSegment, edge, to);
                     yield return new KnowledgePath(segment);
                 }
 
@@ -243,13 +243,12 @@ namespace KnowledgeDialog.Knowledge
                 foreach (var childPair in GetNeighbours(currentSegment.Node, maxWidth))
                 {
                     var edge = childPair.Item1;
-                    var isOut = childPair.Item2;
-                    var child = childPair.Item3;
+                    var child = childPair.Item2;
                     if (!visitedNodes.Add(child))
                         //this node has already been visited
                         continue;
 
-                    var childSegment = new PathSegment(currentSegment, edge, isOut, child);
+                    var childSegment = new PathSegment(currentSegment, edge, child);
                     currentQueue.Enqueue(childSegment);
                 }
             }
@@ -261,31 +260,31 @@ namespace KnowledgeDialog.Knowledge
         /// <param name="node1"></param>
         /// <param name="node2"></param>
         /// <returns></returns>
-        public IEnumerable<Tuple<string, bool>> BetweenEdges(NodeReference node1, NodeReference node2)
+        public IEnumerable<Edge> BetweenEdges(NodeReference node1, NodeReference node2)
         {
             foreach (var layer in _layers)
             {
                 foreach (var edge in layer.Edges(node1, node2))
-                    yield return Tuple.Create(edge, true);
+                    yield return Edge.Outcoming(edge);
 
                 foreach (var edge in layer.Edges(node2, node1))
-                    yield return Tuple.Create(edge, false);
+                    yield return Edge.Incoming(edge);
             }
         }
 
-        public HashSet<NodeReference> GetForwardTargets(IEnumerable<NodeReference> startingNodes, IEnumerable<Tuple<string, bool>> path)
+        public HashSet<NodeReference> GetForwardTargets(IEnumerable<NodeReference> startingNodes, IEnumerable<Edge> path)
         {
             if (startingNodes == null)
                 throw new ArgumentNullException("startingNodes");
 
             var result = new HashSet<NodeReference>();
             var currentLayer = startingNodes;
-            foreach (var part in path)
+            foreach (var edge in path)
             {
                 var nextLayer = new List<NodeReference>();
                 foreach (var node in currentLayer)
                 {
-                    var targets = Targets(node, part.Item1, part.Item2).ToArray();
+                    var targets = Targets(node, edge).ToArray();
                     nextLayer.AddRange(targets);
                 }
 
@@ -298,7 +297,7 @@ namespace KnowledgeDialog.Knowledge
 
         public HashSet<NodeReference> GetForwardTargets(IEnumerable<NodeReference> startingNodes, KnowledgePath path)
         {
-            return GetForwardTargets(startingNodes, path.CompleteEdges);
+            return GetForwardTargets(startingNodes, path.Edges);
         }
 
 
@@ -309,15 +308,15 @@ namespace KnowledgeDialog.Knowledge
         /// <param name="node"></param>
         /// <param name="maxWidth"></param>
         /// <returns></returns>
-        internal IEnumerable<Tuple<string, bool, NodeReference>> GetNeighbours(NodeReference node, int maxWidth)
+        internal IEnumerable<Tuple<Edge, NodeReference>> GetNeighbours(NodeReference node, int maxWidth)
         {
             foreach (var layer in _layers)
             {
                 foreach (var pair in layer.Incoming(node).Take(maxWidth))
-                    yield return Tuple.Create(pair.Key, false, pair.Value);
+                    yield return Tuple.Create(Edge.Incoming(pair.Key), pair.Value);
 
                 foreach (var pair in layer.Outcoming(node).Take(maxWidth))
-                    yield return Tuple.Create(pair.Key, true, pair.Value);
+                    yield return Tuple.Create(Edge.Outcoming(pair.Key), pair.Value);
             }
         }
 

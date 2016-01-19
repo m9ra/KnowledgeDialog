@@ -431,8 +431,8 @@ namespace KnowledgeDialog.PoolComputation
             var distance = 0.0;
             for (var i = 0; i < path.Length; ++i)
             {
-                var edge = path.Edge(i);
-                if (edge == ComposedGraph.IsRelation || edge == "P31")
+                var edge = path.GetEdge(i);
+                if (edge.Name == ComposedGraph.IsRelation || edge.Name == "P31")
                     distance += 0.1;
                 else
                     distance += 1;
@@ -557,12 +557,11 @@ namespace KnowledgeDialog.PoolComputation
                 var currentLayer = startingNodes;
                 for (var i = 0; i < path.Length; ++i)
                 {
-                    var edge = path.Edge(i);
-                    var isOutcomming = path.IsOutcomming(i);
+                    var edge = path.GetEdge(i);
                     var nextLayer = new List<NodeReference>();
                     foreach (var node in currentLayer)
                     {
-                        var targets = Graph.Targets(node, edge, isOutcomming);
+                        var targets = Graph.Targets(node, edge);
                         nextLayer.AddRange(targets);
                     }
 
@@ -586,12 +585,11 @@ namespace KnowledgeDialog.PoolComputation
                 var currentLayer = endingNodes;
                 for (var i = path.Length - 1; i >= 0; --i)
                 {
-                    var edge = path.Edge(i);
-                    var isOutcomming = !path.IsOutcomming(i);
+                    var edge = path.GetEdge(i).Inverse();
                     var nextLayer = new List<NodeReference>();
                     foreach (var node in currentLayer)
                     {
-                        var targets = Graph.Targets(node, edge, isOutcomming);
+                        var targets = Graph.Targets(node, edge);
                         nextLayer.AddRange(targets);
                     }
 
@@ -609,9 +607,9 @@ namespace KnowledgeDialog.PoolComputation
             return Graph.GetNode(word);
         }
 
-        private HashSet<Tuple<string, bool>> getCommonEdges(IEnumerable<NodeReference> nodes)
+        private HashSet<Edge> getCommonEdges(IEnumerable<NodeReference> nodes)
         {
-            var commonEdges = new HashSet<Tuple<string, bool>>();
+            var commonEdges = new HashSet<Edge>();
             commonEdges.UnionWith(getEdges(nodes.First()));
             foreach (var node in nodes)
             {
@@ -621,10 +619,10 @@ namespace KnowledgeDialog.PoolComputation
             return commonEdges;
         }
 
-        private Tuple<string, bool>[] getEdges(NodeReference node)
+        private Edge[] getEdges(NodeReference node)
         {
             var nodeTargets = Graph.GetNeighbours(node, MaximumGraphWidth);
-            var nodeEdges = (from nodeTarget in nodeTargets select Tuple.Create(nodeTarget.Item1, nodeTarget.Item2)).ToArray();
+            var nodeEdges = (from nodeTarget in nodeTargets select nodeTarget.Item1).ToArray();
             return nodeEdges;
         }
 

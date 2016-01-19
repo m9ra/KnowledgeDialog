@@ -20,5 +20,21 @@ namespace SimpleQuestions
             NodeId = nodeRepresentation.Substring(FreebaseNodePrefix.Length);
 
         }
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            return NodeId.GetHashCode();
+        }
+
+        /// <inheritdoc/>
+        public override bool Equals(object obj)
+        {
+            var o = obj as FreeBaseNode;
+            if (o == null)
+                return false;
+
+            return NodeId.Equals(o.NodeId);
+        }
     }
 }

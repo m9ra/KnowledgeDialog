@@ -93,6 +93,7 @@
     <Compile Include="Dialog\StringSearch.cs" />
     <Compile Include="Dialog\UtteranceParser.cs" />
     <Compile Include="Dialog\IQuestionAnswerManager.cs" />
+    <Compile Include="Knowledge\Edge.cs" />
     <Compile Include="Knowledge\ExplicitLayer.cs" />
     <Compile Include="Knowledge\KnowledgeClassifier.cs" />
     <Compile Include="Knowledge\MultiTraceLog.cs" />
@@ -211,6 +212,13 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PoolComputation\ExplicitStateDialogManager.cs" />
+    <Compile Include="RuleQuestions\FeatureEvidence.cs" />
+    <Compile Include="RuleQuestions\KnowledgeConstraint.cs" />
+    <Compile Include="RuleQuestions\KnowledgeConstraintOptions.cs" />
+    <Compile Include="RuleQuestions\QuestionEvidence.cs" />
+    <Compile Include="RuleQuestions\StructuredInterpretation.cs" />
+    <Compile Include="RuleQuestions\StructuredInterpretationGenerator.cs" />
+    <Compile Include="RuleQuestions\StructuredTopicGenerator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

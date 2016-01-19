@@ -69,11 +69,11 @@ namespace KnowledgeDialog.PoolComputation
 
         internal void Push(NodeReference pushStart, KnowledgePath path)
         {
-            var layer = GetPathLayer(pushStart, path.CompleteEdges);
+            var layer = GetPathLayer(pushStart, path.Edges);
             _accumulator.UnionWith(layer);
         }
 
-        internal void ExtendBy(IEnumerable<Tuple<string,bool>> edges)
+        internal void ExtendBy(IEnumerable<Edge> edges)
         {
             var extended = Graph.GetForwardTargets(ActiveNodes, edges);
             _accumulator.Clear();
@@ -85,19 +85,17 @@ namespace KnowledgeDialog.PoolComputation
             _accumulator.UnionWith(nodes);
         }
 
-        internal HashSet<NodeReference> GetPathLayer(NodeReference pushStart, IEnumerable<Tuple<string, bool>> edges)
+        internal HashSet<NodeReference> GetPathLayer(NodeReference pushStart, IEnumerable<Edge> edges)
         {
             var layer = new HashSet<NodeReference>();
             var newLayer = new HashSet<NodeReference>();
 
             layer.Add(pushStart);
-            foreach(var edgePair in edges)
+            foreach(var edge in edges)
             {
-                var edge = edgePair.Item1;
-                var isOutcomming = edgePair.Item2;
                 foreach (var node in layer)
                 {
-                    var nextNodes = Graph.Targets(node, edge, isOutcomming);
+                    var nextNodes = Graph.Targets(node, edge);
                     newLayer.UnionWith(nextNodes);
                 }
 

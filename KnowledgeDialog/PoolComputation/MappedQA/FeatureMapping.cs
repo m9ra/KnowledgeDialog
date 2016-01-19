@@ -294,7 +294,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA
 
         private HashSet<NodeReference> getSimilarNodes(NodeReference node)
         {
-            return new HashSet<NodeReference>(Graph.GetForwardTargets(new[] { node }, new[] { Tuple.Create(Graph.IsEdge, true), Tuple.Create(Graph.IsEdge, false) }));
+            return new HashSet<NodeReference>(Graph.GetForwardTargets(new[] { node }, new[] { Edge.Outcoming(Graph.IsEdge), Edge.Incoming(Graph.IsEdge) }));
         }
 
         private HashSet<NodeReference> getSubstitutedAnswers(Interpretation interpretation)

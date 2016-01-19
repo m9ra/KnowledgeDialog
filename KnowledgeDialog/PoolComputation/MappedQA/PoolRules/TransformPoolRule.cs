@@ -11,7 +11,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 {
     class TransformPoolRule : PoolRuleBase
     {
-        private readonly Tuple<string, bool>[] _edges;
+        private readonly Edge[] _edges;
 
         internal TransformPoolRule(PathSegment startingSegment)
         {
@@ -25,7 +25,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
             for (var i = 0; i < _edges.Length; ++i)
             {
                 var edge = _edges[i];
-                yield return new EdgeBit(edge.Item1, edge.Item2);
+                yield return new EdgeBit(edge);
             }
         }
 

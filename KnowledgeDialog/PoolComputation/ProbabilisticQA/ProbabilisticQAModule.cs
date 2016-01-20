@@ -120,7 +120,7 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
                 yield break;
             }
 
-            foreach (var extendedInterpretation in interpretation.ExtendBy(reportingCover.GetNodes(Graph), Graph))
+            foreach (var extendedInterpretation in interpretation.ExtendBy(reportingCover.GetInstanceNodes(Graph), Graph))
             {
                 var generalExtendedInterpretation = extendedInterpretation.GeneralizeBy(reportingCover, Graph);
 

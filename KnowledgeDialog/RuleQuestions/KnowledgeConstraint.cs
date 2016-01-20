@@ -11,18 +11,45 @@ namespace KnowledgeDialog.RuleQuestions
     class KnowledgeConstraint
     {
         /// <summary>
-        /// Constraint node which defines start of knowledge path.
-        /// </summary>
-        internal readonly NodeReference Node;
-
-        /// <summary>
         /// The constraint path
         /// </summary>
         internal readonly IEnumerable<Edge> Path;
 
-        internal bool IsSatisfiedBy(NodeReference featureNode, NodeReference answer, ComposedGraph Graph)
+        internal KnowledgeConstraint(KnowledgePath path)
         {
-            throw new NotImplementedException();
+            Path = path.Edges;
+        }
+
+        internal bool IsSatisfiedBy(NodeReference featureNode, NodeReference answer, ComposedGraph graph)
+        {
+            return FindSet(featureNode, graph).Contains(answer);
+        }
+
+        internal HashSet<NodeReference> FindSet(NodeReference constraintNode,ComposedGraph graph)
+        {
+            return new HashSet<NodeReference>(graph.GetForwardTargets(new[] { constraintNode }, Path));
+        }
+
+        /// <inheritdoc/>
+        public override bool Equals(object obj)
+        {
+            var o = obj as KnowledgeConstraint;
+            if (o == null)
+                return false;
+
+            return Enumerable.SequenceEqual(Path, o.Path);
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            var acc = 0;
+            foreach (var edge in Path)
+            {
+                acc += edge.GetHashCode();
+            }
+
+            return acc;
         }
     }
 }

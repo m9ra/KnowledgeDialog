@@ -37,5 +37,21 @@ namespace KnowledgeDialog.Knowledge
         {
             return Edge.From(Name, !IsOutcoming);
         }
+
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            return Name.GetHashCode() + IsOutcoming.GetHashCode();
+        }
+
+        /// <inheritdoc/>
+        public override bool Equals(object obj)
+        {
+            var o = obj as Edge;
+            if (o == null)
+                return false;
+
+            return Name.Equals(o.Name) && IsOutcoming.Equals(o.IsOutcoming);
+        }
     }
 }

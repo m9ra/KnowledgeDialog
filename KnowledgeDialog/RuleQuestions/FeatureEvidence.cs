@@ -18,10 +18,16 @@ namespace KnowledgeDialog.RuleQuestions
 {
     class FeatureEvidence
     {
+        public static readonly int PathMaxWidth = 20;
+
+        public static readonly int PathMaxLength = 20;
+
+        public static readonly int MaxPathCount = 10;
+
         /// <summary>
         /// Feature cover which interpretations are kept here.
         /// </summary>
-        public readonly FeatureCover Cover;
+        public readonly FeatureKey FeatureKey;
 
         /// <summary>
         /// Knowledge graph for interpretation generation.
@@ -31,10 +37,10 @@ namespace KnowledgeDialog.RuleQuestions
         /// <summary>
         /// Evidence of question instance to answer.s
         /// </summary>
-        private readonly Dictionary<ParsedUtterance, QuestionEvidence> _evidence = new Dictionary<ParsedUtterance, QuestionEvidence>();
+        private readonly Dictionary<ParsedUtterance, QuestionEvidence> _questions = new Dictionary<ParsedUtterance, QuestionEvidence>();
 
         /// <summary>
-        /// Interpretations available for <see cref="Cover"/>. Interpretation nodes are mapped to nodes in <see cref="Cover"/>.
+        /// Interpretations available for <see cref="FeatureKey"/>. Interpretation nodes are mapped to nodes in <see cref="FeatureKey"/>.
         /// </summary>
         private readonly List<Interpretation> _availableInterpretations = new List<Interpretation>();
 
@@ -52,8 +58,9 @@ namespace KnowledgeDialog.RuleQuestions
 
         internal FeatureEvidence(FeatureCover cover, ComposedGraph graph)
         {
-            Cover = cover;
-            _generalFeatureNodes = cover.GetNodes(graph).ToArray();
+            Graph = graph;
+            FeatureKey = cover.FeatureKey;
+            _generalFeatureNodes = cover.GetGeneralNodes(graph).ToArray();
         }
 
         /// <summary>
@@ -61,7 +68,7 @@ namespace KnowledgeDialog.RuleQuestions
         /// </summary>
         /// <param name="question">The adviced question.</param>
         /// <param name="answer">The adviced answer.</param>
-        public void Advice(ParsedUtterance question, NodeReference answer)
+        public void Advice(FeatureCover question, NodeReference answer)
         {
             var evidence = getQuestionEvidence(question);
             evidence.Advice(answer);
@@ -74,7 +81,7 @@ namespace KnowledgeDialog.RuleQuestions
         /// </summary>
         /// <param name="question">The adviced question.</param>
         /// <param name="negatedAnswer">The negated answer.</param>
-        public void Negate(ParsedUtterance question, NodeReference negatedAnswer)
+        public void Negate(FeatureCover question, NodeReference negatedAnswer)
         {
             var evidence = getQuestionEvidence(question);
             evidence.Negate(negatedAnswer);
@@ -121,7 +128,25 @@ namespace KnowledgeDialog.RuleQuestions
         /// </summary>
         private void fillGeneratorQueue()
         {
-            throw new NotImplementedException();
+            if (!_topicGenerator.MoveNext())
+                //there are no more topics
+                return;
+
+            foreach (var evidence in _questions.Values)
+            {
+                var bestEvidenceAnswer = evidence.GetBestEvidenceAnswer();
+                var nodeMapping = new List<NodeReference>();
+                foreach (var generalFeatureNode in getGeneralFeatureNodes())
+                {
+                    var mappedNode = evidence.GetFeatureNode(generalFeatureNode, Graph);
+                    nodeMapping.Add(mappedNode);
+                }
+
+                //initialize generators for each question instance
+                var constraintGenerator = _topicGenerator.InitializeSelector(nodeMapping, bestEvidenceAnswer);
+                if (constraintGenerator != null)
+                    _constraintGenerators.Enqueue(constraintGenerator);
+            }
         }
 
         /// <summary>
@@ -129,11 +154,11 @@ namespace KnowledgeDialog.RuleQuestions
         /// </summary>
         /// <param name="question">The question.</param>
         /// <returns>The evidence.</returns>
-        private QuestionEvidence getQuestionEvidence(ParsedUtterance question)
+        private QuestionEvidence getQuestionEvidence(FeatureCover question)
         {
             QuestionEvidence evidence;
-            if (!_evidence.TryGetValue(question, out evidence))
-                _evidence[question] = evidence = new QuestionEvidence(question);
+            if (!_questions.TryGetValue(question.OriginalUtterance, out evidence))
+                _questions[question.OriginalUtterance] = evidence = new QuestionEvidence(question);
             return evidence;
         }
 
@@ -155,30 +180,37 @@ namespace KnowledgeDialog.RuleQuestions
 
         private IEnumerable<KnowledgeConstraintOptions> findEvidenceBestConstraintOptions()
         {
-            var generalConstraints = new List<HashSet<KnowledgeConstraint>>();
+            var result = new List<KnowledgeConstraintOptions>();
             foreach (var generalFeatureNode in getGeneralFeatureNodes())
             {
                 //find all possible paths spotted by feature answer nodes
                 var featureNodeGeneralPaths = new HashSet<KnowledgeConstraint>();
-                generalConstraints.Add(featureNodeGeneralPaths);
-                foreach (var evidence in _evidence.Values)
+                foreach (var evidence in _questions.Values)
                 {
                     var bestEvidenceAnswer = evidence.GetBestEvidenceAnswer();
-                    var featureNode = evidence.GetFeatureNode(generalFeatureNode);
+                    var featureNode = evidence.GetFeatureNode(generalFeatureNode, Graph);
 
-                    var evidencePaths = getGeneralConstraints(featureNode, bestEvidenceAnswer);
+                    var evidencePaths = getConstraints(generalFeatureNode, featureNode, bestEvidenceAnswer);
 
                     featureNodeGeneralPaths.UnionWith(evidencePaths);
-
                 }
+
+                result.Add(selectBestConstraints(generalFeatureNode, featureNodeGeneralPaths));
             }
 
-            return selectBestConstraints(generalConstraints);
+            return result;
         }
 
-        private IEnumerable<KnowledgeConstraint> getGeneralConstraints(NodeReference featureNode, NodeReference bestEvidenceAnswer)
+        private IEnumerable<KnowledgeConstraint> getConstraints(NodeReference generalNode, NodeReference featureNode, NodeReference bestEvidenceAnswer)
         {
-            throw new NotImplementedException();
+            var paths = Graph.GetPaths(featureNode, bestEvidenceAnswer, PathMaxLength, PathMaxWidth).Take(MaxPathCount).ToArray();
+            var result = new List<KnowledgeConstraint>();
+            foreach (var path in paths)
+            {
+                result.Add(new KnowledgeConstraint(path));
+            }
+
+            return result;
         }
 
         private IEnumerable<NodeReference> getGeneralFeatureNodes()
@@ -186,30 +218,24 @@ namespace KnowledgeDialog.RuleQuestions
             return _generalFeatureNodes;
         }
 
-        private IEnumerable<KnowledgeConstraintOptions> selectBestConstraints(List<HashSet<KnowledgeConstraint>> generalConstraints)
+        private KnowledgeConstraintOptions selectBestConstraints(NodeReference generalNode, HashSet<KnowledgeConstraint> constraints)
         {
-            var result = new List<KnowledgeConstraintOptions>();
-            foreach (var constraintSet in generalConstraints)
-            {
-                var topConstraints = findTopEvidenceConstraints(constraintSet);
-                result.Add(new KnowledgeConstraintOptions(topConstraints));
-            }
-            return result;
+            var topConstraints = findTopEvidenceConstraints(generalNode, constraints);
+            return new KnowledgeConstraintOptions(topConstraints);
         }
 
-        private IEnumerable<KnowledgeConstraint> findTopEvidenceConstraints(IEnumerable<KnowledgeConstraint> constraints)
+        private IEnumerable<KnowledgeConstraint> findTopEvidenceConstraints(NodeReference generalNode, IEnumerable<KnowledgeConstraint> constraints)
         {
-            var orderedConstraints = (from constraint in constraints select constraint).OrderByDescending(c => getEvidenceScore(c)).ToArray();
+            var orderedConstraints = (from constraint in constraints select constraint).OrderByDescending(c => getEvidenceScore(generalNode, c)).ToArray();
             return orderedConstraints.Take(5).ToArray();
         }
 
-        private int getEvidenceScore(KnowledgeConstraint constraint)
+        private int getEvidenceScore(NodeReference generalNode, KnowledgeConstraint constraint)
         {
             var evidenceScore = 0;
-            var generalNode = constraint.Node;
-            foreach (var evidence in _evidence.Values)
+            foreach (var evidence in _questions.Values)
             {
-                var featureNode = evidence.GetFeatureNode(generalNode);
+                var featureNode = evidence.GetFeatureNode(generalNode, Graph);
                 var answer = evidence.GetBestEvidenceAnswer();
 
                 if (constraint.IsSatisfiedBy(featureNode, answer, Graph))

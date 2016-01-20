@@ -12,6 +12,8 @@ using KnowledgeDialog.Database;
 using KnowledgeDialog.Knowledge;
 using KnowledgeDialog.PoolComputation;
 
+using KnowledgeDialog.RuleQuestions;
+
 
 namespace KnowledgeDialog
 {
@@ -20,7 +22,7 @@ namespace KnowledgeDialog
         [DllImport("user32.dll")]
         public static extern bool ShowWindow(System.IntPtr hWnd, int cmdShow);
 
-        static void Main(string[] args)
+        static void MainParsing(string[] args)
         {
             var utterance = "yes, Obama is president of which state?";
             var parsedUtterance = UtteranceParser.Parse(utterance);
@@ -34,7 +36,7 @@ namespace KnowledgeDialog
             }
         }
 
-        static void MainQA(string[] args)
+        static void Main(string[] args)
         {
             System.Console.SetBufferSize(240, 10000);   // make sure buffer is bigger than window
             System.Console.SetWindowSize(240, 54);   //set window size to almost full screen
@@ -46,7 +48,29 @@ namespace KnowledgeDialog
             var parse = UtteranceParser.Parse("name of wife of Barack Obama president is Michelle Obama");
             //MultipleAdvice(args[0]);
             //ExplicitStateDialog(args[0]);
-            ProbabilisticMappingQATest(args[0]);
+            //ProbabilisticMappingQATest(args[0]);
+            RuleQuestionTest(args[0]);
+        }
+
+        private static void RuleQuestionTest(string dbPath)
+        {
+            var loader = loadDB(dbPath);
+            var graph = new ComposedGraph(loader.DataLayer);
+            var generator = new StructuredInterpretationGenerator(graph);
+
+            var denotation1 = graph.GetNode("Barack Obama");
+            var q1 = "Who is United States of America president?";
+
+            var denotation2 = graph.GetNode("Vladimir Putin");
+            var q2 = "Who is Russia president?";
+
+            var q3 = "Who is Czech republic president?";
+            var denotation3 = graph.GetNode("Miloš Zeman");
+
+            generator.AdviceAnswer(q1, denotation1);
+            generator.AdviceAnswer(q1, denotation2);
+            generator.Optimize(100);
+            throw new NotImplementedException();
         }
 
         private static void ProbabilisticMappingQATest(string dbPath)

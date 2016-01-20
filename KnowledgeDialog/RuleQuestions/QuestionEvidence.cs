@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Knowledge;
 
+using KnowledgeDialog.PoolComputation.MappedQA.Features;
+
 namespace KnowledgeDialog.RuleQuestions
 {
     class QuestionEvidence
@@ -15,6 +17,11 @@ namespace KnowledgeDialog.RuleQuestions
         /// The question which evidence is kept.
         /// </summary>
         public readonly ParsedUtterance Question;
+
+        /// <summary>
+        /// The cover of question features.
+        /// </summary>
+        public readonly FeatureCover Cover;
 
         /// <summary>
         /// How many times we saw positive evidence for the answer.
@@ -26,9 +33,10 @@ namespace KnowledgeDialog.RuleQuestions
         /// </summary>
         private readonly Dictionary<NodeReference, int> _negativeEvidence = new Dictionary<NodeReference, int>();
 
-        internal QuestionEvidence(ParsedUtterance question)
+        internal QuestionEvidence(FeatureCover questionCover)
         {
-            Question = question;
+            Cover = questionCover;
+            Question = questionCover.OriginalUtterance;
         }
 
         /// <summary>
@@ -56,12 +64,27 @@ namespace KnowledgeDialog.RuleQuestions
 
         internal NodeReference GetBestEvidenceAnswer()
         {
-            throw new NotImplementedException();
+            NodeReference bestAnswer = null;
+            var bestEvidence = int.MinValue;
+            foreach (var positiveEvidencePair in _positiveEvidence)
+            {
+                int negativeEvidence;
+                _negativeEvidence.TryGetValue(positiveEvidencePair.Key, out negativeEvidence);
+                var evidence = positiveEvidencePair.Value - negativeEvidence;
+
+                if (evidence > bestEvidence)
+                {
+                    bestAnswer = positiveEvidencePair.Key;
+                    bestEvidence = evidence;
+                }
+            }
+
+            return bestAnswer;
         }
 
-        internal NodeReference GetFeatureNode(NodeReference generalFeatureNode)
+        internal NodeReference GetFeatureNode(NodeReference generalFeatureNode, ComposedGraph graph)
         {
-            throw new NotImplementedException();
+            return Cover.GetInstanceNode(generalFeatureNode, graph);
         }
 
         internal int GetEvidenceScore(NodeReference answer)

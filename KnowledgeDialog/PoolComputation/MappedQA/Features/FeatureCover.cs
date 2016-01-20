@@ -11,6 +11,8 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
 {
     class FeatureCover
     {
+        internal readonly ParsedUtterance OriginalUtterance;
+
         internal readonly IEnumerable<FeatureInstance> FeatureInstances;
 
         internal readonly FeatureKey FeatureKey;
@@ -24,8 +26,9 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
         };
 
 
-        internal FeatureCover(FeatureInstance feature)
+        internal FeatureCover(FeatureInstance feature, ParsedUtterance utterance)
         {
+            OriginalUtterance = utterance;
             _coveredPositions = new bool[feature.MaxOriginPosition + 1];
             FeatureInstances = new[] { feature };
             indexPositions(feature);
@@ -35,6 +38,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
 
         private FeatureCover(FeatureCover previousCover, FeatureInstance extendingFeature)
         {
+            OriginalUtterance = previousCover.OriginalUtterance;
             _coveredPositions = previousCover._coveredPositions.ToArray();
             FeatureInstances = previousCover.FeatureInstances.Concat(new[] { extendingFeature }).OrderBy(f => f.CoveredPositions.First()).ToArray();
 
@@ -43,6 +47,11 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
             FeatureKey = createFeatureKey();
         }
 
+        internal NodeReference GetInstanceNode(NodeReference generalFeatureNode, ComposedGraph graph)
+        {
+            var mapping = CreateNodeMapping(graph);
+            return mapping.GetMappedNode(generalFeatureNode);
+        }
 
         internal NodeMapping CreateNodeMapping(ComposedGraph graph)
         {
@@ -56,11 +65,18 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
         }
 
 
-        internal IEnumerable<NodeReference> GetNodes(ComposedGraph graph)
+        internal IEnumerable<NodeReference> GetInstanceNodes(ComposedGraph graph)
         {
             var mapping = CreateNodeMapping(graph);
 
             return mapping.InstanceNodes;
+        }
+
+        internal IEnumerable<NodeReference> GetGeneralNodes(ComposedGraph graph)
+        {
+            var mapping = CreateNodeMapping(graph);
+
+            return mapping.GeneralNodes;
         }
 
         internal IEnumerable<FeatureCover> Extend(FeatureInstance feature)
@@ -100,7 +116,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
             var features = createFeatures(expression, graph);
             var index = new FeatureIndex(features);
 
-            return generateCovers(index, 0);
+            return generateCovers(index, 0, expression);
         }
 
         private static IEnumerable<FeatureInstance> createFeatures(ParsedUtterance expression, ComposedGraph graph)
@@ -114,7 +130,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
             return features;
         }
 
-        private static IEnumerable<FeatureCover> generateCovers(FeatureIndex index, int currentPosition)
+        private static IEnumerable<FeatureCover> generateCovers(FeatureIndex index, int currentPosition, ParsedUtterance expression)
         {
             if (index.Length == 0)
                 //there are no possible covers
@@ -128,7 +144,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
                 var newCovers = new List<FeatureCover>();
                 foreach (var feature in index.GetFeatures(currentPosition))
                 {
-                    var cover = new FeatureCover(feature);
+                    var cover = new FeatureCover(feature, expression);
                     newCovers.Add(cover);
                 }
 
@@ -136,7 +152,7 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
             }
 
             //extend covers that we got from deeper recursion
-            var previousCovers = generateCovers(index, currentPosition + 1);
+            var previousCovers = generateCovers(index, currentPosition + 1, expression);
             var extendedCovers = new List<FeatureCover>();
             foreach (var cover in previousCovers)
             {
@@ -149,6 +165,5 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
             return extendedCovers;
         }
         #endregion
-
     }
 }

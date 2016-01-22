@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Knowledge;
 
+using KnowledgeDialog.PoolComputation;
 using KnowledgeDialog.PoolComputation.ProbabilisticQA;
 
 using KnowledgeDialog.PoolComputation.MappedQA;
@@ -24,6 +25,8 @@ namespace KnowledgeDialog.RuleQuestions
 
         public static readonly int MaxPathCount = 10;
 
+        public static readonly int InterpretationCountLimit = 5;
+
         /// <summary>
         /// Feature cover which interpretations are kept here.
         /// </summary>
@@ -35,14 +38,14 @@ namespace KnowledgeDialog.RuleQuestions
         public readonly ComposedGraph Graph;
 
         /// <summary>
-        /// Evidence of question instance to answer.s
+        /// Evidence of question instance to answers.
         /// </summary>
         private readonly Dictionary<ParsedUtterance, QuestionEvidence> _questions = new Dictionary<ParsedUtterance, QuestionEvidence>();
 
         /// <summary>
         /// Interpretations available for <see cref="FeatureKey"/>. Interpretation nodes are mapped to nodes in <see cref="FeatureKey"/>.
         /// </summary>
-        private readonly List<Interpretation> _availableInterpretations = new List<Interpretation>();
+        private readonly List<Ranked<StructuredInterpretation>> _availableInterpretations = new List<Ranked<StructuredInterpretation>>();
 
         /// <summary>
         /// Generator for structured topics.
@@ -117,10 +120,81 @@ namespace KnowledgeDialog.RuleQuestions
         /// <summary>
         /// Adds new interpretation based on given generator.
         /// </summary>
-        /// <param name="currentGenerator">The generator.</param>
-        private void addNewInterpretation(ConstraintSelector currentGenerator)
+        /// <param name="selector">The generator.</param>
+        private void addNewInterpretation(ConstraintSelector selector)
         {
-            throw new NotImplementedException();
+            var interpretation = getInterpretation(selector);
+            var rankedInterpretation = rank(interpretation);
+
+            //insertion sort
+            var isInserted = false;
+            for (var i = 0; i < _availableInterpretations.Count; ++i)
+            {
+                if (_availableInterpretations[i].Rank < rankedInterpretation.Rank)
+                {
+                    _availableInterpretations.Insert(i, rankedInterpretation);
+                    isInserted = true;
+                    break;
+                }
+            }
+            if (!isInserted)
+                _availableInterpretations.Add(rankedInterpretation);
+
+            //remove exceeding interpretations if needed
+            if (_availableInterpretations.Count > InterpretationCountLimit)
+                _availableInterpretations.RemoveRange(InterpretationCountLimit, _availableInterpretations.Count - InterpretationCountLimit);
+        }
+
+        private StructuredInterpretation getInterpretation(ConstraintSelector selector)
+        {
+            var constraints = selector.Rules;
+            var interpretation = new StructuredInterpretation(_topicGenerator.TopicConstraints, constraints);
+
+            return interpretation;
+        }
+
+        private Ranked<StructuredInterpretation> rank(StructuredInterpretation interpretation)
+        {
+            var evidenceScore = 0;
+            foreach (var question in _questions)
+            {
+                var answer = evaluate(interpretation, question.Value);
+                if (answer.Count() != 1)
+                    //this is not good answer
+                    continue;
+
+                var answerNode = answer.First();
+                evidenceScore += question.Value.GetEvidenceScore(answerNode);
+            }
+
+            return new Ranked<StructuredInterpretation>(interpretation, evidenceScore);
+        }
+
+        private IEnumerable<NodeReference> evaluate(StructuredInterpretation interpretation, QuestionEvidence question)
+        {
+            HashSet<NodeReference> inputSet = null;
+            for (var i = 0; i < _generalFeatureNodes.Length; ++i)
+            {
+                var generalNode = _generalFeatureNodes[i];
+                var featureNode = question.GetFeatureNode(generalNode, Graph);
+                var constraint = interpretation.GetGeneralConstraint(i);
+                if (inputSet == null)
+                {
+                    inputSet = constraint.FindSet(featureNode, Graph);
+                }
+                else
+                {
+                    inputSet.IntersectWith(constraint.FindSet(featureNode, Graph));
+                }
+            }
+
+            var pool = new ContextPool(Graph);
+            pool.Insert(inputSet.ToArray());
+            foreach (var distinguishConstraint in interpretation.DisambiguationConstraints)
+            {
+                distinguishConstraint.Execute(pool);
+            }
+            return pool.ActiveNodes;
         }
 
         /// <summary>
@@ -227,7 +301,16 @@ namespace KnowledgeDialog.RuleQuestions
         private IEnumerable<KnowledgeConstraint> findTopEvidenceConstraints(NodeReference generalNode, IEnumerable<KnowledgeConstraint> constraints)
         {
             var orderedConstraints = (from constraint in constraints select constraint).OrderByDescending(c => getEvidenceScore(generalNode, c)).ToArray();
-            return orderedConstraints.Take(5).ToArray();
+            var selectedConstraints = orderedConstraints.Take(1).ToArray();
+
+            var scores = new List<int>();
+            foreach (var constraint in selectedConstraints)
+            {
+                var score = getEvidenceScore(generalNode, constraint);
+                scores.Add(score);
+            }
+
+            return selectedConstraints;
         }
 
         private int getEvidenceScore(NodeReference generalNode, KnowledgeConstraint constraint)

@@ -16,9 +16,14 @@ namespace KnowledgeDialog.RuleQuestions
 
         public bool IsEnd { get; private set; }
 
+        public IEnumerable<KnowledgeConstraint> TopicConstraints { get { return _currentTopicConstraints; } }
+
         private readonly KnowledgeConstraintOptions[] _constraintOptions;
 
+        private KnowledgeConstraint[] _currentTopicConstraints;
+
         private int[] _currentIndexes;
+
 
         public StructuredTopicGenerator(IEnumerable<KnowledgeConstraintOptions> constraintOptions, ComposedGraph graph)
         {
@@ -38,10 +43,11 @@ namespace KnowledgeDialog.RuleQuestions
                 return false;
             }
 
+            _currentTopicConstraints = createCurrentConstraints().ToArray();
             return true;
         }
 
-        private IEnumerable<KnowledgeConstraint> getCurrentConstraints()
+        private IEnumerable<KnowledgeConstraint> createCurrentConstraints()
         {
             var currentConstraints = new List<KnowledgeConstraint>();
             for (var i = 0; i < _currentIndexes.Length; ++i)
@@ -57,7 +63,7 @@ namespace KnowledgeDialog.RuleQuestions
         internal ConstraintSelector InitializeSelector(IEnumerable<NodeReference> constraintsMapping, NodeReference answer)
         {
             var constrainedSets = new List<IEnumerable<NodeReference>>();
-            foreach (var constraint in constraintsMapping.Zip(getCurrentConstraints(), Tuple.Create))
+            foreach (var constraint in constraintsMapping.Zip(createCurrentConstraints(), Tuple.Create))
             {
                 var constrainedSet = findSet(constraint.Item1, constraint.Item2);
                 constrainedSets.Add(constrainedSet);

@@ -68,8 +68,8 @@ namespace KnowledgeDialog
             var denotation3 = graph.GetNode("Miloš Zeman");
 
             generator.AdviceAnswer(q1, denotation1);
-            generator.AdviceAnswer(q1, denotation2);
-            generator.Optimize(100);
+            generator.AdviceAnswer(q2, denotation2);
+            generator.Optimize(1000);
             throw new NotImplementedException();
         }
 

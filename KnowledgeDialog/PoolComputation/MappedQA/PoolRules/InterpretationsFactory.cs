@@ -236,8 +236,6 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
 
                 var remainingNodes = findRemainingNodes(constraint);
                 var isTrivialRule = remainingNodes.Count == _originalRemainingNodes.Count;
-                var isCompleteRule = remainingNodes.Count == 1;
-
                 if (isTrivialRule || Graph.ContainsLoop(new[] { _factory.StartingNode }, pathSegment.GetReversedEdges()))
                     //we don't need any trivial rule
                     return false;

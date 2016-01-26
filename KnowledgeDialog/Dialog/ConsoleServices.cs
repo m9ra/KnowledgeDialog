@@ -165,6 +165,33 @@ namespace KnowledgeDialog.Dialog
             Indent(-1);
         }
 
+        internal static void Print(Ranked<RuleQuestions.StructuredInterpretation> interpretation)
+        {
+            Print("STRUCTURED INTERPRETATION", CaptionColor);
+            PrintLine(" rank: " + interpretation.Rank, ActiveColor);
+            PrintLine(interpretation.Value.FeatureKey, ActiveColor);
+            Indent(1);
+
+            PrintLine("GENERAL: ", OperatorColor);
+            Indent(1);
+            foreach (var constraint in interpretation.Value.GeneralConstraints)
+                PrintLine(constraint, NodeColor);
+            Indent(-1);
+
+            PrintLine("DISAMBIGUATION: ", OperatorColor);
+            Indent(1);
+            foreach (var constraint in interpretation.Value.DisambiguationConstraints)
+                PrintLine(constraint, NodeColor);
+            Indent(-1);
+
+            Indent(-1);
+        }
+
+        internal static void Print(IEnumerable<NodeReference> nodes)
+        {
+            PrintLine(string.Join(", ", nodes), InfoColor);
+        }
+
         internal static void Print(string caption, IEnumerable<PoolComputation.MappedQA.PoolRules.PoolRuleBase> rules, HashSet<NodeReference> nodes)
         {
             PrintLine(caption, CaptionColor);
@@ -194,6 +221,8 @@ namespace KnowledgeDialog.Dialog
         {
             _indentationLevel += change;
         }
+
+
 
 
     }

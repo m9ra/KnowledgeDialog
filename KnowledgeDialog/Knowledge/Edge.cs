@@ -53,5 +53,14 @@ namespace KnowledgeDialog.Knowledge
 
             return Name.Equals(o.Name) && IsOutcoming.Equals(o.IsOutcoming);
         }
+
+        public override string ToString()
+        {
+            if (IsOutcoming)
+                return "--" + Name + "-->";
+            else
+                return "<--" + Name + "--";
+        }
+
     }
 }

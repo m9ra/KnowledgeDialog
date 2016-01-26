@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Knowledge;
+using KnowledgeDialog.PoolComputation;
 using KnowledgeDialog.PoolComputation.MappedQA.Features;
 
 namespace KnowledgeDialog.RuleQuestions
@@ -72,6 +73,19 @@ namespace KnowledgeDialog.RuleQuestions
             }
         }
 
+        internal IEnumerable<FeatureEvidence> GetEvidences(string question)
+        {
+            var result = new List<FeatureEvidence>();
+            var parsedQuestion = UtteranceParser.Parse(question);
+            foreach (var featureCover in FeatureCover.GetFeatureCovers(parsedQuestion, Graph))
+            {
+                if (_featureEvidences.ContainsKey(featureCover.FeatureKey))
+                    result.Add(_featureEvidences[featureCover.FeatureKey]);
+            }
+
+            return result;
+        }
+
         private void register(FeatureCover cover, NodeReference answer)
         {
             var evidence = getEvidence(cover);
@@ -89,6 +103,45 @@ namespace KnowledgeDialog.RuleQuestions
             }
 
             return evidence;
+        }
+
+        internal IEnumerable<NodeReference> Evaluate(string question, StructuredInterpretation structuredInterpretation)
+        {
+            var matchingCover = getMatchingCover(question, structuredInterpretation.FeatureKey);
+            var constraints = structuredInterpretation.GeneralConstraints.Zip(matchingCover.GetInstanceNodes
+(Graph), Tuple.Create);
+
+            HashSet<NodeReference> topicNodes = null;
+            foreach (var constraint in constraints)
+            {
+                var constraintSet = constraint.Item1.FindSet(constraint.Item2, Graph);
+                if (topicNodes == null)
+                    topicNodes = constraintSet;
+                else
+                    topicNodes.IntersectWith(constraintSet);
+            }
+
+            var pool = new ContextPool(Graph);
+            pool.Insert(topicNodes.ToArray());
+
+            foreach (var constraint in structuredInterpretation.DisambiguationConstraints)
+            {
+                constraint.Execute(pool);
+            }
+
+            return pool.ActiveNodes;
+        }
+
+        private FeatureCover getMatchingCover(string question, FeatureKey key)
+        {
+            var parsedQuestion = UtteranceParser.Parse(question);
+            foreach (var cover in FeatureCover.GetFeatureCovers(parsedQuestion, Graph))
+            {
+                if (key.Equals(cover.FeatureKey))
+                    return cover;
+            }
+
+            return null;
         }
     }
 }

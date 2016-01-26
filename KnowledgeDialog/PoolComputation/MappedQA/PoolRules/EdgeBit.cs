@@ -12,8 +12,6 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
     {
         internal readonly Edge Edge;
 
-        internal readonly bool IsOutgoing;
-
         internal EdgeBit(Edge edge)
         {
             if (edge == null)

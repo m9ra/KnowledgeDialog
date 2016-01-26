@@ -4,12 +4,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.Knowledge;
+using KnowledgeDialog.PoolComputation;
+using KnowledgeDialog.PoolComputation.MappedQA.Features;
 using KnowledgeDialog.PoolComputation.MappedQA.PoolRules;
 
 namespace KnowledgeDialog.RuleQuestions
 {
     class StructuredInterpretation
     {
+        /// <summary>
+        /// The key for interpretation.
+        /// </summary>
+        internal readonly FeatureKey FeatureKey;
+
+        /// <summary>
+        /// How many of general constraints are there.
+        /// </summary>
+        internal int GeneralConstraintCount { get { return _generalConstraints.Length; } }
+
         /// <summary>
         /// Constraints are mandatory mapped to input nodes.
         /// </summary>
@@ -24,8 +37,9 @@ namespace KnowledgeDialog.RuleQuestions
 
         private readonly ConstraintPoolRule[] _disambiguationConstraints;
 
-        internal StructuredInterpretation(IEnumerable<KnowledgeConstraint> generalConstraints, IEnumerable<ConstraintPoolRule> disambiguationConstraints)
+        internal StructuredInterpretation(FeatureKey featureKey,IEnumerable<KnowledgeConstraint> generalConstraints, IEnumerable<ConstraintPoolRule> disambiguationConstraints)
         {
+            FeatureKey = featureKey;
             _generalConstraints = generalConstraints.ToArray();
             _disambiguationConstraints = disambiguationConstraints.ToArray();
         }

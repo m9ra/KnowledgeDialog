@@ -51,5 +51,10 @@ namespace KnowledgeDialog.RuleQuestions
 
             return acc;
         }
+
+        public override string ToString()
+        {
+            return string.Join(" ", Path);
+        }
     }
 }

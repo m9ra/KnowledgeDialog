@@ -69,7 +69,28 @@ namespace KnowledgeDialog
 
             generator.AdviceAnswer(q1, denotation1);
             generator.AdviceAnswer(q2, denotation2);
-            generator.Optimize(1000);
+            generator.Optimize(5000);
+
+            var interpretations = new List<Ranked<StructuredInterpretation>>();
+            foreach (var evidence in generator.GetEvidences(q3))
+            {
+                foreach (var interpretation in evidence.AvailableRankedInterpretations)
+                {
+                    interpretations.Add(interpretation);
+                }
+            }
+
+            interpretations.Sort((a, b) => a.Rank.CompareTo(b.Rank));
+            foreach (var interpretation in interpretations)
+            {
+                var answer = generator.Evaluate(q3, interpretation.Value);
+                ConsoleServices.Print(interpretation);
+                ConsoleServices.Print(answer);
+                ConsoleServices.PrintEmptyLine();
+            }
+
+            var qGenerator = new QuestionGenerator(generator);
+            var questions = qGenerator.FindDistinguishingNodeQuestions();
             throw new NotImplementedException();
         }
 
@@ -91,7 +112,7 @@ namespace KnowledgeDialog
 
             qa.AdviceAnswer(q1, false, denotation1);
             qa.AdviceAnswer(q2, false, denotation2);
-            qa.Optimize(1000);
+            qa.Optimize(100);
 
 
             var pool = new ContextPool(graph);

@@ -62,22 +62,23 @@ namespace KnowledgeDialog.RuleQuestions
 
         internal ConstraintSelector InitializeSelector(IEnumerable<NodeReference> constraintsMapping, NodeReference answer)
         {
-            var constrainedSets = new List<IEnumerable<NodeReference>>();
-            foreach (var constraint in constraintsMapping.Zip(createCurrentConstraints(), Tuple.Create))
+            HashSet<NodeReference> selectedNodes = null;
+            var constraints = createCurrentConstraints().ToArray();
+            foreach (var constraint in constraintsMapping.Zip(constraints, Tuple.Create))
             {
-                var constrainedSet = findSet(constraint.Item1, constraint.Item2);
-                constrainedSets.Add(constrainedSet);
+                var constraintSet = constraint.Item2.FindSet(constraint.Item1, Graph);
+                if (selectedNodes == null)
+                {
+                    selectedNodes = new HashSet<NodeReference>(constraintSet);
+                }
+                else
+                {
+                    selectedNodes.IntersectWith(constraintSet);
+                }
             }
 
-            if (constrainedSets.Count == 0)
-                //there is nothing to be constrained
+            if (selectedNodes == null || selectedNodes.Count == 0)
                 return null;
-
-            var selectedNodes = new HashSet<NodeReference>(constrainedSets[0]);
-            foreach (var constraintSet in constrainedSets)
-            {
-                selectedNodes.IntersectWith(constraintSet);
-            }
 
             return new ConstraintSelector(Graph, answer, selectedNodes);
         }

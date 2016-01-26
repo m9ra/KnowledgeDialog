@@ -216,6 +216,7 @@
     <Compile Include="RuleQuestions\KnowledgeConstraint.cs" />
     <Compile Include="RuleQuestions\KnowledgeConstraintOptions.cs" />
     <Compile Include="RuleQuestions\QuestionEvidence.cs" />
+    <Compile Include="RuleQuestions\QuestionGenerator.cs" />
     <Compile Include="RuleQuestions\StructuredInterpretation.cs" />
     <Compile Include="RuleQuestions\StructuredInterpretationGenerator.cs" />
     <Compile Include="RuleQuestions\StructuredTopicGenerator.cs" />

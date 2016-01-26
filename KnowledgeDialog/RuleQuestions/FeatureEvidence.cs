@@ -42,6 +42,8 @@ namespace KnowledgeDialog.RuleQuestions
         /// </summary>
         private readonly Dictionary<ParsedUtterance, QuestionEvidence> _questions = new Dictionary<ParsedUtterance, QuestionEvidence>();
 
+        private readonly Dictionary<NodeReference, HashSet<NodeReference>> _generalNodesToDomains = new Dictionary<NodeReference, HashSet<NodeReference>>();
+
         /// <summary>
         /// Interpretations available for <see cref="FeatureKey"/>. Interpretation nodes are mapped to nodes in <see cref="FeatureKey"/>.
         /// </summary>
@@ -58,12 +60,27 @@ namespace KnowledgeDialog.RuleQuestions
         private readonly Queue<ConstraintSelector> _constraintGenerators = new Queue<ConstraintSelector>();
 
         private readonly NodeReference[] _generalFeatureNodes;
+        public IEnumerable<Ranked<StructuredInterpretation>> AvailableRankedInterpretations { get { return _availableInterpretations; } }
 
         internal FeatureEvidence(FeatureCover cover, ComposedGraph graph)
         {
             Graph = graph;
             FeatureKey = cover.FeatureKey;
             _generalFeatureNodes = cover.GetGeneralNodes(graph).ToArray();
+        }
+
+        private HashSet<NodeReference> findDomain(NodeReference generalNode)
+        {
+            //TODO this has to be refactored out
+            var domains = new HashSet<NodeReference>();
+            foreach (var question in _questions.Values)
+            {
+                var featureNode = question.GetFeatureNode(generalNode, Graph);
+                domains.UnionWith(Graph.GetForwardTargets(new[] { featureNode }, new[] { Edge.Incoming("en.label"), Edge.Incoming("P31") }));
+            }
+
+          /*  var edges = Graph.GetNeighbours(new NodeReference("Q30"),100).ToArray();*/
+            return domains;
         }
 
         /// <summary>
@@ -126,6 +143,9 @@ namespace KnowledgeDialog.RuleQuestions
             var interpretation = getInterpretation(selector);
             var rankedInterpretation = rank(interpretation);
 
+            if (rankedInterpretation.Rank == 0)
+                throw new NotSupportedException("This should not happen");
+
             //insertion sort
             var isInserted = false;
             for (var i = 0; i < _availableInterpretations.Count; ++i)
@@ -148,14 +168,14 @@ namespace KnowledgeDialog.RuleQuestions
         private StructuredInterpretation getInterpretation(ConstraintSelector selector)
         {
             var constraints = selector.Rules;
-            var interpretation = new StructuredInterpretation(_topicGenerator.TopicConstraints, constraints);
+            var interpretation = new StructuredInterpretation(FeatureKey, _topicGenerator.TopicConstraints, constraints);
 
             return interpretation;
         }
 
         private Ranked<StructuredInterpretation> rank(StructuredInterpretation interpretation)
         {
-            var evidenceScore = 0;
+            var evidenceScore = 0.0;
             foreach (var question in _questions)
             {
                 var answer = evaluate(interpretation, question.Value);
@@ -166,8 +186,49 @@ namespace KnowledgeDialog.RuleQuestions
                 var answerNode = answer.First();
                 evidenceScore += question.Value.GetEvidenceScore(answerNode);
             }
-
+            evidenceScore += generalizationScore(interpretation);
             return new Ranked<StructuredInterpretation>(interpretation, evidenceScore);
+        }
+
+        private double generalizationScore(StructuredInterpretation interpretation)
+        {
+            HashSet<NodeReference> topicNodes = null;
+            for (var i = 0; i < _generalFeatureNodes.Length; ++i)
+            {
+                var generalNode = _generalFeatureNodes[i];
+                var constraint = interpretation.GetGeneralConstraint(i);
+
+                var nodeDomain = getInstanceDomain(generalNode);
+                var topicalizedDomain = getConstrainedLayer(nodeDomain, constraint);
+
+                if (topicNodes == null)
+                    topicNodes = new HashSet<NodeReference>();
+                else
+                    topicNodes.IntersectWith(nodeDomain);
+            }
+
+            var pool = new ContextPool(Graph);
+            pool.Insert(topicNodes.ToArray());
+            foreach (var constraint in interpretation.DisambiguationConstraints)
+            {
+                constraint.Execute(pool);
+            }
+
+            var topicNodesCount = topicNodes.Count + 1;
+            var generalizationBonus = 1.0 * pool.ActiveCount / topicNodesCount;
+            var generalizationRatio = 1 - 1.0 / topicNodesCount;
+
+            return generalizationRatio * generalizationBonus;
+        }
+
+        private IEnumerable<NodeReference> getConstrainedLayer(IEnumerable<NodeReference> nodeDomain, KnowledgeConstraint constraint)
+        {
+            return Graph.GetForwardTargets(nodeDomain, constraint.Path);
+        }
+
+        private IEnumerable<NodeReference> getInstanceDomain(NodeReference generalNode)
+        {
+            return _generalNodesToDomains[generalNode];
         }
 
         private IEnumerable<NodeReference> evaluate(StructuredInterpretation interpretation, QuestionEvidence question)
@@ -243,12 +304,20 @@ namespace KnowledgeDialog.RuleQuestions
         private void checkInterpretationUpdates()
         {
             //TODO update could be done efficiently
+
+            foreach (var generalNode in _generalFeatureNodes)
+            {
+                var domain = findDomain(generalNode);
+                _generalNodesToDomains[generalNode] = domain;
+            }
+
             _availableInterpretations.Clear();
             _topicGenerator = null;
 
             var mappedConstraints = findEvidenceBestConstraintOptions();
             _topicGenerator = new StructuredTopicGenerator(mappedConstraints, Graph);
 
+            _constraintGenerators.Clear();
             fillGeneratorQueue();
         }
 

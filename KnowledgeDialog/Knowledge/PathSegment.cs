@@ -77,14 +77,7 @@ namespace KnowledgeDialog.Knowledge
 
         internal IEnumerable<Edge> GetInvertedEdges()
         {
-            var currentSegment = this;
-            while (currentSegment != null)
-            {
-                if (currentSegment.Edge != null)
-                    yield return currentSegment.Edge;
-
-                currentSegment = currentSegment.PreviousSegment;
-            }
+            return GetEdges().Select(e => e.Inverse());
         }
 
         internal IEnumerable<Edge> GetReversedInvertedEdges()

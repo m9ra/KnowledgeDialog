@@ -4,42 +4,27 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using KnowledgeDialog;
 using KnowledgeDialog.Dialog;
-using KnowledgeDialog.Knowledge;
-
 using KnowledgeDialog.Dialog.Acts;
+using KnowledgeDialog.Dialog.Parsing;
 
 using KnowledgeDialog.DataCollection.MachineActs;
 
 namespace KnowledgeDialog.DataCollection
 {
-    public enum DenotationType { None = -1, Explanation = 0, CorrectAnswer = 1 }
-
-    public class CollectionManager : CollectionManagerBase
-    {      
+    public class CollectionManager2 : CollectionManagerBase
+    {
         /// <summary>
-        /// Graph that represents system database.
+        /// Actually discussed question.
         /// </summary>
-        private readonly ComposedGraph _graph;
+        private ParsedUtterance _actualQuestion = null;
 
-        #region Dialog state members
+        private readonly QuestionCollection _questions;
 
-        /// <summary>
-        /// Determine whether question has been registered from user.
-        /// </summary>
-        private ParsedUtterance _reqisteredQuestion = null;
-
-        /// <summary>
-        /// Determine whether dialog has been closed.
-        /// </summary>
-        private bool _isDialogClosed = false;
-
-        #endregion
-
-        public CollectionManager(ComposedGraph graph)
+        public CollectionManager2(QuestionCollection questions)
         {
-            _graph = graph;
+            _questions = questions;
+            _actualQuestion = getNextQuestion();
         }
 
         /// <inheritdoc/>
@@ -51,7 +36,7 @@ namespace KnowledgeDialog.DataCollection
         /// <inheritdoc/>
         public override ResponseBase Input(ParsedUtterance utterance)
         {
-            if (_isDialogClosed)
+            if (IsDialogClosed)
                 //dialog has been closed - don't say anything
                 return null;
 
@@ -63,8 +48,7 @@ namespace KnowledgeDialog.DataCollection
             var questionOnInput = utterance.OriginalSentence.Contains("?") || utteranceAct is QuestionAct;
 
             //dialog state collection
-            var isQuestionRegistered = _reqisteredQuestion != null;
-            var isExpectingDenotation = isQuestionRegistered;
+            var isExpectingDenotation = true;
             var isExpectingAnswer = isExpectingDenotation && LastDenotationQuestion == DenotationType.CorrectAnswer;
             var isExpectingExplanation = isExpectingDenotation && LastDenotationQuestion == DenotationType.Explanation;
             var nonAskedDenotationType = GetNonaskedDenotationType();
@@ -73,33 +57,7 @@ namespace KnowledgeDialog.DataCollection
             if (isChitChat)
                 return HandleChitChat(utteranceAct as ChitChatAct);
 
-            if (isQuestionRegistered && questionOnInput)
-            {
-                //QUESTION OVERRIDING
-
-                //TODO: how to distinguish between asking different question or explaining by a question?
-            }
-            else if (!isQuestionRegistered && questionOnInput)
-            {
-                //FIRST QUESTION REGISTRATION
-
-                //prepare question answering
-                _reqisteredQuestion = utterance;
-                AskedDenotations.Clear();
-            }
-            if (!isQuestionRegistered && hasAffirmation)
-            {
-                //AFFIRMATION AT BEGINING
-
-                return new ContinueAct();
-            }
-            else if (!isQuestionRegistered && !questionOnInput)
-            {
-                //UNRECOGNIZED UTTERANCE WHEN QUESTION EXPECTED
-
-                return new DontUnderstandAct();
-            }
-            else if (isExpectingDenotation && hasAffirmation)
+            if (isExpectingDenotation && hasAffirmation)
             {
                 //USER CONFIRMS WILLINGNESS TO PROVIDE DENOTATION
 
@@ -109,24 +67,16 @@ namespace KnowledgeDialog.DataCollection
             {
                 if (nonAskedDenotationType == DenotationType.None)
                 {
-                    _isDialogClosed = true;
-                    return new IncompleteByeAct();
+                    IsDialogClosed = true;
+                    _actualQuestion = getNextQuestion();
+                    throw new NotImplementedException("Propose new question.");
                 }
 
                 return AskAtLeast(nonAskedDenotationType);
             }
             else if (isExpectingAnswer)
             {
-                var hasDatabaseEvidence = false;
-                //search whether answer contains some entity from knowledge base
-                foreach (var word in utterance.Words)
-                {
-                    if (_graph.HasEvidence(word))
-                        hasDatabaseEvidence = true;
-                }
-
-                if (!hasDatabaseEvidence)
-                    return AskForMissingFact();
+                throw new NotImplementedException();
             }
             else if (isExpectingExplanation)
             {
@@ -134,7 +84,7 @@ namespace KnowledgeDialog.DataCollection
                 if (explanationLength < 5)
                     return new TooBriefAct();
 
-                var diffWords = utterance.Words.Except(_reqisteredQuestion.Words).Except(NonExplainingWords).ToArray();
+                var diffWords = utterance.Words.Except(_actualQuestion.Words).Except(NonExplainingWords).ToArray();
                 if (diffWords.Length < 3)
                     return new UnwantedRephraseDetected();
             }
@@ -147,9 +97,13 @@ namespace KnowledgeDialog.DataCollection
                 return Ask(nonAskedDenotationType);
 
             //we have already asked everything
-            _isDialogClosed = true;
+            IsDialogClosed = true;
             return new ByeAct();
         }
 
+        private ParsedUtterance getNextQuestion()
+        {
+            return UtteranceParser.Parse(_questions.GetRandomQuestion());
+        }
     }
 }

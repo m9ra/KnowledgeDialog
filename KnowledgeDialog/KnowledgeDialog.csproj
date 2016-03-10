@@ -48,6 +48,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataCollection\CollectionManager2.cs" />
+    <Compile Include="DataCollection\CollectionManagerBase.cs" />
+    <Compile Include="DataCollection\QuestionCollection.cs" />
     <Compile Include="Dialog\ActRepresentation.cs" />
     <Compile Include="Database\CallStorage.cs" />
     <Compile Include="Database\FlatPresidentLayer.cs" />

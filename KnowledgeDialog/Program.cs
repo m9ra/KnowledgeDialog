@@ -90,7 +90,7 @@ namespace KnowledgeDialog
             }
 
             var qGenerator = new QuestionGenerator(generator);
-            var questions = qGenerator.FindDistinguishingNodeQuestions();
+            //var questions = Generator.FindDistinguishingNodeQuestions();
             throw new NotImplementedException();
         }
 

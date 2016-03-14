@@ -24,7 +24,7 @@ namespace KnowledgeDialog.DataCollection.MachineActs
             switch (_domain)
             {
                 case ChitChatDomain.Welcome:
-                    return "Can you ask me some question please?";
+                    return "Nice to meet you! Lets return to the question.";
 
                 case ChitChatDomain.Polite:
                 case ChitChatDomain.Personal:
@@ -34,7 +34,7 @@ namespace KnowledgeDialog.DataCollection.MachineActs
                     return "I'm sorry for disappointing you, unfortunatelly we should return to the question.";
             }
 
-            return "I'm sorry, but I don't understand";
+            return "I'm sorry, but I don't understand.";
         }
 
         /// <inheritdoc/>

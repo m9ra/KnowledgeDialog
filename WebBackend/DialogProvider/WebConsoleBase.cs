@@ -25,9 +25,9 @@ namespace WebBackend.DialogProvider
 
         private string _currentHTML;
 
-        private IInputDialogManager _manager;
+        internal IInputDialogManager Manager;
 
-        protected abstract IInputDialogManager createDialoggManager();
+        protected abstract IInputDialogManager createDialogManager();
 
         internal string CurrentHTML
         {
@@ -66,7 +66,7 @@ namespace WebBackend.DialogProvider
             lock (_L_qa_index)
             {
                 _currentHTML += userTextHTML(formattedUtterance);
-                response = _manager.Input(parsedUtterance);
+                response = Manager.Input(parsedUtterance);
                 _lastResponse = response;
 
                 if (response == null)
@@ -90,12 +90,12 @@ namespace WebBackend.DialogProvider
                 //initialization has been completed
                 return;
 
-            _manager = createDialoggManager();
-            _firstResponse = _manager.Initialize();
+            Manager = createDialogManager();
+            _firstResponse = Manager.Initialize();
             _lastResponse = _firstResponse;
             _currentHTML = systemTextHTML(_lastResponse.ToString());
 
-            if (_manager == null)
+            if (Manager == null)
                 throw new NullReferenceException("_manager");
 
             if (_lastResponse == null)

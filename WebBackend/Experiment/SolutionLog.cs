@@ -33,6 +33,8 @@ namespace WebBackend.Experiment
 
         private readonly CallSerializer _completitionCall;
 
+        internal string ExperimentHAML { get { return _task.ExperimentHAML; } }
+
         internal string ValidationCode { get { return _task != null && _task.IsComplete ? _task.ValidationCode.ToString() : null; } }
 
         internal bool HasTask { get { return _task != null; } }
@@ -72,7 +74,15 @@ namespace WebBackend.Experiment
                 logResponse(_console.LastResponse);
 
                 if (HasTask)
+                {
                     _task.Register(utterance, _console.LastResponse);
+
+                    var informativeTask = _task as InformativeTaskInstance;
+
+                    informativeTask.Register(_console.Manager as IInformativeFeedbackProvider);
+                }
+
+
 
                 if (HasTask && _task.IsComplete)
                 {

@@ -1,0 +1,69 @@
+﻿@dialog string
+@task string
+@experiment_id string
+@task_id int
+
+%script{language: "javascript"}
+	var EXPERIMENT_ID="
+	= @experiment_id
+	"; var TASK_ID=
+	= @task_id
+	;
+
+.container
+	%nav{class: "navbar navbar-inverse navbar-fixed-top"}
+		.navbar-header
+			%button{type: "button", class: "navbar-toggle", data-toggle: "collapse", data-target: "navbar-collapse"}
+				%span.sr-only
+					Expand navigation	
+				%span.icon-bar
+				%span.icon-bar
+				%span.icon-bar
+							
+
+
+
+.jumbotron#preface
+	{oncopy: "return false", oncut: "return false", onpaste: "return false", onselect: "return false", onmousedown: "return false"}.container
+		%h1 Try to help to the chatbot.
+		%p 
+			The chatbot does <b>not</b> understand several questions. Try to help him through the chat window.
+			
+.container
+	.row
+		.col-md-6
+			%h2 Your task
+
+			%article{class: "alert alert-success"}
+					%strong Info
+					%ul
+						%li The task is completed after at least <b>5 informative</b> interactions with the chatbot.
+						%li When the task is completed, <b>your code</b> will appear inside the <b>chat window</b>.
+						%li If the system gets lost in a dialog, you can write <strong>reset</strong> to start the dialog from the begining.
+
+			.dialog_log
+				= raw @dialog
+			%input{class:"utterance", type: "text"}
+				=""
+			%input{class:"utterance_submit", type: "submit", value: "Send"}
+				=""
+
+		.col-md-6
+			%h2 Feedback		
+			%span{style: "color: red"}
+				= raw Flash("message")
+			
+			%article{class: "alert alert-info"}
+				%strong Feedback
+				%p
+					We would like to get feedback from you. If you have ideas how to improve our service, experiments or user interface, let us know!
+								
+			%p
+				%form{method: "GET"}
+					%textarea{name: "feedback", class: "feedback_textarea"}
+						=""
+					%input{class:"feedback_submit", type: "submit", value: "Send"}
+						=""
+
+%script{src: "js/chat.js"}
+	=""

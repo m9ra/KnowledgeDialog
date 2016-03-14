@@ -132,7 +132,7 @@ namespace KnowledgeDialog.DataCollection
             {
                 var explanationLength = utterance.Words.Count();
                 if (explanationLength < 5)
-                    return new TooBriefAct();
+                    return new TooBriefExplanationAct();
 
                 var diffWords = utterance.Words.Except(_reqisteredQuestion.Words).Except(NonExplainingWords).ToArray();
                 if (diffWords.Length < 3)

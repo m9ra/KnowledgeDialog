@@ -21,8 +21,8 @@ namespace KnowledgeDialog.DataCollection.MachineActs
         protected override string initializeMessage()
         {
             return _isAtLeastRequest ?
-            "No problem, can you explain the question in detail instead?" :
-            "It seems like an interesting question. However, I would like you explain it to me in detail please.";
+            "No problem, can you explain in detail what is the question asking for instead?" :
+            "It seems like an interesting question. Could you explain what is it asking for in detail?";
         }
 
         /// <inheritdoc/>

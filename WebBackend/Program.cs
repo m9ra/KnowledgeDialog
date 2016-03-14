@@ -10,6 +10,7 @@ using ServeRick;
 
 using KnowledgeDialog.Database;
 using KnowledgeDialog.Knowledge;
+using KnowledgeDialog.DataCollection;
 
 using WebBackend.Task;
 using WebBackend.Task.President;
@@ -61,6 +62,8 @@ namespace WebBackend
                 //arguments were incorrect
                 return;
 
+            var questions = loadSimpleQuestions("questions1.smpq");
+
             Experiments = new ExperimentCollection(ExperimentsRootPath,
                 //main experiment where only CrowdFlower's people have access
                 new CrowdFlowerExperiment(ExperimentsRootPath, "experiment1", 15, new Task.President.PresidentTaskFactory()),
@@ -81,7 +84,10 @@ namespace WebBackend
                 new DataCollectionExperiment(ExperimentsRootPath, "data_collection4", 15, new Task.President.PresidentCollectionTaskFactory()),
 
                 //data collection experiment5
-                new DataCollectionExperiment(ExperimentsRootPath, "data_collection5", 15, new Task.President.PresidentCollectionTaskFactory())
+                new DataCollectionExperiment(ExperimentsRootPath, "data_collection5", 15, new Task.President.PresidentCollectionTaskFactory()),
+
+                //question collection experiment 
+                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection", 15, questions)
                 );
 
             var experiment = Experiments.Get("data_collection5");
@@ -144,6 +150,26 @@ namespace WebBackend
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Loads <see cref="QuestionCollection"/> from given question file.
+        /// </summary>
+        /// <param name="questionFile">The file with questions.</param>
+        /// <returns>The created collection.</returns>
+        private static QuestionCollection loadSimpleQuestions(string questionFile)
+        {
+            var questionFilePath = Path.Combine(DataPath, questionFile);
+            var questionLines = File.ReadAllLines(questionFilePath, Encoding.UTF8);
+
+            var questions = new List<string>();
+            foreach (var line in questionLines)
+            {
+                var question = line.Split('\t')[3];
+                questions.Add(question);
+            }
+
+            return new QuestionCollection(questions);
         }
 
         #region Server utilities

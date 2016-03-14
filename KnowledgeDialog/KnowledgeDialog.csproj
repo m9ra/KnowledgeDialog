@@ -48,7 +48,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataCollection\CollectionManager2.cs" />
+    <Compile Include="DataCollection\MachineActs\RephraseQuestionProposeAct.cs" />
+    <Compile Include="DataCollection\MachineActs\TooBriefRephraseAct.cs" />
+    <Compile Include="DataCollection\MachineActs\WelcomeWithRephraseRequestAct.cs" />
+    <Compile Include="DataCollection\QuestionCollectionManager.cs" />
     <Compile Include="DataCollection\CollectionManagerBase.cs" />
     <Compile Include="DataCollection\QuestionCollection.cs" />
     <Compile Include="Dialog\ActRepresentation.cs" />
@@ -67,7 +70,7 @@
     <Compile Include="DataCollection\MachineActs\UnwantedRephraseDetected.cs" />
     <Compile Include="DataCollection\MachineActs\RequestExplanationAct.cs" />
     <Compile Include="DataCollection\MachineActs\RequestQuestionAsnwerAct.cs" />
-    <Compile Include="DataCollection\MachineActs\TooBriefAct.cs" />
+    <Compile Include="DataCollection\MachineActs\TooBriefExplanationAct.cs" />
     <Compile Include="DataCollection\MachineActs\WelcomeAct.cs" />
     <Compile Include="Dialog\Acts\ChitChatAct.cs" />
     <Compile Include="Dialog\Acts\DontKnowAct.cs" />
@@ -77,6 +80,7 @@
     <Compile Include="Dialog\Acts\ThinkAct.cs" />
     <Compile Include="Dialog\DoubleMetaphone.cs" />
     <Compile Include="Database\TripletLoader\Loader.cs" />
+    <Compile Include="Dialog\ICompletitionFeedbackProvider.cs" />
     <Compile Include="Dialog\IInputDialogManager.cs" />
     <Compile Include="Dialog\ParsedUtterance.cs" />
     <Compile Include="Dialog\Parsing\PatternConfiguration.cs" />

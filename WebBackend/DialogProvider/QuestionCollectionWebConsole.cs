@@ -9,18 +9,21 @@ using KnowledgeDialog.DataCollection;
 
 namespace WebBackend.DialogProvider
 {
-    class DataCollectionWebConsole : WebConsoleBase
+    class QuestionCollectionWebConsole : WebConsoleBase
     {
         private readonly string _databasePath;
 
-        internal DataCollectionWebConsole(string databasePath)
+        private readonly QuestionCollection _questions;
+
+        internal QuestionCollectionWebConsole(string databasePath, QuestionCollection questions)
         {
             _databasePath = databasePath;
+            _questions = questions;
         }
 
         protected override IInputDialogManager createDialogManager()
         {
-            return new CollectionManager(Program.Graph);
+            return new QuestionCollectionManager(_questions);
         }
     }
 }

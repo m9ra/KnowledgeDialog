@@ -8,7 +8,7 @@ using KnowledgeDialog.Dialog;
 
 namespace KnowledgeDialog.DataCollection.MachineActs
 {
-    class TooBriefAct : MachineActionBase
+    class TooBriefExplanationAct : MachineActionBase
     {
         /// <inheritdoc/>
         protected override string initializeMessage()
@@ -19,7 +19,7 @@ namespace KnowledgeDialog.DataCollection.MachineActs
         /// <inheritdoc/>
         protected override ActRepresentation initializeDialogActRepresentation()
         {
-            return new ActRepresentation("TooBrief");            
+            return new ActRepresentation("TooBriefExplanation");            
         }
     }
 }

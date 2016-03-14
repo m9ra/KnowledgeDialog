@@ -152,6 +152,13 @@ namespace WebBackend
             experimentHandler(experimentName);
         }
 
+        public void question_collection()
+        {
+            var experimentName = "question_collection";
+
+            experimentHandler(experimentName);
+        }
+
         public void data_collection()
         {
             var experimentName = "data_collection";
@@ -222,7 +229,7 @@ namespace WebBackend
                 SetParam("experiment_id", experimentName);
                 SetParam("task_id", taskId);
 
-                Render("experiment.haml");
+                Render(solution.ExperimentHAML);
             }
             else
             {

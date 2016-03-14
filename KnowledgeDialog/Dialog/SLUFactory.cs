@@ -42,6 +42,8 @@ namespace KnowledgeDialog.Dialog
             RegisterPattern(p => new DontKnowAct(), "dont know", "don't know", "do not know", "no idea");
             RegisterPattern(p => new DontKnowAct(), "I dont know", "I don't know", "I do not know", "I have no idea");
 
+            RegisterPattern(p => new DontKnowAct(), "i dont know", "i don't know", "i do not know", "i have no idea");
+
             //chitchat handling
             RegisterPattern(p => new ChitChatAct(ChitChatDomain.Welcome), "$welcome_word");
             RegisterPattern(p => new ChitChatAct(ChitChatDomain.Bye), "$bye_word");
@@ -105,6 +107,9 @@ namespace KnowledgeDialog.Dialog
 
         public DialogActBase GetBestDialogAct(ParsedUtterance utterance)
         {
+            if (HasImplicitNegation(utterance))
+                return new NegateAct();
+
             var currentStateLayer = new List<PatternState>();
             foreach (var pattern in _patterns.Keys)
             {
@@ -143,6 +148,32 @@ namespace KnowledgeDialog.Dialog
             var handler = new PatternHandler(utterance, bestState);
 
             return actFactory(handler);
+        }
+
+        public static bool HasImplicitNegation(ParsedUtterance utterance)
+        {
+            return HasImplicitNegation(utterance.OriginalSentence);
+        }
+
+        public static bool HasImplicitNegation(string utterance)
+        {
+            return
+                containsExpression(utterance, "dont know") ||
+                containsExpression(utterance, "don't know") ||
+                containsExpression(utterance, "no it") ||
+                containsExpression(utterance, "i cant") ||
+                containsExpression(utterance, "i can't") ||
+                containsExpression(utterance, "i cannot") ||
+                containsExpression(utterance, "i can not") ||
+                containsExpression(utterance, "i dont") ||
+                containsExpression(utterance, "i don't")
+                ;
+        }
+
+        private static bool containsExpression(string utterance, string expression)
+        {
+            var sanitizedUtterance = " " + utterance.ToLowerInvariant() + " ";
+            return sanitizedUtterance.Contains(expression);
         }
 
         private void RegisterPattern(ActCreator creator, params string[] patternDefinitions)

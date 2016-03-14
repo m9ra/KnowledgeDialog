@@ -8,18 +8,18 @@ using KnowledgeDialog.Dialog;
 
 namespace KnowledgeDialog.DataCollection.MachineActs
 {
-    class DontUnderstandAct : MachineActionBase
+    class TooBriefRephraseAct : MachineActionBase
     {
-        ///<inheritdoc/>
+        /// <inheritdoc/>
         protected override string initializeMessage()
         {
-            return "I'm sorry, but I can't understand you?";
+            return "Your rephrase seems too brief. Can you provide more details please?";
         }
 
         /// <inheritdoc/>
         protected override ActRepresentation initializeDialogActRepresentation()
         {
-            return new ActRepresentation("DontUnderstand");
+            return new ActRepresentation("TooBriefRephrase");            
         }
     }
 }

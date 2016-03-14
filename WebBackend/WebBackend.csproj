@@ -55,9 +55,11 @@
     <Compile Include="Dataset\DatasetWriter.cs" />
     <Compile Include="Dataset\Evaluator.cs" />
     <Compile Include="Dataset\SplitDescription.cs" />
+    <Compile Include="DialogProvider\QuestionCollectionWebConsole.cs" />
     <Compile Include="DialogProvider\DataCollectionWebConsole.cs" />
     <Compile Include="DialogProvider\HeuristicManagerWebConsole.cs" />
     <Compile Include="Experiment\AnnotatedActionEntry.cs" />
+    <Compile Include="Experiment\QuestionCollectionExperiment.cs" />
     <Compile Include="Experiment\DataCollectionExperiment.cs" />
     <Compile Include="Experiment\AnnotatedLogFile.cs" />
     <Compile Include="Experiment\NoTaskExperiment.cs" />
@@ -72,6 +74,7 @@
     <Compile Include="Experiment\LogFile.cs" />
     <Compile Include="InputManager.cs" />
     <Compile Include="Task\CollectionTaskInstance.cs" />
+    <Compile Include="Task\InformativeTaskInstance.cs" />
     <Compile Include="Task\President\DaughterOfTask.cs" />
     <Compile Include="Task\President\PlaceOfBornTask.cs" />
     <Compile Include="Task\President\PresidentCollectionTaskFactory.cs" />
@@ -102,6 +105,7 @@
     <None Include="www\404.haml" />
     <None Include="www\action_log.haml" />
     <None Include="www\annotate.haml" />
+    <None Include="www\question_collection.haml" />
     <None Include="www\logs.haml" />
     <None Include="www\no_tasks.haml" />
     <None Include="www\experiment.haml" />

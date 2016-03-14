@@ -27,19 +27,22 @@ namespace WebBackend
 
         internal readonly string Key;
 
+        internal readonly string ExperimentHAML;
+
         private readonly NodeReference[] _expectedAnswers;
 
         private bool _containsAnswer;
 
         private int _turns = 0;
 
-        public TaskInstance(string taskFormat, IEnumerable<NodeReference> substitutions, IEnumerable<NodeReference> expectedAnswers, string key, int validationCodeKey)
+        public TaskInstance(string taskFormat, IEnumerable<NodeReference> substitutions, IEnumerable<NodeReference> expectedAnswers, string key, int validationCodeKey, string  experimentHAML="experiment.haml")
         {
             TaskFormat = taskFormat;
             Substitutions = substitutions.ToArray();
             _expectedAnswers = expectedAnswers.ToArray();
             ValidationCodeKey = validationCodeKey;
             ValidationCode = validationCodeKey * 65479 % 10000;
+            ExperimentHAML = experimentHAML;
             Key = key;
 
             if (_expectedAnswers.Length == 0)

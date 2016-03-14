@@ -41,7 +41,8 @@ namespace KnowledgeDialog.DataCollection
         /// </summary>
         protected readonly string[] NonExplainingWords = new[]
         {
-            "of","a","the","whether","what","how","who","which","when","why"
+            "of","a","the","whether","what","how","who","which","when","why",
+            "question","ask","asking"
         };
 
 

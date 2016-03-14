@@ -34,7 +34,7 @@ namespace WebBackend.DialogProvider
             _storageFullpath = storageFullpath;
         }
 
-        protected override IInputDialogManager createDialoggManager()
+        protected override IInputDialogManager createDialogManager()
         {
             return createManager(_storageFullpath);
         }

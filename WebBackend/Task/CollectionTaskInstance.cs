@@ -20,8 +20,8 @@ namespace WebBackend.Task
 
         public override bool IsComplete { get { return _containsEntity && _isDialogEnded; } }
 
-        internal CollectionTaskInstance(string taskFormat, IEnumerable<NodeReference> substitutions, IEnumerable<NodeReference> requiredEntityAliases, string key, int validationCodeKey) :
-            base(taskFormat, substitutions, new NodeReference[0], key, validationCodeKey)
+        internal CollectionTaskInstance(int id, string taskFormat, IEnumerable<NodeReference> substitutions, IEnumerable<NodeReference> requiredEntityAliases, string key, int validationCodeKey) :
+            base(id, taskFormat, substitutions, new NodeReference[0], key, validationCodeKey)
         {
             _requiredEntityAliases = new HashSet<string>(requiredEntityAliases.Select(e => e.Data));
         }

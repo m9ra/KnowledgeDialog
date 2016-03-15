@@ -11,6 +11,8 @@ namespace WebBackend
 {
     class TaskInstance
     {
+        public readonly int Id;
+
         public readonly string TaskFormat;
 
         public readonly IEnumerable<NodeReference> Substitutions;
@@ -35,13 +37,14 @@ namespace WebBackend
 
         private int _turns = 0;
 
-        public TaskInstance(string taskFormat, IEnumerable<NodeReference> substitutions, IEnumerable<NodeReference> expectedAnswers, string key, int validationCodeKey, string  experimentHAML="experiment.haml")
+        public TaskInstance(int id, string taskFormat, IEnumerable<NodeReference> substitutions, IEnumerable<NodeReference> expectedAnswers, string key, int validationCode, string experimentHAML = "experiment.haml")
         {
+            Id = id;
             TaskFormat = taskFormat;
             Substitutions = substitutions.ToArray();
             _expectedAnswers = expectedAnswers.ToArray();
-            ValidationCodeKey = validationCodeKey;
-            ValidationCode = validationCodeKey * 65479 % 10000;
+            ValidationCode = validationCode;
+            ValidationCodeKey = validationCode * 65479 % 10000;
             ExperimentHAML = experimentHAML;
             Key = key;
 

@@ -21,8 +21,8 @@ namespace KnowledgeDialog.DataCollection.MachineActs
         protected override string initializeMessage()
         {
             return _isAtLeastRequest ?
-           "That's ok, can you give me the correct answer for the question instead?" :
-           "It sounds reasonable, however, I still can't find the answer. Can you give me the correct answer for the question please?";
+           "That's OK. Could you please give me the correct answer for the question instead?" :
+           "It sounds reasonable, however, I still  cannot find the answer. Could you give me the correct answer for the question please?";
         }
 
         /// <inheritdoc/>

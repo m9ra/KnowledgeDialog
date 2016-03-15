@@ -24,17 +24,17 @@ namespace KnowledgeDialog.DataCollection.MachineActs
             switch (_domain)
             {
                 case ChitChatDomain.Welcome:
-                    return "Nice to meet you! Lets return to the question.";
+                    return "Nice to meet you! Let’s return to the question.";
 
                 case ChitChatDomain.Polite:
                 case ChitChatDomain.Personal:
-                    return "I can't talk about my personality, lets return to the question.";
+                    return "I am sorry but I cannot talk about my personality. Let us return to the question.";
 
                 case ChitChatDomain.Rude:
-                    return "I'm sorry for disappointing you, unfortunatelly we should return to the question.";
+                    return "I am sorry for disappointing you, but unfortunately we should return to the question.";
             }
 
-            return "I'm sorry, but I don't understand.";
+            return "I am sorry, but I could not understand you.";
         }
 
         /// <inheritdoc/>

@@ -43,7 +43,7 @@ namespace WebBackend.Task.President
         }
 
         ///<inheritdoc/>
-        internal override TaskInstance CreateInstance(int taskIndex, int validationCode)
+        internal override TaskInstance CreateInstance(int taskId, int taskIndex, int validationCode)
         {
             if (_validTasks.Count <= taskIndex)
                 //there are no other tasks.
@@ -56,7 +56,7 @@ namespace WebBackend.Task.President
             var substitution = taskPattern.GetSubstitution(substitutionIndex);
             var expectedAnswers = taskPattern.GetExpectedAnswers(substitutionIndex);
 
-            return new TaskInstance(taskPattern.PatternFormat, new[] { substitution }, expectedAnswers, getKey(taskPattern), validationCode);
+            return new TaskInstance(taskId, taskPattern.PatternFormat, new[] { substitution }, expectedAnswers, getKey(taskPattern), validationCode);
         }
 
         ///<inheritdoc/>

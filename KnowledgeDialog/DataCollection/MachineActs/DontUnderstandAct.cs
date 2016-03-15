@@ -13,7 +13,7 @@ namespace KnowledgeDialog.DataCollection.MachineActs
         ///<inheritdoc/>
         protected override string initializeMessage()
         {
-            return "I'm sorry, but I can't understand you?";
+            return "I am sorry, but I could not understand you.";
         }
 
         /// <inheritdoc/>

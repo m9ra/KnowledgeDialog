@@ -18,7 +18,7 @@ namespace WebBackend.Task
         /// <param name="validationCode">Validation code that is reported after successful task completition.</param>
         /// <param name="user">User which owns the task.</param>
         /// <returns>Created task.</returns>
-        abstract internal TaskInstance CreateInstance(int taskIndex, int validationCode);
+        abstract internal TaskInstance CreateInstance(int taskId ,int taskIndex, int validationCode);
 
         /// <summary>
         /// Total number of tasks provided by current factory.

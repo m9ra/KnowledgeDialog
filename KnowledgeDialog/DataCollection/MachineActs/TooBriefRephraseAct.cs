@@ -13,7 +13,7 @@ namespace KnowledgeDialog.DataCollection.MachineActs
         /// <inheritdoc/>
         protected override string initializeMessage()
         {
-            return "Your rephrase seems too brief. Can you provide more details please?";
+            return "I am sorry, but your rephrasing seems too brief. Could you provide more details please?";
         }
 
         /// <inheritdoc/>

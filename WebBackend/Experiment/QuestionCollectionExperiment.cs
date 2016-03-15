@@ -37,21 +37,22 @@ namespace WebBackend.Experiment
         }
 
         ///<inheritdoc/>
-        internal override TaskInstance GetTask(int taskIndex)
+        internal override TaskInstance GetTask(int taskId)
         {
-            return new InformativeTaskInstance("Chat with the bot", new NodeReference[0], new NodeReference[0], "question_collection", _validationCodes[taskIndex], "question_collection.haml");
+            return new InformativeTaskInstance(taskId, "Chat with the bot", new NodeReference[0], new NodeReference[0], "question_collection", _validationCodes[taskId], "question_collection.haml");
         }
 
         /// <summary>
         /// Adds factory with given taskIndex. Task is written by writer.
         /// </summary>
-        /// <param name="taskIndex">Task index relative to factory.</param>
+        /// <param name="taskId">Task index relative to factory.</param>
         /// <param name="writer">Writer where task will be written.</param>
-        private void add(int taskIndex, CrowdFlowerCodeWriter writer)
+        private void add(int taskId, CrowdFlowerCodeWriter writer)
         {
-            _validationCodes.Add(new Random(taskIndex).Next(1000, 9999));
+            _validationCodes.Add(new Random(taskId).Next(1000, 9999));
 
-            writer.Write(taskIndex, _validationCodes.Last().ToString());
+            var task = GetTask(taskId);
+            writer.Write(task);
         }
 
         ///<inheritdoc/>

@@ -13,7 +13,7 @@ namespace KnowledgeDialog.DataCollection.MachineActs
         /// <inheritdoc/>
         protected override string initializeMessage()
         {
-            return "Ok. Thank you anyway. Bye.";
+            return "Ok. Thank you anyway. Goodbye.";
         }
 
         /// <inheritdoc/>

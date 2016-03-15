@@ -14,11 +14,11 @@ namespace WebBackend.Task.President
 
         }
 
-        internal override TaskInstance CreateInstance(int taskIndex, int validationCode)
+        internal override TaskInstance CreateInstance(int taskId, int taskIndex, int validationCode)
         {
-            var taskInstance = base.CreateInstance(taskIndex, validationCode);
+            var taskInstance = base.CreateInstance(taskId, taskIndex, validationCode);
 
-            return new CollectionTaskInstance(taskInstance.TaskFormat, taskInstance.Substitutions, taskInstance.ExpectedAnswers, taskInstance.Key, taskInstance.ValidationCodeKey);
+            return new CollectionTaskInstance(taskIndex, taskInstance.TaskFormat, taskInstance.Substitutions, taskInstance.ExpectedAnswers, taskInstance.Key, taskInstance.ValidationCodeKey);
         }
     }
 }

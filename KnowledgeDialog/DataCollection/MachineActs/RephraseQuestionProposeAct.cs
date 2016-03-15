@@ -30,8 +30,8 @@ namespace KnowledgeDialog.DataCollection.MachineActs
         protected override string initializeMessage()
         {
             var pattern = _isAtLeast ?
-                "Ok, could you tell me another question: '{0}' by different words?" :
-                "Thank you! Could you tell me another question: '{0}' by different words?";
+                "Ok, could you please rephrase this next question: '{0}'?" :
+                "Thanks! Could you please rephrase this next question: '{0}'?";
 
             return string.Format(pattern, _question.OriginalSentence);
         }

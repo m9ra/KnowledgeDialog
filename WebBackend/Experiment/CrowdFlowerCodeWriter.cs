@@ -40,13 +40,12 @@ namespace WebBackend
         }
 
         /// <summary>
-        /// Writes entry of task with given taskId.
+        /// Writes entry of given task.
         /// </summary>
-        /// <param name="taskId">Id of task.</param>
-        /// <param name="codeKey">Completition code of task.</param>
-        internal void Write(int taskId, string codeKey)
+        /// <param name="task">The task.</param>
+        internal void Write(TaskInstance task)
         {
-            _writer.WriteLine(WebPath + _experimentId + "?taskid=" + taskId + "," + _experimentId + "," + taskId + "," + codeKey);
+            _writer.WriteLine(WebPath + _experimentId + "?taskid=" + task.Id + "," + _experimentId + "," + task.Id + "," + task.ValidationCodeKey);
         }
 
         /// <summary>

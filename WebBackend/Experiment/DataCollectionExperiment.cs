@@ -59,7 +59,7 @@ namespace WebBackend.Experiment
             var factoryRelatedIndex = _taskIndexes[taskId];
             var code = _validationCodes[taskId];
 
-            return factory.CreateInstance(factoryRelatedIndex, code);
+            return factory.CreateInstance(taskId, factoryRelatedIndex, code);
         }
 
         /// <summary>
@@ -79,7 +79,8 @@ namespace WebBackend.Experiment
             _taskIndexes.Add(taskIndex);
             _validationCodes.Add(new Random(taskId).Next(1000, 9999));
 
-            writer.Write(taskId,_validationCodes.Last().ToString());
+            var task = GetTask(taskId);
+            writer.Write(task);
         }
 
         protected override WebConsoleBase createConsole(string databasePath)

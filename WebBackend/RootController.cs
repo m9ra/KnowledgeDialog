@@ -159,6 +159,13 @@ namespace WebBackend
             experimentHandler(experimentName);
         }
 
+        public void question_collection2()
+        {
+            var experimentName = "question_collection2";
+
+            experimentHandler(experimentName);
+        }
+
         public void data_collection()
         {
             var experimentName = "data_collection";

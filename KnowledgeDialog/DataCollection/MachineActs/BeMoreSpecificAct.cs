@@ -13,7 +13,7 @@ namespace KnowledgeDialog.DataCollection.MachineActs
         /// <inheritdoc/>
         protected override string initializeMessage()
         {
-            return "I'm not able to find your answer in my database. Could you be more specific please?";
+            return "I was not able to find your answer in my database. Could you be more specific please?";
         }
 
         /// <inheritdoc/>

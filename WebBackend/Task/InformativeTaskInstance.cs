@@ -24,8 +24,8 @@ namespace WebBackend.Task
         /// <inheritdoc/>
         public override bool IsComplete { get { return _isComplete; } }
 
-        internal InformativeTaskInstance(string taskFormat, IEnumerable<NodeReference> substitutions, IEnumerable<NodeReference> expectedAnswers, string key, int validationCodeKey, string experimentHAML = "experiment.haml")
-            : base(taskFormat, substitutions, expectedAnswers, key, validationCodeKey, experimentHAML)
+        internal InformativeTaskInstance(int id, string taskFormat, IEnumerable<NodeReference> substitutions, IEnumerable<NodeReference> expectedAnswers, string key, int validationCodeKey, string experimentHAML = "experiment.haml")
+            : base(id, taskFormat, substitutions, expectedAnswers, key, validationCodeKey, experimentHAML)
         {
         }
 

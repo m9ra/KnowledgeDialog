@@ -23,7 +23,7 @@ namespace KnowledgeDialog.DataCollection.MachineActs
         ///<inheritdoc/>
         protected override string initializeMessage()
         {
-            return string.Format("Hello, I need help with a question : '{0}'. Can you tell me this question by different words?", _question.OriginalSentence);
+            return string.Format("Hello, I need help with this question: '{0}'. Can you put this question in a different way?", _question.OriginalSentence);
         }
 
         /// <inheritdoc/>

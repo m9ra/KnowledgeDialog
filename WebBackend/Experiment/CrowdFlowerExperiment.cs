@@ -67,7 +67,7 @@ namespace WebBackend.Experiment
             var factoryRelatedIndex = _taskIndexes[taskId];
             var code = _validationCodeKeys[taskId];
 
-            return factory.CreateInstance(factoryRelatedIndex, code);
+            return factory.CreateInstance(taskId, factoryRelatedIndex, code);
         }
 
         /// <summary>
@@ -86,8 +86,8 @@ namespace WebBackend.Experiment
             _factories.Add(factory);
             _taskIndexes.Add(taskIndex);
             _validationCodeKeys.Add(new Random(taskId).Next(1000, 9999));
-
-            writer.Write(taskId, _validationCodeKeys.Last().ToString());
+            var task = GetTask(taskId);
+            writer.Write(task);
         }
     }
 }

@@ -62,7 +62,9 @@ namespace WebBackend
                 //arguments were incorrect
                 return;
 
-            var questions = loadSimpleQuestions("questions1.smpq");
+            var simpleQuestions1 = loadSimpleQuestions("questions1.smpq");
+
+            var simpleQuestionsTrain = loadSimpleQuestions("questions_train.smpq");
 
             Experiments = new ExperimentCollection(ExperimentsRootPath,
                 //main experiment where only CrowdFlower's people have access
@@ -87,7 +89,10 @@ namespace WebBackend
                 new DataCollectionExperiment(ExperimentsRootPath, "data_collection5", 15, new Task.President.PresidentCollectionTaskFactory()),
 
                 //question collection experiment 
-                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection", 15, questions)
+                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection", 15, simpleQuestions1),
+
+                //question collection experiment 
+                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection2", 50, simpleQuestionsTrain)
                 );
 
             var experiment = Experiments.Get("data_collection5");

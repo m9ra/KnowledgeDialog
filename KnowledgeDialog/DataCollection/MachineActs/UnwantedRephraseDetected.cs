@@ -13,7 +13,7 @@ namespace KnowledgeDialog.DataCollection.MachineActs
         /// <inheritdoc/>
         protected override string initializeMessage()
         {
-            return "I think that you just rephrased the question. Could you rather give me an explanation of the question?";
+            return "I think that you just rephrased the question. Could you please rather give me an explanation for the question?";
         }
 
         /// <inheritdoc/>

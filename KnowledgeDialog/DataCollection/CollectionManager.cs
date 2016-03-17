@@ -134,7 +134,7 @@ namespace KnowledgeDialog.DataCollection
                 if (explanationLength < 5)
                     return new TooBriefExplanationAct();
 
-                var diffWords = utterance.Words.Except(_reqisteredQuestion.Words).Except(NonExplainingWords).ToArray();
+                var diffWords = utterance.Words.Except(_reqisteredQuestion.Words).Except(NonInformativeWords).ToArray();
                 if (diffWords.Length < 3)
                     return new UnwantedRephraseDetected();
             }

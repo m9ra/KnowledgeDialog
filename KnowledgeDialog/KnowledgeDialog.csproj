@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataCollection\MachineActs\TooBriefAnswerAct.cs" />
     <Compile Include="DataCollection\MachineActs\RephraseQuestionProposeAct.cs" />
     <Compile Include="DataCollection\MachineActs\TooBriefRephraseAct.cs" />
     <Compile Include="DataCollection\MachineActs\WelcomeWithRephraseRequestAct.cs" />

@@ -100,11 +100,18 @@ namespace KnowledgeDialog.DataCollection
             }
             else if (_isRephrasePhase)
             {
-                var rephraseLength = utterance.Words.Count();
-                if (rephraseLength < _actualQuestion.Words.Count() - 2)
+                var rephraseInformativeWords = getInformativeWords(utterance);
+                var questionInformativeWords = getInformativeWords(_actualQuestion);
+
+                if (rephraseInformativeWords.Count() < questionInformativeWords.Count() - 1)
+                    //rephrase is too short
                     return new TooBriefRephraseAct();
 
-                _questionRephraseWords.UnionWith(utterance.Words);
+                if (Enumerable.SequenceEqual(lower(utterance.Words), lower(_actualQuestion.Words)))
+                    //rephrase is exactly same to the question
+                    return new TooBriefRephraseAct();
+
+                _questionRephraseWords.UnionWith(lower(utterance.Words));
                 _isRephrasePhase = false;
                 HadInformativeInput = true;
             }
@@ -119,6 +126,17 @@ namespace KnowledgeDialog.DataCollection
             }
             else if (isExpectingAnswer)
             {
+                if (utterance.Words.Count() < 3)
+                    return new TooBriefAnswerAct();
+
+                var answerInformativeWords = getInformativeWords(utterance);
+                var questionInformativeWords = getInformativeWords(_actualQuestion);
+
+                var questionBinding = answerInformativeWords.Intersect(questionInformativeWords.Union(_questionRephraseWords));
+
+                if (questionBinding.Count() < 1)
+                    return new TooBriefAnswerAct();
+
                 //ACTUALLY WE DONT HAVE VALIDATION FOR THIS
                 HadInformativeInput = true;
             }
@@ -128,8 +146,11 @@ namespace KnowledgeDialog.DataCollection
                 if (explanationLength < 5)
                     return new TooBriefExplanationAct();
 
-                var diffWords = utterance.Words.Except(_actualQuestion.Words).Except(_questionRephraseWords).Except(NonExplainingWords).ToArray();
-                if (diffWords.Length < 3)
+                var utteranceInformativeWords = getInformativeWords(utterance);
+                var questionInformativeWords = getInformativeWords(_actualQuestion);
+                var newInformativeWords = utteranceInformativeWords.Except(questionInformativeWords).Except(_questionRephraseWords);
+
+                if (newInformativeWords.Count() < 3)
                     return new UnwantedRephraseDetected();
             }
 
@@ -161,6 +182,16 @@ namespace KnowledgeDialog.DataCollection
             LastDenotationQuestion = DenotationType.None;
 
             return new RephraseQuestionProposeAct(_actualQuestion, atLeast);
+        }
+
+        private IEnumerable<string> getInformativeWords(ParsedUtterance utterance)
+        {
+            return lower(utterance.Words.Except(NonInformativeWords).Distinct());
+        }
+
+        private IEnumerable<string> lower(IEnumerable<string> words)
+        {
+            return words.Select(w => w.ToLowerInvariant()).ToArray();
         }
     }
 }

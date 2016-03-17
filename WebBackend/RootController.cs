@@ -105,6 +105,11 @@ namespace WebBackend
             Render("annotate.haml");
         }
 
+        public void annotate2()
+        {
+            throw new NotImplementedException();
+        }
+
         public void index()
         {
             var dialogStorage = GET("storage");
@@ -162,6 +167,76 @@ namespace WebBackend
         public void question_collection2()
         {
             var experimentName = "question_collection2";
+
+            experimentHandler(experimentName);
+        }
+
+        public void question_collection_r_1()
+        {
+            var experimentName = "question_collection_r_1";
+
+            experimentHandler(experimentName);
+        }
+
+        public void question_collection_r_2()
+        {
+            var experimentName = "question_collection_r_2";
+
+            experimentHandler(experimentName);
+        }
+
+        public void question_collection_r_3()
+        {
+            var experimentName = "question_collection_r_3";
+
+            experimentHandler(experimentName);
+        }
+
+        public void question_collection_r_4()
+        {
+            var experimentName = "question_collection_r_4";
+
+            experimentHandler(experimentName);
+        }
+
+        public void question_collection_r_5()
+        {
+            var experimentName = "question_collection_r_5";
+
+            experimentHandler(experimentName);
+        }
+
+        public void question_collection_r_6()
+        {
+            var experimentName = "question_collection_r_6";
+
+            experimentHandler(experimentName);
+        }
+
+        public void question_collection_r_7()
+        {
+            var experimentName = "question_collection_r_7";
+
+            experimentHandler(experimentName);
+        }
+
+        public void question_collection_r_8()
+        {
+            var experimentName = "question_collection_r_8";
+
+            experimentHandler(experimentName);
+        }
+
+        public void question_collection_r_9()
+        {
+            var experimentName = "question_collection_r_9";
+
+            experimentHandler(experimentName);
+        }
+
+        public void question_collection_r_10()
+        {
+            var experimentName = "question_collection_r_10";
 
             experimentHandler(experimentName);
         }

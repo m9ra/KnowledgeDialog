@@ -53,6 +53,11 @@ namespace WebBackend
         public static ExperimentCollection Experiments { get; private set; }
 
         /// <summary>
+        /// Provider that is used for question providing.
+        /// </summary>
+        public static QuestionDialogProvider QuestionDialogProvider;
+
+        /// <summary>
         /// Entry point of the program.
         /// </summary>
         /// <param name="args">Command line arguments.</param>
@@ -92,9 +97,32 @@ namespace WebBackend
                 new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection", 15, simpleQuestions1),
 
                 //question collection experiment 
-                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection2", 50, simpleQuestionsTrain)
+                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection2", 50, simpleQuestionsTrain),
+
+
+                //full operation question collection experiment 
+                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_1", 100, simpleQuestionsTrain),
+
+                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_2", 100, simpleQuestionsTrain),
+
+                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_3", 100, simpleQuestionsTrain),
+
+                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_4", 100, simpleQuestionsTrain),
+
+                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_5", 100, simpleQuestionsTrain),
+
+                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_6", 100, simpleQuestionsTrain),
+
+                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_7", 100, simpleQuestionsTrain),
+
+                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_8", 100, simpleQuestionsTrain),
+
+                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_9", 100, simpleQuestionsTrain),
+
+                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_10", 100, simpleQuestionsTrain)
                 );
 
+            QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "question_collection_r_");
             var experiment = Experiments.Get("data_collection5");
             writeDataset(experiment);
 
@@ -168,13 +196,17 @@ namespace WebBackend
             var questionLines = File.ReadAllLines(questionFilePath, Encoding.UTF8);
 
             var questions = new List<string>();
+            var answerIds = new List<string>();
             foreach (var line in questionLines)
             {
-                var question = line.Split('\t')[3];
+                var lineParts = line.Split('\t');
+                var question = lineParts[3];
+                var answerId = lineParts[2];
                 questions.Add(question);
+                answerIds.Add(answerId);
             }
 
-            return new QuestionCollection(questions);
+            return new QuestionCollection(questions, answerIds);
         }
 
         #region Server utilities

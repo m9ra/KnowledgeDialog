@@ -16,6 +16,7 @@ namespace KnowledgeDialog.Dialog
 
         internal ParsedUtterance(string originalSentence, IEnumerable<string> words)
         {
+            originalSentence = originalSentence.Replace('`', '\''); //encoding fix
             OriginalSentence = originalSentence;
             _words = words.ToArray();
         }

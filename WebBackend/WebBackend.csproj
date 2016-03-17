@@ -50,10 +50,15 @@
   <ItemGroup>
     <Compile Include="Dataset\AnnotatedDialog.cs" />
     <Compile Include="Dataset\AnnotatedDialogBuilder.cs" />
+    <Compile Include="Dataset\AnnotatedQuestionActionEntry.cs" />
+    <Compile Include="Dataset\AnnotatedQuestionDialog.cs" />
+    <Compile Include="Dataset\AnnotatedQuestionDialogBuilder.cs" />
+    <Compile Include="Dataset\AnnotatedQuestionLogFile.cs" />
     <Compile Include="Dataset\AnnotatedSemiTurn.cs" />
     <Compile Include="Dataset\DatasetReader.cs" />
     <Compile Include="Dataset\DatasetWriter.cs" />
     <Compile Include="Dataset\Evaluator.cs" />
+    <Compile Include="Dataset\QuestionDialogProvider.cs" />
     <Compile Include="Dataset\SplitDescription.cs" />
     <Compile Include="DialogProvider\QuestionCollectionWebConsole.cs" />
     <Compile Include="DialogProvider\DataCollectionWebConsole.cs" />

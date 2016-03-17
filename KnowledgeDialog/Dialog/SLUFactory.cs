@@ -107,8 +107,12 @@ namespace KnowledgeDialog.Dialog
 
         public DialogActBase GetBestDialogAct(ParsedUtterance utterance)
         {
+            if (HasImplicitDontKnow(utterance))
+                return new DontKnowAct();
+
             if (HasImplicitNegation(utterance))
                 return new NegateAct();
+
 
             var currentStateLayer = new List<PatternState>();
             foreach (var pattern in _patterns.Keys)
@@ -155,18 +159,67 @@ namespace KnowledgeDialog.Dialog
             return HasImplicitNegation(utterance.OriginalSentence);
         }
 
+        public static bool HasImplicitDontKnow(ParsedUtterance utterance)
+        {
+            return HasImplicitDontKnow(utterance.OriginalSentence);
+        }
+
         public static bool HasImplicitNegation(string utterance)
         {
             return
+                containsExpression(utterance, "no it") ||
+                containsExpression(utterance, "cant") ||
+                containsExpression(utterance, "can't") ||
+                containsExpression(utterance, "cannot") ||
+                containsExpression(utterance, "can not") ||
+                containsExpression(utterance, "i dont") ||
+                containsExpression(utterance, "i do not") ||
+                containsExpression(utterance, "i don't") ||
+                containsExpression(utterance, "donot") ||
+                containsExpression(utterance, "sorry") ||
+                containsExpression(utterance, "i would need") ||
+                containsExpression(utterance, "i would have") ||
+                containsExpression(utterance, "i must") ||
+                containsExpression(utterance, "i need") ||
+                containsExpression(utterance, "pointless") ||
+                containsExpression(utterance, "impossible") ||
+                containsExpression(utterance, "check wikipedia") ||
+                containsExpression(utterance, "check google") ||
+                containsExpression(utterance, "google it") ||
+
+
+
+                startsWith(utterance, "not ") ||
+                startsWith(utterance, "no ") ||
+                startsWith(utterance, "not,") ||
+                startsWith(utterance, "no,")
+                ;
+        }
+
+        public static bool HasImplicitDontKnow(string utterance)
+        {
+            return
+                containsExpression(utterance, "no idea") ||
+                containsExpression(utterance, "i haven't") ||
+                containsExpression(utterance, "i havent") ||
+                containsExpression(utterance, "i have not") ||
+                containsExpression(utterance, "if i knew") ||
                 containsExpression(utterance, "dont know") ||
                 containsExpression(utterance, "don't know") ||
-                containsExpression(utterance, "no it") ||
-                containsExpression(utterance, "i cant") ||
-                containsExpression(utterance, "i can't") ||
-                containsExpression(utterance, "i cannot") ||
-                containsExpression(utterance, "i can not") ||
-                containsExpression(utterance, "i dont") ||
-                containsExpression(utterance, "i don't")
+                containsExpression(utterance, "understand") ||
+                containsExpression(utterance, "hard to say") ||
+                containsExpression(utterance, "i have never") ||
+                containsExpression(utterance, "i has never") ||
+                containsExpression(utterance, "i was not") ||
+                containsExpression(utterance, "i wasnt") ||
+                containsExpression(utterance, "i wasn't") ||
+                containsExpression(utterance, "not sure") ||
+                containsExpression(utterance, "just look") ||
+                containsExpression(utterance, "has look") ||
+                containsExpression(utterance, "has to look") ||
+                containsExpression(utterance, "i do not") ||
+                containsExpression(utterance, "i did not") 
+
                 ;
         }
 
@@ -174,6 +227,11 @@ namespace KnowledgeDialog.Dialog
         {
             var sanitizedUtterance = " " + utterance.ToLowerInvariant() + " ";
             return sanitizedUtterance.Contains(expression);
+        }
+
+        private static bool startsWith(string utterance, string expression)
+        {
+            return utterance.StartsWith(expression, StringComparison.InvariantCultureIgnoreCase);
         }
 
         private void RegisterPattern(ActCreator creator, params string[] patternDefinitions)

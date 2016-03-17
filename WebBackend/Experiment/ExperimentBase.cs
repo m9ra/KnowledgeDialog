@@ -75,5 +75,10 @@ namespace WebBackend.Experiment
         {
             return Path.Combine(ExperimentRootPath, "feedback.json");
         }
+
+        internal IEnumerable<LogFile> LoadLogFiles()
+        {
+            return LogFile.Load(ExperimentUserPath);
+        }
     }
 }

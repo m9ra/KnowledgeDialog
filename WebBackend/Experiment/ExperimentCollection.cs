@@ -22,6 +22,11 @@ namespace WebBackend.Experiment
         private readonly string _experimentsRootPath;
 
         /// <summary>
+        /// Experiments that are available for the collection.
+        /// </summary>
+        internal IEnumerable<ExperimentBase> Experiments { get { return _idToExperiment.Values; } }
+
+        /// <summary>
         /// Initialize new <see cref="ExperimentCollection"/> with given experiments.
         /// </summary>
         /// <param name="experiments">Experiments that will be encapsulated by current collection.</param>
@@ -46,5 +51,6 @@ namespace WebBackend.Experiment
 
             return experiment;
         }
+
     }
 }

@@ -42,7 +42,8 @@ namespace KnowledgeDialog.DataCollection
                 var question = questions[i];
                 var answerId = answerIds[i];
 
-                _questionToAnswerId.Add(question, answerId);
+                if (!_questionToAnswerId.ContainsKey(question))
+                    _questionToAnswerId.Add(question, answerId);
             }
         }
 

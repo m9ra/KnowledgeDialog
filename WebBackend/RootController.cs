@@ -107,7 +107,53 @@ namespace WebBackend
 
         public void annotate2()
         {
-            throw new NotImplementedException();
+
+            //refreshing
+            if (GET("action") == "refresh")
+                Program.QuestionDialogProvider.Refresh();
+
+            //find id without annotation
+            if (GET("action") == "id_without_annotation")
+            {
+                for (var i = 0; i < Program.QuestionDialogProvider.DialogCount; ++i)
+                {
+                    var testedDialog = Program.QuestionDialogProvider.GetDialog(i);
+                    if (testedDialog.Annotation == null)
+                    {
+                        RedirectTo("/annotate2?id=" + i);
+                        return;
+                    }
+                }
+            }
+
+            //annotation handling
+            int annotatedId;
+            int.TryParse(POST("annotated_id"), out annotatedId);
+            var annotation = POST("annotation");
+
+            if (annotation != null)
+            {
+                var annotatedDialog = Program.QuestionDialogProvider.GetDialog(annotatedId);
+                if (annotatedDialog != null)
+                    annotatedDialog.Annotate(annotation);
+            }
+
+            //display indexed dialog
+            int dialogIndex;
+            int.TryParse(GET("id"), out dialogIndex);
+            var dialog = Program.QuestionDialogProvider.GetDialog(dialogIndex);
+
+
+            SetParam("next_id_link", "/annotate2?id=" + (dialogIndex + 1));
+            SetParam("previous_id_link", "/annotate2?id=" + (dialogIndex - 1));
+            SetParam("refresh_link", "/annotate2?id=" + dialogIndex + "&action=refresh");
+
+            SetParam("first_without_annotation_link", "/annotate2?action=id_without_annotation");
+            SetParam("dialog", dialog);
+            SetParam("total_dialog_count", Program.QuestionDialogProvider.DialogCount);
+            SetParam("dialog_index", dialogIndex.ToString());
+            Layout("layout.haml");
+            Render("annotate2.haml");
         }
 
         public void index()

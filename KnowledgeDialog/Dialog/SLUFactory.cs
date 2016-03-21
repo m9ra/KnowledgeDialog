@@ -186,9 +186,16 @@ namespace KnowledgeDialog.Dialog
                 containsExpression(utterance, "check wikipedia") ||
                 containsExpression(utterance, "check google") ||
                 containsExpression(utterance, "google it") ||
-
-
-
+                (containsExpression(utterance, " no ") && containsExpression(utterance, "correct")) ||
+                (containsExpression(utterance, " no ") && containsExpression(utterance, "answer")) ||
+                (containsExpression(utterance, " i ") && containsExpression(utterance, "never"))  ||
+                (containsExpression(utterance, " i'") && containsExpression(utterance, "never")) ||
+                (containsExpression(utterance, " ive") && containsExpression(utterance, "never")) ||
+                (containsExpression(utterance, "need") && containsExpression(utterance, "search")) ||
+                (containsExpression(utterance, "google") && containsExpression(utterance, "search")) ||
+                (containsExpression(utterance, "bing") && containsExpression(utterance, "search")) ||
+                (containsExpression(utterance, "web") && containsExpression(utterance, "search")) ||
+                
                 startsWith(utterance, "not ") ||
                 startsWith(utterance, "no ") ||
                 startsWith(utterance, "not,") ||
@@ -200,6 +207,7 @@ namespace KnowledgeDialog.Dialog
         {
             return
                 containsExpression(utterance, "no idea") ||
+                containsExpression(utterance, "guess") ||
                 containsExpression(utterance, "i haven't") ||
                 containsExpression(utterance, "i havent") ||
                 containsExpression(utterance, "i have not") ||
@@ -214,11 +222,12 @@ namespace KnowledgeDialog.Dialog
                 containsExpression(utterance, "i wasnt") ||
                 containsExpression(utterance, "i wasn't") ||
                 containsExpression(utterance, "not sure") ||
+                containsExpression(utterance, "unsure") ||
                 containsExpression(utterance, "just look") ||
                 containsExpression(utterance, "has look") ||
                 containsExpression(utterance, "has to look") ||
                 containsExpression(utterance, "i do not") ||
-                containsExpression(utterance, "i did not") 
+                containsExpression(utterance, "i did not")
 
                 ;
         }

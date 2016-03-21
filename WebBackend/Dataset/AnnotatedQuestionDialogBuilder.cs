@@ -18,9 +18,9 @@ namespace WebBackend.Dataset
 
         private readonly QuestionCollection _questions;
 
-        private string _question;
+        private readonly AnnotatedQuestionLogFile _log;
 
-        private string _annotation;
+        private string _question;
 
         private string _answerId;
 
@@ -29,6 +29,7 @@ namespace WebBackend.Dataset
         private AnnotatedQuestionDialogBuilder(AnnotatedQuestionLogFile log, QuestionCollection questions)
         {
             _questions = questions;
+            _log = log;
         }
 
         internal static IEnumerable<AnnotatedQuestionDialog> ParseDialogs(AnnotatedQuestionLogFile log, QuestionCollection questions)
@@ -62,7 +63,8 @@ namespace WebBackend.Dataset
             if (!HasValidDialog)
                 throw new NotSupportedException("Cannot create invalid dialog");
 
-            return new AnnotatedQuestionDialog(_question, _answerId, _annotation, _explanationTurns, _answerTurns);
+            var answerNames = Program.FreebaseLoader.GetNames(_answerId);
+            return new AnnotatedQuestionDialog(_log, _question, _answerId, answerNames, _explanationTurns, _answerTurns);
         }
 
         private void Register(AnnotatedQuestionActionEntry action)
@@ -73,16 +75,12 @@ namespace WebBackend.Dataset
                 _answerId = _questions.GetAnswerId(_question);
             }
 
-            if (action.Annotation != null)
-            {
-                _annotation = action.Annotation;
-                if (_annotation != null)
-                    throw new NotSupportedException("annotation override detected");
-            }
-
             if (!action.IsRegularTurn)
                 //we want regular turns only
                 return;
+
+            if (action.Act != null && action.Act.StartsWith("RequestAnswer"))
+                _isAnswerPhase = true;
 
             if (_isAnswerPhase)
             {

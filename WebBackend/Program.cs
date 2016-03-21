@@ -58,6 +58,11 @@ namespace WebBackend
         public static QuestionDialogProvider QuestionDialogProvider;
 
         /// <summary>
+        /// Loader for freebase entities
+        /// </summary>
+        public static FreebaseLoader FreebaseLoader;
+
+        /// <summary>
         /// Entry point of the program.
         /// </summary>
         /// <param name="args">Command line arguments.</param>
@@ -122,7 +127,10 @@ namespace WebBackend
                 new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_10", 100, simpleQuestionsTrain)
                 );
 
-            QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "question_collection_r_");
+
+            FreebaseLoader = new FreebaseLoader(Path.Combine(DataPath, "freebase"));
+            QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "question_collection_r_3");
+
             var experiment = Experiments.Get("data_collection5");
             writeDataset(experiment);
 
@@ -150,6 +158,35 @@ namespace WebBackend
                 ;
 
             writer.WriteData(".", trainingSplit, validationSplit);
+        }
+
+        private static void writeQuestionDataset()
+        {
+            var provider = Program.QuestionDialogProvider;
+            provider.Refresh();
+
+            var dialogIndexes = new List<int>();
+            for (var i = 0; i < provider.DialogCount; ++i)
+            {
+                dialogIndexes.Add(i);
+            }
+
+            var rnd = new Random(12345);
+            Shuffle(rnd, dialogIndexes);
+            throw new NotImplementedException();
+        }
+
+        public static void Shuffle<T>(Random rnd,IList<T> list)
+        {
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                var k = rnd.Next(n + 1);
+                T value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
         }
 
         /// <summary>

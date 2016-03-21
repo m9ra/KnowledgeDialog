@@ -18,6 +18,8 @@ namespace WebBackend.Dataset
 
         private readonly QuestionCollection _questions;
 
+        internal int DialogCount { get { return _questionDialogs.Count; } }
+
         internal QuestionDialogProvider(ExperimentCollection collection, QuestionCollection questions, string experimentPrefix)
         {
             _questions = questions;
@@ -53,6 +55,14 @@ namespace WebBackend.Dataset
             }
 
             _questionDialogs.Sort((a, b) => a.DialogEnd.CompareTo(b.DialogEnd));
+        }
+
+        internal AnnotatedQuestionDialog GetDialog(int dialogIndex)
+        {
+            if (dialogIndex >= _questionDialogs.Count)
+                return null;
+
+            return _questionDialogs[dialogIndex];
         }
     }
 }

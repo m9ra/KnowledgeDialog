@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 
 using ServeRick;
 
+using WebBackend.Dataset;
+
 namespace WebBackend
 {
-    public class FormatHelper : Helper
+    internal class FormatHelper : Helper
     {
         readonly static float KB = 1 << 10;
 
@@ -61,6 +63,18 @@ namespace WebBackend
             else
             {
                 return time.ToString(@"hh\:mm\:ss\s");
+            }
+        }
+
+        public static string Annotate(string annotation, AnnotatedQuestionDialog dialog)
+        {
+            if ((dialog.Annotation == annotation) || (dialog.Annotation == null && annotation == "none"))
+            {
+                return string.Format("<span class='current_annotation'>{0}</span>", annotation);
+            }
+            else
+            {
+                return string.Format("<input type='submit' name='annotation' value='{0}'></input>", annotation);
             }
         }
 

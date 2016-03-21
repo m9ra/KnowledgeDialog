@@ -58,6 +58,8 @@
     <Compile Include="Dataset\DatasetReader.cs" />
     <Compile Include="Dataset\DatasetWriter.cs" />
     <Compile Include="Dataset\Evaluator.cs" />
+    <Compile Include="Dataset\FreebaseLoader.cs" />
+    <Compile Include="Dataset\QuestionDatasetWriter.cs" />
     <Compile Include="Dataset\QuestionDialogProvider.cs" />
     <Compile Include="Dataset\SplitDescription.cs" />
     <Compile Include="DialogProvider\QuestionCollectionWebConsole.cs" />
@@ -110,6 +112,7 @@
     <None Include="www\404.haml" />
     <None Include="www\action_log.haml" />
     <None Include="www\annotate.haml" />
+    <None Include="www\annotate2.haml" />
     <None Include="www\question_collection.haml" />
     <None Include="www\logs.haml" />
     <None Include="www\no_tasks.haml" />

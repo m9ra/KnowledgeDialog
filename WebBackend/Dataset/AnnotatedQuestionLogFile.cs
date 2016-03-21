@@ -19,6 +19,8 @@ namespace WebBackend.Dataset
 
         private readonly Dictionary<int, string> _questionAnnotations = new Dictionary<int, string>();
 
+        internal string ExperimentId { get { return _sourceFile.ExperimentId; } }
+
         internal AnnotatedQuestionLogFile(LogFile sourceFile)
         {
             _sourceFile = sourceFile;
@@ -38,7 +40,10 @@ namespace WebBackend.Dataset
 
         internal void SetAnnotation(AnnotatedQuestionActionEntry entry, string annotation)
         {
-            _questionAnnotations[entry.Entry.ActionIndex] = annotation;
+            if (annotation == null)
+                _questionAnnotations.Remove(entry.Entry.ActionIndex);
+            else
+                _questionAnnotations[entry.Entry.ActionIndex] = annotation;
         }
 
         internal string GetAnnotation(AnnotatedQuestionActionEntry entry)

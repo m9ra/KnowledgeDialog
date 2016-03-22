@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.Dialog.Acts
 {
-    class UnrecognizedAct : DialogActBase
+    public class UnrecognizedAct : DialogActBase
     {
         public readonly ParsedUtterance Utterance;
 
@@ -23,6 +23,15 @@ namespace KnowledgeDialog.Dialog.Acts
         public override string ToString()
         {
             return "Unrecognized(utterance='" + Utterance + "')";
+        }
+
+        /// <inheritdoc/>
+        public override ActRepresentation GetDialogAct()
+        {
+            var unrecognized = new ActRepresentation("Unrecognized");
+            unrecognized.AddParameter("utterance", Utterance);
+
+            return unrecognized;
         }
     }
 }

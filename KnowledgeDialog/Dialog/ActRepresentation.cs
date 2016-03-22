@@ -56,5 +56,17 @@ namespace KnowledgeDialog.Dialog
             builder.Append(")");
             return builder.ToString();
         }
+
+        public Dictionary<string, object> ToDictionary()
+        {
+            var result = new Dictionary<string, object>();
+            result["act"] = ActName;
+            foreach (var parameter in _parameters)
+            {
+                result[parameter.Key] = parameter.Value;
+            }
+
+            return result;
+        }
     }
 }

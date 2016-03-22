@@ -9,5 +9,11 @@ namespace KnowledgeDialog.Dialog.Acts
     public abstract class DialogActBase
     {
         abstract internal void Visit(IActVisitor visitor);
+
+        /// <summary>
+        /// Gets semantic dialog act json representation.
+        /// </summary>
+        /// <returns>The representation when overriden.</returns>
+        public abstract ActRepresentation GetDialogAct();
     }
 }

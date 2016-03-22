@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.Dialog.Acts
 {
-    class ExplicitAdviceAct : DialogActBase
+    public class ExplicitAdviceAct : DialogActBase
     {
         internal readonly ParsedUtterance Question;
 
@@ -26,6 +26,15 @@ namespace KnowledgeDialog.Dialog.Acts
         public override string ToString()
         {
             return "ExplicitAdvice(answer='" + Answer + "'; question='" + Question + "')";
+        }
+
+        /// <inheritdoc/>
+        public override ActRepresentation GetDialogAct()
+        {
+            var act = new ActRepresentation("ExplicitAdvice");
+            act.AddParameter("answer", Answer);
+            act.AddParameter("question", Question);
+            return act;
         }
     }
 }

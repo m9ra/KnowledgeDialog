@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.Dialog.Acts
 {
-    class NegateAct : DialogActBase
+    public class NegateAct : DialogActBase
     {
         internal override void Visit(IActVisitor visitor)
         {
@@ -16,6 +16,12 @@ namespace KnowledgeDialog.Dialog.Acts
         public override string ToString()
         {
             return "Negate()";
+        }
+
+        /// <inheritdoc/>
+        public override ActRepresentation GetDialogAct()
+        {
+            return new ActRepresentation("Negate");
         }
     }
 }

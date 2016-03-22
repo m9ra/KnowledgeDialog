@@ -129,7 +129,8 @@ namespace WebBackend
 
 
             FreebaseLoader = new FreebaseLoader(Path.Combine(DataPath, "freebase"));
-            QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "question_collection_r_3");
+            QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "question_collection_r_4");
+            writeQuestionDataset();
 
             var experiment = Experiments.Get("data_collection5");
             writeDataset(experiment);
@@ -168,13 +169,48 @@ namespace WebBackend
             var dialogIndexes = new List<int>();
             for (var i = 0; i < provider.DialogCount; ++i)
             {
+                var dialog = provider.GetDialog(i);
+                var annotation=dialog.Annotation;
+                if (annotation == null || annotation == "invalid" || annotation == "unwanted_answer")
+                    //we dont want this dialog
+                    continue;
+
                 dialogIndexes.Add(i);
             }
 
             var rnd = new Random(12345);
             Shuffle(rnd, dialogIndexes);
-            throw new NotImplementedException();
+            var testRatio = 0.4;
+            var trainRatio = 0.5;
+
+            var testCount = (int)(dialogIndexes.Count * testRatio);
+            var trainCount = (int)(dialogIndexes.Count * trainRatio);
+            var devCount = dialogIndexes.Count - testRatio - trainRatio;
+
+            var testIndexes = dialogIndexes.Take(testCount).ToArray();
+            var trainIndexes = dialogIndexes.Skip(testCount).Take(trainCount).ToArray();
+            var devIndexes = dialogIndexes.Skip(testCount + trainCount).ToArray();
+
+            if (testIndexes.Intersect(trainIndexes).Any() || trainIndexes.Intersect(devIndexes).Any() || devIndexes.Intersect(testIndexes).Any())
+                throw new NotSupportedException("there is an error when spliting dataset");
+
+            writeQuestionDatasetTo("question_dialogs-test.json", testIndexes, provider);
+            writeQuestionDatasetTo("question_dialogs-train.json", trainIndexes, provider);
+            writeQuestionDatasetTo("question_dialogs-dev.json", devIndexes, provider);
         }
+
+        private static void writeQuestionDatasetTo(string targetFilePath, int[] dialogsToWrite, Dataset.QuestionDialogProvider provider)
+        {
+            var writer = new QuestionDatasetWriter(targetFilePath);
+            foreach (var dialogIndex in dialogsToWrite)
+            {
+                var dialog = provider.GetDialog(dialogIndex);
+                writer.Add(dialog);
+            }
+
+            writer.Save();
+        }
+
 
         public static void Shuffle<T>(Random rnd,IList<T> list)
         {

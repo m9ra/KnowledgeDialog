@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.Dialog.Acts
 {
-    class QuestionAct : DialogActBase
+    public class QuestionAct : DialogActBase
     {
         public readonly ParsedUtterance Question;
 
@@ -23,6 +23,15 @@ namespace KnowledgeDialog.Dialog.Acts
         public override string ToString()
         {
             return "Question(question='" + Question + "')";
+        }
+
+        /// <inheritdoc/>
+        public override ActRepresentation GetDialogAct()
+        {
+            var act = new ActRepresentation("Question");
+
+            act.AddParameter("question", Question);
+            return act;
         }
     }
 }

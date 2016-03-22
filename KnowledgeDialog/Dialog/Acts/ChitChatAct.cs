@@ -26,5 +26,13 @@ namespace KnowledgeDialog.Dialog.Acts
         {
             return "ChitChat(domain='" + Domain + "')";
         }
+
+        /// <inheritdoc/>
+        public override ActRepresentation GetDialogAct()
+        {
+            var act= new ActRepresentation("ChitChat");
+            act.AddParameter("domain", Domain);
+            return act;
+        }
     }
 }

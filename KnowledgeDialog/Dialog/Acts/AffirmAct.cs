@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.Dialog.Acts
 {
-    class AffirmAct : DialogActBase
+    public class AffirmAct : DialogActBase
     {
         internal override void Visit(IActVisitor visitor)
         {
@@ -16,6 +16,13 @@ namespace KnowledgeDialog.Dialog.Acts
         public override string ToString()
         {
             return "Affirm()";
+        }
+
+        /// <inheritdoc/>
+        public override ActRepresentation GetDialogAct()
+        {
+            var act = new ActRepresentation("Affirm");
+            return act;
         }
     }
 }

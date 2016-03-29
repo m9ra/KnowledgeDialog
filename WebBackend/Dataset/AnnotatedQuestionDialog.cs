@@ -35,6 +35,8 @@ namespace WebBackend.Dataset
 
         public readonly IEnumerable<AnnotatedQuestionActionEntry> AnswerTurns;
 
+        public int TurnCount { get { return (2 + ExplanationTurns.Count() + AnswerTurns.Count()) / 2; } }
+
         internal AnnotatedQuestionDialog(AnnotatedQuestionLogFile log, string question, string answerId, IEnumerable<string> answerNames, IEnumerable<AnnotatedQuestionActionEntry> explanationTurns, IEnumerable<AnnotatedQuestionActionEntry> answerTurns)
         {
             _log = log;
@@ -116,6 +118,53 @@ namespace WebBackend.Dataset
 
             return result.ToArray();
         }
+
+        internal int GetParaphraseCount(SLUFactory sluFactory)
+        {
+            AnnotatedQuestionActionEntry lastAction = null;
+            foreach (var action in ExplanationTurns)
+            {
+                if (lastAction != null && lastAction.Act.StartsWith("RequestExplanation"))
+                    break;
+
+                lastAction = action;
+            }
+
+            if (lastAction == null)
+                throw new NotImplementedException();
+
+            if (isInform(lastAction, sluFactory))
+                return 1;
+
+            return 0;
+        }
+
+        internal int GetExplanationCount(SLUFactory sluFactory)
+        {
+            if (isInform(ExplanationTurns.Last(), sluFactory))
+                return 1;
+
+            return 0;
+        }
+
+        internal int GetAnswerCount()
+        {
+            if (Annotation == "no_answer")
+                return 0;
+
+            return 1;
+        }
+
+
+        private bool isInform(AnnotatedQuestionActionEntry action, SLUFactory sluFactory)
+        {
+            var slu = sluFactory.GetBestDialogAct(UtteranceParser.Parse(action.Text));
+            if (slu is DontKnowAct || slu is NegateAct || slu is ChitChatAct || slu is AffirmAct)
+                return false;
+
+            return true;
+        }
+
 
         private Dictionary<string, object> getUserSlu(AnnotatedQuestionActionEntry userAction, SLUFactory sluFactory)
         {

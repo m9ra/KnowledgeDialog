@@ -21,7 +21,7 @@ namespace KnowledgeDialog.DataCollection
         /// <summary>
         /// Mapping between questions and answers.
         /// </summary>
-        private readonly Dictionary<string, string> _questionToAnswerId = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> _questionToAnswerId = new Dictionary<string, string>(StringComparer.InvariantCulture);
 
         /// <summary>
         /// Generator for item selection.
@@ -40,6 +40,7 @@ namespace KnowledgeDialog.DataCollection
             for (var i = 0; i < questions.Count; ++i)
             {
                 var question = questions[i];
+                question = sanitize(question);
                 var answerId = answerIds[i];
 
                 if (!_questionToAnswerId.ContainsKey(question))
@@ -49,7 +50,7 @@ namespace KnowledgeDialog.DataCollection
 
         public string GetAnswerId(string question)
         {
-            return _questionToAnswerId[question];
+            return _questionToAnswerId[sanitize(question)];
         }
 
         internal string GetRandomQuestion()
@@ -60,5 +61,9 @@ namespace KnowledgeDialog.DataCollection
             }
         }
 
+        private string sanitize(string question)
+        {
+            return question.Replace("`", "'"); 
+        }
     }
 }

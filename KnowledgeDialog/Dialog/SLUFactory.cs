@@ -189,6 +189,7 @@ namespace KnowledgeDialog.Dialog
                 (containsExpression(utterance, " no ") && containsExpression(utterance, "correct")) ||
                 (containsExpression(utterance, " no ") && containsExpression(utterance, "answer")) ||
                 (containsExpression(utterance, " i ") && containsExpression(utterance, "never"))  ||
+                (containsExpression(utterance, " i ") && containsExpression(utterance, "unable")) ||
                 (containsExpression(utterance, " i'") && containsExpression(utterance, "never")) ||
                 (containsExpression(utterance, " ive") && containsExpression(utterance, "never")) ||
                 (containsExpression(utterance, "need") && containsExpression(utterance, "search")) ||

@@ -213,7 +213,7 @@ namespace WebBackend.Dataset
             var parameterName = parameters.Substring(0, parameters.IndexOf('='));
             var parameterValue = parameters.Substring(parameterName.Length + 1, parameters.Length - 1 - parameterName.Length);
 
-            if (parameterValue.Contains('='))
+            if (parameterValue.Contains('=') && parameterValue!="what type of release is = chano y dizzy!")
                 throw new NotImplementedException();
 
             result[parameterName] = parameterValue;

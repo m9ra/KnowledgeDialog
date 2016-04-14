@@ -16,7 +16,7 @@ namespace KnowledgeDialog.DataCollection
         /// <summary>
         /// Answer ids.
         /// </summary>
-        private readonly List<string> _answerId = new List<string>();
+        private readonly List<string> _answerIds = new List<string>();
 
         /// <summary>
         /// Mapping between questions and answers.
@@ -32,6 +32,7 @@ namespace KnowledgeDialog.DataCollection
         /// Lock for question selection.
         /// </summary>
         private readonly object _L_questions = new object();
+        public IEnumerable<string> AnswerIds { get { return _answerIds; } }
 
         public QuestionCollection(List<string> questions, List<string> answerIds)
         {

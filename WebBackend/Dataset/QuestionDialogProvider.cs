@@ -18,6 +18,20 @@ namespace WebBackend.Dataset
 
         private readonly QuestionCollection _questions;
 
+        internal IEnumerable<string> AnswerIds
+        {
+            get
+            {
+                var ids = new List<string>();
+                foreach (var dialog in _questionDialogs)
+                {
+                    ids.Add(dialog.AnswerId);
+                }
+
+                return ids;
+            }
+        }
+
         internal int DialogCount { get { return _questionDialogs.Count; } }
 
         internal QuestionDialogProvider(ExperimentCollection collection, QuestionCollection questions, string experimentPrefix)

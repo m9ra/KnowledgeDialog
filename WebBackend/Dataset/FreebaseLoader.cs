@@ -21,6 +21,8 @@ namespace WebBackend.Dataset
 
         private readonly Dictionary<string, IEnumerable<string>> _idToNames = new Dictionary<string, IEnumerable<string>>();
 
+        private readonly Dictionary<string, string> _idToDescription=new Dictionary<string,string>();
+
         internal FreebaseLoader(string cachePath)
         {
             CachePath = cachePath;
@@ -45,6 +47,28 @@ namespace WebBackend.Dataset
             }
 
             return names;
+        }
+
+        internal string GetDescription(string answerId)
+        {
+            if (!answerId.StartsWith(IdPrefix))
+                throw new NotSupportedException("unsupported answer");
+
+            var id = answerId.Substring(IdPrefix.Length);
+            string description;
+            if (!_idToDescription.TryGetValue(id, out description))
+            {
+                var lines = new List<string>();
+                lines.AddRange(filterFileLines(id,"ns:common.topic.description","@en;"));
+                if (lines.Count == 0)
+                    description = "";
+                else
+                    description = lines.First();
+
+                _idToDescription[id] = description;
+            }
+
+            return description;
         }
 
         private IEnumerable<string> filterFileLines(string id, string prefix, string suffix)

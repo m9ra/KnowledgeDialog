@@ -16,6 +16,9 @@ using Lucene.Net.Search.Spans;
 using Store = Lucene.Net.Store;
 using Version = Lucene.Net.Util.Version;
 
+using KnowledgeDialog.Dialog;
+using KnowledgeDialog.Knowledge;
+
 
 namespace WebBackend.AnswerExtraction
 {
@@ -45,6 +48,8 @@ namespace WebBackend.AnswerExtraction
 
         private readonly Dictionary<string, int> _trainBadNgramCounts = new Dictionary<string, int>();
 
+        private readonly Dictionary<string, int> _leadingNgramCounts = new Dictionary<string, int>();
+
         private readonly QueryParser _parser;
 
         private Store.FSDirectory _directory;
@@ -54,6 +59,7 @@ namespace WebBackend.AnswerExtraction
         private IndexReader _reader;
 
         private bool _isTrained = false;
+
 
         internal Extractor()
         {
@@ -83,8 +89,9 @@ namespace WebBackend.AnswerExtraction
                 indexWriter.AddDocument(getDocumentWithContent(_documentDescriptions[id], id));
                 foreach (var alias in aliases)
                 {
-                    indexWriter.AddDocument(getDocumentWithContent(alias, id));
-                    aliasLengthSum += alias.Length;
+                    var sanitizedAlias = alias.Trim('"');
+                    indexWriter.AddDocument(getDocumentWithContent(sanitizedAlias, id));
+                    aliasLengthSum += sanitizedAlias.Length;
                 }
 
                 _avgDocumentLengths[id] = 1.0 * aliasLengthSum / aliases.Count();
@@ -110,9 +117,11 @@ namespace WebBackend.AnswerExtraction
             return doc;
         }
 
-        public string Find(IEnumerable<string> ngrams, IEnumerable<string> contextNgrams)
+        private Dictionary<string, double> rawScores(string[] ngrams, int aliasLength, double leadingScoreFactor)
         {
+            int leadingScore = 0;
             var scores = new Dictionary<string, double>();
+
             foreach (var ngram in ngrams)
             {
                 int badFactor;
@@ -125,41 +134,67 @@ namespace WebBackend.AnswerExtraction
                 {
                     var id = getId(dc);
                     var content = getContent(dc);
+                    var isAlias = content.Length < aliasLength;
                     var score = dc.Score;
                     score = score * ngram.Length;
+                    score = score + leadingScore * (float)leadingScoreFactor;
+
+                    if (isAlias)
+                    {
+                        var lengthDiff = Math.Abs(content.Length - ngram.Length);
+                        score = score - lengthDiff * dc.Score * 1.0f;
+                    }
+                    else
+                    {
+                        score = score / 10;
+                    }
 
                     double actualScore;
                     scores.TryGetValue(id, out actualScore);
                     scores[id] = actualScore + score;
                 }
-            }
-            /*
-            foreach (var contextNgram in contextNgrams)
-            {
-                int badFactor;
-                _trainBadNgramCounts.TryGetValue(contextNgram, out badFactor);
-                if (badFactor > 0)
-                    continue;
 
-                var scoredDocs = getScoredDocs(contextNgram);
-                foreach (var dc in scoredDocs)
-                {
-                    var id = getId(dc);
-                    var content = getContent(dc);
-                    var score = dc.Score;
-                    score = score * contextNgram.Length;
-
-                    double actualScore;
-                    scores.TryGetValue(id, out actualScore);
-                    scores[id] = 0;
-                }
+                int currentScore;
+                _leadingNgramCounts.TryGetValue(ngram, out currentScore);
+                leadingScore += currentScore;
             }
-            */
+
+            return scores;
+        }
+
+        internal Ranked<string>[] Score(string[] ngrams, string[] contextNgrams)
+        {
+            var aliasLength = 15;
+            var scores = rawScores(ngrams, aliasLength, 3);
             if (scores.Count == 0)
+                return new Ranked<string>[0];
+
+            var badScores = rawScores(contextNgrams, 1, 0.0);
+            foreach (var badScore in badScores)
+            {
+                break;
+                if (scores.ContainsKey(badScore.Key))
+                    scores[badScore.Key] -= badScore.Value;
+            }
+
+            var rankedAnswers = new List<Ranked<string>>();
+            foreach (var pair in scores)
+            {
+                var rank = new Ranked<string>(pair.Key, pair.Value);
+                rankedAnswers.Add(rank);
+            }
+
+            rankedAnswers.Sort();
+            return rankedAnswers.ToArray();
+        }
+
+        public string Find(IEnumerable<string> ngrams, IEnumerable<string> contextNgrams)
+        {
+            var bestScore = Score(ngrams.ToArray(), contextNgrams.ToArray()).FirstOrDefault();
+            if (bestScore == null)
                 return null;
 
-            var maxValue = scores.Values.Max();
-            return scores.Where(p => p.Value == maxValue).Select(p => p.Key).FirstOrDefault();
+            return bestScore.Value;
         }
 
         private IEnumerable<ScoreDoc> getScoredDocs(string termVariant)
@@ -186,6 +221,9 @@ namespace WebBackend.AnswerExtraction
 
         internal void Train(IEnumerable<string> ngrams, string correctAnswer)
         {
+            string strongestNgram = null;
+            var bestNgramScore = 0.0;
+
             foreach (var ngram in ngrams)
             {
                 var docs = getScoredDocs(ngram);
@@ -196,12 +234,33 @@ namespace WebBackend.AnswerExtraction
 
                 var id = getId(bestDoc);
                 if (id == correctAnswer)
+                {
                     //the ngram is helpful
-                    continue;
+                    if (bestDoc.Score > bestNgramScore)
+                    {
+                        strongestNgram = ngram;
+                        bestNgramScore = bestDoc.Score;
+                    }
+                }
+                else
+                {
+                    int count;
+                    _trainBadNgramCounts.TryGetValue(ngram, out count);
+                    _trainBadNgramCounts[ngram] = count + 1;
+                }
+            }
 
-                int count;
-                _trainBadNgramCounts.TryGetValue(ngram, out count);
-                _trainBadNgramCounts[ngram] = count + 1;
+            var orderedNgrams = ngrams.ToArray();
+            for (var i = 1; i < orderedNgrams.Length; ++i)
+            {
+                if (orderedNgrams[i] == strongestNgram)
+                {
+                    var preNgram = orderedNgrams[i - 1];
+                    int value;
+                    _leadingNgramCounts.TryGetValue(preNgram, out value);
+                    _leadingNgramCounts[preNgram] = value + 1;
+                    break;
+                }
             }
         }
 
@@ -210,6 +269,7 @@ namespace WebBackend.AnswerExtraction
             var doc = _searcher.Doc(scoreDoc.Doc);
             return doc.GetField("id").StringValue;
         }
+
         private string getContent(ScoreDoc scoreDoc)
         {
             var doc = _searcher.Doc(scoreDoc.Doc);

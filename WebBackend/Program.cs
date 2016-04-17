@@ -136,49 +136,66 @@ namespace WebBackend
             QuestionDialogProvider.Refresh();
 
             var extractor = new AnswerExtraction.Extractor();
+            var isRepeating = false;//TODO this is debuging hack
             foreach (var freebaseId in QuestionDialogProvider.AnswerIds)
             {
                 extractor.AddEntry(freebaseId, FreebaseLoader.GetNames(freebaseId), FreebaseLoader.GetDescription(freebaseId));
             }
             extractor.RebuildFreebaseIndex();
-            var correctCount = 0;
-            var totalCount = 0;
-            var trainCount = 100;
-            for (var i = 0; i < QuestionDialogProvider.DialogCount; ++i)
+            while (true)
             {
-                var dialog = QuestionDialogProvider.GetDialog(i);
-
-                if (dialog.Annotation == "correct_answer")
+                var nbest = 2;
+                var correctCount = 0;
+                var correctNCount = 0;
+                var totalCount = 0;
+                var trainCount = 100;
+                for (var i = 0; i < QuestionDialogProvider.DialogCount; ++i)
                 {
-                    if (trainCount > 0)
-                    {
-                        --trainCount;
-                        extractor.Train(getAnswerHintNgrams(dialog), dialog.AnswerId);
-                        continue;
-                    }
+                    var dialog = QuestionDialogProvider.GetDialog(i);
 
-                    var hints = getAnswerHintNgrams(dialog).ToArray();
-                    var context = getContextNgrams(dialog).ToArray();
-                    var bestId = extractor.Find(hints, context);
-                    if (bestId == dialog.AnswerId)
+                    if (dialog.Annotation == "correct_answer")
                     {
-                        Console.WriteLine("OK " + bestId);
-                        ++correctCount;
-                    }
-                    else
-                    {
-                        Console.WriteLine("NO " + bestId);
-                        Console.WriteLine("\t " + getAnswerPhrase(dialog));
-                        var correctAnswer = FreebaseLoader.GetNames(dialog.AnswerId).FirstOrDefault();
-                        Console.WriteLine("\t desired: " + correctAnswer);
-                        if (bestId != null)
-                            Console.WriteLine("\t actual: " + FreebaseLoader.GetNames(bestId).FirstOrDefault());
-                    }
+                        if (trainCount > 0)
+                        {
+                            --trainCount;
+                            if (!isRepeating)
+                                extractor.Train(getAnswerHintNgrams(dialog), dialog.AnswerId);
+                            continue;
+                        }
 
-                    ++totalCount;
+                        var hints = getAnswerHintNgrams(dialog).ToArray();
+                        var context = getContextNgrams(dialog).ToArray();
+                        var scores = extractor.Score(hints, context);
+                        var bestId = scores.FirstOrDefault().Value;
+                        if (scores.Take(nbest).Select(r => r.Value).Contains(dialog.AnswerId))
+                            ++correctNCount;
 
-                    Console.WriteLine("\tprecision {0:00.00}%", 100.0 * correctCount / totalCount);
+                        if (bestId == dialog.AnswerId)
+                        {
+                            Console.WriteLine("OK " + bestId);
+                            ++correctCount;
+                        }
+                        else
+                        {
+                            Console.WriteLine("NO " + bestId);
+                            Console.WriteLine("\t " + getAnswerPhrase(dialog));
+                            var correctAnswer = FreebaseLoader.GetNames(dialog.AnswerId).FirstOrDefault();
+                            Console.WriteLine("\t desired: " + correctAnswer);
+                            foreach (var scoredId in scores.Take(5))
+                            {
+                                var names = getNamesRepresentation(scoredId.Value);
+                                Console.WriteLine("\t {0:0.00}: {1}", scoredId.Rank, names);
+                            }
+
+                        }
+
+                        ++totalCount;
+
+                        Console.WriteLine("\tprecision {0:00.00}% ({2}best precision {1:00.00}%)", 100.0 * correctCount / totalCount, 100.0 * correctNCount / totalCount, nbest);
+                    }
                 }
+                isRepeating = true;
+                isRepeating = true;
             }
             return;
 
@@ -192,13 +209,19 @@ namespace WebBackend
             runConsole();
         }
 
+        private static string getNamesRepresentation(string freebaseId)
+        {
+            var names = FreebaseLoader.GetNames(freebaseId);
+            return string.Join(",", names.ToArray()).Replace("\"","");
+        }
+
         private static string getAnswerPhrase(AnnotatedQuestionDialog dialog)
         {
             var answerTurn = dialog.AnswerTurns.LastOrDefault();
             if (answerTurn == null)
                 return null;
 
-            return answerTurn.Text;//.Replace(".", " ").Replace(",", " ").Replace("'", " ").Replace("  ", " ").Replace("  ", " ");
+            return answerTurn.Text.Replace(".", " ").Replace(",", " ").Replace("'", " ").Replace("  ", " ").Replace("  ", " ");
         }
 
         private static IEnumerable<string> getContextNgrams(AnnotatedQuestionDialog dialog)

@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.Dialog
 {
-    class Ranked<T>
+    public class Ranked<T> : IComparable<Ranked<T>>
     {
-        internal readonly T Value;
+        public readonly T Value;
 
-        internal readonly double Rank;
+        public readonly double Rank;
 
-        internal Ranked(T value, double rank)
+        public Ranked(T value, double rank)
         {
             Value = value;
             Rank = rank;
@@ -22,6 +22,11 @@ namespace KnowledgeDialog.Dialog
         public override string ToString()
         {
             return string.Format("({0},{1:0.00})", Value, Rank);
+        }
+
+        public int CompareTo(Ranked<T> other)
+        {
+            return other.Rank.CompareTo(Rank);
         }
     }
 }

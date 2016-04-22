@@ -11,6 +11,8 @@ namespace WebBackend.Dataset
 {
     class FreebaseLoader
     {
+        internal static readonly string EdgePrefix = "www.freebase.com";
+
         internal static readonly string IdPrefix = "www.freebase.com/m/";
 
         internal static readonly string ApiUrlPrefix = "https://www.googleapis.com/freebase/v1/rdf/m/";
@@ -21,13 +23,22 @@ namespace WebBackend.Dataset
 
         private readonly Dictionary<string, IEnumerable<string>> _idToNames = new Dictionary<string, IEnumerable<string>>();
 
-        private readonly Dictionary<string, string> _idToDescription=new Dictionary<string,string>();
+        private readonly Dictionary<string, string> _idToDescription = new Dictionary<string, string>();
 
         internal FreebaseLoader(string cachePath)
         {
             CachePath = cachePath;
             if (!Directory.Exists(CachePath))
                 Directory.CreateDirectory(CachePath);
+        }
+
+        internal IEnumerable<string> GetCachedIds()
+        {
+            foreach (var file in Directory.EnumerateFiles(CachePath, "*.sdx"))
+            {
+                var name = Path.GetFileNameWithoutExtension(file);
+                yield return IdPrefix + name;
+            }
         }
 
         internal IEnumerable<string> GetNames(string answerId)
@@ -59,7 +70,7 @@ namespace WebBackend.Dataset
             if (!_idToDescription.TryGetValue(id, out description))
             {
                 var lines = new List<string>();
-                lines.AddRange(filterFileLines(id,"ns:common.topic.description","@en;"));
+                lines.AddRange(filterFileLines(id, "ns:common.topic.description", "@en;"));
                 if (lines.Count == 0)
                     description = "";
                 else

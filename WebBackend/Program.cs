@@ -73,6 +73,8 @@ namespace WebBackend
                 //arguments were incorrect
                 return;
 
+            //AnswerExtraction.DumpCreation_Batch.DumpQuestions();  
+
             var simpleQuestions1 = loadSimpleQuestions("questions1.smpq");
 
             var simpleQuestionsTrain = loadSimpleQuestions("questions_train.smpq");
@@ -135,68 +137,7 @@ namespace WebBackend
             FreebaseLoader = new FreebaseLoader(Path.Combine(DataPath, "freebase"));
             QuestionDialogProvider.Refresh();
 
-            var extractor = new AnswerExtraction.Extractor();
-            var isRepeating = false;//TODO this is debuging hack
-            foreach (var freebaseId in QuestionDialogProvider.AnswerIds)
-            {
-                extractor.AddEntry(freebaseId, FreebaseLoader.GetNames(freebaseId), FreebaseLoader.GetDescription(freebaseId));
-            }
-            extractor.RebuildFreebaseIndex();
-            while (true)
-            {
-                var nbest = 2;
-                var correctCount = 0;
-                var correctNCount = 0;
-                var totalCount = 0;
-                var trainCount = 100;
-                for (var i = 0; i < QuestionDialogProvider.DialogCount; ++i)
-                {
-                    var dialog = QuestionDialogProvider.GetDialog(i);
-
-                    if (dialog.Annotation == "correct_answer")
-                    {
-                        if (trainCount > 0)
-                        {
-                            --trainCount;
-                            if (!isRepeating)
-                                extractor.Train(getAnswerHintNgrams(dialog), dialog.AnswerId);
-                            continue;
-                        }
-
-                        var hints = getAnswerHintNgrams(dialog).ToArray();
-                        var context = getContextNgrams(dialog).ToArray();
-                        var scores = extractor.Score(hints, context);
-                        var bestId = scores.FirstOrDefault().Value;
-                        if (scores.Take(nbest).Select(r => r.Value).Contains(dialog.AnswerId))
-                            ++correctNCount;
-
-                        if (bestId == dialog.AnswerId)
-                        {
-                            Console.WriteLine("OK " + bestId);
-                            ++correctCount;
-                        }
-                        else
-                        {
-                            Console.WriteLine("NO " + bestId);
-                            Console.WriteLine("\t " + getAnswerPhrase(dialog));
-                            var correctAnswer = FreebaseLoader.GetNames(dialog.AnswerId).FirstOrDefault();
-                            Console.WriteLine("\t desired: " + correctAnswer);
-                            foreach (var scoredId in scores.Take(5))
-                            {
-                                var names = getNamesRepresentation(scoredId.Value);
-                                Console.WriteLine("\t {0:0.00}: {1}", scoredId.Rank, names);
-                            }
-
-                        }
-
-                        ++totalCount;
-
-                        Console.WriteLine("\tprecision {0:00.00}% ({2}best precision {1:00.00}%)", 100.0 * correctCount / totalCount, 100.0 * correctNCount / totalCount, nbest);
-                    }
-                }
-                isRepeating = true;
-                isRepeating = true;
-            }
+            AnswerExtraction.ExtractionEvaluation_Batch.RunEvaluation(FreebaseLoader);
             return;
 
             writeQuestionDataset();
@@ -207,72 +148,6 @@ namespace WebBackend
             //run server
             runServer(RootPath);
             runConsole();
-        }
-
-        private static string getNamesRepresentation(string freebaseId)
-        {
-            var names = FreebaseLoader.GetNames(freebaseId);
-            return string.Join(",", names.ToArray()).Replace("\"","");
-        }
-
-        private static string getAnswerPhrase(AnnotatedQuestionDialog dialog)
-        {
-            var answerTurn = dialog.AnswerTurns.LastOrDefault();
-            if (answerTurn == null)
-                return null;
-
-            return answerTurn.Text.Replace(".", " ").Replace(",", " ").Replace("'", " ").Replace("  ", " ").Replace("  ", " ");
-        }
-
-        private static IEnumerable<string> getContextNgrams(AnnotatedQuestionDialog dialog)
-        {
-            return getNgrams(dialog.Question);
-        }
-
-        private static IEnumerable<string> getAnswerHintNgrams(AnnotatedQuestionDialog dialog)
-        {
-            var turnIndex = 0;
-            var ngrams = new List<string>();
-            foreach (var answerTurn in dialog.AnswerTurns)
-            {
-                var isOddTurn = turnIndex % 2 == 1;
-                if (isOddTurn)
-                    ngrams.AddRange(getNgrams(answerTurn.Text));
-
-                turnIndex += 1;
-            }
-
-            return ngrams;
-            //var answerText = getAnswerPhrase(dialog);
-            //return getNgrams(answerText);
-        }
-
-        private static IEnumerable<string> getNgrams(string text)
-        {
-            if (text == null)
-                yield break;
-
-            var words = text.Split(' ').Select(w => w.Trim()).Where(w => w.Length > 0).ToArray();
-            for (var i = 0; i < words.Length; ++i)
-            {
-                var j = i + 1;
-                var k = i + 2;
-                var l = i + 3;
-
-                var wordI = words[i];
-                var wordK = k < words.Length ? words[k] : "";
-
-                yield return wordI;
-                if (j < words.Length)
-                    yield return wordI + " " + words[j];
-
-                if (k < words.Length)
-                    yield return wordI + " " + words[j] + " " + words[k];
-                /*                
-                                             if (l < words.Length)
-                                                 yield return wordI + " " + words[j] + " " + words[k] +" "+ words[l];
-                */
-            }
         }
 
         /// <summary>

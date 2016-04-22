@@ -108,7 +108,7 @@ namespace WebBackend.AnswerExtraction
 
         private Document getDocumentWithContent(string content, string id)
         {
-            var fldContent = new Field("content", content, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.YES);
+            var fldContent = new Field("content", content.ToLowerInvariant(), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.YES);
 
             var fldId = new Field("id", id.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
             var doc = new Document();
@@ -142,7 +142,7 @@ namespace WebBackend.AnswerExtraction
                     if (isAlias)
                     {
                         var lengthDiff = Math.Abs(content.Length - ngram.Length);
-                        score = score - lengthDiff * dc.Score * 1.0f;
+                        score = score / content.Length * 2;
                     }
                     else
                     {
@@ -158,23 +158,34 @@ namespace WebBackend.AnswerExtraction
                 _leadingNgramCounts.TryGetValue(ngram, out currentScore);
                 leadingScore += currentScore;
             }
-
+            /*
+            var sum = scores.Values.Sum();
+            foreach (var key in scores.Keys.ToArray())
+            {
+                scores[key] = scores[key] / sum;
+            }
+            */
             return scores;
+        }
+
+        internal Dictionary<string, double> RawScores(string[] ngrams)
+        {
+            var aliasLength = 15;
+            return rawScores(ngrams, aliasLength, 3);
         }
 
         internal Ranked<string>[] Score(string[] ngrams, string[] contextNgrams)
         {
-            var aliasLength = 15;
-            var scores = rawScores(ngrams, aliasLength, 3);
+            var scores = RawScores(ngrams);
             if (scores.Count == 0)
                 return new Ranked<string>[0];
 
-            var badScores = rawScores(contextNgrams, 1, 0.0);
+            var badScores = rawScores(contextNgrams, 15, 0.0);
             foreach (var badScore in badScores)
             {
-                break;
+               // break;
                 if (scores.ContainsKey(badScore.Key))
-                    scores[badScore.Key] -= badScore.Value;
+                    scores[badScore.Key] -= badScore.Value / 10;
             }
 
             var rankedAnswers = new List<Ranked<string>>();

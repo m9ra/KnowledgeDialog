@@ -15,7 +15,7 @@ namespace WebBackend.AnswerExtraction
     {
         internal static void DumpQuestions()
         {
-            var dumpProcessor = new FreebaseDumpProcessor(@"C:\Databases\SimpleQuestions_v2\SimpleQuestions_v2\freebase-subsets\freebase-FB2M.txt");
+            var dumpProcessor = new WikidataDumpProcessor(@"C:\REPOSITORIES\Wikidata-Toolkit\wdtk-examples\dumpfiles\20160510.json.gz");
             var questionDataset = new QuestionDialogDatasetReader("question_dialogs-train.json");
             var devDataset = new QuestionDialogDatasetReader("question_dialogs-dev.json");
 
@@ -24,21 +24,7 @@ namespace WebBackend.AnswerExtraction
                 dumpProcessor.AddTargetMid(dialog.AnswerMid);
             }
 
-          //  dumpProcessor.RunAbstractIteration();
-            dumpProcessor.RefillTargets();
-          //  dumpProcessor.RunConcreteIteration();
-            dumpProcessor.RunIteration();
-            dumpProcessor.RefillTargets();
-            var contained = 0;
-            foreach (var dialog in devDataset.Dialogs)
-            {
-                if (dumpProcessor.AllIds.Contains(dialog.AnswerMid.Substring(FreebaseLoader.IdPrefix.Length)))
-                    contained += 1;
-            }
-
-            Console.WriteLine("{0:0.00}", 100.0 * contained / devDataset.Dialogs.Count());
-            //  dumpProcessor.RunIteration();
-            //  dumpProcessor.WriteCoverDump("cover_dump.trp");
+            dumpProcessor.WriteDump();
         }
     }
 }

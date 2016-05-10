@@ -59,6 +59,7 @@
     <Compile Include="AnswerExtraction\FreebaseDumpProcessor.cs" />
     <Compile Include="AnswerExtraction\SearchContext.cs" />
     <Compile Include="AnswerExtraction\ExtractionEvaluation_Batch.cs" />
+    <Compile Include="AnswerExtraction\WikidataDumpProcessor.cs" />
     <Compile Include="Dataset\AnnotatedDialog.cs" />
     <Compile Include="Dataset\AnnotatedDialogBuilder.cs" />
     <Compile Include="Dataset\AnnotatedQuestionActionEntry.cs" />

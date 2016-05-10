@@ -46,7 +46,9 @@ namespace WebBackend.AnswerExtraction
 
         private readonly Dictionary<string, ScoreDoc[]> _scoredDocsCache = new Dictionary<string, ScoreDoc[]>();
 
-        private readonly Dictionary<string, int> _trainBadNgramCounts = new Dictionary<string, int>();
+        private readonly Dictionary<string, int> _badNgramCounts = new Dictionary<string, int>();
+
+        private readonly Dictionary<string, int> _preBadNgramCounts = new Dictionary<string, int>();
 
         private readonly Dictionary<string, int> _leadingNgramCounts = new Dictionary<string, int>();
 
@@ -121,13 +123,27 @@ namespace WebBackend.AnswerExtraction
         {
             int leadingScore = 0;
             var scores = new Dictionary<string, double>();
-
+            var skipNext = false;
             foreach (var ngram in ngrams)
             {
-                int badFactor;
-                _trainBadNgramCounts.TryGetValue(ngram, out badFactor);
-                if (badFactor > 0)
+                int badCount;
+                _badNgramCounts.TryGetValue(ngram, out badCount);
+                if (badCount > 0)
                     continue;
+
+                int preBadCount;
+                _preBadNgramCounts.TryGetValue(ngram, out preBadCount);
+                if (preBadCount > 10)
+                {
+                    skipNext = true;
+                    continue;
+                }
+
+                if (skipNext)
+                {
+                    skipNext = false;
+                    continue;
+                }
 
                 var scoredDocs = getScoredDocs(ngram);
                 foreach (var dc in scoredDocs)
@@ -138,7 +154,10 @@ namespace WebBackend.AnswerExtraction
                     var score = dc.Score;
                     score = score * ngram.Length;
                     score = score + leadingScore * (float)leadingScoreFactor;
-
+                    if (content.ToLowerInvariant() == ngram.ToLowerInvariant())
+                    {
+                        score *= 5 * ngram.Length;
+                    }
                     if (isAlias)
                     {
                         var lengthDiff = Math.Abs(content.Length - ngram.Length);
@@ -146,7 +165,7 @@ namespace WebBackend.AnswerExtraction
                     }
                     else
                     {
-                        score = score / 10;
+                        score = score / 15;
                     }
 
                     double actualScore;
@@ -180,10 +199,10 @@ namespace WebBackend.AnswerExtraction
             if (scores.Count == 0)
                 return new Ranked<string>[0];
 
-            var badScores = rawScores(contextNgrams, 15, 0.0);
+            var badScores = rawScores(contextNgrams, 15, 3.0);
             foreach (var badScore in badScores)
             {
-               // break;
+                //break;
                 if (scores.ContainsKey(badScore.Key))
                     scores[badScore.Key] -= badScore.Value / 10;
             }
@@ -233,6 +252,7 @@ namespace WebBackend.AnswerExtraction
         internal void Train(IEnumerable<string> ngrams, string correctAnswer)
         {
             string strongestNgram = null;
+            string preBadNgram = null;
             var bestNgramScore = 0.0;
 
             foreach (var ngram in ngrams)
@@ -256,9 +276,17 @@ namespace WebBackend.AnswerExtraction
                 else
                 {
                     int count;
-                    _trainBadNgramCounts.TryGetValue(ngram, out count);
-                    _trainBadNgramCounts[ngram] = count + 1;
+                    _badNgramCounts.TryGetValue(ngram, out count);
+                    _badNgramCounts[ngram] = count + 1;
+
+                    if (preBadNgram != null)
+                    {
+                        _preBadNgramCounts.TryGetValue(preBadNgram, out count);
+                        _preBadNgramCounts[preBadNgram] = count + 1;
+                    }
+
                 }
+                preBadNgram = ngram;
             }
 
             var orderedNgrams = ngrams.ToArray();

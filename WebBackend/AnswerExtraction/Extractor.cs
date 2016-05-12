@@ -22,19 +22,13 @@ using KnowledgeDialog.Knowledge;
 
 namespace WebBackend.AnswerExtraction
 {
-    public class SampleData
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-    }
 
     class Extractor
     {
         /// <summary>
         /// Path to index directory.
         /// </summary>
-        private readonly string _indexPath = @".\lucene_index";
+        private readonly string _indexPath;
 
         private readonly Analyzer _analyzer;
 
@@ -63,8 +57,9 @@ namespace WebBackend.AnswerExtraction
         private bool _isTrained = false;
 
 
-        internal Extractor()
+        internal Extractor(string indexPath)
         {
+            _indexPath = indexPath;
             _directory = Store.FSDirectory.Open(_indexPath);
             _analyzer = new StandardAnalyzer(Version.LUCENE_30);
 
@@ -103,6 +98,11 @@ namespace WebBackend.AnswerExtraction
             indexWriter.Optimize();
             indexWriter.Dispose();
 
+            LoadIndex();
+        }
+
+        internal void LoadIndex()
+        {
             _reader = IndexReader.Open(_directory, false);
 
             _searcher = new IndexSearcher(_directory, false);

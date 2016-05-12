@@ -18,13 +18,8 @@ namespace WebBackend.AnswerExtraction
             var trainDataset = new QuestionDialogDatasetReader("question_dialogs-train.json");
             var devDataset = new QuestionDialogDatasetReader("question_dialogs-dev.json");
 
-            var extractor = new AnswerExtraction.Extractor();
-            foreach (var freebaseId in loader.GetCachedIds())
-            {
-                extractor.AddEntry(freebaseId, loader.GetNames(freebaseId), loader.GetDescription(freebaseId));
-            }
-            extractor.RebuildFreebaseIndex();
-
+            var extractor = new AnswerExtraction.Extractor(@".\lucene_freebase_v1_index");
+            extractor.LoadIndex();
             foreach (var dialog in trainDataset.Dialogs)
             {
                 if (dialog.HasCorrectAnswer)
@@ -63,8 +58,8 @@ namespace WebBackend.AnswerExtraction
                             Console.WriteLine("\t desired: " + correctAnswer);
                             foreach (var scoredId in scores.Take(5))
                             {
-                                var names = getNamesRepresentation(scoredId.Value, loader);
-                                Console.WriteLine("\t {0:0.00}: {1}", scoredId.Rank, names);
+                                //var names = getNamesRepresentation(scoredId.Value, loader);
+                                //Console.WriteLine("\t {0:0.00}: {1}", scoredId.Rank, names);
                             }
 
                         }

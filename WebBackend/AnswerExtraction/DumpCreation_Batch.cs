@@ -15,16 +15,13 @@ namespace WebBackend.AnswerExtraction
     {
         internal static void DumpQuestions()
         {
-            var dumpProcessor = new WikidataDumpProcessor(@"C:\REPOSITORIES\Wikidata-Toolkit\wdtk-examples\dumpfiles\20160510.json.gz");
-            var questionDataset = new QuestionDialogDatasetReader("question_dialogs-train.json");
-            var devDataset = new QuestionDialogDatasetReader("question_dialogs-dev.json");
+            var wikidataWriter = new WikidataDumpProcessor(@"C:\REPOSITORIES\Wikidata-Toolkit\wdtk-examples\dumpfiles\20160510.json.gz");
+          
+            var freebaseProcessor = new FreebaseDumpProcessor(@"C:\Databases\SimpleQuestions_v2\SimpleQuestions_v2\freebase-subsets\freebase-FB2M.txt");
+            freebaseProcessor.RunIteration();
 
-            foreach (var dialog in questionDataset.Dialogs)
-            {
-                dumpProcessor.AddTargetMid(dialog.AnswerMid);
-            }
-
-            dumpProcessor.WriteDump();
+            wikidataWriter.AddTargetMids(freebaseProcessor.AllIds);
+            wikidataWriter.WriteDump(@"C:\REPOSITORIES\Wikidata-Toolkit\wdtk-examples\dumpfiles\20160510.freebase.gz");
         }
     }
 }

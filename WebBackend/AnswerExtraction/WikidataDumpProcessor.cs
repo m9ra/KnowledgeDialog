@@ -26,6 +26,11 @@ namespace WebBackend.AnswerExtraction
         private readonly string _dumpFile;
 
         /// <summary>
+        /// Writer of gzip output stream.
+        /// </summary>
+        private StreamWriter _writer;
+
+        /// <summary>
         /// Ids which edges will be searched in the data file.
         /// </summary>
         internal readonly HashSet<string> TargetIds = new HashSet<string>();
@@ -43,9 +48,16 @@ namespace WebBackend.AnswerExtraction
         /// <summary>
         /// Runs iteration on the data.
         /// </summary>
-        internal void WriteDump()
+        internal void WriteDump(string output)
         {
-            iterateLines(searchIds);
+            using(var fileStream = new FileStream(output, FileMode.Create, FileAccess.Write))
+            using (var gzipStream = new GZipStream(fileStream, CompressionMode.Compress))
+            {
+                _writer = new StreamWriter(gzipStream);
+                iterateLines(searchIds);
+                _writer.Close();
+                _writer = null;
+            }
         }
 
         private void searchIds(Dictionary<string, object> entity)
@@ -66,7 +78,8 @@ namespace WebBackend.AnswerExtraction
             var description = getValue(entity, "descriptions", "en");
             var aliases = getValues(entity, "aliases", "en");
 
-            //TODO write dump
+            var outputLine = freebaseId + "\t" + label + "\t;" + string.Join(";", aliases) + "\t" + description;
+            _writer.WriteLine(outputLine);
         }
 
         private void iterateLines(JsonHandler handler)
@@ -105,8 +118,11 @@ namespace WebBackend.AnswerExtraction
                                 Console.WriteLine("{0:0.00}% remaining time: {1:hh\\:mm\\:ss}", percentage, remainingTime);
                             }
 
+                            if (line.EndsWith(','))
+                                line = line.Substring(0, line.Length-1);
+                            
 
-                            var entity = JsonConvert.DeserializeObject<Dictionary<string, object>>(line.Substring(0, line.Length - 1));
+                            var entity = JsonConvert.DeserializeObject<Dictionary<string, object>>(line);
                             handler(entity);
                         }
                     }
@@ -131,15 +147,15 @@ namespace WebBackend.AnswerExtraction
             return value.ToString();
         }
 
-        private string[] getValues(Dictionary<string, object> entity, string containerId, string valueId)
+        private IEnumerable<string> getValues(Dictionary<string, object> entity, string containerId, string valueId)
         {
             var container = entity[containerId] as JObject;
             if (container == null)
-                return null;
+                return Enumerable.Empty<string>();
 
             var valuesContainer = container.GetValue(valueId) as JArray;
             if (valuesContainer == null)
-                return null;
+                return Enumerable.Empty<string>();
 
             var result = new List<string>();
             foreach (JObject valueContainer in valuesContainer)
@@ -147,7 +163,7 @@ namespace WebBackend.AnswerExtraction
                 var value = valueContainer.GetValue("value");
                 result.Add(value.ToString());
             }
-            return result.ToArray();
+            return result;
         }
 
         private string getDataValue(JObject propertyContainer, string propertyId)
@@ -170,7 +186,7 @@ namespace WebBackend.AnswerExtraction
             var value = valueObject.ToString();
             return value;
         }
-        
+
         private string processEdge(string edgeId)
         {
             if (!edgeId.StartsWith(FreebaseLoader.EdgePrefix))
@@ -185,6 +201,11 @@ namespace WebBackend.AnswerExtraction
                 throw new NotSupportedException("Mid format unknown: " + mid);
 
             return mid.Substring(FreebaseLoader.IdPrefix.Length);
+        }
+
+        internal void AddTargetMids(IEnumerable<string> ids)
+        {
+            TargetIds.UnionWith(ids);
         }
     }
 }

@@ -165,5 +165,7 @@ namespace WebBackend.AnswerExtraction
 
             return mid.Substring(FreebaseLoader.IdPrefix.Length);
         }
+
+
     }
 }

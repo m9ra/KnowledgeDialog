@@ -137,7 +137,8 @@ namespace WebBackend
             FreebaseLoader = new FreebaseLoader(Path.Combine(DataPath, "freebase"));
             QuestionDialogProvider.Refresh();
 
-            AnswerExtraction.DumpCreation_Batch.DumpQuestions();
+            //AnswerExtraction.LuceneIndex_Batch.BuildIndex(FreebaseLoader);
+            AnswerExtraction.ExtractionEvaluation_Batch.RunEvaluation(FreebaseLoader);
             return;
 
             writeQuestionDataset();

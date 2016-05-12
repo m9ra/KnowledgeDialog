@@ -57,6 +57,7 @@
     <Compile Include="AnswerExtraction\DumpCreation_Batch.cs" />
     <Compile Include="AnswerExtraction\Extractor.cs" />
     <Compile Include="AnswerExtraction\FreebaseDumpProcessor.cs" />
+    <Compile Include="AnswerExtraction\LuceneIndex_Batch.cs" />
     <Compile Include="AnswerExtraction\SearchContext.cs" />
     <Compile Include="AnswerExtraction\ExtractionEvaluation_Batch.cs" />
     <Compile Include="AnswerExtraction\WikidataDumpProcessor.cs" />
@@ -70,6 +71,7 @@
     <Compile Include="Dataset\DatasetReader.cs" />
     <Compile Include="Dataset\DatasetWriter.cs" />
     <Compile Include="Dataset\Evaluator.cs" />
+    <Compile Include="Dataset\FreebaseDumpLoader.cs" />
     <Compile Include="Dataset\FreebaseLoader.cs" />
     <Compile Include="Dataset\QuestionDatasetWriter.cs" />
     <Compile Include="Dataset\QuestionDialog.cs" />

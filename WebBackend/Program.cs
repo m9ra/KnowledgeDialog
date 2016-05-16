@@ -73,7 +73,9 @@ namespace WebBackend
                 //arguments were incorrect
                 return;
 
-            //AnswerExtraction.DumpCreation_Batch.DumpQuestions();  
+            AnswerExtraction.DumpCreation_Batch.DumpQuestions();
+
+            return;
 
             var simpleQuestions1 = loadSimpleQuestions("questions1.smpq");
 

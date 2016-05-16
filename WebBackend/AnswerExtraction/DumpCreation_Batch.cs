@@ -21,7 +21,7 @@ namespace WebBackend.AnswerExtraction
             freebaseProcessor.RunIteration();
 
             freebaseWriter.AddTargetMids(freebaseProcessor.AllIds);*/
-            freebaseWriter.WriteDump(@"C:\REPOSITORIES\Wikidata-Toolkit\wdtk-examples\dumpfiles\20160510.freebase.v2.gz");
+            freebaseWriter.WriteDump(@"./20160510.freebase.v2.gz");
         }
     }
 }

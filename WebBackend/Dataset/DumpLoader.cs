@@ -9,7 +9,7 @@ using System.IO.Compression;
 
 namespace WebBackend.Dataset
 {
-    class FreebaseDumpLoader
+    class DumpLoader
     {
         /// <summary>
         /// Path to the dump.
@@ -28,11 +28,7 @@ namespace WebBackend.Dataset
 
         internal IEnumerable<string> Ids { get { return _names.Keys; } }
 
-        /// <summary>
-        /// Path to the dump.
-        /// </summary>
-        /// <param name="dumpPath">Path to the dump.</param>
-        internal FreebaseDumpLoader(string dumpPath)
+        internal DumpLoader(string dumpPath)
         {
             _dumpPath = dumpPath;
 

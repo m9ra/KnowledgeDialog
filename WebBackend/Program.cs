@@ -134,15 +134,18 @@ namespace WebBackend
 
             QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "question_collection_r_");
 
-            FreebaseLoader = new FreebaseLoader(Path.Combine(DataPath, "freebase"));
-            QuestionDialogProvider.Refresh();
 
+            //AnswerExtraction.DumpCreation_Batch.DumpQuestions();
+
+            
+            //QuestionDialogProvider.Refresh();
             //AnswerExtraction.LuceneIndex_Batch.BuildIndex(FreebaseLoader);
-            AnswerExtraction.ExtractionEvaluation_Batch.RunEvaluation(FreebaseLoader);
-            return;
+            //AnswerExtraction.ExtractionEvaluation_Batch.RunEvaluation(FreebaseLoader);
+            //return;
 
-            writeQuestionDataset();
+            //writeQuestionDataset();
 
+            FreebaseLoader = new FreebaseLoader(Path.Combine(DataPath, "freebase"));
             var experiment = Experiments.Get("data_collection5");
             writeDataset(experiment);
 

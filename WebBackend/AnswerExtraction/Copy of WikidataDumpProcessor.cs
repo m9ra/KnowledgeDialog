@@ -21,7 +21,7 @@ namespace WebBackend.AnswerExtraction
     class WikidataDumpProcessor
     {
         /// <summary>
-        /// Path to wikidata file.
+        /// Path to freebase file.
         /// </summary>
         private readonly string _dumpFile;
 
@@ -35,9 +35,9 @@ namespace WebBackend.AnswerExtraction
         /// </summary>
         internal readonly HashSet<string> TargetIds = new HashSet<string>();
 
-        internal WikidataDumpProcessor(string dumpFile)
+        internal WikidataDumpProcessor(string freebaseDataFile)
         {
-            _dumpFile = dumpFile;
+            _dumpFile = freebaseDataFile;
         }
 
         internal void AddTargetMid(string mid)
@@ -51,12 +51,12 @@ namespace WebBackend.AnswerExtraction
         internal void WriteDump(string output)
         {
             _writer = new DumpWriter(output);
-            iterateLines(writeTargetIds);
+            iterateLines(searchIds);
             _writer.Close();
             _writer = null;
         }
 
-        private void writeTargetIds(Dictionary<string, object> entity)
+        private void searchIds(Dictionary<string, object> entity)
         {
             var properties = entity["claims"] as JObject;
             var freebaseId = getDataValue(properties, "P646");
@@ -113,7 +113,7 @@ namespace WebBackend.AnswerExtraction
                                 Console.WriteLine("{0:0.00}% remaining time: {1:hh\\:mm\\:ss}", percentage, remainingTime);
                             }
 
-                            if (line.EndsWith(","))
+                            if (line.EndsWith(','))
                                 line = line.Substring(0, line.Length - 1);
 
 

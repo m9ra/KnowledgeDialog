@@ -15,7 +15,7 @@ namespace WebBackend.AnswerExtraction
             var questionDataset = new QuestionDialogDatasetReader("question_dialogs-train.json");
             var devDataset = new QuestionDialogDatasetReader("question_dialogs-dev.json");
 
-            var dumpLoader = new FreebaseDumpLoader(@"C:\REPOSITORIES\Wikidata-Toolkit\wdtk-examples\dumpfiles\20160510.freebase.v1.gz");
+            var dumpLoader = new DumpLoader(@"C:\REPOSITORIES\Wikidata-Toolkit\wdtk-examples\dumpfiles\20160510.freebase.v1.gz");
 
             var extractor = new AnswerExtraction.Extractor(@".\lucene_freebase_v1_index");
             foreach (var id in dumpLoader.Ids)

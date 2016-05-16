@@ -35,8 +35,14 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="7z.NET">
+      <HintPath>..\packages\7z.NET.1.0.0\lib\net45\7z.NET.dll</HintPath>
+    </Reference>
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Ionic.Zip">
+      <HintPath>.\Ionic.Zip.dll</HintPath>
     </Reference>
     <Reference Include="Lucene.Net">
       <HintPath>..\packages\Lucene.Net.3.0.3\lib\NET40\Lucene.Net.dll</HintPath>
@@ -44,6 +50,9 @@
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpCompress">
+      <HintPath>..\packages\sharpcompress.0.11.6\lib\net40\SharpCompress.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -54,9 +63,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AnswerExtraction\FreebaseDumpProcessor.cs" />
     <Compile Include="AnswerExtraction\DumpCreation_Batch.cs" />
     <Compile Include="AnswerExtraction\Extractor.cs" />
-    <Compile Include="AnswerExtraction\FreebaseDumpProcessor.cs" />
+    <Compile Include="AnswerExtraction\SimpleQuestionDumpProcessor.cs" />
     <Compile Include="AnswerExtraction\LuceneIndex_Batch.cs" />
     <Compile Include="AnswerExtraction\SearchContext.cs" />
     <Compile Include="AnswerExtraction\ExtractionEvaluation_Batch.cs" />
@@ -71,7 +81,8 @@
     <Compile Include="Dataset\DatasetReader.cs" />
     <Compile Include="Dataset\DatasetWriter.cs" />
     <Compile Include="Dataset\Evaluator.cs" />
-    <Compile Include="Dataset\FreebaseDumpLoader.cs" />
+    <Compile Include="Dataset\DumpLoader.cs" />
+    <Compile Include="Dataset\DumpWriter.cs" />
     <Compile Include="Dataset\FreebaseLoader.cs" />
     <Compile Include="Dataset\QuestionDatasetWriter.cs" />
     <Compile Include="Dataset\QuestionDialog.cs" />
@@ -164,6 +175,7 @@
     <Content Include="www\js\chat.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\7z.NET.1.0.0\build\7z.NET.targets" Condition="Exists('..\packages\7z.NET.1.0.0\build\7z.NET.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

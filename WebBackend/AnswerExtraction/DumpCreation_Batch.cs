@@ -15,13 +15,13 @@ namespace WebBackend.AnswerExtraction
     {
         internal static void DumpQuestions()
         {
-            var wikidataWriter = new WikidataDumpProcessor(@"C:\REPOSITORIES\Wikidata-Toolkit\wdtk-examples\dumpfiles\20160510.json.gz");
+            var freebaseWriter = new FreebaseDumpProcessor(@"./freebase.zip");
           
-            var freebaseProcessor = new FreebaseDumpProcessor(@"C:\Databases\SimpleQuestions_v2\SimpleQuestions_v2\freebase-subsets\freebase-FB2M.txt");
+           /* var freebaseProcessor = new SimpleQuestionDumpProcessor(@"./freebase-FB2M.txt");
             freebaseProcessor.RunIteration();
 
-            wikidataWriter.AddTargetMids(freebaseProcessor.AllIds);
-            wikidataWriter.WriteDump(@"C:\REPOSITORIES\Wikidata-Toolkit\wdtk-examples\dumpfiles\20160510.freebase.gz");
+            freebaseWriter.AddTargetMids(freebaseProcessor.AllIds);*/
+            freebaseWriter.WriteDump(@"C:\REPOSITORIES\Wikidata-Toolkit\wdtk-examples\dumpfiles\20160510.freebase.v2.gz");
         }
     }
 }

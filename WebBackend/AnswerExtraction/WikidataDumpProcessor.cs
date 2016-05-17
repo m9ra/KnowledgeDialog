@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-using ICSharpCode.SharpZipLib;
-
 using System.IO;
 using System.IO.Compression;
 

@@ -8,7 +8,7 @@ using KnowledgeDialog.Knowledge;
 
 namespace KnowledgeDialog.PoolComputation
 {
-    class ContextPool
+    public class ContextPool
     {
         public int ActiveCount { get { return _accumulator.Count; } }
 

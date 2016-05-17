@@ -35,27 +35,22 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="7z.NET">
-      <HintPath>..\packages\7z.NET.1.0.0\lib\net45\7z.NET.dll</HintPath>
-    </Reference>
-    <Reference Include="ICSharpCode.SharpZipLib">
+    <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
-    <Reference Include="Ionic.Zip">
-      <HintPath>.\Ionic.Zip.dll</HintPath>
-    </Reference>
-    <Reference Include="Lucene.Net">
+    <Reference Include="Lucene.Net, Version=3.0.3.0, Culture=neutral, PublicKeyToken=85089178b9ac3181, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Lucene.Net.3.0.3\lib\NET40\Lucene.Net.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="SharpCompress">
-      <HintPath>..\packages\sharpcompress.0.11.6\lib\net40\SharpCompress.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -106,6 +101,7 @@
     <Compile Include="Experiment\Statistics.cs" />
     <Compile Include="FormatHelper.cs" />
     <Compile Include="Experiment\LogFile.cs" />
+    <Compile Include="GeneralizationQA\GoldenAnswer_Batch.cs" />
     <Compile Include="InputManager.cs" />
     <Compile Include="Task\CollectionTaskInstance.cs" />
     <Compile Include="Task\InformativeTaskInstance.cs" />
@@ -175,7 +171,6 @@
     <Content Include="www\js\chat.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\packages\7z.NET.1.0.0\build\7z.NET.targets" Condition="Exists('..\packages\7z.NET.1.0.0\build\7z.NET.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

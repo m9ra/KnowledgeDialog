@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-using ICSharpCode.SharpZipLib;
-
 using System.IO;
 using System.IO.Compression;
 
@@ -31,87 +29,6 @@ namespace WebBackend.AnswerExtraction
         internal FreebaseEntity(string freebaseId)
         {
             FreebaseId = freebaseId;
-        }
-    }
-
-    sealed class GzipDecorator : Stream
-    {
-        private readonly Stream _readStream;
-        private Ionic.Zlib.GZipStream _gzip;
-        private long _totalIn;
-        private long _totalOut;
-
-        public GzipDecorator(Stream readStream)
-        {
-            _readStream = readStream;
-            _gzip = new Ionic.Zlib.GZipStream(_readStream, Ionic.Zlib.CompressionMode.Decompress, true);
-        }
-
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            var bytesRead = _gzip.Read(buffer, offset, count);
-            if (bytesRead <= 0 && _readStream.Position < _readStream.Length)
-            {
-                _totalIn += _gzip.TotalIn + 18;
-                _totalOut += _gzip.TotalOut;
-                _gzip.Dispose();
-                _readStream.Position = _totalIn;
-                _gzip = new Ionic.Zlib.GZipStream(_readStream, Ionic.Zlib.CompressionMode.Decompress, true);
-                bytesRead = _gzip.Read(buffer, offset, count);
-            }
-            return bytesRead;
-        }
-
-        public override bool CanRead
-        {
-            get { return true; }
-        }
-
-        public override bool CanSeek
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        public override bool CanWrite
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        public override void Flush()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override long Length
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        public override long Position
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void SetLength(long value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            throw new NotImplementedException();
         }
     }
 
@@ -195,30 +112,13 @@ namespace WebBackend.AnswerExtraction
 
             //152470320
             using (var fileStream = new FileStream(_dumpFile, FileMode.Open, FileAccess.Read))
+            using (var zip = new ZipArchive(fileStream, ZipArchiveMode.Read))
             {
-
-             /*   for (var i = 0; i < 200; ++i)
+                foreach (var entry in zip.Entries)
                 {
-                    fileStream.Position =  152470320-i;
-                    Console.Write("{0:00} ", fileStream.ReadByte());
-                }
-                */
-                while (fileStream.Position < fileStream.Length)
-                {
-                   // var header = fileStream.ReadByte();
-
-                    //var fileGzip = new Ionic.Zlib.GZipStream(fileStream, Ionic.Zlib.CompressionMode.Decompress);
-                  /*  var fileGzip = new GZipStream(fileStream, CompressionMode.Decompress);
-                    var position = fileGzip.Position;
-                    var len = fileGzip.Length;
-                    */
-                 //   var fileGzip = new GzipDecorator(fileStream);
-                    //var fileGzip = new SevenZipNET.SevenZipExtractor(_dumpFile);
-                    //using(var fileGzip=new SharpCompress.Compressor.Deflate.GZipStream(fileStream,SharpCompress.Compressor.CompressionMode.Decompress))
-                    //using (var fileGzip = new ICSharpCode.SharpZipLib.GZip.GZipInputStream(fileStream)) 
-                    using (var fileGzip = new GZipStream(fileStream,CompressionMode.Decompress))
+                    using (var stream = entry.Open())
                     {
-                        var file = new StreamReader(fileGzip);
+                        var file = new StreamReader(stream);
                         while (!file.EndOfStream)
                         {
                             var currentPosition = fileStream.Position;

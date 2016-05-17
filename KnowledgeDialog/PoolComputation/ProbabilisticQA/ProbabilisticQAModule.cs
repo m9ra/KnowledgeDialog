@@ -13,7 +13,7 @@ using KnowledgeDialog.PoolComputation.MappedQA.PoolRules;
 
 namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
 {
-    class ProbabilisticQAModule : QuestionAnsweringModuleBase
+    public class ProbabilisticQAModule : QuestionAnsweringModuleBase
     {
         /// <summary>
         /// Probabilistic mapping.
@@ -35,7 +35,7 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
         /// </summary>
         private readonly HashSet<Interpretation> _completedGeneralInterpretations = new HashSet<Interpretation>();
 
-        internal ProbabilisticQAModule(ComposedGraph graph, CallStorage storage)
+        public ProbabilisticQAModule(ComposedGraph graph, CallStorage storage)
             : base(graph, storage)
         {
         }
@@ -45,7 +45,7 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
             return GetRankedAnswer(question, pool).Value;
         }
 
-        internal Ranked<IEnumerable<NodeReference>> GetRankedAnswer(string question, ContextPool pool)
+        public Ranked<IEnumerable<NodeReference>> GetRankedAnswer(string question, ContextPool pool)
         {
             //keep original pool non-modified
             pool = pool.Clone();
@@ -79,7 +79,7 @@ namespace KnowledgeDialog.PoolComputation.ProbabilisticQA
         /// Starts optimization routine of the module for given number of steps.
         /// </summary>
         /// <param name="stepCount">Number of steps to optimize if positive, otherwise infinite number of steps is applied.</param>
-        internal void Optimize(int stepCount)
+        public void Optimize(int stepCount)
         {
             var currentStep = 0;
             while (currentStep < stepCount || stepCount < 0)

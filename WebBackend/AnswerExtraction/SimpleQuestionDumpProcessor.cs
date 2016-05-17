@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 
+using KnowledgeDialog.Knowledge;
+
 using WebBackend.Dataset;
 
 namespace WebBackend.AnswerExtraction
@@ -166,6 +168,10 @@ namespace WebBackend.AnswerExtraction
             return mid.Substring(FreebaseLoader.IdPrefix.Length);
         }
 
-
+        internal GraphLayerBase GetLayer()
+        {
+            var layer = new ExplicitLayer();
+            throw new NotImplementedException();
+        }
     }
 }

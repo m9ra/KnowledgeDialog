@@ -73,7 +73,8 @@ namespace WebBackend
                 //arguments were incorrect
                 return;
 
-            AnswerExtraction.DumpCreation_Batch.DumpQuestions();
+            //AnswerExtraction.DumpCreation_Batch.DumpQuestions();
+            GeneralizationQA.GoldenAnswer_Batch.RunEvaluation();
 
             return;
 

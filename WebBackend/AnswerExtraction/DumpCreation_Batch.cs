@@ -15,9 +15,9 @@ namespace WebBackend.AnswerExtraction
     {
         internal static void DumpQuestions()
         {
-            var freebaseWriter = new FreebaseDumpProcessor(@"C:\REPOSITORIES\Wikidata-Toolkit\wdtk-examples\dumpfiles\freebase.zip");
+            var freebaseWriter = new FreebaseDumpProcessor(@"C:\REPOSITORIES\freebase.zip");
 
-            /* var freebaseProcessor = new SimpleQuestionDumpProcessor(@"C:\REPOSITORIES\Wikidata-Toolkit\wdtk-examples\dumpfiles\freebase-FB2M.txt");
+            /* var freebaseProcessor = new SimpleQuestionDumpProcessor(@"C:\Databases\SimpleQuestions_v2\SimpleQuestions_v2\freebase-subsets\freebase-FB2M.txt");
              freebaseProcessor.RunIteration();
 
              freebaseWriter.AddTargetMids(freebaseProcessor.AllIds);*/

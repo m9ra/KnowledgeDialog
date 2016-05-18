@@ -136,6 +136,8 @@ namespace WebBackend.AnswerExtraction
                             }
 
                             var parts = line.Split('\t');
+                            if (parts[3] != ".")
+                                throw new NotImplementedException();
 
                             handler(parts[0], parts[1], parts[2]);
                         }

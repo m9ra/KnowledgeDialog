@@ -18,6 +18,11 @@ namespace KnowledgeDialog.Knowledge
         /// </summary>
         private readonly Dictionary<NodeReference, Dictionary<string, List<NodeReference>>> _inEdges;
 
+        /// <summary>
+        /// Nodes that are cached according to its data.
+        /// </summary>
+        private readonly Dictionary<string, NodeReference> _cachedNodes = new Dictionary<string, NodeReference>();
+
 
         public ExplicitLayer()
             : this(new Dictionary<NodeReference, Dictionary<string, List<NodeReference>>>(), new Dictionary<NodeReference, Dictionary<string, List<NodeReference>>>())
@@ -40,6 +45,20 @@ namespace KnowledgeDialog.Knowledge
         {
             addEdge(from, edge, to, _outEdges);
             addEdge(to, edge, from, _inEdges);
+        }
+
+        /// <summary>
+        /// Creates <see cref="NodeReference"/> from given data.
+        /// </summary>
+        /// <param name="data">Data to be referenced.</param>
+        /// <returns>The created <see cref="NodeReference"/>.</returns>
+        public NodeReference CreateReference(string data)
+        {
+            NodeReference node;
+            if (!_cachedNodes.TryGetValue(data, out node))
+                _cachedNodes[data] = node = GraphLayerBase.CreateReference(data);
+
+            return node;
         }
 
         /// <summary>

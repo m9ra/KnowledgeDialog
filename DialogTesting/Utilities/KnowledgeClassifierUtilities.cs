@@ -19,7 +19,7 @@ namespace DialogTesting.Utilities
 
         public static KnowledgeClassifier<string> Advice(this KnowledgeClassifier<string> classifier, string nodeData, string cls)
         {
-            var node = ExplicitLayer.CreateReference(nodeData);
+            var node = GraphLayerBase.CreateReference(nodeData);
             classifier.Advice(node, cls);
             return classifier;
         }

@@ -23,7 +23,7 @@ namespace WebBackend.GeneralizationQA
             var trainDataset = new QuestionDialogDatasetReader("question_dialogs-train.json");
             var devDataset = new QuestionDialogDatasetReader("question_dialogs-dev.json");
 
-            var simpleQuestions = new SimpleQuestionDumpProcessor(@"C:\REPOSITORIES\Wikidata-Toolkit\wdtk-examples\dumpfiles\freebase-FB2M.txt");
+            var simpleQuestions = new SimpleQuestionDumpProcessor(@"C:\Databases\SimpleQuestions_v2\SimpleQuestions_v2\freebase-subsets\freebase-FB2M.txt");
             var layer = simpleQuestions.GetLayer();
             var graph = new ComposedGraph(layer);
 

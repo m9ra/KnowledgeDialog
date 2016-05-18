@@ -9,6 +9,8 @@ using KnowledgeDialog.Knowledge;
 
 using WebBackend.Dataset;
 
+delegate void EntityLineProcessor(string entity, string edge, string[] targets);
+
 namespace WebBackend.AnswerExtraction
 {
     class SimpleQuestionDumpProcessor
@@ -17,6 +19,11 @@ namespace WebBackend.AnswerExtraction
         /// Path to freebase file.
         /// </summary>
         private readonly string _freebaseDataFile;
+
+        /// <summary>
+        /// Strings that are "manually" interned.
+        /// </summary>
+        private readonly Dictionary<string, string> _internedStrings = new Dictionary<string, string>();
 
         /// <summary>
         /// All ids met in the DB.
@@ -98,7 +105,7 @@ namespace WebBackend.AnswerExtraction
                 }
             }
         }
-        
+
         internal void RunAbstractIteration()
         {
             var lineIndex = 0;
@@ -115,33 +122,43 @@ namespace WebBackend.AnswerExtraction
                     foreach (var entity2Mid in entities)
                     {
                         var entity2 = processMid(entity2Mid);
-                        if(TargetIds.Contains(entity2))
+                        if (TargetIds.Contains(entity2))
                             _foundIds.Add(entity2);
                     }
                 }
             }
         }
 
-        internal void WriteCoverDump(string outputfile)
+        private void iterateLines(EntityLineProcessor processor)
         {
-            using (var output = new StreamWriter(outputfile))
+            var totalSize = new FileInfo(_freebaseDataFile).Length;
+            using(var fileStream=File.OpenRead(_freebaseDataFile))
+            using (var file = new StreamReader(fileStream))
             {
-                using (var file = new StreamReader(_freebaseDataFile))
+                var currentLine = 0;
+                while (!file.EndOfStream)
                 {
-                    while (!file.EndOfStream)
+                    ++currentLine;
+                    if (currentLine % 100000 == 0)
                     {
-                        var line = file.ReadLine();
-                        var parts = line.Split('\t');
-                        var entity1 = processMid(parts[0]);
-                        var edge = processEdge(parts[1]);
-                        var entity2 = processMid(parts[2]);
-
-                        if (TargetIds.Contains(entity1) && TargetIds.Contains(entity2))
-                        {
-                            var outputLine = entity1 + ";" + edge + ";" + entity2;
-                            output.WriteLine(outputLine);
-                        }
+                        var currentPosition = fileStream.Position;
+                        Console.WriteLine("{0:0.00}", 100.0 * currentPosition / totalSize);
                     }
+
+
+                    var line = file.ReadLine();
+                    var parts = line.Split('\t');
+                    var entity1 = processMid(parts[0]);
+                    var edge = processEdge(parts[1]);
+                    
+                    var targetMids = parts[2].Split(' ');
+                    var targetEntities = new string[targetMids.Length];
+                    for (var i = 0; i < targetMids.Length; ++i)
+                    {
+                        targetEntities[i] = processMid(targetMids[i]);
+
+                    }
+                    processor(entity1, edge, targetEntities);
                 }
             }
         }
@@ -170,8 +187,31 @@ namespace WebBackend.AnswerExtraction
 
         internal GraphLayerBase GetLayer()
         {
+
             var layer = new ExplicitLayer();
-            throw new NotImplementedException();
+
+            iterateLines((entity, edge, targetEntities) =>
+            {
+                var entityNode = layer.CreateReference(intern(entity));
+                edge = intern(edge);
+
+                foreach (var targetEntity in targetEntities)
+                {
+                    var targetNode = layer.CreateReference(intern(targetEntity));
+                    layer.AddEdge(entityNode, edge, targetNode);
+                }
+            });
+
+            return layer;
+        }
+
+        private string intern(string str)
+        {
+            string result;
+            if (!_internedStrings.TryGetValue(str, out result))
+                _internedStrings[str] = result = str;
+
+            return result;
         }
     }
 }

@@ -15,6 +15,8 @@ namespace WebBackend.Dataset
 
         internal static readonly string IdPrefix = "www.freebase.com/m/";
 
+        internal static string EnglishSuffix = "@en";
+
         internal static readonly string ApiUrlPrefix = "https://www.googleapis.com/freebase/v1/rdf/m/";
 
         internal static readonly string ApiKey = "AIzaSyBq2ESLNAtgJT9zXUVoDG3vUlnRIsL1tKM";
@@ -102,7 +104,8 @@ namespace WebBackend.Dataset
         {
             var filePath = Path.Combine(CachePath, id + ".sdx");
             if (!File.Exists(filePath))
-                downloadFile(ApiUrlPrefix + id + "?key=" + ApiKey, filePath);
+                return new string[0];
+           //     downloadFile(ApiUrlPrefix + id + "?key=" + ApiKey, filePath);
 
             return File.ReadAllLines(filePath);
         }

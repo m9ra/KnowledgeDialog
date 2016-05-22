@@ -49,7 +49,7 @@ namespace WebBackend.AnswerExtraction
         /// <summary>
         /// Entities to write.
         /// </summary>
-        private Dictionary<string, FreebaseEntity> _entitiesToWrite;
+        private Dictionary<string, FreebaseEntity> _entitiesToWrite=new Dictionary<string,FreebaseEntity>();
 
         /// <summary>
         /// Ids which edges will be searched in the data file.
@@ -88,17 +88,36 @@ namespace WebBackend.AnswerExtraction
                 return;
 
             var id = freebaseId.Substring(RdfIdPrefix.Length, freebaseId.Length - RdfIdPrefix.Length - 1);
-            if (!TargetIds.Contains(freebaseId))
+
+            if (!TargetIds.Contains(id))
                 return;
 
             FreebaseEntity entity;
             if (!_entitiesToWrite.TryGetValue(id, out entity))
                 _entitiesToWrite[id] = entity = new FreebaseEntity(id);
 
+            var isEnglishValue=value.EndsWith(FreebaseLoader.EnglishSuffix);
+            if(!isEnglishValue)
+                //we are interested in english only
+                return;
+
+            var rawValue=value.Substring(1,value.Length-FreebaseLoader.EnglishSuffix.Length-2);
+
             switch (edge)
             {
-                case "TODO":
-                    throw new NotImplementedException();
+                /*case "<http://www.w3.org/2000/01/rdf-schema#label>":
+                    entity.Label = rawValue;
+                    break;*/
+                case "<http://rdf.freebase.com/ns/common.topic.description>":
+                    entity.Description = rawValue;
+                    break;
+                case "<http://rdf.freebase.com/ns/type.object.name>":
+                    entity.Label = rawValue;
+                    break;
+                case "<http://rdf.freebase.com/ns/common.topic.alias>":
+                    entity.Aliases.Add(rawValue);
+                    break;
+                
                 default:
                     return;
             }

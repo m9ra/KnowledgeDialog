@@ -73,7 +73,10 @@ namespace WebBackend
                 //arguments were incorrect
                 return;
 
-            AnswerExtraction.DumpCreation_Batch.DumpQuestions();
+            FreebaseLoader = new FreebaseLoader(Path.Combine(DataPath, "freebase"));
+            AnswerExtraction.ExtractionEvaluation_Batch.RunEvaluation(FreebaseLoader);
+            //AnswerExtraction.LuceneIndex_Batch.BuildIndex();
+            //AnswerExtraction.DumpCreation_Batch.DumpQuestions();
            // GeneralizationQA.GoldenAnswer_Batch.RunEvaluation();
 
             return;
@@ -148,7 +151,7 @@ namespace WebBackend
 
             //writeQuestionDataset();
 
-            FreebaseLoader = new FreebaseLoader(Path.Combine(DataPath, "freebase"));
+            
             var experiment = Experiments.Get("data_collection5");
             writeDataset(experiment);
 

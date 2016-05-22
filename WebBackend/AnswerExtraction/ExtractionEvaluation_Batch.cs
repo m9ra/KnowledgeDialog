@@ -58,8 +58,8 @@ namespace WebBackend.AnswerExtraction
                             Console.WriteLine("\t desired: " + correctAnswer);
                             foreach (var scoredId in scores.Take(5))
                             {
-                                //var names = getNamesRepresentation(scoredId.Value, loader);
-                                //Console.WriteLine("\t {0:0.00}: {1}", scoredId.Rank, names);
+                                var names = getNamesRepresentation(scoredId.Value, loader);
+                                Console.WriteLine("\t {0:0.00}: {1}", scoredId.Rank, names);
                             }
 
                         }

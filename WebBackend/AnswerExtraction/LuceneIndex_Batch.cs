@@ -10,12 +10,12 @@ namespace WebBackend.AnswerExtraction
 {
     class LuceneIndex_Batch
     {
-        internal static void BuildIndex(FreebaseLoader loader)
+        internal static void BuildIndex()
         {
             var questionDataset = new QuestionDialogDatasetReader("question_dialogs-train.json");
             var devDataset = new QuestionDialogDatasetReader("question_dialogs-dev.json");
 
-            var dumpLoader = new DumpLoader(@"C:\REPOSITORIES\Wikidata-Toolkit\wdtk-examples\dumpfiles\20160510.freebase.v1.gz");
+            var dumpLoader = new DumpLoader(@"C:\REPOSITORIES\Wikidata-Toolkit\wdtk-examples\dumpfiles\20160510.freebase.v2.gz");
 
             var extractor = new AnswerExtraction.Extractor(@".\lucene_freebase_v1_index");
             foreach (var id in dumpLoader.Ids)
@@ -38,7 +38,7 @@ namespace WebBackend.AnswerExtraction
                 if (label != null)
                     includedCount += 1;
                 else
-                    Console.WriteLine(dialog.AnswerMid + ": " + string.Join(", ", loader.GetNames(dialog.AnswerMid)));
+                    Console.WriteLine(dialog.AnswerMid);
 
                 totalCount += 1;
             }

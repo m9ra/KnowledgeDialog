@@ -73,14 +73,14 @@ namespace WebBackend
                 //arguments were incorrect
                 return;
 
-            FreebaseLoader = new FreebaseLoader(Path.Combine(DataPath, "freebase"));
-            AnswerExtraction.ExtractionEvaluation_Batch.RunEvaluation(FreebaseLoader);
-            //AnswerExtraction.LuceneIndex_Batch.BuildIndex();
+            AnswerExtraction.ExtractionEvaluation_Batch.RunEvaluation();
+           // AnswerExtraction.LuceneIndex_Batch.BuildIndex();
             //AnswerExtraction.DumpCreation_Batch.DumpQuestions();
            // GeneralizationQA.GoldenAnswer_Batch.RunEvaluation();
 
             return;
 
+            FreebaseLoader = new FreebaseLoader(Path.Combine(DataPath, "freebase"));
             var simpleQuestions1 = loadSimpleQuestions("questions1.smpq");
 
             var simpleQuestionsTrain = loadSimpleQuestions("questions_train.smpq");

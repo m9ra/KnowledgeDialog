@@ -23,8 +23,71 @@ using KnowledgeDialog.Knowledge;
 namespace WebBackend.AnswerExtraction
 {
 
+    class EntityInfo : IComparable<EntityInfo>
+    {
+        public readonly string Name = null;
+
+        public readonly string Mid;
+
+        public readonly double Score = 0;
+
+        private readonly double _bestLabelScore = 0;
+
+        internal EntityInfo(string mid)
+        {
+            Mid = mid;
+        }
+
+        private EntityInfo(string mid, string name, double score, double bestLabelScore)
+        {
+            Mid = mid;
+            Name = name;
+            Score = score;
+            _bestLabelScore = bestLabelScore;
+        }
+
+        internal EntityInfo AddScore(string content, double score)
+        {
+            var isAlias = content.Length < 15;
+            if (isAlias && score > _bestLabelScore)
+            {
+                return new EntityInfo(Mid, content, Score + score, score);
+            }
+            else
+            {
+                return new EntityInfo(Mid, Name, Score + score, _bestLabelScore);
+            }
+        }
+
+        internal EntityInfo SubtractScore(double score)
+        {
+            return new EntityInfo(Mid, Name, Score - score, _bestLabelScore);
+        }
+
+        public override bool Equals(object obj)
+        {
+            var o = obj as EntityInfo;
+            if (o == null)
+                return false;
+
+            return this.Mid.Equals(o.Mid);
+        }
+
+        public override int GetHashCode()
+        {
+            return Mid.GetHashCode();
+        }
+
+        public int CompareTo(EntityInfo other)
+        {
+            return Score.CompareTo(other.Score);
+        }
+    }
+
     class Extractor
     {
+        internal static readonly string IdPrefix = "www.freebase.com/m/";
+
         /// <summary>
         /// Path to index directory.
         /// </summary>
@@ -46,7 +109,9 @@ namespace WebBackend.AnswerExtraction
 
         private readonly Dictionary<string, int> _leadingNgramCounts = new Dictionary<string, int>();
 
-        private readonly QueryParser _parser;
+        private readonly QueryParser _contentParser;
+
+        private readonly QueryParser _idParser;
 
         private Store.FSDirectory _directory;
 
@@ -63,7 +128,8 @@ namespace WebBackend.AnswerExtraction
             _directory = Store.FSDirectory.Open(_indexPath);
             _analyzer = new StandardAnalyzer(Version.LUCENE_30);
 
-            _parser = new QueryParser(Version.LUCENE_30, "content", _analyzer);
+            _contentParser = new QueryParser(Version.LUCENE_30, "content", _analyzer);
+            _idParser = new QueryParser(Version.LUCENE_30, "id", _analyzer);
         }
 
         public void RebuildFreebaseIndex()
@@ -112,17 +178,17 @@ namespace WebBackend.AnswerExtraction
         {
             var fldContent = new Field("content", content.ToLowerInvariant(), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.YES);
 
-            var fldId = new Field("id", id.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            var fldId = new Field("id", getFreebaseMid(id), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
             var doc = new Document();
             doc.Add(fldContent);
             doc.Add(fldId);
             return doc;
         }
 
-        private Dictionary<string, double> rawScores(string[] ngrams, int aliasLength, double leadingScoreFactor)
+        private Dictionary<string, EntityInfo> rawScores(string[] ngrams, int aliasLength, double leadingScoreFactor)
         {
             int leadingScore = 0;
-            var scores = new Dictionary<string, double>();
+            var scores = new Dictionary<string, EntityInfo>();
             var skipNext = false;
             foreach (var ngram in ngrams)
             {
@@ -145,7 +211,7 @@ namespace WebBackend.AnswerExtraction
                     continue;
                 }
 
-                var scoredDocs = getScoredDocs(ngram);
+                var scoredDocs = getScoredContentDocs(ngram);
                 foreach (var dc in scoredDocs)
                 {
                     var id = getId(dc);
@@ -168,9 +234,12 @@ namespace WebBackend.AnswerExtraction
                         score = score / 15;
                     }
 
-                    double actualScore;
-                    scores.TryGetValue(id, out actualScore);
-                    scores[id] = actualScore + score;
+                    EntityInfo entity;
+                    if (!scores.TryGetValue(id, out entity))
+                    {
+                        scores[id] = entity = new EntityInfo(id);
+                    }
+                    scores[id] = entity.AddScore(content, score);
                 }
 
                 int currentScore;
@@ -187,53 +256,66 @@ namespace WebBackend.AnswerExtraction
             return scores;
         }
 
-        internal Dictionary<string, double> RawScores(string[] ngrams)
+        internal Dictionary<string, EntityInfo> RawScores(string[] ngrams)
         {
             var aliasLength = 15;
             return rawScores(ngrams, aliasLength, 3);
         }
 
-        internal Ranked<string>[] Score(string[] ngrams, string[] contextNgrams)
+        internal string GetLabel(string mid)
+        {
+            var docs = getScoredIdDocs(mid);
+            string label = null;
+            foreach (var doc in docs)
+            {
+                var id = getId(doc);
+                if (id != mid)
+                    continue;
+
+                var content=getContent(doc);
+                if (label == null)
+                    label = content;
+
+                if (content.Length < label.Length)
+                    label = content;
+            }
+
+            return label;
+        }
+
+        internal EntityInfo[] Score(string[] ngrams, string[] contextNgrams)
         {
             var scores = RawScores(ngrams);
             if (scores.Count == 0)
-                return new Ranked<string>[0];
+                return new EntityInfo[0];
 
             var badScores = rawScores(contextNgrams, 15, 3.0);
             foreach (var badScore in badScores)
             {
                 //break;
                 if (scores.ContainsKey(badScore.Key))
-                    scores[badScore.Key] -= badScore.Value / 10;
+                    scores[badScore.Key] = scores[badScore.Key].SubtractScore(badScore.Value.Score / 10);
             }
 
-            var rankedAnswers = new List<Ranked<string>>();
+            var rankedAnswers = new List<EntityInfo>();
             foreach (var pair in scores)
             {
-                var rank = new Ranked<string>(pair.Key, pair.Value);
-                rankedAnswers.Add(rank);
+                rankedAnswers.Add(pair.Value);
             }
 
             rankedAnswers.Sort();
+            rankedAnswers.Reverse();
             return rankedAnswers.ToArray();
         }
 
-        public string Find(IEnumerable<string> ngrams, IEnumerable<string> contextNgrams)
-        {
-            var bestScore = Score(ngrams.ToArray(), contextNgrams.ToArray()).FirstOrDefault();
-            if (bestScore == null)
-                return null;
 
-            return bestScore.Value;
-        }
-
-        private IEnumerable<ScoreDoc> getScoredDocs(string termVariant)
+        private IEnumerable<ScoreDoc> getScoredContentDocs(string termVariant)
         {
             ScoreDoc[] docs;
             if (!_scoredDocsCache.TryGetValue(termVariant, out docs))
             {
                 var queryStr = "\"" + QueryParser.Escape(termVariant) + "\"";
-                var query = _parser.Parse(queryStr);
+                var query = _contentParser.Parse(queryStr);
 
                 var hits = _searcher.Search(query, 100);
                 docs = hits.ScoreDocs.ToArray();
@@ -241,6 +323,29 @@ namespace WebBackend.AnswerExtraction
             }
 
             return docs;
+        }
+
+        private IEnumerable<ScoreDoc> getScoredIdDocs(string id)
+        {
+            var mid = getFreebaseMid(id);
+            ScoreDoc[] docs;
+            var queryStr = "\"" + QueryParser.Escape(mid) + "\"";
+            var query = _idParser.Parse(queryStr);
+
+            var hits = _searcher.Search(query, 100);
+            docs = hits.ScoreDocs.ToArray();
+            _scoredDocsCache[id] = docs;
+
+            return docs;
+        }
+
+        private string getFreebaseMid(string id)
+        {
+            if (!id.StartsWith(IdPrefix))
+                throw new NotSupportedException();
+
+            var mid = id.Substring(IdPrefix.Length);
+            return mid;
         }
 
         internal void AddEntry(string freebaseId, IEnumerable<string> aliases, string description)
@@ -257,7 +362,7 @@ namespace WebBackend.AnswerExtraction
 
             foreach (var ngram in ngrams)
             {
-                var docs = getScoredDocs(ngram);
+                var docs = getScoredContentDocs(ngram);
                 var bestDoc = docs.FirstOrDefault();
                 if (bestDoc == null)
                     //nothing found for the ngram
@@ -306,7 +411,7 @@ namespace WebBackend.AnswerExtraction
         private string getId(ScoreDoc scoreDoc)
         {
             var doc = _searcher.Doc(scoreDoc.Doc);
-            return doc.GetField("id").StringValue;
+            return IdPrefix + doc.GetField("id").StringValue;
         }
 
         private string getContent(ScoreDoc scoreDoc)

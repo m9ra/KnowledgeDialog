@@ -13,12 +13,12 @@ namespace WebBackend.AnswerExtraction
     /// </summary>
     class ExtractionEvaluation_Batch
     {
-        internal static void RunEvaluation(FreebaseLoader loader)
+        internal static void RunEvaluation()
         {
             var trainDataset = new QuestionDialogDatasetReader("question_dialogs-train.json");
             var devDataset = new QuestionDialogDatasetReader("question_dialogs-dev.json");
 
-            var extractor = new AnswerExtraction.Extractor(@".\lucene_freebase_v1_index");
+            var extractor = new AnswerExtraction.Extractor(@"C:\REPOSITORIES\lucene_freebase_v1_index");
             extractor.LoadIndex();
             foreach (var dialog in trainDataset.Dialogs)
             {
@@ -41,8 +41,8 @@ namespace WebBackend.AnswerExtraction
                         var hints = getAnswerHintNgrams(dialog, extractor).ToArray();
                         var context = getContextNgrams(dialog).ToArray();
                         var scores = extractor.Score(hints, context);
-                        var bestId = scores.Select(r => r.Value).FirstOrDefault();
-                        if (scores.Take(nbest).Select(r => r.Value).Contains(dialog.AnswerMid))
+                        var bestId = scores.Select(e => e.Mid).FirstOrDefault();
+                        if (scores.Take(nbest).Select(e => e.Mid).Contains(dialog.AnswerMid))
                             ++correctNCount;
 
                         if (bestId == dialog.AnswerMid)
@@ -54,12 +54,11 @@ namespace WebBackend.AnswerExtraction
                         {
                             Console.WriteLine("NO " + bestId);
                             Console.WriteLine("\t " + getAnswerPhrase(dialog, extractor));
-                            var correctAnswer = loader.GetNames(dialog.AnswerMid).FirstOrDefault();
+                            var correctAnswer = extractor.GetLabel(dialog.AnswerMid);
                             Console.WriteLine("\t desired: " + correctAnswer);
-                            foreach (var scoredId in scores.Take(5))
+                            foreach (var entity in scores.Take(5))
                             {
-                                var names = getNamesRepresentation(scoredId.Value, loader);
-                                Console.WriteLine("\t {0:0.00}: {1}", scoredId.Rank, names);
+                                Console.WriteLine("\t {0:0.00}: {1}", entity.Name, entity.Score);
                             }
 
                         }
@@ -112,7 +111,7 @@ namespace WebBackend.AnswerExtraction
             return bestPart;
         }
 
-        private static double getScore(string part, Dictionary<string, double> context, AnswerExtraction.Extractor extractor)
+        private static double getScore(string part, Dictionary<string, EntityInfo> context, AnswerExtraction.Extractor extractor)
         {
             var ngrams = getNgrams(part);
             var ngramsArr = ngrams.ToArray();
@@ -120,9 +119,9 @@ namespace WebBackend.AnswerExtraction
             var totalScore = 0.0;
             foreach (var score in scores)
             {
-                double idScore;
-                context.TryGetValue(score.Key, out idScore);
-                totalScore += idScore;
+                EntityInfo entity;
+                if (context.TryGetValue(score.Key, out entity))
+                    totalScore += entity.Score;
             }
             return totalScore;
         }

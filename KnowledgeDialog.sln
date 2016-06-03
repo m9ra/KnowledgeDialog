@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebBackend", "WebBackend\WebBackend.csproj", "{7C95FE30-F2D7-4E88-BDBE-0719F9B1562A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServeRick", "..\..\..\..\..\..\..\..\..\Projekty\SERVERICK\repository\trunk\VSProjects\ServeRick\ServeRick.csproj", "{448AA490-1B38-4C66-B915-EBA43D4695DF}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleQuestions", "SimpleQuestions\SimpleQuestions.csproj", "{2F7F4F35-7E33-44DD-BE8F-D493AEF39DC5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{88837BC2-541B-4BB6-83D7-3FE1AB2E98C4}"
@@ -12,6 +10,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KnowledgeDialog", "KnowledgeDialog\KnowledgeDialog.csproj", "{3E2334C1-A0E1-4FB4-AEEB-0FD743050BD8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DialogTesting", "DialogTesting\DialogTesting.csproj", "{219B5894-6BCA-45D6-9B0D-0E175B2CDB65}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServeRick", "..\..\..\..\..\SERVERICK\repository\trunk\VSProjects\ServeRick\ServeRick.csproj", "{448AA490-1B38-4C66-B915-EBA43D4695DF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,14 +27,6 @@ Global
 		{7C95FE30-F2D7-4E88-BDBE-0719F9B1562A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7C95FE30-F2D7-4E88-BDBE-0719F9B1562A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7C95FE30-F2D7-4E88-BDBE-0719F9B1562A}.Release|x86.ActiveCfg = Release|Any CPU
-		{448AA490-1B38-4C66-B915-EBA43D4695DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{448AA490-1B38-4C66-B915-EBA43D4695DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{448AA490-1B38-4C66-B915-EBA43D4695DF}.Debug|x86.ActiveCfg = Debug|x86
-		{448AA490-1B38-4C66-B915-EBA43D4695DF}.Debug|x86.Build.0 = Debug|x86
-		{448AA490-1B38-4C66-B915-EBA43D4695DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{448AA490-1B38-4C66-B915-EBA43D4695DF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{448AA490-1B38-4C66-B915-EBA43D4695DF}.Release|x86.ActiveCfg = Release|x86
-		{448AA490-1B38-4C66-B915-EBA43D4695DF}.Release|x86.Build.0 = Release|x86
 		{2F7F4F35-7E33-44DD-BE8F-D493AEF39DC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2F7F4F35-7E33-44DD-BE8F-D493AEF39DC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2F7F4F35-7E33-44DD-BE8F-D493AEF39DC5}.Debug|x86.ActiveCfg = Debug|Any CPU
@@ -53,6 +45,14 @@ Global
 		{219B5894-6BCA-45D6-9B0D-0E175B2CDB65}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{219B5894-6BCA-45D6-9B0D-0E175B2CDB65}.Release|Any CPU.Build.0 = Release|Any CPU
 		{219B5894-6BCA-45D6-9B0D-0E175B2CDB65}.Release|x86.ActiveCfg = Release|Any CPU
+		{448AA490-1B38-4C66-B915-EBA43D4695DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{448AA490-1B38-4C66-B915-EBA43D4695DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{448AA490-1B38-4C66-B915-EBA43D4695DF}.Debug|x86.ActiveCfg = Debug|x86
+		{448AA490-1B38-4C66-B915-EBA43D4695DF}.Debug|x86.Build.0 = Debug|x86
+		{448AA490-1B38-4C66-B915-EBA43D4695DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{448AA490-1B38-4C66-B915-EBA43D4695DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{448AA490-1B38-4C66-B915-EBA43D4695DF}.Release|x86.ActiveCfg = Release|x86
+		{448AA490-1B38-4C66-B915-EBA43D4695DF}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

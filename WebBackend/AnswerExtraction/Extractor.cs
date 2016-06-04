@@ -119,8 +119,6 @@ namespace WebBackend.AnswerExtraction
 
         private IndexReader _reader;
 
-        private bool _isTrained = false;
-
 
         internal Extractor(string indexPath)
         {
@@ -149,11 +147,13 @@ namespace WebBackend.AnswerExtraction
             {
                 var aliasLengthSum = 0;
                 var aliases = _documents[id];
-                indexWriter.AddDocument(getDocumentWithContent(_documentDescriptions[id], id));
+                indexWriter.AddDocument(getDocumentWithContent(_documentDescriptions[id], id, false));
+                var isLabel = true;
                 foreach (var alias in aliases)
                 {
                     var sanitizedAlias = alias.Trim('"');
-                    indexWriter.AddDocument(getDocumentWithContent(sanitizedAlias, id));
+                    indexWriter.AddDocument(getDocumentWithContent(sanitizedAlias, id, isLabel));
+                    isLabel = false; //first alias is considered to be a label
                     aliasLengthSum += sanitizedAlias.Length;
                 }
 
@@ -174,14 +174,17 @@ namespace WebBackend.AnswerExtraction
             _searcher = new IndexSearcher(_directory, false);
         }
 
-        private Document getDocumentWithContent(string content, string id)
+        private Document getDocumentWithContent(string content, string id, bool isLabel)
         {
+            var isLabelStr = isLabel ? "T" : "F";
+            var fldIsLabel = new Field("isLabel", isLabelStr, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
             var fldContent = new Field("content", content.ToLowerInvariant(), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.YES);
+            var fldId = new Field("id", GetFreebaseId(id), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
 
-            var fldId = new Field("id", getFreebaseMid(id), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
             var doc = new Document();
             doc.Add(fldContent);
             doc.Add(fldId);
+            doc.Add(fldIsLabel);
             return doc;
         }
 
@@ -272,7 +275,10 @@ namespace WebBackend.AnswerExtraction
                 if (id != mid)
                     continue;
 
-                var content=getContent(doc);
+                var content = getContent(doc);
+                if (hasLabel(doc))
+                    return content;
+
                 if (label == null)
                     label = content;
 
@@ -327,7 +333,7 @@ namespace WebBackend.AnswerExtraction
 
         private IEnumerable<ScoreDoc> getScoredIdDocs(string id)
         {
-            var mid = getFreebaseMid(id);
+            var mid = GetFreebaseId(id);
             ScoreDoc[] docs;
             var queryStr = "\"" + QueryParser.Escape(mid) + "\"";
             var query = _idParser.Parse(queryStr);
@@ -339,13 +345,13 @@ namespace WebBackend.AnswerExtraction
             return docs;
         }
 
-        private string getFreebaseMid(string id)
+        internal string GetFreebaseId(string mid)
         {
-            if (!id.StartsWith(IdPrefix))
-                throw new NotSupportedException();
+            if (!mid.StartsWith(IdPrefix))
+                throw new NotSupportedException("Invalid MID format");
 
-            var mid = id.Substring(IdPrefix.Length);
-            return mid;
+            var id = mid.Substring(IdPrefix.Length);
+            return id;
         }
 
         internal void AddEntry(string freebaseId, IEnumerable<string> aliases, string description)
@@ -418,6 +424,12 @@ namespace WebBackend.AnswerExtraction
         {
             var doc = _searcher.Doc(scoreDoc.Doc);
             return doc.GetField("content").StringValue;
+        }
+
+        private bool hasLabel(ScoreDoc scoreDoc)
+        {
+            var doc = _searcher.Doc(scoreDoc.Doc);
+            return doc.GetField("isLabel").StringValue == "T";
         }
     }
 }

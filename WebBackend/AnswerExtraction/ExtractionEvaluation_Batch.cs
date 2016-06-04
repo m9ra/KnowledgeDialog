@@ -22,6 +22,7 @@ namespace WebBackend.AnswerExtraction
             extractor.LoadIndex();
             foreach (var dialog in trainDataset.Dialogs)
             {
+                break;
                 if (dialog.HasCorrectAnswer)
                     extractor.Train(getAnswerHintNgrams(dialog, extractor), dialog.AnswerMid);
             }
@@ -55,10 +56,10 @@ namespace WebBackend.AnswerExtraction
                             Console.WriteLine("NO " + bestId);
                             Console.WriteLine("\t " + getAnswerPhrase(dialog, extractor));
                             var correctAnswer = extractor.GetLabel(dialog.AnswerMid);
-                            Console.WriteLine("\t desired: " + correctAnswer);
+                            Console.WriteLine("\t desired: {0}({1})", correctAnswer, extractor.GetFreebaseId(dialog.AnswerMid));
                             foreach (var entity in scores.Take(5))
                             {
-                                Console.WriteLine("\t {0:0.00}: {1}", entity.Name, entity.Score);
+                                Console.WriteLine("\t {0}: {1:0.00}({2})({3})", entity.Name, entity.Score, extractor.GetFreebaseId(entity.Mid), extractor.GetLabel(entity.Mid));
                             }
 
                         }

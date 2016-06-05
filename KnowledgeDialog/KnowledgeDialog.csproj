@@ -84,6 +84,8 @@
     <Compile Include="Dialog\ICompletitionFeedbackProvider.cs" />
     <Compile Include="Dialog\IInputDialogManager.cs" />
     <Compile Include="Dialog\ParsedUtterance.cs" />
+    <Compile Include="Dialog\Parsing\EntityInfo.cs" />
+    <Compile Include="Dialog\Parsing\LinkedUtterance.cs" />
     <Compile Include="Dialog\Parsing\PatternConfiguration.cs" />
     <Compile Include="Dialog\Parsing\PatternState.cs" />
     <Compile Include="Dialog\Parsing\UtterancePattern.cs" />

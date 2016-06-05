@@ -73,10 +73,11 @@ namespace WebBackend
                 //arguments were incorrect
                 return;
 
-            AnswerExtraction.ExtractionEvaluation_Batch.RunEvaluation();
-           // AnswerExtraction.LuceneIndex_Batch.BuildIndex();
+            AnswerExtraction.ExtractionEvaluation_Batch.RunLinkingExperiment();
+            //AnswerExtraction.ExtractionEvaluation_Batch.RunAnswerExtractionEvaluation();
+            //AnswerExtraction.LuceneIndex_Batch.BuildIndex();
             //AnswerExtraction.DumpCreation_Batch.DumpQuestions();
-           // GeneralizationQA.GoldenAnswer_Batch.RunEvaluation();
+            // GeneralizationQA.GoldenAnswer_Batch.RunEvaluation();
 
             return;
 
@@ -143,7 +144,7 @@ namespace WebBackend
 
             //AnswerExtraction.DumpCreation_Batch.DumpQuestions();
 
-            
+
             //QuestionDialogProvider.Refresh();
             //AnswerExtraction.LuceneIndex_Batch.BuildIndex(FreebaseLoader);
             //AnswerExtraction.ExtractionEvaluation_Batch.RunEvaluation(FreebaseLoader);
@@ -151,7 +152,7 @@ namespace WebBackend
 
             //writeQuestionDataset();
 
-            
+
             var experiment = Experiments.Get("data_collection5");
             writeDataset(experiment);
 

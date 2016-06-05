@@ -72,7 +72,8 @@ namespace WebBackend.AnswerExtraction
             var description = getValue(entity, "descriptions", "en");
             var aliases = getValues(entity, "aliases", "en");
 
-            _writer.Write(freebaseId, label, aliases, description);         
+            //_writer.Write(freebaseId, label, aliases, description);         
+            throw new NotImplementedException();
         }
 
         private void iterateLines(JsonHandler handler)

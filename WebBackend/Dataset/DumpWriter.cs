@@ -23,9 +23,9 @@ namespace WebBackend.Dataset
             _writer = new StreamWriter(gzipStream);
         }
 
-        internal void Write(string freebaseId, string label, IEnumerable<string> aliases, string description)
+        internal void Write(string freebaseId, string label, IEnumerable<string> aliases, string description, int inBounds, int outBounds)
         {
-            var outputLine = freebaseId + "\t" + label + "\t;" + string.Join(";", aliases) + "\t" + description;
+            var outputLine = freebaseId + "\t" + inBounds + "\t" + outBounds + "\t" + label + "\t;" + string.Join(";", aliases) + "\t" + description;
             _writer.WriteLine(outputLine);
         }
 

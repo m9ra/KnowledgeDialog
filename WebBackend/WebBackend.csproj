@@ -61,10 +61,12 @@
     <Compile Include="AnswerExtraction\FreebaseDumpProcessor.cs" />
     <Compile Include="AnswerExtraction\DumpCreation_Batch.cs" />
     <Compile Include="AnswerExtraction\Extractor.cs" />
+    <Compile Include="AnswerExtraction\LinkIndex.cs" />
     <Compile Include="AnswerExtraction\SimpleQuestionDumpProcessor.cs" />
     <Compile Include="AnswerExtraction\LuceneIndex_Batch.cs" />
     <Compile Include="AnswerExtraction\SearchContext.cs" />
     <Compile Include="AnswerExtraction\ExtractionEvaluation_Batch.cs" />
+    <Compile Include="AnswerExtraction\UtteranceLinker.cs" />
     <Compile Include="AnswerExtraction\WikidataDumpProcessor.cs" />
     <Compile Include="Dataset\AnnotatedDialog.cs" />
     <Compile Include="Dataset\AnnotatedDialogBuilder.cs" />

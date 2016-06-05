@@ -26,6 +26,10 @@ namespace WebBackend.AnswerExtraction
 
         internal string Description;
 
+        internal int InBounds;
+
+        internal int OutBounds;
+
         internal FreebaseEntity(string freebaseId)
         {
             FreebaseId = freebaseId;
@@ -76,7 +80,7 @@ namespace WebBackend.AnswerExtraction
             _writer = new DumpWriter(output);
             foreach (var value in _entitiesToWrite.Values)
             {
-                _writer.Write(value.FreebaseId, value.Label, value.Aliases, value.Description);
+                _writer.Write(value.FreebaseId, value.Label, value.Aliases, value.Description, value.InBounds, value.OutBounds);
             }
             _writer.Close();
             _writer = null;
@@ -84,22 +88,37 @@ namespace WebBackend.AnswerExtraction
 
         private void writeTargetIds(string freebaseId, string edge, string value)
         {
+            //count in/out bounds
+            if (value.StartsWith(RdfIdPrefix))
+            {
+                //we have inbound
+                var inBoundId = getId(value);
+                if (TargetIds.Contains(inBoundId))
+                {
+                    var inBoundEntity = getEntity(inBoundId);
+                    ++inBoundEntity.InBounds;
+                }
+            }
+
+            //save entity data
             if (!freebaseId.StartsWith(RdfIdPrefix))
                 return;
 
-            var id = freebaseId.Substring(RdfIdPrefix.Length, freebaseId.Length - RdfIdPrefix.Length - 1);
+            var id = getId(freebaseId);
 
             if (!TargetIds.Contains(id))
                 return;
 
-            FreebaseEntity entity;
-            if (!_entitiesToWrite.TryGetValue(id, out entity))
-                _entitiesToWrite[id] = entity = new FreebaseEntity(id);
+            var entity = getEntity(id);
+            if (value.StartsWith(RdfIdPrefix))
+                ++entity.OutBounds;
 
             var isEnglishValue = value.EndsWith(FreebaseLoader.EnglishSuffix);
             if (!isEnglishValue)
                 //we are interested in english only
                 return;
+
+
 
             var rawValue = value.Substring(1, value.Length - FreebaseLoader.EnglishSuffix.Length - 2);
 
@@ -121,6 +140,20 @@ namespace WebBackend.AnswerExtraction
                 default:
                     return;
             }
+        }
+
+        private FreebaseEntity getEntity(string id)
+        {
+            FreebaseEntity entity;
+            if (!_entitiesToWrite.TryGetValue(id, out entity))
+                _entitiesToWrite[id] = entity = new FreebaseEntity(id);
+            return entity;
+        }
+
+        private static string getId(string freebaseId)
+        {
+            var id = freebaseId.Substring(RdfIdPrefix.Length, freebaseId.Length - RdfIdPrefix.Length - 1);
+            return id;
         }
 
         private void iterateLines(TripletHandler handler)

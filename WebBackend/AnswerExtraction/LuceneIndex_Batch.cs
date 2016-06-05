@@ -15,17 +15,23 @@ namespace WebBackend.AnswerExtraction
             var questionDataset = new QuestionDialogDatasetReader("question_dialogs-train.json");
             var devDataset = new QuestionDialogDatasetReader("question_dialogs-dev.json");
 
-            var dumpLoader = new DumpLoader(@"C:\REPOSITORIES\Wikidata-Toolkit\wdtk-examples\dumpfiles\20160510.freebase.v2.gz");
+            var dumpLoader = new DumpLoader(@"C:\REPOSITORIES\Wikidata-Toolkit\wdtk-examples\dumpfiles\20160510.freebase.v3.gz");
 
             var extractor = new AnswerExtraction.Extractor(@"C:\REPOSITORIES\lucene_freebase_v1_index");
+
+            extractor.StartFreebaseIndexRebuild();
             foreach (var id in dumpLoader.Ids)
             {
-                var names= dumpLoader.GetNames(id);
+                var names = dumpLoader.GetNames(id);
                 var description = dumpLoader.GetDescription(id);
-                extractor.AddEntry(FreebaseLoader.IdPrefix + id, names, description);
+                var inBounds = dumpLoader.GetInBounds(id);
+                var outBounds = dumpLoader.GetOutBounds(id);
+                extractor.AddEntry(FreebaseLoader.IdPrefix + id, names, description, inBounds, outBounds);
             }
+            extractor.FinishFreebaseIndexRebuild();
 
-            extractor.RebuildFreebaseIndex();
+
+            extractor.LoadIndex();
 
             var totalCount = 0;
             var includedCount = 0;

@@ -17,11 +17,11 @@ namespace WebBackend.AnswerExtraction
         {
             var freebaseWriter = new FreebaseDumpProcessor(@"C:\REPOSITORIES\freebase.zip");
 
-             var freebaseProcessor = new SimpleQuestionDumpProcessor(@"C:\Databases\SimpleQuestions_v2\SimpleQuestions_v2\freebase-subsets\freebase-FB2M.txt");
-             freebaseProcessor.RunIteration();
+            var freebaseProcessor = new SimpleQuestionDumpProcessor(@"C:\Databases\SimpleQuestions_v2\SimpleQuestions_v2\freebase-subsets\freebase-FB2M.txt");
+            freebaseProcessor.RunIteration();
 
-             freebaseWriter.AddTargetMids(freebaseProcessor.AllIds);
-            freebaseWriter.WriteDump(@"./20160510.freebase.v2.gz");
+            freebaseWriter.AddTargetMids(freebaseProcessor.AllIds);
+            freebaseWriter.WriteDump(@"./20160510.freebase.v3.gz");
         }
     }
 }

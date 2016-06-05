@@ -17,72 +17,13 @@ using Store = Lucene.Net.Store;
 using Version = Lucene.Net.Util.Version;
 
 using KnowledgeDialog.Dialog;
-using KnowledgeDialog.Knowledge;
+using KnowledgeDialog.Dialog.Parsing;
 
+using KnowledgeDialog.Knowledge;
 
 namespace WebBackend.AnswerExtraction
 {
-
-    class EntityInfo : IComparable<EntityInfo>
-    {
-        public readonly string Name = null;
-
-        public readonly string Mid;
-
-        public readonly double Score = 0;
-
-        private readonly double _bestLabelScore = 0;
-
-        internal EntityInfo(string mid)
-        {
-            Mid = mid;
-        }
-
-        private EntityInfo(string mid, string name, double score, double bestLabelScore)
-        {
-            Mid = mid;
-            Name = name;
-            Score = score;
-            _bestLabelScore = bestLabelScore;
-        }
-
-        internal EntityInfo AddScore(string content, double score)
-        {
-            var isAlias = content.Length < 15;
-            if (isAlias && score > _bestLabelScore)
-            {
-                return new EntityInfo(Mid, content, Score + score, score);
-            }
-            else
-            {
-                return new EntityInfo(Mid, Name, Score + score, _bestLabelScore);
-            }
-        }
-
-        internal EntityInfo SubtractScore(double score)
-        {
-            return new EntityInfo(Mid, Name, Score - score, _bestLabelScore);
-        }
-
-        public override bool Equals(object obj)
-        {
-            var o = obj as EntityInfo;
-            if (o == null)
-                return false;
-
-            return this.Mid.Equals(o.Mid);
-        }
-
-        public override int GetHashCode()
-        {
-            return Mid.GetHashCode();
-        }
-
-        public int CompareTo(EntityInfo other)
-        {
-            return Score.CompareTo(other.Score);
-        }
-    }
+    internal enum ContentCategory { L, A, D };
 
     class Extractor
     {
@@ -94,12 +35,6 @@ namespace WebBackend.AnswerExtraction
         private readonly string _indexPath;
 
         private readonly Analyzer _analyzer;
-
-        private readonly Dictionary<string, IEnumerable<string>> _documents = new Dictionary<string, IEnumerable<string>>();
-
-        private readonly Dictionary<string, string> _documentDescriptions = new Dictionary<string, string>();
-
-        private readonly Dictionary<string, double> _avgDocumentLengths = new Dictionary<string, double>();
 
         private readonly Dictionary<string, ScoreDoc[]> _scoredDocsCache = new Dictionary<string, ScoreDoc[]>();
 
@@ -119,6 +54,8 @@ namespace WebBackend.AnswerExtraction
 
         private IndexReader _reader;
 
+        private IndexWriter _indexWriter;
+
 
         internal Extractor(string indexPath)
         {
@@ -130,7 +67,7 @@ namespace WebBackend.AnswerExtraction
             _idParser = new QueryParser(Version.LUCENE_30, "id", _analyzer);
         }
 
-        public void RebuildFreebaseIndex()
+        public void StartFreebaseIndexRebuild()
         {
             if (Directory.Exists(_indexPath))
                 //we are rebuilding the index from scratch
@@ -140,31 +77,30 @@ namespace WebBackend.AnswerExtraction
 
 
             //create the index writer with the directory and analyzer defined.
-            var indexWriter = new IndexWriter(_directory, _analyzer, IndexWriter.MaxFieldLength.UNLIMITED);
+            _indexWriter = new IndexWriter(_directory, _analyzer, IndexWriter.MaxFieldLength.UNLIMITED);
+        }
 
-            //write the document to the index
-            foreach (var id in _documents.Keys)
+
+        internal void AddEntry(string mid, IEnumerable<string> aliases, string description, int inBounds, int outBounds)
+        {
+
+            _indexWriter.AddDocument(getDocumentWithContent(description, mid, ContentCategory.D, inBounds, outBounds));
+            var isLabel = true;
+            foreach (var alias in aliases)
             {
-                var aliasLengthSum = 0;
-                var aliases = _documents[id];
-                indexWriter.AddDocument(getDocumentWithContent(_documentDescriptions[id], id, false));
-                var isLabel = true;
-                foreach (var alias in aliases)
-                {
-                    var sanitizedAlias = alias.Trim('"');
-                    indexWriter.AddDocument(getDocumentWithContent(sanitizedAlias, id, isLabel));
-                    isLabel = false; //first alias is considered to be a label
-                    aliasLengthSum += sanitizedAlias.Length;
-                }
-
-                _avgDocumentLengths[id] = 1.0 * aliasLengthSum / aliases.Count();
+                var sanitizedAlias = alias.Trim('"');
+                var category = isLabel ? ContentCategory.L : ContentCategory.A;
+                _indexWriter.AddDocument(getDocumentWithContent(sanitizedAlias, mid, category, inBounds, outBounds));
+                isLabel = false; //first alias is considered to be a label
             }
+        }
 
+        public void FinishFreebaseIndexRebuild()
+        {
             //optimize and close the writer
-            indexWriter.Optimize();
-            indexWriter.Dispose();
-
-            LoadIndex();
+            _indexWriter.Optimize();
+            _indexWriter.Dispose();
+            _indexWriter = null;
         }
 
         internal void LoadIndex()
@@ -174,17 +110,22 @@ namespace WebBackend.AnswerExtraction
             _searcher = new IndexSearcher(_directory, false);
         }
 
-        private Document getDocumentWithContent(string content, string id, bool isLabel)
+        private Document getDocumentWithContent(string content, string mid, ContentCategory category, int inBounds, int outBounds)
         {
-            var isLabelStr = isLabel ? "T" : "F";
-            var fldIsLabel = new Field("isLabel", isLabelStr, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            var fldContentCategory = new Field("contentCategory", category.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
             var fldContent = new Field("content", content.ToLowerInvariant(), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.YES);
-            var fldId = new Field("id", GetFreebaseId(id), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            var fldId = new Field("id", GetFreebaseId(mid), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+
+            var fldInBounds = new Field("inBounds", inBounds.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+
+            var fldOutBounds = new Field("outBounds", outBounds.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
 
             var doc = new Document();
             doc.Add(fldContent);
             doc.Add(fldId);
-            doc.Add(fldIsLabel);
+            doc.Add(fldContentCategory);
+            doc.Add(fldInBounds);
+            doc.Add(fldOutBounds);
             return doc;
         }
 
@@ -217,7 +158,7 @@ namespace WebBackend.AnswerExtraction
                 var scoredDocs = getScoredContentDocs(ngram);
                 foreach (var dc in scoredDocs)
                 {
-                    var id = getId(dc);
+                    var mid = getMid(dc);
                     var content = getContent(dc);
                     var isAlias = content.Length < aliasLength;
                     var score = dc.Score;
@@ -238,11 +179,11 @@ namespace WebBackend.AnswerExtraction
                     }
 
                     EntityInfo entity;
-                    if (!scores.TryGetValue(id, out entity))
+                    if (!scores.TryGetValue(mid, out entity))
                     {
-                        scores[id] = entity = new EntityInfo(id);
+                        scores[mid] = entity = createEntity(mid, dc);
                     }
-                    scores[id] = entity.AddScore(content, score);
+                    scores[mid] = entity.AddScore(content, score);
                 }
 
                 int currentScore;
@@ -271,7 +212,7 @@ namespace WebBackend.AnswerExtraction
             string label = null;
             foreach (var doc in docs)
             {
-                var id = getId(doc);
+                var id = getMid(doc);
                 if (id != mid)
                     continue;
 
@@ -287,6 +228,43 @@ namespace WebBackend.AnswerExtraction
             }
 
             return label;
+        }
+
+
+        internal IEnumerable<EntityInfo> GetEntities(string ngram)
+        {
+            var scores = new Dictionary<string, EntityInfo>();
+            var scoredDocs = getScoredContentDocs(ngram);
+            foreach (var dc in scoredDocs)
+            {
+                var mid = getMid(dc);
+                var content = getContent(dc);
+                var isAlias = content.Length < 15;
+                var score = dc.Score;
+                score = score * ngram.Length;
+                if (content.ToLowerInvariant() == ngram.ToLowerInvariant())
+                {
+                    score *= 5 * ngram.Length;
+                }
+                if (isAlias)
+                {
+                    var lengthDiff = Math.Abs(content.Length - ngram.Length);
+                    score = score / content.Length * 2;
+                }
+                else
+                {
+                    score = score / 15;
+                }
+
+                EntityInfo entity;
+                if (!scores.TryGetValue(mid, out entity))
+                {
+                    scores[mid] = entity = createEntity(mid, dc);
+                }
+                scores[mid] = entity.AddScore(content, score);
+            }
+
+            return scores.Values;
         }
 
         internal EntityInfo[] Score(string[] ngrams, string[] contextNgrams)
@@ -314,6 +292,15 @@ namespace WebBackend.AnswerExtraction
             return rankedAnswers.ToArray();
         }
 
+        private EntityInfo createEntity(string mid, ScoreDoc dc)
+        {
+            var label = GetLabel(mid);
+            var doc = _searcher.Doc(dc.Doc);
+
+            var inBounds = int.Parse(doc.GetField("inBounds").StringValue);
+            var outBounds = int.Parse(doc.GetField("outBounds").StringValue);
+            return new EntityInfo(mid, label, inBounds, outBounds);
+        }
 
         private IEnumerable<ScoreDoc> getScoredContentDocs(string termVariant)
         {
@@ -354,11 +341,6 @@ namespace WebBackend.AnswerExtraction
             return id;
         }
 
-        internal void AddEntry(string freebaseId, IEnumerable<string> aliases, string description)
-        {
-            _documents[freebaseId] = aliases;
-            _documentDescriptions[freebaseId] = description;
-        }
 
         internal void Train(IEnumerable<string> ngrams, string correctAnswer)
         {
@@ -374,7 +356,7 @@ namespace WebBackend.AnswerExtraction
                     //nothing found for the ngram
                     continue;
 
-                var id = getId(bestDoc);
+                var id = getMid(bestDoc);
                 if (id == correctAnswer)
                 {
                     //the ngram is helpful
@@ -414,7 +396,7 @@ namespace WebBackend.AnswerExtraction
             }
         }
 
-        private string getId(ScoreDoc scoreDoc)
+        private string getMid(ScoreDoc scoreDoc)
         {
             var doc = _searcher.Doc(scoreDoc.Doc);
             return IdPrefix + doc.GetField("id").StringValue;
@@ -429,7 +411,10 @@ namespace WebBackend.AnswerExtraction
         private bool hasLabel(ScoreDoc scoreDoc)
         {
             var doc = _searcher.Doc(scoreDoc.Doc);
-            return doc.GetField("isLabel").StringValue == "T";
+            var inBound = doc.GetField("inBounds").StringValue;
+            var outBounds = doc.GetField("outBounds").StringValue;
+            return doc.GetField("contentCategory").StringValue == ContentCategory.L.ToString();
+            //return doc.GetField("isLabel").StringValue == "T";
         }
     }
 }

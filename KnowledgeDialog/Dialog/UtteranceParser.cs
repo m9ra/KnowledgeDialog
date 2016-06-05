@@ -104,7 +104,7 @@ namespace KnowledgeDialog.Dialog
             string candidate = null;
             foreach (var entity in entities)
             {
-                var distance = levenshtein(ngram, entity);
+                var distance = Levenshtein(ngram, entity);
                 if (distance < minDistance)
                 {
                     minDistance = distance;
@@ -115,7 +115,7 @@ namespace KnowledgeDialog.Dialog
             return Tuple.Create(candidate, minDistance);
         }
 
-        private static Int32 levenshtein(String a, String b)
+        public static int Levenshtein(string a, string b)
         {
             a = a.ToLower();
             b = b.ToLower();

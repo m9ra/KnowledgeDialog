@@ -10,7 +10,6 @@ namespace WebBackend
 {
     class ResponseManager : ResponseManagerBase
     {
-
         internal ResponseManager(WebApplication app, string rootPath)
             : base(app, rootPath,
             typeof(RootController)
@@ -19,6 +18,5 @@ namespace WebBackend
             ErrorPage(404, "404.haml");
             PublicExtensions("png", "jpg", "css", "js", "scss", "md", "swf", "ico", "txt");
         }
-
     }
 }

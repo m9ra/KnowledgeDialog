@@ -26,6 +26,11 @@ namespace WebBackend.Dataset
         /// </summary>
         private readonly Dictionary<string, string> _descriptions = new Dictionary<string, string>();
 
+        private readonly Dictionary<string, int> _inBounds = new Dictionary<string, int>();
+
+
+        private readonly Dictionary<string, int> _outBounds = new Dictionary<string, int>();
+
         internal IEnumerable<string> Ids { get { return _names.Keys; } }
 
         internal DumpLoader(string dumpPath)
@@ -44,18 +49,22 @@ namespace WebBackend.Dataset
                 while (!reader.EndOfStream)
                 {
                     var line = reader.ReadLine();
-                    var lineParts = line.Split(new[] { '\t' }, 4);
+                    var lineParts = line.Split(new[] { '\t' }, 6);
 
                     var freebaseId = lineParts[0];
-                    var label = lineParts[1];
-                    var aliases = lineParts[2].Substring(1).Trim();
+                    var inBounds = lineParts[1];
+                    var outBounds = lineParts[2];
+                    var label = lineParts[3];
+                    var aliases = lineParts[4].Substring(1).Trim();
 
                     if (label == null)
                         throw new NotImplementedException();
 
-                    var description = lineParts[3];
+                    var description = lineParts[5];
 
                     _descriptions[freebaseId] = description;
+                    _inBounds[freebaseId] = int.Parse(inBounds);
+                    _outBounds[freebaseId] = int.Parse(outBounds);
                     var names = new List<string>();
                     names.Add(label);
                     if (aliases != "")
@@ -92,6 +101,20 @@ namespace WebBackend.Dataset
             string result;
             _descriptions.TryGetValue(id, out result);
 
+            return result;
+        }
+
+        internal int GetInBounds(string id)
+        {
+            int result;
+            _inBounds.TryGetValue(id, out result);
+            return result;
+        }
+
+        internal int GetOutBounds(string id)
+        {
+            int result;
+            _outBounds.TryGetValue(id, out result);
             return result;
         }
     }

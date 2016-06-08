@@ -23,7 +23,7 @@ namespace WebBackend.AnswerExtraction
             extractor.LoadIndex();
             var linker = new UtteranceLinker(extractor);
 
-           // var result = linker.LinkUtterance("i think he is a male human");
+            // var result = linker.LinkUtterance("i think he is a male human");
 
             var correctCount = 0;
             var totalCount = 0;
@@ -37,7 +37,9 @@ namespace WebBackend.AnswerExtraction
                     Console.WriteLine(linkedUtterance);
 
                     var correctAnswer = extractor.GetLabel(dialog.AnswerMid);
-                    Console.WriteLine("\tdesired: {0}({1})", correctAnswer, extractor.GetFreebaseId(dialog.AnswerMid));
+                    var answerInBounds = extractor.GetInBounds(dialog.AnswerMid);
+                    var answerOutBounds = extractor.GetOutBounds(dialog.AnswerMid);
+                    Console.WriteLine("\tdesired: {0}({1})[{2}/{3}]", correctAnswer, extractor.GetFreebaseId(dialog.AnswerMid), answerInBounds, answerOutBounds);
 
                     var isCorrect = linkedUtterance.Parts.SelectMany(p => p.Entities.Select(e => e.Mid)).Contains(dialog.AnswerMid);
                     if (isCorrect)
@@ -53,10 +55,16 @@ namespace WebBackend.AnswerExtraction
                             if (!part.Entities.Any())
                                 continue;
 
-                            Console.Write("\t\t"+part + ": ");
+                            Console.WriteLine("\t\t" + part + ": ");
                             foreach (var entity in part.Entities)
                             {
-                                Console.Write("{0}({1}) | ", entity.Label, extractor.GetFreebaseId(entity.Mid));
+                                var aliases = extractor.GetAliases(entity.Mid);
+                                var description = extractor.GetDescription(entity.Mid);
+
+                                Console.WriteLine("\t\t\t{0}({1})[{2}/{3}]  :{4}", entity.Label, extractor.GetFreebaseId(entity.Mid), entity.InBounds, entity.OutBounds, string.Join(" | ", aliases));
+                                if (description.Length > 50)
+                                    description = description.Substring(0, 50);
+                                Console.WriteLine("\t\t\t\t" + description);
                             }
                             Console.WriteLine();
                         }

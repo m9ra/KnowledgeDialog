@@ -231,6 +231,33 @@ namespace WebBackend.AnswerExtraction
         }
 
 
+        internal IEnumerable<string> GetAliases(string mid)
+        {
+            var docs = getScoredIdDocs(mid);
+            var result = new List<string>();
+            foreach (var doc in docs)
+            {
+                var type = getContentCategory(doc);
+                if (type == ContentCategory.A)
+                    result.Add(getContent(doc));
+            }
+
+            return result;
+        }
+
+        internal string GetDescription(string mid)
+        {
+            var docs = getScoredIdDocs(mid);
+            foreach (var doc in docs)
+            {
+                var type = getContentCategory(doc);
+                if (type == ContentCategory.D)
+                    return getContent(doc);
+            }
+
+            return null;
+        }
+
         internal IEnumerable<EntityInfo> GetEntities(string ngram)
         {
             var scores = new Dictionary<string, EntityInfo>();
@@ -318,16 +345,16 @@ namespace WebBackend.AnswerExtraction
             return docs;
         }
 
-        private IEnumerable<ScoreDoc> getScoredIdDocs(string id)
+        private IEnumerable<ScoreDoc> getScoredIdDocs(string mid)
         {
-            var mid = GetFreebaseId(id);
+            var id = GetFreebaseId(mid);
             ScoreDoc[] docs;
-            var queryStr = "\"" + QueryParser.Escape(mid) + "\"";
+            var queryStr = "\"" + QueryParser.Escape(id) + "\"";
             var query = _idParser.Parse(queryStr);
 
             var hits = _searcher.Search(query, 100);
             docs = hits.ScoreDocs.ToArray();
-            _scoredDocsCache[id] = docs;
+            _scoredDocsCache[mid] = docs;
 
             return docs;
         }
@@ -411,10 +438,37 @@ namespace WebBackend.AnswerExtraction
         private bool hasLabel(ScoreDoc scoreDoc)
         {
             var doc = _searcher.Doc(scoreDoc.Doc);
-            var inBound = doc.GetField("inBounds").StringValue;
-            var outBounds = doc.GetField("outBounds").StringValue;
-            return doc.GetField("contentCategory").StringValue == ContentCategory.L.ToString();
-            //return doc.GetField("isLabel").StringValue == "T";
+            return getContentCategory(scoreDoc) == ContentCategory.L;
+        }
+
+        private ContentCategory getContentCategory(ScoreDoc scoreDoc)
+        {
+            var doc = _searcher.Doc(scoreDoc.Doc);
+            switch (doc.GetField("contentCategory").StringValue)
+            {
+                case "L":
+                    return ContentCategory.L;
+                case "A":
+                    return ContentCategory.A;
+                case "D":
+                    return ContentCategory.D;
+                default:
+                    throw new NotImplementedException();
+            };
+        }
+
+        internal int GetInBounds(string mid)
+        {
+            var scoreDoc = getScoredIdDocs(mid).First();
+            var doc = _searcher.Doc(scoreDoc.Doc);
+            return int.Parse(doc.GetField("inBounds").StringValue);
+        }
+
+        internal int GetOutBounds(string mid)
+        {
+            var scoreDoc = getScoredIdDocs(mid).First();
+            var doc = _searcher.Doc(scoreDoc.Doc);
+            return int.Parse(doc.GetField("outBounds").StringValue);
         }
     }
 }

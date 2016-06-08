@@ -43,7 +43,9 @@ namespace WebBackend.AnswerExtraction
                     //the difference is too large
                     continue;
 
-                result.Add(entity);
+                var aliases = _extractor.GetAliases(entity.Mid).ToArray();
+                if (aliases.Length > 0)
+                    result.Add(entity);
             }
 
             return result;

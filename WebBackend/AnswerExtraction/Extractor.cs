@@ -177,12 +177,14 @@ namespace WebBackend.AnswerExtraction
                     {
                         score = score / 15;
                     }
-
+                    
                     EntityInfo entity;
                     if (!scores.TryGetValue(mid, out entity))
                     {
                         scores[mid] = entity = createEntity(mid, dc);
                     }
+
+                    score = entity.InBounds + entity.OutBounds;
                     scores[mid] = entity.AddScore(content, score);
                 }
 
@@ -459,16 +461,24 @@ namespace WebBackend.AnswerExtraction
 
         internal int GetInBounds(string mid)
         {
-            var scoreDoc = getScoredIdDocs(mid).First();
-            var doc = _searcher.Doc(scoreDoc.Doc);
-            return int.Parse(doc.GetField("inBounds").StringValue);
+            foreach (var scoredDoc in getScoredIdDocs(mid))
+            {
+                var doc = _searcher.Doc(scoredDoc.Doc);
+                return int.Parse(doc.GetField("inBounds").StringValue);
+            }
+
+            return 0;
         }
 
         internal int GetOutBounds(string mid)
         {
-            var scoreDoc = getScoredIdDocs(mid).First();
-            var doc = _searcher.Doc(scoreDoc.Doc);
-            return int.Parse(doc.GetField("outBounds").StringValue);
+            foreach (var scoredDoc in getScoredIdDocs(mid))
+            {
+                var doc = _searcher.Doc(scoredDoc.Doc);
+                return int.Parse(doc.GetField("outBounds").StringValue);
+            }
+
+            return 0;
         }
     }
 }

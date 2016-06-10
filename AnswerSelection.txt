@@ -1,0 +1,56 @@
+===================================================================
+=FULL SETUP
+
+Linked entities cancelation + or resolving + graph count disambiguation
+5ent1 Top1		: 	62.79%
+INF_ent1 Top1	:	67.44%
+
+Linked entities cancelation + or resolving
+1ent Top1:	53.49%
+2ent Top1:	53.49%
+5ent Top1:	51.16%
+
+Linked entities cancelation
+2ent Top1:	46.51%
+5ent Top1:	44.19%
+
+5ent Top2: 	58.14%
+
+2ent Top5:	69.77%
+5ent Top5:	69.77%
+
+Document accumulation (with training)
+Top1:	37.21%
+Top2:	58.14%
+
+
+
+===================================================================
+=TOY SETUP
+
+Correct Answer selection (among freebase answer entities)
+0.8, 2gram	- 57.55%
+1.0, 2gram	- 54.13%
+0.8, 3gram	- 56.70%
+0.5, 3gram	- 56.70%
+1.0, 3gram 	- 54.70%
+0.8, 4gram  - 56.41%
+1.0, 4gram  - 53.85%
+
+
+Description including
+2gram 	- 59.54
+3gram	- 59.83
+4gram	- 58.69
+
+3gram~1 - 59.54
+3gram~2 - 59.54
+3gram~5	- 59.26
+3gram~10- 59.26
+
+=================WITH TRAINING===============
+3gram				- 58.54%
+3gram, bad_ngrams	- 61.35%
+3gram-all_answer_turns, bad_ngrams - 61.75%
+3gram, bad_ngrams, continuous_leading_score1.0  - 64.14% (74.10%)
+3gram, sanitization, bad_ngrams, continuous_leading_score1.0  - 64.14% (74.50%)

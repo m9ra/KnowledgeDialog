@@ -308,7 +308,7 @@ namespace KnowledgeDialog.Knowledge
         /// <param name="node"></param>
         /// <param name="maxWidth"></param>
         /// <returns></returns>
-        internal IEnumerable<Tuple<Edge, NodeReference>> GetNeighbours(NodeReference node, int maxWidth)
+        public IEnumerable<Tuple<Edge, NodeReference>> GetNeighbours(NodeReference node, int maxWidth)
         {
             foreach (var layer in _layers)
             {

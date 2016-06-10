@@ -30,7 +30,7 @@ namespace WebBackend.AnswerExtraction
 
         private readonly string[] _words;
 
-        internal EntityIndex(string[] words, UtteranceLinker linker)
+        internal EntityIndex(string[] words, UtteranceLinker linker, int entityHypCount)
         {
             _words = words.ToArray();
             _matches = new List<EntityMatch>[_words.Length];
@@ -40,10 +40,10 @@ namespace WebBackend.AnswerExtraction
                 _matches[i] = new List<EntityMatch>();
             }
 
-            initialize(linker);
+            initialize(linker, entityHypCount);
         }
 
-        private void initialize(UtteranceLinker linker)
+        private void initialize(UtteranceLinker linker, int entityHypCount)
         {
             for (var wordIndex = 0; wordIndex < _words.Length; ++wordIndex)
             {
@@ -54,7 +54,7 @@ namespace WebBackend.AnswerExtraction
                         break;
 
                     var ngram = string.Join(" ", missingWords.Take(ngramLength));
-                    foreach (var entity in linker.GetValidEntities(ngram))
+                    foreach (var entity in linker.GetValidEntities(ngram, entityHypCount))
                     {
                         var match = new EntityMatch(entity, wordIndex, ngramLength);
                         _matches[wordIndex].Add(match);

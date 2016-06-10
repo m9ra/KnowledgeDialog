@@ -73,7 +73,8 @@ namespace WebBackend
                 //arguments were incorrect
                 return;
 
-            AnswerExtraction.ExtractionEvaluation_Batch.RunLinkingExperiment();
+            //AnswerExtraction.ExtractionEvaluation_Batch.RunLinkingExperiment();
+            AnswerExtraction.ExtractionEvaluation_Batch.RunLinkedAnswerExtractionExperiment();
             //AnswerExtraction.ExtractionEvaluation_Batch.RunAnswerExtractionEvaluation();
             //AnswerExtraction.LuceneIndex_Batch.BuildIndex();
             //AnswerExtraction.DumpCreation_Batch.DumpQuestions();

@@ -13,7 +13,7 @@ namespace WebBackend.AnswerExtraction
 {
     class UtteranceLinker
     {
-        private readonly Extractor _extractor;
+        private readonly EntityExtractor _extractor;
 
         private readonly HashSet<string> _nonInformativeWords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -27,7 +27,7 @@ namespace WebBackend.AnswerExtraction
             "up","down","top","bottom"
         };
 
-        internal UtteranceLinker(Extractor extractor, string verbsLexicon = null)
+        internal UtteranceLinker(EntityExtractor extractor, string verbsLexicon = null)
         {
             _extractor = extractor;
             _nonInformativeWords.UnionWith(loadVerbs(verbsLexicon));

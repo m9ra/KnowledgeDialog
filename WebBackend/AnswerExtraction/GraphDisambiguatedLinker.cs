@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using KnowledgeDialog.Knowledge;
 using KnowledgeDialog.Dialog.Parsing;
 
+using WebBackend.Dataset;
+
 namespace WebBackend.AnswerExtraction
 {
     class GraphDisambiguatedLinker : UtteranceLinker
@@ -15,11 +17,11 @@ namespace WebBackend.AnswerExtraction
 
         private bool _useDisambiguation = false;
 
-        private HashSet<string> _collectedDisambiguationMids = new HashSet<string>();
+        private HashSet<string> _collectedDisambiguationIds = new HashSet<string>();
 
         private ComposedGraph _disambiguationGraph;
 
-        internal GraphDisambiguatedLinker(Extractor extractor, string verbsLexicon)
+        internal GraphDisambiguatedLinker(EntityExtractor extractor, string verbsLexicon)
             : base(extractor, verbsLexicon)
         {
 
@@ -35,7 +37,7 @@ namespace WebBackend.AnswerExtraction
 
         internal void LoadDisambiguationEntities(SimpleQuestionDumpProcessor processor)
         {
-            var layer = processor.GetLayerFrom(_collectedDisambiguationMids);
+            var layer = processor.GetLayerFromIds(_collectedDisambiguationIds);
             _disambiguationGraph = new ComposedGraph(layer);
             _useDisambiguation = true;
         }
@@ -59,7 +61,7 @@ namespace WebBackend.AnswerExtraction
             }
             else
             {
-                _collectedDisambiguationMids.UnionWith(entities.Select(e => e.Mid));
+                _collectedDisambiguationIds.UnionWith(entities.Select(e => FreebaseLoader.GetId(e.Mid)));
                 return base.disambiguateTo(entities, entityHypothesisCount);
             }
         }

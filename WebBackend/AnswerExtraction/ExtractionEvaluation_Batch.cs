@@ -24,7 +24,7 @@ namespace WebBackend.AnswerExtraction
 
             var simpleQuestions = new SimpleQuestionDumpProcessor(@"C:\Databases\SimpleQuestions_v2\SimpleQuestions_v2\freebase-subsets\freebase-FB2M.txt");
 
-            var extractor = new AnswerExtraction.Extractor(@"C:\REPOSITORIES\lucene_freebase_v1_index");
+            var extractor = new AnswerExtraction.EntityExtractor(@"C:\REPOSITORIES\lucene_freebase_v1_index");
             extractor.LoadIndex();
             var linker = new GraphDisambiguatedLinker(extractor, "./verbs.lex");
 
@@ -86,7 +86,7 @@ namespace WebBackend.AnswerExtraction
         {
             var devDataset = new QuestionDialogDatasetReader("question_dialogs-dev.json");
 
-            var extractor = new AnswerExtraction.Extractor(@"C:\REPOSITORIES\lucene_freebase_v1_index");
+            var extractor = new AnswerExtraction.EntityExtractor(@"C:\REPOSITORIES\lucene_freebase_v1_index");
             extractor.LoadIndex();
             var simpleQuestions = new SimpleQuestionDumpProcessor(@"C:\Databases\SimpleQuestions_v2\SimpleQuestions_v2\freebase-subsets\freebase-FB2M.txt");
             var linker = new GraphDisambiguatedLinker(extractor, "./verbs.lex");
@@ -168,7 +168,7 @@ namespace WebBackend.AnswerExtraction
             var trainDataset = new QuestionDialogDatasetReader("question_dialogs-train.json");
             var devDataset = new QuestionDialogDatasetReader("question_dialogs-dev.json");
 
-            var extractor = new AnswerExtraction.Extractor(@"C:\REPOSITORIES\lucene_freebase_v1_index");
+            var extractor = new AnswerExtraction.EntityExtractor(@"C:\REPOSITORIES\lucene_freebase_v1_index");
             extractor.LoadIndex();
 
             foreach (var dialog in trainDataset.Dialogs)
@@ -263,7 +263,7 @@ namespace WebBackend.AnswerExtraction
               return bestPart;*/
         }
 
-        private static double getScore(string part, Dictionary<string, EntityInfo> context, AnswerExtraction.Extractor extractor)
+        private static double getScore(string part, Dictionary<string, EntityInfo> context, AnswerExtraction.EntityExtractor extractor)
         {
             var ngrams = getNgrams(part);
             var ngramsArr = ngrams.ToArray();
@@ -283,7 +283,7 @@ namespace WebBackend.AnswerExtraction
             return getNgrams(dialog.Question);
         }
 
-        private static IEnumerable<string> getAnswerHintNgrams(QuestionDialog dialog, AnswerExtraction.Extractor extractor)
+        private static IEnumerable<string> getAnswerHintNgrams(QuestionDialog dialog, AnswerExtraction.EntityExtractor extractor)
         {
             var turnIndex = 0;
             var ngrams = new List<string>();

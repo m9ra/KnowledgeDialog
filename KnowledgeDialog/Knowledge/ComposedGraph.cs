@@ -9,6 +9,7 @@ namespace KnowledgeDialog.Knowledge
     /// <summary>
     /// Knowledge graph representation composed from layers.
     /// </summary>
+    [Serializable]
     public class ComposedGraph
     {
         #region Standard relations

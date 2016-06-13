@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.Knowledge
 {
+
+    [Serializable]
     public abstract class GraphLayerBase
     {
         abstract internal protected IEnumerable<string> Edges(NodeReference from, NodeReference to);

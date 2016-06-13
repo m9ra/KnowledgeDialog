@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.Dialog.Parsing
 {
+    [Serializable]
     public class EntityInfo : IComparable<EntityInfo>
     {
-
         public readonly string Label;
 
         public readonly string Mid;

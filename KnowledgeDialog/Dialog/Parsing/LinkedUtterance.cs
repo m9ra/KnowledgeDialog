@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.Dialog.Parsing
 {
+    [Serializable]
     public class LinkedUtterancePart
     {
         public readonly string Token;
@@ -41,6 +42,7 @@ namespace KnowledgeDialog.Dialog.Parsing
         }
     }
 
+    [Serializable]
     public class LinkedUtterance
     {
         public readonly IEnumerable<LinkedUtterancePart> Parts;

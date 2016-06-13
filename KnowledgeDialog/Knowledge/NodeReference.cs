@@ -9,6 +9,7 @@ namespace KnowledgeDialog.Knowledge
     /// <summary>
     /// Reference to node in a graph.
     /// </summary>
+    [Serializable]
     public class NodeReference
     {
         /// <summary>

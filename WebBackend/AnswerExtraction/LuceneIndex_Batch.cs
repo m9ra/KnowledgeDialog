@@ -17,7 +17,7 @@ namespace WebBackend.AnswerExtraction
 
             var dumpLoader = new DumpLoader(@"C:\REPOSITORIES\Wikidata-Toolkit\wdtk-examples\dumpfiles\20160510.freebase.v3.gz");
 
-            var extractor = new AnswerExtraction.Extractor(@"C:\REPOSITORIES\lucene_freebase_v1_index");
+            var extractor = new AnswerExtraction.EntityExtractor(@"C:\REPOSITORIES\lucene_freebase_v1_index");
 
             extractor.StartFreebaseIndexRebuild();
             foreach (var id in dumpLoader.Ids)

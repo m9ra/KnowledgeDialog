@@ -84,6 +84,22 @@ namespace WebBackend.Dataset
             return description;
         }
 
+        internal static string GetId(string mid)
+        {
+            if (!mid.StartsWith(FreebaseLoader.IdPrefix))
+                throw new NotSupportedException("Mid format unknown: " + mid);
+
+            return mid.Substring(FreebaseLoader.IdPrefix.Length);
+        }
+
+        internal static string GetMid(string id)
+        {
+            if (id.StartsWith(FreebaseLoader.IdPrefix))
+                throw new NotImplementedException("Id prefix is already present." + id);
+
+            return FreebaseLoader.IdPrefix + id;
+        }
+
         private IEnumerable<string> filterFileLines(string id, string prefix, string suffix)
         {
             var fileLines = getFileLines(id);
@@ -105,7 +121,7 @@ namespace WebBackend.Dataset
             var filePath = Path.Combine(CachePath, id + ".sdx");
             if (!File.Exists(filePath))
                 return new string[0];
-           //     downloadFile(ApiUrlPrefix + id + "?key=" + ApiKey, filePath);
+            //     downloadFile(ApiUrlPrefix + id + "?key=" + ApiKey, filePath);
 
             return File.ReadAllLines(filePath);
         }

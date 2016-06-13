@@ -81,12 +81,9 @@ namespace KnowledgeDialog.Knowledge
             {
                 var node = _nodes[i];
                 var edge = _edges[i];
-                var isOutcoming = edge.IsOutcoming;
 
                 result.Append(node.Data);
-                result.Append(isOutcoming ? " --" : " <-");
                 result.Append(edge);
-                result.Append(isOutcoming ? "-> " : "-- ");
             }
 
             result.Append(_nodes[_nodes.Count - 1].Data);

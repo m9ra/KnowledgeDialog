@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.Knowledge
 {
+    [Serializable]
     public class ExplicitLayer : GraphLayerBase
     {
         /// <summary>

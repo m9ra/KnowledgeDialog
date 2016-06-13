@@ -135,27 +135,25 @@ namespace WebBackend.AnswerExtraction
             _foundIds.Clear();
         }
 
-        internal GraphLayerBase GetLayerFrom(IEnumerable<string> mids)
+        internal GraphLayerBase GetLayerFromIds(IEnumerable<string> ids)
         {
-            var midTable = new HashSet<string>(mids);
+            var midTable = new HashSet<string>(ids);
             var layer = new ExplicitLayer();
 
             iterateLines((entityId, edge, targetEntities) =>
             {
-                var entity = getMid(entityId);
-                if (!midTable.Contains(entity))
+                if (!midTable.Contains(entityId))
                     return;
 
-                var entityNode = layer.CreateReference(intern(getMid(entity)));
+                var entityNode = layer.CreateReference(intern(entityId));
                 edge = intern(edge);
 
                 foreach (var targetEntityId in targetEntities)
                 {
-                    var targetEntity = getMid(targetEntityId);
-                    if (!midTable.Contains(targetEntity))
+                    if (!midTable.Contains(targetEntityId))
                         continue;
 
-                    var targetNode = layer.CreateReference(intern(targetEntity));
+                    var targetNode = layer.CreateReference(intern(targetEntityId));
                     layer.AddEdge(entityNode, edge, targetNode);
                 }
             });
@@ -221,7 +219,7 @@ namespace WebBackend.AnswerExtraction
             if (!edgeId.StartsWith(FreebaseLoader.EdgePrefix))
                 throw new NotSupportedException("Edge format unknown: " + edgeId);
 
-            return edgeId.Substring(edgeId.Length);
+            return edgeId.Substring(FreebaseLoader.EdgePrefix.Length);
         }
 
         private string getId(string mid)

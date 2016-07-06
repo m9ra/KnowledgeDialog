@@ -15,9 +15,9 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.PoolRules
     {
         internal static readonly int MaxSearchWidth = 1000;
 
-        internal static readonly int MaxConstraintLength = 4;
+        internal static readonly int MaxConstraintLength = 2;
 
-        internal static readonly int MaxTopicSelectorLength = 8;
+        internal static readonly int MaxTopicSelectorLength = 2;
 
         internal readonly NodeReference CorrectAnswerNode;
 

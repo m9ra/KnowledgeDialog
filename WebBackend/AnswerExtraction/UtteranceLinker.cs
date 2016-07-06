@@ -21,7 +21,7 @@ namespace WebBackend.AnswerExtraction
             "think","thought","know","knew","assume","assumed", "look","looked",
             "have","has","had","can","could",
             "is","are","were","was","been","would",
-            "in","on","to","from","there","that",
+            "in","on","at","to","from","there","that",
             "who","why","what","where","which","whose","how",
             "with","and","or","any","neither", "out", "by","of",
             "up","down","top","bottom"

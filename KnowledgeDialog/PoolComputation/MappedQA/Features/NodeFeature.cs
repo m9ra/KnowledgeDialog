@@ -63,10 +63,5 @@ namespace KnowledgeDialog.PoolComputation.MappedQA.Features
             var generalNodeData = IndexPrefix + Index;
             mapping.SetMapping(instanceNodeData, generalNodeData);
         }
-
-        internal NodeReference GetNode(ComposedGraph graph)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

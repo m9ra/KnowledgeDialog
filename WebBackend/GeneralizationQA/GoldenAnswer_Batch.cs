@@ -29,7 +29,7 @@ namespace WebBackend.GeneralizationQA
             var extractor = new AnswerExtraction.EntityExtractor(@"C:\REPOSITORIES\lucene_freebase_v1_index");
             extractor.LoadIndex();
 
-            var trainDialogs = trainDataset.Dialogs.Take(1).ToArray();
+            var trainDialogs = trainDataset.Dialogs.ToArray();
             var linkedUtterances = cachedLinkedUtterances(simpleQuestions, extractor, trainDialogs);
 
             var graph = cachedEntityGraph(simpleQuestions, trainDialogs, linkedUtterances);
@@ -44,12 +44,17 @@ namespace WebBackend.GeneralizationQA
                 var dialog = trainDialogs[i];
                 var linkedUtterance = linkedUtterances[i];
                 var entityUtterance = getEntityUtterance(linkedUtterance);
+                var hasDuplicitWords = entityUtterance.Split(' ').Distinct().Count() != entityUtterance.Split(' ').Count();
+
+                if (hasDuplicitWords)
+                    //TODO skip utterances with duplicit words for now
+                    continue;
                 var answerNode = getNode(dialog.AnswerMid, graph);
                 qaModule.AdviceAnswer(entityUtterance, false, answerNode);
             }
 
 
-            qaModule.Optimize(100000);
+            qaModule.Optimize(1000);
 
             var correctAnswers = 0;
             var totalDialogs = 0;
@@ -95,7 +100,7 @@ totalDialogs);
 
         private static ComposedGraph cachedEntityGraph(SimpleQuestionDumpProcessor simpleQuestions, QuestionDialog[] trainDialogs, LinkedUtterance[] linkedUtterances)
         {
-            return ComputationCache.Load("knowledge_20_train", 1, () =>
+            return ComputationCache.Load("knowledge_all_train", 1, () =>
              {
                  var trainEntities = getQAEntities(trainDialogs, linkedUtterances);
 
@@ -107,7 +112,7 @@ totalDialogs);
 
         private static LinkedUtterance[] cachedLinkedUtterances(SimpleQuestionDumpProcessor simpleQuestions, EntityExtractor extractor, QuestionDialog[] trainDialogs)
         {
-            var linkedUtterances = ComputationCache.Load("linked_20_train", 1, () =>
+            var linkedUtterances = ComputationCache.Load("linked_all_train", 1, () =>
             {
                 var linker = new GraphDisambiguatedLinker(extractor, "./verbs.lex");
                 linker.RegisterDisambiguationEntities(trainDialogs.Select(d => d.Question));

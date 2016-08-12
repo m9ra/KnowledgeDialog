@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KnowledgeDialog", "Knowledg
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DialogTesting", "DialogTesting\DialogTesting.csproj", "{219B5894-6BCA-45D6-9B0D-0E175B2CDB65}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServeRick", "..\..\..\..\..\SERVERICK\repository\trunk\VSProjects\ServeRick\ServeRick.csproj", "{448AA490-1B38-4C66-B915-EBA43D4695DF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServeRick", "..\..\Actual projects\ServeRick\trunk\VSProjects\ServeRick\ServeRick.csproj", "{448AA490-1B38-4C66-B915-EBA43D4695DF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

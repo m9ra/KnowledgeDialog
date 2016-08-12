@@ -156,7 +156,7 @@
     <Folder Include="www\images\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\..\SERVERICK\repository\trunk\VSProjects\ServeRick\ServeRick.csproj">
+    <ProjectReference Include="..\..\..\Actual projects\ServeRick\trunk\VSProjects\ServeRick\ServeRick.csproj">
       <Project>{448aa490-1b38-4c66-b915-eba43d4695df}</Project>
       <Name>ServeRick</Name>
     </ProjectReference>

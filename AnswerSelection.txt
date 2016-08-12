@@ -4,10 +4,16 @@
 Linked entities cancelation + or resolving + graph count disambiguation
 5ent1 Top1		: 	62.79%
 INF_ent1 Top1	:	67.44%
+500_ent1 Top1	:	67.44%
+500_ent1 Top2	:	74.42%
+500_ent1 Top5	:	74.42%
 
 Linked entities cancelation + or resolving
 1ent Top1:	53.49%
 2ent Top1:	53.49%
+2ent Top5:	62.79%
+5ent Top2:	62.79%
+5ent Top5:	62.79%
 5ent Top1:	51.16%
 
 Linked entities cancelation

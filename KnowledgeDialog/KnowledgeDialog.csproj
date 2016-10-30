@@ -121,6 +121,7 @@
     <Compile Include="Knowledge\NodeReference.cs" />
     <Compile Include="Knowledge\PathFactory.cs" />
     <Compile Include="Knowledge\PathSegment.cs" />
+    <Compile Include="Knowledge\Group.cs" />
     <Compile Include="PoolComputation\ActionBlock.cs" />
     <Compile Include="PoolComputation\AnswerReport.cs" />
     <Compile Include="PoolComputation\IMappingProvider.cs" />

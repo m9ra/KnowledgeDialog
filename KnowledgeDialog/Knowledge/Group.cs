@@ -1,0 +1,47 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace KnowledgeDialog.Knowledge
+{
+    public class Group
+    {
+        /// <summary>
+        /// Graph which this pattern is mapped to.
+        /// </summary>
+        private readonly ComposedGraph _graph;
+
+        /// <summary>
+        /// Nodes that are contained by the pattern.
+        /// </summary>
+        private readonly HashSet<NodeReference> _patternNodes = new HashSet<NodeReference>();
+
+        public Group(ComposedGraph graph)
+        {
+            _graph = graph;
+        }
+
+        /// <summary>
+        /// Adds node to the pattern.
+        /// </summary>
+        /// <param name="node">The node to be added.</param>
+        public void AddNode(NodeReference node)
+        {
+            _patternNodes.Add(node);
+        }
+
+        /// <summary>
+        /// Finds clustering of group nodes according to common edges.
+        /// (Pattern is clustered by edges (not nodes) only).
+        /// 
+        /// The pattern nodes are always present as path starting nodes.
+        /// </summary>
+        /// <returns>The node clustering.</returns>
+        public MultiTraceLog FindEdgePattern(int maxLength, int maxWidth)
+        {
+            return new MultiTraceLog(_patternNodes, _graph);
+        }
+    }
+}

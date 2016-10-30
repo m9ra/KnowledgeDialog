@@ -8,7 +8,7 @@ using KnowledgeDialog.Dialog;
 
 namespace KnowledgeDialog.Knowledge
 {
-    class MultiTraceLog
+    public class MultiTraceLog
     {
         public static readonly int Width = 2000;
 
@@ -20,15 +20,26 @@ namespace KnowledgeDialog.Knowledge
         public readonly IEnumerable<TraceNode> TraceNodes;
 
         /// <summary>
+        /// Root of all the trace nodes.
+        /// </summary>
+        public readonly TraceNode Root;
+
+        /// <summary>
+        /// Nodes traced within the log.
+        /// </summary>
+        public readonly IEnumerable<NodeReference> NodeBatch;
+
+        /// <summary>
         /// Create trace log for the given batch of nodes.
         /// </summary>
         /// <param name="nodeBatch">Nodes that will be traced.</param>
         public MultiTraceLog(IEnumerable<NodeReference> nodeBatch, ComposedGraph graph)
         {
-            var rootNode = new TraceNode(nodeBatch);
+            NodeBatch = nodeBatch.ToArray();
+            Root = new TraceNode(nodeBatch);
             var worklist = new Queue<TraceNode>();
             var allNodes = new List<TraceNode>();
-            worklist.Enqueue(rootNode);
+            worklist.Enqueue(Root);
             while (worklist.Count > 0)
             {
                 var currentNode = worklist.Dequeue();
@@ -65,18 +76,26 @@ namespace KnowledgeDialog.Knowledge
         }
     }
 
-    class TraceNode
+    public class TraceNode
     {
 
-        internal IEnumerable<Trace> Traces { get { return _traceIndex.Values; } }
+        public IEnumerable<Trace> Traces { get { return _traceIndex.Values; } }
 
-        internal IEnumerable<NodeReference> CurrentNodes { get { return _traceIndex.Keys; } }
+        public IEnumerable<NodeReference> CurrentNodes { get { return _traceIndex.Keys; } }
 
-        internal readonly bool HasContinuation;
+        public readonly bool HasContinuation;
 
-        internal readonly TraceNode PreviousNode;
+        /// <summary>
+        /// Node from which current node was accessed via the <see cref="CurrentEdge"/>.
+        /// </summary>
+        public readonly TraceNode PreviousNode;
 
-        internal IEnumerable<Edge> Path
+        /// <summary>
+        /// Edge that was used for creating of current node
+        /// </summary>
+        public readonly Edge CurrentEdge;
+
+        public IEnumerable<Edge> Path
         {
             get
             {
@@ -97,12 +116,6 @@ namespace KnowledgeDialog.Knowledge
         protected readonly HashSet<NodeReference> VisitedNodes = new HashSet<NodeReference>();
 
         private readonly Dictionary<NodeReference, Trace> _traceIndex = new Dictionary<NodeReference, Trace>();
-
-
-        /// <summary>
-        /// Edge that was used for creating of current node
-        /// </summary>
-        private readonly Edge CurrentEdge;
 
         internal TraceNode(IEnumerable<NodeReference> initialNodes)
         {
@@ -183,9 +196,28 @@ namespace KnowledgeDialog.Knowledge
             ConsoleServices.FillWithPath(builder, Path);
             return "[TraceNode]" + builder.ToString();
         }
+
+        public IEnumerable<Edge> GetPathFromRoot()
+        {
+            var path = new List<Edge>();
+            var currentNode = this;
+            while (currentNode.CurrentEdge!=null)
+            {
+                path.Add(currentNode.CurrentEdge);
+                currentNode = currentNode.PreviousNode;
+            }
+            path.Reverse();
+            return path;
+        }
+
+        public IEnumerable<Edge> GetPathToRoot()
+        {
+            var pathFromRoot = GetPathFromRoot();
+            return pathFromRoot.Reverse().Select(e => e.Reversed());
+        }
     }
 
-    class Trace
+    public class Trace
     {
         /// <summary>
         /// Initial nodes of current trace.

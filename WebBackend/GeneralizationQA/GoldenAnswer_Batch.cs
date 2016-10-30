@@ -20,6 +20,54 @@ namespace WebBackend.GeneralizationQA
 {
     class GoldenAnswer_Batch
     {
+
+        internal static void RunToyGeneralization()
+        {
+            var data = new ExplicitLayer();
+            var A = data.CreateReference("A");
+            var B = data.CreateReference("B");
+            var C = data.CreateReference("C");
+            var D = data.CreateReference("D");
+
+            var H1 = data.CreateReference("H1");
+            var H2 = data.CreateReference("H2");
+            var H3 = data.CreateReference("H3");
+            var H = data.CreateReference("H");
+            var X = data.CreateReference("X");
+
+            var edge1 = "e1";
+            var edgeZ1 = "z1";
+            var edgeZ2 = "z2";
+            var edgeIs = "is";
+
+            data.AddEdge(A, edge1, H1);
+            data.AddEdge(B, edge1, H3);
+            data.AddEdge(C, edge1, H2);
+
+            data.AddEdge(H1, edgeIs, H);
+            data.AddEdge(H2, edgeIs, H);
+
+            data.AddEdge(D, edgeZ1, H1);
+            data.AddEdge(D, edgeZ2, H2);
+
+            var graph = new ComposedGraph(data);
+
+            var group = new KnowledgeDialog.Knowledge.Group(graph);
+            group.AddNode(A);
+            group.AddNode(B);
+
+            var linker = new SingleWordLinker();
+            linker.Add(A, B, C, D, H1, H2,H3);
+
+            var generalizer = new PatternGeneralizer(graph, linker.LinkUtterance);
+
+            generalizer.AddExample("Where A lives?", H1);
+            generalizer.AddExample("Where B lives?", H3);
+            var answer = generalizer.GetAnswer("Where C lives?");
+
+            throw new NotImplementedException("present the result");
+        }
+
         internal static void RunEvaluation()
         {
             var trainDataset = new QuestionDialogDatasetReader("question_dialogs-train.json");

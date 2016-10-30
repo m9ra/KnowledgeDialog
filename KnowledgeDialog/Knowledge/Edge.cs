@@ -63,5 +63,10 @@ namespace KnowledgeDialog.Knowledge
                 return "<--" + Name + "--";
         }
 
+
+        public Edge Reversed()
+        {
+            return new Edge(Name, !IsOutcoming);
+        }
     }
 }

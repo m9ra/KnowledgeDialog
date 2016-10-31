@@ -21,11 +21,12 @@ namespace WebBackend.GeneralizationQA
         public PatternSubstitutionMatch(IEnumerable<PathSubstitution> substitutionPaths)
         {
             SubstitutionPaths = substitutionPaths.ToArray();
-            var matchProbability = 1.0;
+            var matchRank = 1.0;
             foreach (var path in SubstitutionPaths)
             {
-                matchProbability = matchProbability * path.Rank;
+                matchRank = matchRank * path.Rank;
             }
+            Rank = matchRank;
         }
     }
 }

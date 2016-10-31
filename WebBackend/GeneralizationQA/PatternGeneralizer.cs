@@ -43,18 +43,55 @@ namespace WebBackend.GeneralizationQA
             IEnumerable<NodeReference> questionEntities;
 
             extractSignature(question, out questionSignature, out questionEntities);
-            var answerGroup = getAnswerGroup(questionSignature);
 
-            var pattern = answerGroup.FindEdgePattern(1, 1);
-            var match = PatternMatchProbability(pattern, questionSignature, questionEntities, _graph);
+            var rankedCandidates = new List<Ranked<NodeReference>>();
+            foreach (var rankedSignature in findMatchingSignatures(questionSignature))
+            {
+                var answerGroup = getAnswerGroup(rankedSignature.Value);
 
-            //find answer candidates (intersect substitution paths)
-            var answerCandidates = findCandidates(match);
-            //rank them according to answer pattern match
-            var rankedCandidates = rankCandidates(answerCandidates, pattern);
-            var bestCandidate = rankedCandidates.First();
+                var pattern = answerGroup.FindEdgePattern(1, 1);
+                var match = PatternMatchProbability(pattern, questionSignature, questionEntities, _graph);
 
+                //find answer candidates (intersect substitution paths)
+                var answerGroupCandidates = findCandidates(match);
+                //rank them according to answer pattern match
+                var rankedGroupCandidates = rankCandidates(answerGroupCandidates, pattern);
+                var bestGroupCandidate = rankedGroupCandidates.First();
+                bestGroupCandidate = new Ranked<NodeReference>(bestGroupCandidate.Value, bestGroupCandidate.Rank * rankedSignature.Rank);
+                rankedCandidates.Add(bestGroupCandidate);
+            }
+
+            var bestCandidate = rankedCandidates.OrderByDescending(r => r.Rank).FirstOrDefault();
             return bestCandidate;
+        }
+
+        private IEnumerable<Ranked<string>> findMatchingSignatures(string signature)
+        {
+            var words = getWordsForSignatureComparison(signature);
+
+            var result = new List<Ranked<string>>();
+            foreach (var knownSignature in _answerGroups.Keys)
+            {
+                if (knownSignature == signature)
+                {
+                    // perfect match
+                    result.Add(new Ranked<string>(knownSignature, 1.0));
+                    continue;
+                }
+
+                var knownSignatureWords = getWordsForSignatureComparison(knownSignature);
+                var commonWords = words.Intersect(knownSignatureWords).ToArray();
+
+                var similarity = 2.0 * commonWords.Length / (words.Length + knownSignatureWords.Length);
+                result.Add(new Ranked<string>(knownSignature, similarity));
+            }
+
+            return result;
+        }
+
+        private string[] getWordsForSignatureComparison(string signature)
+        {
+            return signature.ToLowerInvariant().Split(' ').Where(w => !w.StartsWith("$")).ToArray();
         }
 
         private IEnumerable<Ranked<NodeReference>> rankCandidates(IEnumerable<NodeReference> answerCandidates, MultiTraceLog pattern)
@@ -74,11 +111,13 @@ namespace WebBackend.GeneralizationQA
             var rank = 0.0;
             foreach (var traceNode in commonTraceNodes)
             {
-                rank += 1.0 * traceNode.CurrentNodes.Count() / pattern.NodeBatch.Count();
+                var initialNodes = traceNode.Traces.Select(t => t.InitialNodes).Distinct().ToArray();
+                var edgeImportance = 1.0 * initialNodes.Length / pattern.NodeBatch.Count();
+                rank += edgeImportance;
             }
 
             //TODO here could be more precise formula
-            return rank / pattern.TraceNodes.Count();
+            return rank / (pattern.TraceNodes.Count() - 1);
         }
 
         private IEnumerable<TraceNode> getCommonTraceNodes(NodeReference answerCandidate, MultiTraceLog pattern)

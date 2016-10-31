@@ -32,6 +32,9 @@ namespace WebBackend.GeneralizationQA
             var H1 = data.CreateReference("H1");
             var H2 = data.CreateReference("H2");
             var H3 = data.CreateReference("H3");
+            var fH1 = data.CreateReference("fH1");
+            var fH2 = data.CreateReference("fH2");
+            var fH3 = data.CreateReference("fH3");
             var H = data.CreateReference("H");
             var X = data.CreateReference("X");
 
@@ -41,11 +44,16 @@ namespace WebBackend.GeneralizationQA
             var edgeIs = "is";
 
             data.AddEdge(A, edge1, H1);
-            data.AddEdge(B, edge1, H3);
-            data.AddEdge(C, edge1, H2);
+            data.AddEdge(B, edge1, H2);
+            data.AddEdge(C, edge1, H3);
+
+            data.AddEdge(A, edge1, fH1);
+            data.AddEdge(B, edge1, fH2);
+            data.AddEdge(C, edge1, fH3);
 
             data.AddEdge(H1, edgeIs, H);
             data.AddEdge(H2, edgeIs, H);
+            data.AddEdge(H3, edgeIs, H);
 
             data.AddEdge(D, edgeZ1, H1);
             data.AddEdge(D, edgeZ2, H2);
@@ -57,13 +65,13 @@ namespace WebBackend.GeneralizationQA
             group.AddNode(B);
 
             var linker = new SingleWordLinker();
-            linker.Add(A, B, C, D, H1, H2,H3);
+            linker.Add(A, B, C, D, H1, H2, H3);
 
             var generalizer = new PatternGeneralizer(graph, linker.LinkUtterance);
 
             generalizer.AddExample("Where A lives?", H1);
-            generalizer.AddExample("Where B lives?", H3);
-            var answer = generalizer.GetAnswer("Where C lives?");
+            generalizer.AddExample("Where B lives?", H2);
+            var answer = generalizer.GetAnswer("Where does C live?");
 
             throw new NotImplementedException("present the result");
         }

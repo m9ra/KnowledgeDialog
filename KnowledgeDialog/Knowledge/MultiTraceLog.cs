@@ -79,9 +79,9 @@ namespace KnowledgeDialog.Knowledge
     public class TraceNode
     {
 
-        public IEnumerable<Trace> Traces { get { return _traceIndex.Values; } }
+        public IEnumerable<Trace> Traces { get { return _traceIndex.Values.ToArray(); } }
 
-        public IEnumerable<NodeReference> CurrentNodes { get { return _traceIndex.Keys; } }
+        public IEnumerable<NodeReference> CurrentNodes { get { return _traceIndex.Keys.ToArray(); } }
 
         public readonly bool HasContinuation;
 

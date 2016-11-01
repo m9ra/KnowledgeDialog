@@ -72,8 +72,35 @@ namespace WebBackend.GeneralizationQA
             generalizer.AddExample("Where A lives?", H1);
             generalizer.AddExample("Where B lives?", H2);
             var answer = generalizer.GetAnswer("Where does C live?");
+        }
 
-            throw new NotImplementedException("present the result");
+        internal static void RunAnswerLoadingTest()
+        {
+            var trainDataset = new QuestionDialogDatasetReader("question_dialogs-train.json");
+            var devDataset = new QuestionDialogDatasetReader("question_dialogs-dev.json");
+
+            var simpleQuestions = new SimpleQuestionDumpProcessor(@"C:\Databases\SimpleQuestions_v2\SimpleQuestions_v2\freebase-subsets\freebase-FB2M.txt");
+            var extractor = new AnswerExtraction.EntityExtractor(@"C:\REPOSITORIES\lucene_freebase_v1_index");
+            extractor.LoadIndex();
+
+            var trainDialogs = trainDataset.Dialogs.ToArray();
+            var linkedUtterances = cachedLinkedUtterances(simpleQuestions, extractor, trainDialogs);
+
+            var graph = cachedEntityGraph(simpleQuestions, trainDialogs, linkedUtterances);
+
+            var linker = new GraphDisambiguatedLinker(extractor, "./verbs.lex");
+            var cachedLinker = new CachedLinker(trainDialogs.Select(d => d.Question).ToArray(), linkedUtterances, linker);
+            var generalizer = new PatternGeneralizer(graph, cachedLinker.LinkUtterance);
+            foreach (var dialog in trainDialogs)
+            {
+                var question = dialog.Question;
+                var answerNodeId = FreebaseLoader.GetId(dialog.AnswerMid);
+                var answerNode = graph.GetNode(answerNodeId);
+
+                generalizer.AddExample(question, answerNode);
+            }
+
+            var result=generalizer.GetAnswer("Name a musician");
         }
 
         internal static void RunEvaluation()

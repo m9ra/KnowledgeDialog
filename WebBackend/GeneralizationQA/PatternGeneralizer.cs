@@ -8,6 +8,8 @@ using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Dialog.Parsing;
 using KnowledgeDialog.Knowledge;
 
+using WebBackend.Dataset;
+
 namespace WebBackend.GeneralizationQA
 {
     delegate LinkedUtterance Linker(string utterance);
@@ -32,7 +34,7 @@ namespace WebBackend.GeneralizationQA
             IEnumerable<NodeReference> questionEntities;
 
             extractSignature(question, out questionSignature, out questionEntities);
-            var answerGroup = getAnswerGroup(questionSignature);
+            var answerGroup = GetAnswerGroup(questionSignature);
             answerGroup.AddNode(answer);
             //TODO the language statistics should be counted here
         }
@@ -47,16 +49,21 @@ namespace WebBackend.GeneralizationQA
             var rankedCandidates = new List<Ranked<NodeReference>>();
             foreach (var rankedSignature in findMatchingSignatures(questionSignature))
             {
-                var answerGroup = getAnswerGroup(rankedSignature.Value);
+                if (rankedSignature.Value != questionSignature)
+                    continue;
+                var answerGroup = GetAnswerGroup(rankedSignature.Value);
 
                 var pattern = answerGroup.FindEdgePattern(1, 1);
                 var match = PatternMatchProbability(pattern, questionSignature, questionEntities, _graph);
+                if (match == null)
+                    //pattern does not match
+                    continue;   
 
                 //find answer candidates (intersect substitution paths)
                 var answerGroupCandidates = findCandidates(match);
                 //rank them according to answer pattern match
                 var rankedGroupCandidates = rankCandidates(answerGroupCandidates, pattern);
-                var bestGroupCandidate = rankedGroupCandidates.First();
+                var bestGroupCandidate = rankedGroupCandidates.OrderByDescending(c=>c.Rank).First();
                 bestGroupCandidate = new Ranked<NodeReference>(bestGroupCandidate.Value, bestGroupCandidate.Rank * rankedSignature.Rank);
                 rankedCandidates.Add(bestGroupCandidate);
             }
@@ -168,7 +175,7 @@ namespace WebBackend.GeneralizationQA
             var signature = new StringBuilder();
             foreach (var part in linkedQuestion.Parts)
             {
-                var partEntities = part.Entities.Select(e => _graph.GetNode(e.Mid)).ToArray();
+                var partEntities = part.Entities.Select(e => _graph.GetNode(FreebaseLoader.GetId(e.Mid))).ToArray();
                 entities.AddRange(partEntities);
 
                 if (signature.Length > 0)
@@ -207,7 +214,8 @@ namespace WebBackend.GeneralizationQA
                 }
 
                 if (currentBestPath == null)
-                    throw new NotImplementedException("no substitution found");
+                    //substitution was not found
+                    return null; 
 
                 bestSubstitutions.Add(currentBestPath);
             }
@@ -236,7 +244,7 @@ namespace WebBackend.GeneralizationQA
             }
         }
 
-        private Group getAnswerGroup(string signature)
+        internal Group GetAnswerGroup(string signature)
         {
             Group result;
             if (!_answerGroups.TryGetValue(signature, out result))

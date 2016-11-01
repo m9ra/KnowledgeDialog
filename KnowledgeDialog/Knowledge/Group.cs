@@ -16,7 +16,12 @@ namespace KnowledgeDialog.Knowledge
         /// <summary>
         /// Nodes that are contained by the pattern.
         /// </summary>
-        private readonly HashSet<NodeReference> _patternNodes = new HashSet<NodeReference>();
+        private readonly HashSet<NodeReference> _groupNodes = new HashSet<NodeReference>();
+
+        /// <summary>
+        /// How many nodes are stored within the group.
+        /// </summary>
+        public int Count { get { return _groupNodes.Count; } }
 
         public Group(ComposedGraph graph)
         {
@@ -29,7 +34,7 @@ namespace KnowledgeDialog.Knowledge
         /// <param name="node">The node to be added.</param>
         public void AddNode(NodeReference node)
         {
-            _patternNodes.Add(node);
+            _groupNodes.Add(node);
         }
 
         /// <summary>
@@ -41,7 +46,7 @@ namespace KnowledgeDialog.Knowledge
         /// <returns>The node clustering.</returns>
         public MultiTraceLog FindEdgePattern(int maxLength, int maxWidth)
         {
-            return new MultiTraceLog(_patternNodes, _graph);
+            return new MultiTraceLog(_groupNodes, _graph);
         }
     }
 }

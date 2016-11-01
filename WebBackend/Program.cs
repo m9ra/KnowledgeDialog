@@ -78,7 +78,7 @@ namespace WebBackend
             //AnswerExtraction.ExtractionEvaluation_Batch.RunAnswerExtractionEvaluation();
             //AnswerExtraction.LuceneIndex_Batch.BuildIndex();
             //AnswerExtraction.DumpCreation_Batch.DumpQuestions();
-            GeneralizationQA.GoldenAnswer_Batch.RunToyGeneralization();
+            GeneralizationQA.GoldenAnswer_Batch.RunAnswerLoadingTest();
 
             return;
 

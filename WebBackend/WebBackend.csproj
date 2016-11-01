@@ -106,6 +106,7 @@
     <Compile Include="Experiment\Statistics.cs" />
     <Compile Include="FormatHelper.cs" />
     <Compile Include="Experiment\LogFile.cs" />
+    <Compile Include="GeneralizationQA\CachedLinker.cs" />
     <Compile Include="GeneralizationQA\GoldenAnswer_Batch.cs" />
     <Compile Include="GeneralizationQA\SingleWordLinker.cs" />
     <Compile Include="GeneralizationQA\PathSubstitution.cs" />

@@ -73,6 +73,10 @@ namespace WebBackend
                 //arguments were incorrect
                 return;
 
+            System.Globalization.CultureInfo customCulture = (System.Globalization.CultureInfo)System.Threading.Thread.CurrentThread.CurrentCulture.Clone();
+            customCulture.NumberFormat.NumberDecimalSeparator = ".";
+            System.Threading.Thread.CurrentThread.CurrentCulture = customCulture;
+
             //AnswerExtraction.ExtractionEvaluation_Batch.RunLinkingExperiment();
             //AnswerExtraction.ExtractionEvaluation_Batch.RunLinkedAnswerExtractionExperiment();
             //AnswerExtraction.ExtractionEvaluation_Batch.RunAnswerExtractionEvaluation();

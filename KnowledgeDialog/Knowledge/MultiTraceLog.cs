@@ -44,7 +44,7 @@ namespace KnowledgeDialog.Knowledge
             {
                 var currentNode = worklist.Dequeue();
                 allNodes.Add(currentNode);
-                if (!currentNode.HasContinuation)
+                if (!currentNode.HasContinuation || currentNode.Path.Count() > 1)
                     //current node cannot be extended
                     continue;
 
@@ -52,6 +52,9 @@ namespace KnowledgeDialog.Knowledge
                 var edges = getEdges(currentNode, graph);
                 foreach (var edge in edges)
                 {
+                    if (edge.Inverse().Equals(currentNode.CurrentEdge))
+                        //we dont want to go back
+                        continue;
                     var nextNode = new TraceNode(currentNode, edge, graph);
                     worklist.Enqueue(nextNode);
                 }
@@ -80,6 +83,8 @@ namespace KnowledgeDialog.Knowledge
     {
 
         public IEnumerable<Trace> Traces { get { return _traceIndex.Values.ToArray(); } }
+
+        public IEnumerable<NodeReference> CompatibleInitialNodes { get { return _traceIndex.Values.SelectMany(t => t.InitialNodes).Distinct().ToArray(); } }
 
         public IEnumerable<NodeReference> CurrentNodes { get { return _traceIndex.Keys.ToArray(); } }
 
@@ -201,7 +206,7 @@ namespace KnowledgeDialog.Knowledge
         {
             var path = new List<Edge>();
             var currentNode = this;
-            while (currentNode.CurrentEdge!=null)
+            while (currentNode.CurrentEdge != null)
             {
                 path.Add(currentNode.CurrentEdge);
                 currentNode = currentNode.PreviousNode;

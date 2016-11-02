@@ -13,7 +13,7 @@ namespace WebBackend.GeneralizationQA
         /// <summary>
         /// Nodes that were original start points of the substitution.
         /// </summary>
-        public IEnumerable<NodeReference> OriginalNodes { get { return OriginalTrace.CurrentNodes; } }
+        public IEnumerable<NodeReference> CompatibleInitialNodes { get { return OriginalTrace.CompatibleInitialNodes; } }
 
         /// <summary>
         /// Node substitution.
@@ -37,7 +37,7 @@ namespace WebBackend.GeneralizationQA
 
             if (double.IsNaN(rank))
             {
-                Rank = OriginalNodes.Count();
+                Rank = CompatibleInitialNodes.Count();
             }
         }
 
@@ -48,7 +48,7 @@ namespace WebBackend.GeneralizationQA
 
         internal IEnumerable<NodeReference> FindTargets(ComposedGraph graph)
         {
-            var path = OriginalTrace.GetPathToRoot();
+            var path = OriginalTrace.GetPathToRoot().ToArray();
             return graph.GetForwardTargets(new[] { Substitution }, path).ToArray();
         }
     }

@@ -84,23 +84,48 @@ namespace WebBackend.GeneralizationQA
             extractor.LoadIndex();
 
             var trainDialogs = trainDataset.Dialogs.ToArray();
-            var linkedUtterances = cachedLinkedUtterances(simpleQuestions, extractor, trainDialogs);
+            var linkedUtterancesTrain = cachedLinkedUtterances(simpleQuestions, extractor, trainDialogs);
 
-            var graph = cachedEntityGraph(simpleQuestions, trainDialogs, linkedUtterances);
+            var graph = cachedEntityGraph(simpleQuestions, trainDialogs, linkedUtterancesTrain);
 
             var linker = new GraphDisambiguatedLinker(extractor, "./verbs.lex");
-            var cachedLinker = new CachedLinker(trainDialogs.Select(d => d.Question).ToArray(), linkedUtterances, linker);
+            var cachedLinker = new CachedLinker(trainDialogs.Select(d => d.Question).ToArray(), linkedUtterancesTrain, linker);
             var generalizer = new PatternGeneralizer(graph, cachedLinker.LinkUtterance);
-            foreach (var dialog in trainDialogs)
+            var testDialogs = 20;
+
+            //train
+            for (var i = 0; i < trainDialogs.Length - testDialogs; ++i)
             {
-                var question = dialog.Question;
-                var answerNodeId = FreebaseLoader.GetId(dialog.AnswerMid);
+                var trainDialog = trainDialogs[i];
+                var question = trainDialog.Question;
+                var answerNodeId = FreebaseLoader.GetId(trainDialog.AnswerMid);
                 var answerNode = graph.GetNode(answerNodeId);
 
                 generalizer.AddExample(question, answerNode);
             }
 
-            var result=generalizer.GetAnswer("Name a musician");
+            //test
+            for (var i = trainDialogs.Length - testDialogs; i < trainDialogs.Length; ++i)
+            {
+                var testDialog = trainDialogs[i];
+                Console.WriteLine(testDialog.Question);
+                Console.WriteLine("\t" + cachedLinker.LinkUtterance(testDialog.Question));
+                var desiredAnswerLabel = extractor.GetLabel(testDialog.AnswerMid);
+                Console.WriteLine("\tDesired answer: {0} ({1})", desiredAnswerLabel, testDialog.AnswerMid);
+                var answer = generalizer.GetAnswer(testDialog.Question);
+                if (answer == null)
+                {
+                    Console.WriteLine("\tNo answer.");
+                }
+                else
+                {
+                    var answerLabel = extractor.GetLabel(FreebaseLoader.GetMid(answer.Value.Data));
+                    Console.WriteLine("\tGeneralizer output: {0} {1}", answerLabel, answer);
+                }
+                Console.WriteLine();
+            }
+
+            var result = generalizer.GetAnswer("What is Obama gender?");
         }
 
         internal static void RunEvaluation()

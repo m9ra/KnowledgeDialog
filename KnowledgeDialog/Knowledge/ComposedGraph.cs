@@ -279,14 +279,14 @@ namespace KnowledgeDialog.Knowledge
                 throw new ArgumentNullException("startingNodes");
 
             var result = new HashSet<NodeReference>();
-            var currentLayer = startingNodes;
+            var currentLayer = new HashSet<NodeReference>(startingNodes);
             foreach (var edge in path)
             {
-                var nextLayer = new List<NodeReference>();
+                var nextLayer = new HashSet<NodeReference>();
                 foreach (var node in currentLayer)
                 {
                     var targets = Targets(node, edge).ToArray();
-                    nextLayer.AddRange(targets);
+                    nextLayer.UnionWith(targets);
                 }
 
                 currentLayer = nextLayer;

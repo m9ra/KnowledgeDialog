@@ -25,6 +25,10 @@ namespace WebBackend.AnswerExtraction
         /// </summary>
         private readonly Dictionary<string, string> _internedStrings = new Dictionary<string, string>();
 
+        private readonly Dictionary<string, HashSet<string>> _inBounds = new Dictionary<string, HashSet<string>>();
+
+        private readonly Dictionary<string, string[]> _outBounds = new Dictionary<string, string[]>();
+
         /// <summary>
         /// All ids met in the DB.
         /// </summary>
@@ -85,6 +89,35 @@ namespace WebBackend.AnswerExtraction
             }
         }
 
+        internal void LoadInOutBounds()
+        {
+            iterateLines(_loadInOutBounds);
+        }
+
+        private void _loadInOutBounds(string sourceId, string edge, string[] targetIds)
+        {
+
+            string[] currentOutBounds;
+            if (_outBounds.TryGetValue(sourceId, out currentOutBounds))
+            {
+                _outBounds[sourceId] = targetIds.Union(currentOutBounds).ToArray();
+            }
+            else
+            {
+                _outBounds[sourceId] = targetIds;
+            }
+
+            foreach (var targetId in targetIds)
+            {
+                HashSet<string> currentInBounds;
+                if (!_inBounds.TryGetValue(targetId, out currentInBounds))
+                {
+                    _inBounds[targetId] = currentInBounds = new HashSet<string>();
+                }
+                currentInBounds.Add(sourceId);
+            }
+        }
+
         internal void RunConcreteIteration()
         {
             var lineIndex = 0;
@@ -133,6 +166,21 @@ namespace WebBackend.AnswerExtraction
         {
             TargetIds.UnionWith(_foundIds);
             _foundIds.Clear();
+        }
+
+
+        internal IEnumerable<string> GetInBounds(string id)
+        {
+            HashSet<string> result;
+            _inBounds.TryGetValue(id, out result);
+            return result;
+        }
+
+        internal IEnumerable<string> GetOutBounds(string id)
+        {
+            string[] result;
+            _outBounds.TryGetValue(id, out result);
+            return result;
         }
 
         internal GraphLayerBase GetLayerFromIds(IEnumerable<string> ids)
@@ -206,10 +254,10 @@ namespace WebBackend.AnswerExtraction
                     var targetEntities = new string[targetMids.Length];
                     for (var i = 0; i < targetMids.Length; ++i)
                     {
-                        targetEntities[i] = getId(targetMids[i]);
+                        targetEntities[i] = getId(intern(targetMids[i]));
 
                     }
-                    processor(entity1, edge, targetEntities);
+                    processor(intern(entity1), intern(edge), targetEntities);
                 }
             }
         }

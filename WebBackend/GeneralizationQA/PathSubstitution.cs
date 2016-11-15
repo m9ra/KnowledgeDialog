@@ -39,6 +39,10 @@ namespace WebBackend.GeneralizationQA
             {
                 Rank = CompatibleInitialNodes.Count();
             }
+            else
+            {
+                Rank = rank;
+            }
         }
 
         internal PathSubstitution Reranked(double confidence)

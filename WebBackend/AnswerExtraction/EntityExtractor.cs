@@ -81,16 +81,16 @@ namespace WebBackend.AnswerExtraction
         }
 
 
-        internal void AddEntry(string mid, IEnumerable<string> aliases, string description, int inBounds, int outBounds)
+        internal void AddEntry(string mid, IEnumerable<string> aliases, string description, IEnumerable<string> inIds, IEnumerable<string> outIds)
         {
 
-            _indexWriter.AddDocument(getDocumentWithContent(description, mid, ContentCategory.D, inBounds, outBounds));
+            _indexWriter.AddDocument(getDocumentWithContent(description, mid, ContentCategory.D, inIds, outIds));
             var isLabel = true;
             foreach (var alias in aliases)
             {
                 var sanitizedAlias = alias.Trim('"');
                 var category = isLabel ? ContentCategory.L : ContentCategory.A;
-                _indexWriter.AddDocument(getDocumentWithContent(sanitizedAlias, mid, category, inBounds, outBounds));
+                _indexWriter.AddDocument(getDocumentWithContent(sanitizedAlias, mid, category, inIds, outIds));
                 isLabel = false; //first alias is considered to be a label
             }
         }
@@ -110,11 +110,13 @@ namespace WebBackend.AnswerExtraction
             _searcher = new IndexSearcher(_directory, false);
         }
 
-        private Document getDocumentWithContent(string content, string mid, ContentCategory category, int inBounds, int outBounds)
+        private Document getDocumentWithContent(string content, string mid, ContentCategory category, IEnumerable<string> inIds, IEnumerable<string> outIds)
         {
             var fldContentCategory = new Field("contentCategory", category.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
             var fldContent = new Field("content", content.ToLowerInvariant(), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.YES);
             var fldId = new Field("id", GetFreebaseId(mid), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
+            var inBounds = inIds == null ? 0 : inIds.Count();
+            var outBounds = outIds == null ? 0 : outIds.Count();
 
             var fldInBounds = new Field("inBounds", inBounds.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
 
@@ -126,6 +128,15 @@ namespace WebBackend.AnswerExtraction
             doc.Add(fldContentCategory);
             doc.Add(fldInBounds);
             doc.Add(fldOutBounds);
+
+            if (inIds != null)
+                foreach (var inId in inIds)
+                    doc.Add(new Field("inId", inId, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+
+            if (outIds != null)
+                foreach (var outId in outIds)
+                    doc.Add(new Field("outId", outId, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+
             return doc;
         }
 
@@ -177,7 +188,7 @@ namespace WebBackend.AnswerExtraction
                     {
                         score = score / 15;
                     }
-                    
+
                     EntityInfo entity;
                     if (!scores.TryGetValue(mid, out entity))
                     {

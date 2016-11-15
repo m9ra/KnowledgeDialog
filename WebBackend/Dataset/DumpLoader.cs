@@ -28,7 +28,6 @@ namespace WebBackend.Dataset
 
         private readonly Dictionary<string, int> _inBounds = new Dictionary<string, int>();
 
-
         private readonly Dictionary<string, int> _outBounds = new Dictionary<string, int>();
 
         internal IEnumerable<string> Ids { get { return _names.Keys; } }

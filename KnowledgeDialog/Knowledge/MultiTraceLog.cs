@@ -77,6 +77,34 @@ namespace KnowledgeDialog.Knowledge
 
             return edges;
         }
+
+        public IEnumerable<TraceNode> CreateAllTraces(int pathLengthLimit, ComposedGraph graph)
+        {
+            var worklist = new Queue<TraceNode>();
+            var allNodes = new List<TraceNode>();
+            worklist.Enqueue(Root);
+            while (worklist.Count > 0)
+            {
+                var currentNode = worklist.Dequeue();
+                allNodes.Add(currentNode);
+                if (currentNode.Path.Count() > pathLengthLimit)
+                    //current node cannot be extended
+                    continue;
+
+                //extend trace node according to all edges
+                var edges = getEdges(currentNode, graph);
+                foreach (var edge in edges)
+                {
+                    if (edge.Inverse().Equals(currentNode.CurrentEdge))
+                        //we dont want to go back
+                        continue;
+                    var nextNode = new TraceNode(currentNode, edge, graph);
+                    worklist.Enqueue(nextNode);
+                }
+            }
+
+            return allNodes;
+        }
     }
 
     public class TraceNode

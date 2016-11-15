@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using System.IO;
+
 using WebBackend.Dataset;
 
 using KnowledgeDialog.Dialog;
@@ -74,6 +76,20 @@ namespace WebBackend.GeneralizationQA
             var answer = generalizer.GetAnswer("Where does C live?");
         }
 
+        internal static void DebugInfo(PathSubstitution substitution)
+        {
+            var extractor = new AnswerExtraction.EntityExtractor(@"C:\REPOSITORIES\lucene_freebase_v1_index");
+            extractor.LoadIndex();
+
+            Console.WriteLine("Substitution trace: " + substitution.OriginalTrace.ToString());
+            Console.WriteLine("Rank: " + substitution.Rank);
+            Console.WriteLine("Substitution node: {0} ({1})", extractor.GetLabel(FreebaseLoader.GetMid(substitution.Substitution.Data)), substitution.Substitution);
+            foreach (var node in substitution.OriginalTrace.CurrentNodes.Take(20))
+            {
+                Console.WriteLine("\t{0} ({1})", extractor.GetLabel(FreebaseLoader.GetMid(node.Data)), node);
+            }
+        }
+
         internal static void RunAnswerLoadingTest()
         {
             var trainDataset = new QuestionDialogDatasetReader("question_dialogs-train.json");
@@ -84,14 +100,14 @@ namespace WebBackend.GeneralizationQA
             extractor.LoadIndex();
 
             var trainDialogs = trainDataset.Dialogs.ToArray();
-            var linkedUtterancesTrain = cachedLinkedUtterances(simpleQuestions, extractor, trainDialogs);
+            var linkedUtterancesTrain = cachedLinkedUtterancesTrain(simpleQuestions, extractor, trainDialogs);
 
             var graph = cachedEntityGraph(simpleQuestions, trainDialogs, linkedUtterancesTrain);
 
             var linker = new GraphDisambiguatedLinker(extractor, "./verbs.lex");
             var cachedLinker = new CachedLinker(trainDialogs.Select(d => d.Question).ToArray(), linkedUtterancesTrain, linker);
             var generalizer = new PatternGeneralizer(graph, cachedLinker.LinkUtterance);
-            var testDialogs = 20;
+            var testDialogs = 0;
 
             //train
             for (var i = 0; i < trainDialogs.Length - testDialogs; ++i)
@@ -104,28 +120,37 @@ namespace WebBackend.GeneralizationQA
                 generalizer.AddExample(question, answerNode);
             }
 
+            /**/
             //test
-            for (var i = trainDialogs.Length - testDialogs; i < trainDialogs.Length; ++i)
+            foreach (var devDialog in trainDialogs)
             {
-                var testDialog = trainDialogs[i];
-                Console.WriteLine(testDialog.Question);
-                Console.WriteLine("\t" + cachedLinker.LinkUtterance(testDialog.Question));
-                var desiredAnswerLabel = extractor.GetLabel(testDialog.AnswerMid);
-                Console.WriteLine("\tDesired answer: {0} ({1})", desiredAnswerLabel, testDialog.AnswerMid);
-                var answer = generalizer.GetAnswer(testDialog.Question);
+                writeLine(devDialog.Question);
+                writeLine("\t" + cachedLinker.LinkUtterance(devDialog.Question));
+                var desiredAnswerLabel = extractor.GetLabel(devDialog.AnswerMid);
+                writeLine("\tDesired answer: {0} ({1})", desiredAnswerLabel, devDialog.AnswerMid);
+                var answer = generalizer.GetAnswer(devDialog.Question);
                 if (answer == null)
                 {
-                    Console.WriteLine("\tNo answer.");
+                    writeLine("\tNo answer.");
                 }
                 else
                 {
                     var answerLabel = extractor.GetLabel(FreebaseLoader.GetMid(answer.Value.Data));
-                    Console.WriteLine("\tGeneralizer output: {0} {1}", answerLabel, answer);
+                    writeLine("\tGeneralizer output: {0} {1}", answerLabel, answer);
                 }
-                Console.WriteLine();
+                writeLine();
             }
+            /**/
+            //var result = generalizer.GetAnswer("What is Obama gender?");
+            //var result = generalizer.GetAnswer("is mir khasim ali of the male or female gender");
+        }
 
-            var result = generalizer.GetAnswer("What is Obama gender?");
+        private static void writeLine(string format = "", params object[] args)
+        {
+            Console.WriteLine(format, args);
+            var writer = new StreamWriter("GoldAnswerBatch.log", true);
+            writer.WriteLine(format, args);
+            writer.Close();
         }
 
         internal static void RunEvaluation()
@@ -138,7 +163,7 @@ namespace WebBackend.GeneralizationQA
             extractor.LoadIndex();
 
             var trainDialogs = trainDataset.Dialogs.ToArray();
-            var linkedUtterances = cachedLinkedUtterances(simpleQuestions, extractor, trainDialogs);
+            var linkedUtterances = cachedLinkedUtterancesTrain(simpleQuestions, extractor, trainDialogs);
 
             var graph = cachedEntityGraph(simpleQuestions, trainDialogs, linkedUtterances);
 
@@ -208,17 +233,23 @@ totalDialogs);
 
         private static ComposedGraph cachedEntityGraph(SimpleQuestionDumpProcessor simpleQuestions, QuestionDialog[] trainDialogs, LinkedUtterance[] linkedUtterances)
         {
-            return ComputationCache.Load("knowledge_all_train", 1, () =>
+            return ComputationCache.Load("knowledge_all_train3", 1, () =>
              {
                  var trainEntities = getQAEntities(trainDialogs, linkedUtterances);
+                 //var layer = simpleQuestions.GetLayerFromIds(trainEntities);
 
-                 var layer = simpleQuestions.GetLayerFromIds(trainEntities);
+                 foreach (var entityId in trainEntities)
+                 {
+                     simpleQuestions.AddTargetMid(FreebaseLoader.GetMid(entityId));
+                 }
+                 simpleQuestions.RunIteration();
+                 var layer = simpleQuestions.GetLayerFromIds(simpleQuestions.AllIds);
                  var graph = new ComposedGraph(layer);
                  return graph;
              });
         }
 
-        private static LinkedUtterance[] cachedLinkedUtterances(SimpleQuestionDumpProcessor simpleQuestions, EntityExtractor extractor, QuestionDialog[] trainDialogs)
+        private static LinkedUtterance[] cachedLinkedUtterancesTrain(SimpleQuestionDumpProcessor simpleQuestions, EntityExtractor extractor, QuestionDialog[] trainDialogs)
         {
             var linkedUtterances = ComputationCache.Load("linked_all_train", 1, () =>
             {

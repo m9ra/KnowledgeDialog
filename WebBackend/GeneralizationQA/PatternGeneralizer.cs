@@ -22,6 +22,13 @@ namespace WebBackend.GeneralizationQA
 
         private readonly Dictionary<string, Group> _answerGroups = new Dictionary<string, Group>();
 
+        private readonly Dictionary<string, List<string>> _originalQuestions = new Dictionary<string, List<string>>();
+
+        /// <summary>
+        /// How many training examples contained the term.
+        /// </summary>
+        private readonly Dictionary<string, int> _termFrequency = new Dictionary<string, int>();
+
         private readonly Dictionary<MultiTraceLog, TraceNode[]> _cachedFilteredTraces = new Dictionary<MultiTraceLog, TraceNode[]>();
 
         public PatternGeneralizer(ComposedGraph graph, Linker linker)
@@ -36,8 +43,24 @@ namespace WebBackend.GeneralizationQA
             IEnumerable<NodeReference> questionEntities;
 
             extractSignature(question, out questionSignature, out questionEntities);
+
+            List<string> originalQuestions;
+            if (!_originalQuestions.TryGetValue(questionSignature, out originalQuestions))
+                _originalQuestions[questionSignature] = originalQuestions = new List<string>();
+
+            originalQuestions.Add(question);
+
+
             var answerGroup = GetAnswerGroup(questionSignature);
             answerGroup.AddNode(answer);
+
+            var words = getWordsForSignatureComparison(questionSignature);
+            foreach (var word in words)
+            {
+                int count;
+                _termFrequency.TryGetValue(word, out count);
+                _termFrequency[word] = count + 1;
+            }
             //TODO the language statistics should be counted here
         }
 
@@ -54,7 +77,7 @@ namespace WebBackend.GeneralizationQA
             {
                 /*if (rankedSignature.Value != questionSignature)
                     continue;*/
-
+                var originalQuestions = _originalQuestions[rankedSignature.Value].ToArray();
                 if (rankedSignature.Rank <= 0.5)
                     continue;
 
@@ -76,6 +99,10 @@ namespace WebBackend.GeneralizationQA
                     continue;
 
                 bestGroupCandidate = new Ranked<NodeReference>(bestGroupCandidate.Value, bestGroupCandidate.Rank * rankedSignature.Rank);
+                /*foreach (var substitution in match.SubstitutionPaths)
+                {
+                    GoldenAnswer_Batch.DebugInfo(substitution);
+                }*/
                 rankedCandidates.Add(bestGroupCandidate);
             }
 
@@ -100,17 +127,26 @@ namespace WebBackend.GeneralizationQA
 
                 var knownSignatureWords = getWordsForSignatureComparison(knownSignature);
                 var commonWords = words.Intersect(knownSignatureWords).ToArray();
+                var commonWordsWeight = words.Select(w => getTermImportance(w)).Sum();
+                var allWordsWeight = words.Concat(knownSignatureWords).Distinct().Select(w => getTermImportance(w)).Sum();
 
-                var similarity = 2.0 * commonWords.Length / (words.Length + knownSignatureWords.Length);
+                var similarity = 2.0 * commonWordsWeight * commonWords.Length / (allWordsWeight * (words.Length + knownSignatureWords.Length));
                 result.Add(new Ranked<string>(knownSignature, similarity));
             }
 
             return result;
         }
 
+        private double getTermImportance(string term)
+        {
+            int termCount;
+            _termFrequency.TryGetValue(term, out termCount);
+            return 1.0 / (termCount + 1);
+        }
+
         private string[] getWordsForSignatureComparison(string signature)
         {
-            return signature.ToLowerInvariant().Split(' ').Where(w => !w.StartsWith("$")).ToArray();
+            return signature.ToLowerInvariant().Split(' ').Where(w => !w.StartsWith("$")).Distinct().ToArray();
         }
 
         private IEnumerable<Ranked<NodeReference>> rankCandidates(IEnumerable<NodeReference> answerCandidates, MultiTraceLog pattern)
@@ -128,15 +164,16 @@ namespace WebBackend.GeneralizationQA
         {
             var commonTraceNodes = getCommonTraceNodes(answerCandidate, pattern);
             var rank = 0.0;
+            var initialNodeCount = pattern.NodeBatch.Count();
             foreach (var traceNode in commonTraceNodes)
             {
-                var initialNodes = traceNode.Traces.Select(t => t.InitialNodes).Distinct().ToArray();
-                var edgeImportance = 1.0 * initialNodes.Length / pattern.NodeBatch.Count();
+                var compatibleNodes = traceNode.CompatibleInitialNodes.ToArray();
+                var edgeImportance = 1.0 * compatibleNodes.Length / initialNodeCount;
                 rank += edgeImportance;
             }
 
             //TODO here could be more precise formula
-            return rank / (pattern.TraceNodes.Count() - 1);
+            return rank / commonTraceNodes.Count();
         }
 
         private IEnumerable<TraceNode> getCommonTraceNodes(NodeReference answerCandidate, MultiTraceLog pattern)
@@ -201,7 +238,7 @@ namespace WebBackend.GeneralizationQA
             }
 
             questionEntities = entities;
-            questionSignature = signature.ToString();
+            questionSignature = signature.ToString().ToLowerInvariant();
         }
 
         internal PatternSubstitutionMatch PatternMatchProbability(MultiTraceLog pattern, string questionSignature, IEnumerable<NodeReference> questionEnities, ComposedGraph graph)
@@ -214,14 +251,14 @@ namespace WebBackend.GeneralizationQA
                 foreach (var path in getSubstitutedPaths(pattern, node, graph))
                 {
                     var currentPath = path;
-                    var originalNodes = currentPath.CompatibleInitialNodes;
+                    var originalNodes = currentPath.OriginalTrace.CurrentNodes;
                     var confidence = currentPath.Rank / pattern.NodeBatch.Count();
                     //TODO consider context 
                     confidence *= SubstitutionProbability(currentPath.Substitution, originalNodes);
                     currentPath = currentPath.Reranked(confidence);
                     if (currentBestConfidence < confidence)
                     {
-                        currentBestPath = path;
+                        currentBestPath = currentPath;
                         currentBestConfidence = confidence;
                     }
                 }
@@ -240,7 +277,16 @@ namespace WebBackend.GeneralizationQA
 
         internal double SubstitutionProbability(NodeReference substitution, IEnumerable<NodeReference> originalNodes)
         {
-            return 1.0; //TODO consider substitution quality
+            //TODO consider substitution quality
+            if (originalNodes.Contains(substitution))
+            {
+                //prefer substitution with lower node count
+                return 2.0 / (originalNodes.Count() + 1);
+            }
+            else
+            {
+                return 1.0 / (originalNodes.Count() + 1);
+            }
         }
 
         private IEnumerable<PathSubstitution> getSubstitutedPaths(MultiTraceLog pattern, NodeReference substitutionNode, ComposedGraph graph)
@@ -272,6 +318,11 @@ namespace WebBackend.GeneralizationQA
 
                     return pathLen == distinctPathLen;
                 }).OrderByDescending(t => t.CompatibleInitialNodes.Count()).Take(100).ToArray();
+
+                if (pattern.TraceNodes.Count() <= 1)
+                {
+                    result = pattern.CreateAllTraces(3, _graph).ToArray();
+                }
 
                 _cachedFilteredTraces[pattern] = result;
             }

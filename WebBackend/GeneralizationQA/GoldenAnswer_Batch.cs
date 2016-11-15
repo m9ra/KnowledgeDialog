@@ -22,7 +22,6 @@ namespace WebBackend.GeneralizationQA
 {
     class GoldenAnswer_Batch
     {
-
         internal static void RunToyGeneralization()
         {
             var data = new ExplicitLayer();
@@ -78,26 +77,28 @@ namespace WebBackend.GeneralizationQA
 
         internal static void DebugInfo(PathSubstitution substitution)
         {
-            var extractor = new AnswerExtraction.EntityExtractor(@"C:\REPOSITORIES\lucene_freebase_v1_index");
-            extractor.LoadIndex();
+            var db = Configuration.GetFreebaseDbProvider();
+            db.LoadIndex();
 
             Console.WriteLine("Substitution trace: " + substitution.OriginalTrace.ToString());
             Console.WriteLine("Rank: " + substitution.Rank);
-            Console.WriteLine("Substitution node: {0} ({1})", extractor.GetLabel(FreebaseLoader.GetMid(substitution.Substitution.Data)), substitution.Substitution);
+            Console.WriteLine("Substitution node: {0} ({1})", db.GetLabel(FreebaseLoader.GetMid(substitution.Substitution.Data)), substitution.Substitution);
             foreach (var node in substitution.OriginalTrace.CurrentNodes.Take(20))
             {
-                Console.WriteLine("\t{0} ({1})", extractor.GetLabel(FreebaseLoader.GetMid(node.Data)), node);
+                Console.WriteLine("\t{0} ({1})", db.GetLabel(FreebaseLoader.GetMid(node.Data)), node);
             }
         }
 
-        internal static void RunAnswerLoadingTest()
+        internal static void RunAnswerGeneralizationDev()
         {
-            var trainDataset = new QuestionDialogDatasetReader("question_dialogs-train.json");
-            var devDataset = new QuestionDialogDatasetReader("question_dialogs-dev.json");
+            var trainDataset = Configuration.GetQuestionDialogsTrain();
+            var devDataset = Configuration.GetQuestionDialogsDev();
 
-            var simpleQuestions = new SimpleQuestionDumpProcessor(@"C:\Databases\SimpleQuestions_v2\SimpleQuestions_v2\freebase-subsets\freebase-FB2M.txt");
-            var extractor = new AnswerExtraction.EntityExtractor(@"C:\REPOSITORIES\lucene_freebase_v1_index");
-            extractor.LoadIndex();
+            var simpleQuestions = Configuration.GetSimpleQuestionsDump();
+            var db = Configuration.GetFreebaseDbProvider();
+            db.LoadIndex();
+
+            var extractor = new AnswerExtraction.EntityExtractor(db);
 
             var trainDialogs = trainDataset.Dialogs.ToArray();
             var linkedUtterancesTrain = cachedLinkedUtterancesTrain(simpleQuestions, extractor, trainDialogs);
@@ -121,12 +122,12 @@ namespace WebBackend.GeneralizationQA
             }
 
             /**/
-            //test
+            //evaluation on dev set
             foreach (var devDialog in trainDialogs)
             {
                 writeLine(devDialog.Question);
                 writeLine("\t" + cachedLinker.LinkUtterance(devDialog.Question));
-                var desiredAnswerLabel = extractor.GetLabel(devDialog.AnswerMid);
+                var desiredAnswerLabel = db.GetLabel(devDialog.AnswerMid);
                 writeLine("\tDesired answer: {0} ({1})", desiredAnswerLabel, devDialog.AnswerMid);
                 var answer = generalizer.GetAnswer(devDialog.Question);
                 if (answer == null)
@@ -135,7 +136,7 @@ namespace WebBackend.GeneralizationQA
                 }
                 else
                 {
-                    var answerLabel = extractor.GetLabel(FreebaseLoader.GetMid(answer.Value.Data));
+                    var answerLabel = db.GetLabel(FreebaseLoader.GetMid(answer.Value.Data));
                     writeLine("\tGeneralizer output: {0} {1}", answerLabel, answer);
                 }
                 writeLine();
@@ -155,12 +156,13 @@ namespace WebBackend.GeneralizationQA
 
         internal static void RunEvaluation()
         {
-            var trainDataset = new QuestionDialogDatasetReader("question_dialogs-train.json");
-            var devDataset = new QuestionDialogDatasetReader("question_dialogs-dev.json");
+            var trainDataset = Configuration.GetQuestionDialogsTrain();
+            var devDataset = Configuration.GetQuestionDialogsDev();
 
-            var simpleQuestions = new SimpleQuestionDumpProcessor(@"C:\Databases\SimpleQuestions_v2\SimpleQuestions_v2\freebase-subsets\freebase-FB2M.txt");
-            var extractor = new AnswerExtraction.EntityExtractor(@"C:\REPOSITORIES\lucene_freebase_v1_index");
-            extractor.LoadIndex();
+            var simpleQuestions = Configuration.GetSimpleQuestionsDump();
+            var db = Configuration.GetFreebaseDbProvider();
+            db.LoadIndex();
+            var extractor = new AnswerExtraction.EntityExtractor(db);
 
             var trainDialogs = trainDataset.Dialogs.ToArray();
             var linkedUtterances = cachedLinkedUtterancesTrain(simpleQuestions, extractor, trainDialogs);
@@ -168,7 +170,7 @@ namespace WebBackend.GeneralizationQA
             var graph = cachedEntityGraph(simpleQuestions, trainDialogs, linkedUtterances);
 
 
-            printInfo(graph, extractor, "0kpv11", "0drcrdd");
+            printInfo(graph, db, "0kpv11", "0drcrdd");
 
 
             var qaModule = new ProbabilisticQAModule(graph, new KnowledgeDialog.Database.CallStorage(null));
@@ -216,14 +218,14 @@ totalDialogs);
             Console.ReadKey();
         }
 
-        private static void printInfo(ComposedGraph graph, EntityExtractor extractor, params string[] ids)
+        private static void printInfo(ComposedGraph graph, FreebaseDbProvider db, params string[] ids)
         {
             foreach (var id in ids)
             {
                 var mid = FreebaseLoader.GetMid(id);
 
-                var label = extractor.GetLabel(mid);
-                var description = extractor.GetDescription(mid);
+                var label = db.GetLabel(mid);
+                var description = db.GetDescription(mid);
 
                 Console.WriteLine(id + " " + label);
                 Console.WriteLine("\t" + description);
@@ -233,7 +235,7 @@ totalDialogs);
 
         private static ComposedGraph cachedEntityGraph(SimpleQuestionDumpProcessor simpleQuestions, QuestionDialog[] trainDialogs, LinkedUtterance[] linkedUtterances)
         {
-            return ComputationCache.Load("knowledge_all_train3", 1, () =>
+            return ComputationCache.Load("knowledge_all_train", 1, () =>
              {
                  var trainEntities = getQAEntities(trainDialogs, linkedUtterances);
                  //var layer = simpleQuestions.GetLayerFromIds(trainEntities);

@@ -26,10 +26,19 @@ namespace WebBackend.Dataset
         /// </summary>
         private readonly Dictionary<string, string> _descriptions = new Dictionary<string, string>();
 
+        /// <summary>
+        /// Id to number of incoming bounds.
+        /// </summary>
         private readonly Dictionary<string, int> _inBounds = new Dictionary<string, int>();
 
+        /// <summary>
+        /// Id to number of outcoming bounds.
+        /// </summary>
         private readonly Dictionary<string, int> _outBounds = new Dictionary<string, int>();
 
+        /// <summary>
+        /// Ids collected by the loader.
+        /// </summary>
         internal IEnumerable<string> Ids { get { return _names.Keys; } }
 
         internal DumpLoader(string dumpPath)

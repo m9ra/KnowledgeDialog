@@ -13,6 +13,8 @@ namespace KnowledgeDialog.Dialog.Parsing
 
         public readonly string Mid;
 
+        public readonly string Description;
+
         public readonly double Score = 0;
 
         public readonly string BestAliasMatch = null;
@@ -23,15 +25,16 @@ namespace KnowledgeDialog.Dialog.Parsing
 
         private readonly double _bestLabelScore = 0;
 
-        public EntityInfo(string mid, string label, int inBounds, int outBounds)
+        public EntityInfo(string mid, string label, int inBounds, int outBounds, string description = null)
         {
             Mid = mid;
             Label = label;
             InBounds = inBounds;
             OutBounds = outBounds;
+            Description = description;
         }
 
-        private EntityInfo(string mid, string label, int inBounds, int outBounds, string name, double score, double bestLabelScore)
+        private EntityInfo(string mid, string label, int inBounds, int outBounds, string name, double score, double bestLabelScore, string description)
         {
             Mid = mid;
             BestAliasMatch = name;
@@ -39,6 +42,7 @@ namespace KnowledgeDialog.Dialog.Parsing
             Label = label;
             InBounds = inBounds;
             OutBounds = outBounds;
+            Description = description;
             _bestLabelScore = bestLabelScore;
         }
 
@@ -47,17 +51,17 @@ namespace KnowledgeDialog.Dialog.Parsing
             var isAlias = true;//match.Length < 15;
             if (isAlias && score > _bestLabelScore)
             {
-                return new EntityInfo(Mid, Label, InBounds, OutBounds, match, Score + score, score);
+                return new EntityInfo(Mid, Label, InBounds, OutBounds, match, Score + score, score, Description);
             }
             else
             {
-                return new EntityInfo(Mid, Label, InBounds, OutBounds, BestAliasMatch, Score + score, _bestLabelScore);
+                return new EntityInfo(Mid, Label, InBounds, OutBounds, BestAliasMatch, Score + score, _bestLabelScore, Description);
             }
         }
 
         public EntityInfo SubtractScore(double score)
         {
-            return new EntityInfo(Mid, Label, InBounds, OutBounds, BestAliasMatch, Score - score, _bestLabelScore);
+            return new EntityInfo(Mid, Label, InBounds, OutBounds, BestAliasMatch, Score - score, _bestLabelScore, Description);
         }
 
         public override bool Equals(object obj)

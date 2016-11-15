@@ -52,7 +52,7 @@ namespace WebBackend.AnswerExtraction
 
             var entities = _extractor.GetEntities(ngram)
                 .Where(e => e.Label != null)
-                .Where(e => _extractor.GetDescription(e.Mid) != null)
+                .Where(e => e.Description != null)
                 .OrderByDescending(e => e.InBounds + e.OutBounds).ToArray();
 
             entities = disambiguateTo(entities, entityHypothesisCount).ToArray();
@@ -62,7 +62,7 @@ namespace WebBackend.AnswerExtraction
 
             foreach (var entity in entities)
             {
-                var aliases = new[] { entity.Label }.Concat(_extractor.GetAliases(entity.Mid));
+                var aliases = new[] { entity.Label }.Concat(_extractor.Db.GetAliases(entity.Mid));
                 foreach (var alias in aliases)
                 {
                     var entityWords = alias.ToLowerInvariant().Split(' ');

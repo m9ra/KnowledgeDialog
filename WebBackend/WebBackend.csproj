@@ -14,7 +14,7 @@
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>x64</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -58,19 +58,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnswerExtraction\FreebaseDumpProcessor.cs" />
+    <Compile Include="Dataset\FreebaseDbProvider.cs" />
+    <Compile Include="Dataset\FreebaseDumpProcessor.cs" />
     <Compile Include="AnswerExtraction\DumpCreation_Batch.cs" />
     <Compile Include="AnswerExtraction\EntityExtractor.cs" />
     <Compile Include="AnswerExtraction\GraphDisambiguatedLinker.cs" />
     <Compile Include="AnswerExtraction\LinkBasedExtractor.cs" />
     <Compile Include="AnswerExtraction\LinkIndex.cs" />
-    <Compile Include="AnswerExtraction\SimpleQuestionDumpProcessor.cs" />
+    <Compile Include="Dataset\SimpleQuestionDumpProcessor.cs" />
     <Compile Include="AnswerExtraction\LuceneIndex_Batch.cs" />
     <Compile Include="AnswerExtraction\SearchContext.cs" />
     <Compile Include="AnswerExtraction\ExtractionEvaluation_Batch.cs" />
     <Compile Include="AnswerExtraction\UtteranceLinker.cs" />
-    <Compile Include="AnswerExtraction\WikidataDumpProcessor.cs" />
+    <Compile Include="Dataset\WikidataDumpProcessor.cs" />
     <Compile Include="ComputationCache.cs" />
+    <Compile Include="Configuration.cs" />
     <Compile Include="Dataset\AnnotatedDialog.cs" />
     <Compile Include="Dataset\AnnotatedDialogBuilder.cs" />
     <Compile Include="Dataset\AnnotatedQuestionActionEntry.cs" />

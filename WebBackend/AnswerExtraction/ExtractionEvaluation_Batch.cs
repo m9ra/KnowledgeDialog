@@ -19,13 +19,14 @@ namespace WebBackend.AnswerExtraction
         {
             var ENTITY_HYP_COUNT = 1;
 
-            var trainDataset = new QuestionDialogDatasetReader("question_dialogs-train.json");
-            var devDataset = new QuestionDialogDatasetReader("question_dialogs-dev.json");
+            var trainDataset = Configuration.GetQuestionDialogsTrain();
+            var devDataset = Configuration.GetQuestionDialogsDev();
 
-            var simpleQuestions = new SimpleQuestionDumpProcessor(@"C:\Databases\SimpleQuestions_v2\SimpleQuestions_v2\freebase-subsets\freebase-FB2M.txt");
+            var simpleQuestions = Configuration.GetSimpleQuestionsDump();
+            var db = Configuration.GetFreebaseDbProvider();
+            db.LoadIndex();
 
-            var extractor = new AnswerExtraction.EntityExtractor(@"C:\REPOSITORIES\lucene_freebase_v1_index");
-            extractor.LoadIndex();
+            var extractor = new AnswerExtraction.EntityExtractor(db);
             var linker = new GraphDisambiguatedLinker(extractor, "./verbs.lex");
 
             var utterancesToDisambiguate = new List<string>();
@@ -53,10 +54,10 @@ namespace WebBackend.AnswerExtraction
                     Console.WriteLine(linkedQuestion);
                     Console.WriteLine(linkedAnswer);
 
-                    var correctAnswer = extractor.GetLabel(dialog.AnswerMid);
-                    var answerInBounds = extractor.GetInBounds(dialog.AnswerMid);
-                    var answerOutBounds = extractor.GetOutBounds(dialog.AnswerMid);
-                    Console.WriteLine("\tdesired: {0}({1})[{2}/{3}]", correctAnswer, extractor.GetFreebaseId(dialog.AnswerMid), answerInBounds, answerOutBounds);
+                    var correctAnswer = db.GetLabel(dialog.AnswerMid);
+                    var answerInBounds = db.GetInBounds(dialog.AnswerMid);
+                    var answerOutBounds = db.GetOutBounds(dialog.AnswerMid);
+                    Console.WriteLine("\tdesired: {0}({1})[{2}/{3}]", correctAnswer, db.GetFreebaseId(dialog.AnswerMid), answerInBounds, answerOutBounds);
 
 
                     var answerEntities = linkedExtractor.ExtractAnswerEntity(dialog);
@@ -84,11 +85,13 @@ namespace WebBackend.AnswerExtraction
 
         internal static void RunLinkingExperiment()
         {
-            var devDataset = new QuestionDialogDatasetReader("question_dialogs-dev.json");
+            var devDataset = Configuration.GetQuestionDialogsDev();
+            var db = Configuration.GetFreebaseDbProvider();
+            db.LoadIndex();
 
-            var extractor = new AnswerExtraction.EntityExtractor(@"C:\REPOSITORIES\lucene_freebase_v1_index");
-            extractor.LoadIndex();
-            var simpleQuestions = new SimpleQuestionDumpProcessor(@"C:\Databases\SimpleQuestions_v2\SimpleQuestions_v2\freebase-subsets\freebase-FB2M.txt");
+            var extractor = new AnswerExtraction.EntityExtractor(db);
+            
+            var simpleQuestions = Configuration.GetSimpleQuestionsDump();
             var linker = new GraphDisambiguatedLinker(extractor, "./verbs.lex");
 
             var utterancesToDisambiguate = new List<string>();
@@ -116,10 +119,10 @@ namespace WebBackend.AnswerExtraction
 
                     Console.WriteLine(linkedUtterance);
 
-                    var correctAnswer = extractor.GetLabel(dialog.AnswerMid);
-                    var answerInBounds = extractor.GetInBounds(dialog.AnswerMid);
-                    var answerOutBounds = extractor.GetOutBounds(dialog.AnswerMid);
-                    Console.WriteLine("\tdesired: {0}({1})[{2}/{3}]", correctAnswer, extractor.GetFreebaseId(dialog.AnswerMid), answerInBounds, answerOutBounds);
+                    var correctAnswer = db.GetLabel(dialog.AnswerMid);
+                    var answerInBounds = db.GetInBounds(dialog.AnswerMid);
+                    var answerOutBounds = db.GetOutBounds(dialog.AnswerMid);
+                    Console.WriteLine("\tdesired: {0}({1})[{2}/{3}]", correctAnswer, db.GetFreebaseId(dialog.AnswerMid), answerInBounds, answerOutBounds);
 
                     var utteranceEntities = linkedUtterance.Parts.SelectMany(p => p.Entities).ToArray();
                     totalEntityCount += utteranceEntities.Length;
@@ -141,10 +144,10 @@ namespace WebBackend.AnswerExtraction
                             Console.WriteLine("\t\t" + part + ": ");
                             foreach (var entity in part.Entities)
                             {
-                                var aliases = extractor.GetAliases(entity.Mid).Take(3);
-                                var description = extractor.GetDescription(entity.Mid);
+                                var aliases = db.GetAliases(entity.Mid).Take(3);
+                                var description = db.GetDescription(entity.Mid);
 
-                                Console.WriteLine("\t\t\t{0}({1})[{2}/{3}]  :{4}", entity.Label, extractor.GetFreebaseId(entity.Mid), entity.InBounds, entity.OutBounds, string.Join(" | ", aliases));
+                                Console.WriteLine("\t\t\t{0}({1})[{2}/{3}]  :{4}", entity.Label, db.GetFreebaseId(entity.Mid), entity.InBounds, entity.OutBounds, string.Join(" | ", aliases));
                                 if (description.Length > 50)
                                     description = description.Substring(0, 50);
                                 Console.WriteLine("\t\t\t\t" + description);
@@ -165,18 +168,18 @@ namespace WebBackend.AnswerExtraction
 
         internal static void RunAnswerExtractionEvaluation()
         {
-            var trainDataset = new QuestionDialogDatasetReader("question_dialogs-train.json");
-            var devDataset = new QuestionDialogDatasetReader("question_dialogs-dev.json");
+            var trainDataset = Configuration.GetQuestionDialogsTrain();
+            var devDataset = Configuration.GetQuestionDialogsDev();
 
-            var extractor = new AnswerExtraction.EntityExtractor(@"C:\REPOSITORIES\lucene_freebase_v1_index");
-            extractor.LoadIndex();
+            var db = Configuration.GetFreebaseDbProvider();
+            db.LoadIndex();
 
+            var extractor = new AnswerExtraction.EntityExtractor(db);
             foreach (var dialog in trainDataset.Dialogs)
             {
                 if (dialog.HasCorrectAnswer)
                     extractor.Train(getAnswerHintNgrams(dialog, extractor), dialog.AnswerMid);
             }
-
 
             var nbest = 2;
             var correctCount = 0;
@@ -203,11 +206,11 @@ namespace WebBackend.AnswerExtraction
                     {
                         Console.WriteLine("NO " + bestId);
                         Console.WriteLine("\t " + getAnswerPhrase(dialog));
-                        var correctAnswer = extractor.GetLabel(dialog.AnswerMid);
-                        Console.WriteLine("\t desired: {0}({1})", correctAnswer, extractor.GetFreebaseId(dialog.AnswerMid));
+                        var correctAnswer = db.GetLabel(dialog.AnswerMid);
+                        Console.WriteLine("\t desired: {0}({1})", correctAnswer, db.GetFreebaseId(dialog.AnswerMid));
                         foreach (var entity in scores.Take(5))
                         {
-                            Console.WriteLine("\t {0}: {1:0.00}({2})({3})", entity.BestAliasMatch, entity.Score, extractor.GetFreebaseId(entity.Mid), extractor.GetLabel(entity.Mid));
+                            Console.WriteLine("\t {0}: {1:0.00}({2})({3})", entity.BestAliasMatch, entity.Score, db.GetFreebaseId(entity.Mid), db.GetLabel(entity.Mid));
                         }
 
                     }

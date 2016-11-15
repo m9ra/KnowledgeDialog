@@ -15,13 +15,13 @@ namespace WebBackend.AnswerExtraction
     {
         internal static void DumpQuestions()
         {
-            var freebaseWriter = new FreebaseDumpProcessor(@"C:\REPOSITORIES\freebase.zip");
+            var freebaseWriter = new FreebaseDumpProcessor(Configuration.WholeFreebase_Path);
 
-            var freebaseProcessor = new SimpleQuestionDumpProcessor(@"C:\Databases\SimpleQuestions_v2\SimpleQuestions_v2\freebase-subsets\freebase-FB2M.txt");
+            var freebaseProcessor = Configuration.GetSimpleQuestionsDump();
             freebaseProcessor.RunIteration();
 
             freebaseWriter.AddTargetMids(freebaseProcessor.AllIds);
-            freebaseWriter.WriteDump(@"./20160510.freebase.v3.gz");
+            freebaseWriter.WriteDump(Configuration.FreebaseDump_Path);
         }
     }
 }

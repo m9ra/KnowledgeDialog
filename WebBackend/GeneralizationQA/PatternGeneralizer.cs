@@ -321,7 +321,7 @@ namespace WebBackend.GeneralizationQA
 
                 if (pattern.TraceNodes.Count() <= 1)
                 {
-                    result = pattern.CreateAllTraces(3, _graph).ToArray();
+                    result = pattern.CreateAllTraces(1, _graph).ToArray();
                 }
 
                 _cachedFilteredTraces[pattern] = result;

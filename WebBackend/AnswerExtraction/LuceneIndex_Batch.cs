@@ -12,15 +12,15 @@ namespace WebBackend.AnswerExtraction
     {
         internal static void BuildIndex()
         {
-            var questionDataset = new QuestionDialogDatasetReader("question_dialogs-train.json");
-            var devDataset = new QuestionDialogDatasetReader("question_dialogs-dev.json");
+            var trainDataset = Configuration.GetQuestionDialogsTrain();
+            var devDataset = Configuration.GetQuestionDialogsDev();
 
-            var simpleQuestionsProcessor = new SimpleQuestionDumpProcessor(@"C:\Databases\SimpleQuestions_v2\SimpleQuestions_v2\freebase-subsets\freebase-FB2M.txt");
+            var simpleQuestionsProcessor = Configuration.GetSimpleQuestionsDump();
             simpleQuestionsProcessor.LoadInOutBounds();
             GC.Collect();
 
-            var dumpLoader = new DumpLoader(@"C:\REPOSITORIES\Wikidata-Toolkit\wdtk-examples\dumpfiles\20160510.freebase.v3.gz");
-            var extractor = new AnswerExtraction.EntityExtractor(@"C:\REPOSITORIES\lucene_freebase_v2_index");
+            var dumpLoader = new DumpLoader(Configuration.FreebaseDump_Path);
+            var extractor = new FreebaseDbProvider(Configuration.LuceneIndex_Path);
             extractor.StartFreebaseIndexRebuild();
             foreach (var id in dumpLoader.Ids)
             {
@@ -31,8 +31,6 @@ namespace WebBackend.AnswerExtraction
                 extractor.AddEntry(FreebaseLoader.IdPrefix + id, names, description, inBounds, outBounds);
             }
             extractor.FinishFreebaseIndexRebuild();
-
-
             extractor.LoadIndex();
 
             var totalCount = 0;

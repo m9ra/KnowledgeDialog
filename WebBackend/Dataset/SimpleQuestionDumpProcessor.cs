@@ -23,9 +23,15 @@ namespace WebBackend.Dataset
         /// </summary>
         private readonly Dictionary<string, string> _internedStrings = new Dictionary<string, string>();
 
-        private readonly Dictionary<string, HashSet<string>> _inBounds = new Dictionary<string, HashSet<string>>();
+        /// <summary>
+        /// Input targets.
+        /// </summary>
+        private readonly Dictionary<string, HashSet<Tuple<string, string>>> _inTargets = new Dictionary<string, HashSet<Tuple<string, string>>>();
 
-        private readonly Dictionary<string, string[]> _outBounds = new Dictionary<string, string[]>();
+        /// <summary>
+        /// Output targets.
+        /// </summary>
+        private readonly Dictionary<string, Tuple<string, string>[]> _outTargets = new Dictionary<string, Tuple<string, string>[]>();
 
         /// <summary>
         /// All ids met in the DB.
@@ -95,24 +101,25 @@ namespace WebBackend.Dataset
         private void _loadInOutBounds(string sourceId, string edge, string[] targetIds)
         {
 
-            string[] currentOutBounds;
-            if (_outBounds.TryGetValue(sourceId, out currentOutBounds))
+            Tuple<string, string>[] currentOutBounds;
+            var outTargets = targetIds.Select(i => Tuple.Create(edge, i));
+            if (_outTargets.TryGetValue(sourceId, out currentOutBounds))
             {
-                _outBounds[sourceId] = targetIds.Union(currentOutBounds).ToArray();
+                _outTargets[sourceId] = outTargets.Union(currentOutBounds).ToArray();
             }
             else
             {
-                _outBounds[sourceId] = targetIds;
+                _outTargets[sourceId] = outTargets.ToArray();
             }
 
             foreach (var targetId in targetIds)
             {
-                HashSet<string> currentInBounds;
-                if (!_inBounds.TryGetValue(targetId, out currentInBounds))
+                HashSet<Tuple<string, string>> currentInBounds;
+                if (!_inTargets.TryGetValue(targetId, out currentInBounds))
                 {
-                    _inBounds[targetId] = currentInBounds = new HashSet<string>();
+                    _inTargets[targetId] = currentInBounds = new HashSet<Tuple<string, string>>();
                 }
-                currentInBounds.Add(sourceId);
+                currentInBounds.Add(Tuple.Create(edge, sourceId));
             }
         }
 
@@ -167,17 +174,17 @@ namespace WebBackend.Dataset
         }
 
 
-        internal IEnumerable<string> GetInBounds(string id)
+        internal IEnumerable<Tuple<string, string>> GetInTargets(string id)
         {
-            HashSet<string> result;
-            _inBounds.TryGetValue(id, out result);
+            HashSet<Tuple<string, string>> result;
+            _inTargets.TryGetValue(id, out result);
             return result;
         }
 
-        internal IEnumerable<string> GetOutBounds(string id)
+        internal IEnumerable<Tuple<string, string>> GetOutTargets(string id)
         {
-            string[] result;
-            _outBounds.TryGetValue(id, out result);
+            Tuple<string, string>[] result;
+            _outTargets.TryGetValue(id, out result);
             return result;
         }
 

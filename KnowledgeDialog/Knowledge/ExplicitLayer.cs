@@ -138,12 +138,6 @@ namespace KnowledgeDialog.Knowledge
             return getTargets(toNode, edge, _inEdges);
         }
 
-        /// <inheritdoc/>
-        internal override GraphLayerBase Snapshot()
-        {
-            return new ExplicitLayer(_outEdges, _inEdges);
-        }
-
         private IEnumerable<NodeReference> getTargets(NodeReference node, string edge, Dictionary<NodeReference, Dictionary<string, List<NodeReference>>> edges)
         {
             Dictionary<string, List<NodeReference>> targetCandidates;

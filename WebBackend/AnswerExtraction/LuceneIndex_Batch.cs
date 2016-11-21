@@ -26,8 +26,8 @@ namespace WebBackend.AnswerExtraction
             {
                 var names = dumpLoader.GetNames(id);
                 var description = dumpLoader.GetDescription(id);
-                var inBounds = simpleQuestionsProcessor.GetInBounds(id);
-                var outBounds = simpleQuestionsProcessor.GetOutBounds(id);
+                var inBounds = simpleQuestionsProcessor.GetInTargets(id);
+                var outBounds = simpleQuestionsProcessor.GetOutTargets(id);
                 extractor.AddEntry(FreebaseLoader.IdPrefix + id, names, description, inBounds, outBounds);
             }
             extractor.FinishFreebaseIndexRebuild();

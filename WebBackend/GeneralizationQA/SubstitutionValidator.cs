@@ -23,7 +23,7 @@ namespace WebBackend.GeneralizationQA
         /// <summary>
         /// We will cache results for known trace nodes.
         /// </summary>
-        private Dictionary<TraceNode, bool> _resultCache = new Dictionary<TraceNode, bool>();
+        private Dictionary<TraceNode2, bool> _resultCache = new Dictionary<TraceNode2, bool>();
 
         internal SubstitutionValidator(NodeReference substitution, ComposedGraph graph)
         {
@@ -36,7 +36,7 @@ namespace WebBackend.GeneralizationQA
         /// </summary>
         /// <param name="traceNode">The traceNode where path begins.</param>
         /// <returns><c>True</c> for compatible trace, <c>false</c> otherwise.</returns>
-        internal bool IsCompatible(TraceNode traceNode)
+        internal bool IsCompatible(TraceNode2 traceNode)
         {
             var currentNode = traceNode;
             var currentLayer = new HashSet<NodeReference>();
@@ -63,7 +63,7 @@ namespace WebBackend.GeneralizationQA
         /// <summary>
         /// Caches the result along the whole path.
         /// </summary>
-        private bool cacheResultPath(TraceNode initialNode, bool cachedValue)
+        private bool cacheResultPath(TraceNode2 initialNode, bool cachedValue)
         {
             var currentNode = initialNode;
 

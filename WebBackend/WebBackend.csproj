@@ -65,6 +65,8 @@
     <Compile Include="AnswerExtraction\GraphDisambiguatedLinker.cs" />
     <Compile Include="AnswerExtraction\LinkBasedExtractor.cs" />
     <Compile Include="AnswerExtraction\LinkIndex.cs" />
+    <Compile Include="Dataset\FreebaseEntry.cs" />
+    <Compile Include="Dataset\FreebaseGraphLayer.cs" />
     <Compile Include="Dataset\SimpleQuestionDumpProcessor.cs" />
     <Compile Include="AnswerExtraction\LuceneIndex_Batch.cs" />
     <Compile Include="AnswerExtraction\SearchContext.cs" />

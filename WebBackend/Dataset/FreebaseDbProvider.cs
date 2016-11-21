@@ -29,6 +29,7 @@ namespace WebBackend.Dataset
 
         private readonly Dictionary<string, ScoreDoc[]> _scoredDocsCache = new Dictionary<string, ScoreDoc[]>();
 
+        private readonly Dictionary<string, FreebaseEntry> _entryCache = new Dictionary<string, FreebaseEntry>();
 
         /// <summary>
         /// Path to index directory.
@@ -56,7 +57,9 @@ namespace WebBackend.Dataset
             _analyzer = new StandardAnalyzer(Version.LUCENE_30);
 
             _contentParser = new QueryParser(Version.LUCENE_30, "content", _analyzer);
-            _idParser = new QueryParser(Version.LUCENE_30, "id", _analyzer);
+
+            var idAnalyzer = new KeywordAnalyzer();
+            _idParser = new QueryParser(Version.LUCENE_30, "id", idAnalyzer);
         }
 
         public void StartFreebaseIndexRebuild()
@@ -67,22 +70,19 @@ namespace WebBackend.Dataset
 
             _directory = Store.FSDirectory.Open(_indexPath);
 
-
             //create the index writer with the directory and analyzer defined.
             _indexWriter = new IndexWriter(_directory, _analyzer, IndexWriter.MaxFieldLength.UNLIMITED);
         }
 
-
-        internal void AddEntry(string mid, IEnumerable<string> aliases, string description, IEnumerable<string> inIds, IEnumerable<string> outIds)
+        internal void AddEntry(string mid, IEnumerable<string> aliases, string description, IEnumerable<Tuple<string, string>> inTargets, IEnumerable<Tuple<string, string>> outTargets)
         {
-
-            _indexWriter.AddDocument(getDocumentWithContent(description, mid, ContentCategory.D, inIds, outIds));
+            _indexWriter.AddDocument(getDocumentWithContent(description, mid, ContentCategory.D, inTargets, outTargets));
             var isLabel = true;
             foreach (var alias in aliases)
             {
                 var sanitizedAlias = alias.Trim('"');
                 var category = isLabel ? ContentCategory.L : ContentCategory.A;
-                _indexWriter.AddDocument(getDocumentWithContent(sanitizedAlias, mid, category, inIds, outIds));
+                _indexWriter.AddDocument(getDocumentWithContent(sanitizedAlias, mid, category, inTargets, outTargets));
                 isLabel = false; //first alias is considered to be a label
             }
         }
@@ -112,14 +112,86 @@ namespace WebBackend.Dataset
             return new EntityInfo(mid, label, inBounds, outBounds);
         }
 
+        internal FreebaseEntry GetEntryFromId(string id)
+        {
+            FreebaseEntry entry;
+            if (_entryCache.TryGetValue(id, out entry))
+                return entry;
+
+            var startTime = DateTime.Now;
+            Console.WriteLine(_entryCache.Count);
+            var docs = getScoredIdDocs(id);
+
+            string label = null;
+            string description = null;
+            IEnumerable<Tuple<Edge, string>> targets = null;
+            var aliases = new List<string>();
+            foreach (var doc in docs)
+            {
+                var docId = GetId(doc);
+                if (docId != id)
+                    continue;
+
+                if (targets == null)
+                    targets = getTargets(doc);
+
+                var content = GetContent(doc);
+                var contentCategory = getContentCategory(doc);
+                switch (contentCategory)
+                {
+                    case ContentCategory.A:
+                        aliases.Add(content);
+                        break;
+                    case ContentCategory.D:
+                        description = content;
+                        break;
+                    case ContentCategory.L:
+                        label = content;
+                        break;
+                }
+            }
+            if (targets == null)
+                targets = Enumerable.Empty<Tuple<Edge, string>>();
+
+            entry = new FreebaseEntry(id, label, description, aliases, targets);
+            _entryCache[id] = entry;
+
+            var endTime = DateTime.Now;
+
+            var duration = (endTime - startTime).TotalSeconds;
+            Console.WriteLine("DB Entry creation {0:0.000}s", duration);
+            return entry;
+        }
+
+        private IEnumerable<Tuple<Edge, string>> getTargets(ScoreDoc scoreDoc)
+        {
+            var result = new List<Tuple<Edge, string>>();
+            var doc = _searcher.Doc(scoreDoc.Doc);
+            var inFields = doc.GetFields("inTargets");
+            foreach (var inField in inFields)
+            {
+                var parsedInField = inField.StringValue.Split(';');
+                result.Add(Tuple.Create(Edge.Incoming(parsedInField[0]), parsedInField[1]));
+            }
+
+            var outFields = doc.GetFields("outTargets");
+            foreach (var outField in outFields)
+            {
+                var parsedOutField = outField.StringValue.Split(';');
+                result.Add(Tuple.Create(Edge.Outcoming(parsedOutField[0]), parsedOutField[1]));
+            }
+
+            return result;
+        }
+
         internal string GetLabel(string mid)
         {
-            var docs = getScoredIdDocs(mid);
+            var docs = getScoredMidDocs(mid);
             string label = null;
             foreach (var doc in docs)
             {
-                var id = GetMid(doc);
-                if (id != mid)
+                var docMid = GetMid(doc);
+                if (docMid != mid)
                     continue;
 
                 var content = GetContent(doc);
@@ -139,7 +211,7 @@ namespace WebBackend.Dataset
 
         internal IEnumerable<string> GetAliases(string mid)
         {
-            var docs = getScoredIdDocs(mid);
+            var docs = getScoredMidDocs(mid);
             var result = new List<string>();
             foreach (var doc in docs)
             {
@@ -153,7 +225,7 @@ namespace WebBackend.Dataset
 
         internal string GetDescription(string mid)
         {
-            var docs = getScoredIdDocs(mid);
+            var docs = getScoredMidDocs(mid);
             foreach (var doc in docs)
             {
                 var type = getContentCategory(doc);
@@ -164,11 +236,15 @@ namespace WebBackend.Dataset
             return null;
         }
 
-
         internal string GetMid(ScoreDoc scoreDoc)
         {
+            return IdPrefix + GetId(scoreDoc);
+        }
+
+        internal string GetId(ScoreDoc scoreDoc)
+        {
             var doc = _searcher.Doc(scoreDoc.Doc);
-            return IdPrefix + doc.GetField("id").StringValue;
+            return doc.GetField("id").StringValue;
         }
 
         internal string GetContent(ScoreDoc scoreDoc)
@@ -201,7 +277,7 @@ namespace WebBackend.Dataset
 
         internal int GetInBounds(string mid)
         {
-            foreach (var scoredDoc in getScoredIdDocs(mid))
+            foreach (var scoredDoc in getScoredMidDocs(mid))
             {
                 var doc = _searcher.Doc(scoredDoc.Doc);
                 return int.Parse(doc.GetField("inBounds").StringValue);
@@ -212,7 +288,7 @@ namespace WebBackend.Dataset
 
         internal int GetOutBounds(string mid)
         {
-            foreach (var scoredDoc in getScoredIdDocs(mid))
+            foreach (var scoredDoc in getScoredMidDocs(mid))
             {
                 var doc = _searcher.Doc(scoredDoc.Doc);
                 return int.Parse(doc.GetField("outBounds").StringValue);
@@ -220,7 +296,6 @@ namespace WebBackend.Dataset
 
             return 0;
         }
-
 
         internal IEnumerable<ScoreDoc> GetScoredContentDocs(string termVariant)
         {
@@ -238,16 +313,20 @@ namespace WebBackend.Dataset
             return docs;
         }
 
-        private IEnumerable<ScoreDoc> getScoredIdDocs(string mid)
+        private IEnumerable<ScoreDoc> getScoredMidDocs(string mid)
         {
             var id = GetFreebaseId(mid);
+            return getScoredIdDocs(id);
+        }
+
+        private IEnumerable<ScoreDoc> getScoredIdDocs(string id)
+        {
             ScoreDoc[] docs;
             var queryStr = "\"" + QueryParser.Escape(id) + "\"";
             var query = _idParser.Parse(queryStr);
 
             var hits = _searcher.Search(query, 100);
             docs = hits.ScoreDocs.ToArray();
-            _scoredDocsCache[mid] = docs;
 
             return docs;
         }
@@ -261,13 +340,13 @@ namespace WebBackend.Dataset
             return id;
         }
 
-        private Document getDocumentWithContent(string content, string mid, ContentCategory category, IEnumerable<string> inIds, IEnumerable<string> outIds)
+        private Document getDocumentWithContent(string content, string mid, ContentCategory category, IEnumerable<Tuple<string, string>> inTargets, IEnumerable<Tuple<string, string>> outTargets)
         {
             var fldContentCategory = new Field("contentCategory", category.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
             var fldContent = new Field("content", content.ToLowerInvariant(), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.YES);
             var fldId = new Field("id", GetFreebaseId(mid), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-            var inBounds = inIds == null ? 0 : inIds.Count();
-            var outBounds = outIds == null ? 0 : outIds.Count();
+            var inBounds = inTargets == null ? 0 : inTargets.Count();
+            var outBounds = outTargets == null ? 0 : outTargets.Count();
 
             var fldInBounds = new Field("inBounds", inBounds.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
 
@@ -280,13 +359,13 @@ namespace WebBackend.Dataset
             doc.Add(fldInBounds);
             doc.Add(fldOutBounds);
 
-            if (inIds != null)
-                foreach (var inId in inIds)
-                    doc.Add(new Field("inId", inId, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+            if (inTargets != null)
+                foreach (var inTarget in inTargets)
+                    doc.Add(new Field("inTargets", inTarget.Item1 + ";" + inTarget.Item2, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
 
-            if (outIds != null)
-                foreach (var outId in outIds)
-                    doc.Add(new Field("outId", outId, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+            if (outTargets != null)
+                foreach (var outTarget in outTargets)
+                    doc.Add(new Field("outTargets", outTarget.Item1 + ";" + outTarget.Item2, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
 
             return doc;
         }

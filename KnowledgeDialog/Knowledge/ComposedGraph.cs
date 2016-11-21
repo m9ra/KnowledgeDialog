@@ -320,11 +320,5 @@ namespace KnowledgeDialog.Knowledge
                     yield return Tuple.Create(Edge.Outcoming(pair.Key), pair.Value);
             }
         }
-
-        internal ComposedGraph CreateSnapshot()
-        {
-            var layers = from layer in _layers select layer.Snapshot();
-            return new ComposedGraph(layers.ToArray());
-        }
     }
 }

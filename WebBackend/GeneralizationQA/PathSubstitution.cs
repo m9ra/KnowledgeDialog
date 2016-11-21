@@ -23,14 +23,14 @@ namespace WebBackend.GeneralizationQA
         /// <summary>
         /// Trace which is substituted by the substitution.
         /// </summary>
-        public readonly TraceNode OriginalTrace;
+        public readonly TraceNode2 OriginalTrace;
 
         /// <summary>
         /// How much evidence for the path we have.
         /// </summary>
         public readonly double Rank;
 
-        internal PathSubstitution(NodeReference substitution, TraceNode originalTrace, double rank = double.NaN)
+        internal PathSubstitution(NodeReference substitution, TraceNode2 originalTrace, double rank = double.NaN)
         {
             Substitution = substitution;
             OriginalTrace = originalTrace;
@@ -52,7 +52,7 @@ namespace WebBackend.GeneralizationQA
 
         internal IEnumerable<NodeReference> FindTargets(ComposedGraph graph)
         {
-            var path = OriginalTrace.GetPathToRoot().ToArray();
+            var path = OriginalTrace.Path.ToArray();
             return graph.GetForwardTargets(new[] { Substitution }, path).ToArray();
         }
     }

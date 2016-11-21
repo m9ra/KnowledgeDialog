@@ -44,9 +44,13 @@ namespace KnowledgeDialog.Knowledge
         /// The pattern nodes are always present as path starting nodes.
         /// </summary>
         /// <returns>The node clustering.</returns>
-        public MultiTraceLog FindEdgePattern(int maxLength, int maxWidth)
+        public MultiTraceLog2 FindEdgePattern(int maxLength, int maxWidth)
         {
-            return new MultiTraceLog(_groupNodes, _graph);
+            var pattern=new MultiTraceLog2(_groupNodes, _graph, false, maxWidth, maxLength);
+            if(!pattern.TraceNodes.Skip(1).Any())
+                pattern = new MultiTraceLog2(_groupNodes, _graph, true, maxWidth, 1);
+
+            return pattern;
         }
     }
 }

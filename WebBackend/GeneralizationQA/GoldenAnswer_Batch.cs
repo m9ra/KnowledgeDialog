@@ -103,7 +103,9 @@ namespace WebBackend.GeneralizationQA
             var trainDialogs = trainDataset.Dialogs.ToArray();
             var linkedUtterancesTrain = cachedLinkedUtterancesTrain(simpleQuestions, extractor, trainDialogs);
 
-            var graph = cachedEntityGraph(simpleQuestions, trainDialogs, linkedUtterancesTrain);
+            //var graph = cachedEntityGraph(simpleQuestions, trainDialogs, linkedUtterancesTrain);
+
+            var graph = new ComposedGraph(new FreebaseGraphLayer(db));
 
             var linker = new GraphDisambiguatedLinker(extractor, "./verbs.lex");
             var cachedLinker = new CachedLinker(trainDialogs.Select(d => d.Question).ToArray(), linkedUtterancesTrain, linker);

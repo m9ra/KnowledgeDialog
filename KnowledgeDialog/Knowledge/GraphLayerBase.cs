@@ -20,8 +20,6 @@ namespace KnowledgeDialog.Knowledge
 
         abstract internal protected IEnumerable<NodeReference> Incoming(NodeReference toNode, string edge);
 
-        abstract internal GraphLayerBase Snapshot();
-
         public static NodeReference CreateReference(string data)
         {
             return new NodeReference(data);

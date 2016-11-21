@@ -118,6 +118,7 @@
     <Compile Include="Knowledge\ComposedGraph.cs" />
     <Compile Include="Knowledge\GraphLayerBase.cs" />
     <Compile Include="Knowledge\KnowledgePath.cs" />
+    <Compile Include="Knowledge\MultiTraceLog2.cs" />
     <Compile Include="Knowledge\NodeReference.cs" />
     <Compile Include="Knowledge\PathFactory.cs" />
     <Compile Include="Knowledge\PathSegment.cs" />

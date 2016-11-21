@@ -29,7 +29,7 @@ namespace WebBackend.GeneralizationQA
         /// </summary>
         private readonly Dictionary<string, int> _termFrequency = new Dictionary<string, int>();
 
-        private readonly Dictionary<MultiTraceLog, TraceNode[]> _cachedFilteredTraces = new Dictionary<MultiTraceLog, TraceNode[]>();
+        private readonly Dictionary<MultiTraceLog2, TraceNode2[]> _cachedFilteredTraces = new Dictionary<MultiTraceLog2, TraceNode2[]>();
 
         public PatternGeneralizer(ComposedGraph graph, Linker linker)
         {
@@ -78,13 +78,17 @@ namespace WebBackend.GeneralizationQA
                 /*if (rankedSignature.Value != questionSignature)
                     continue;*/
                 var originalQuestions = _originalQuestions[rankedSignature.Value].ToArray();
-                if (rankedSignature.Rank <= 0.5)
+                if (rankedSignature.Rank <= 0.9)
                     continue;
 
+                
                 var answerGroup = GetAnswerGroup(rankedSignature.Value);
 
-                var pattern = answerGroup.FindEdgePattern(1, 1);
+                var pattern = answerGroup.FindEdgePattern(1, 100);
+                var start = DateTime.Now;
                 var match = PatternMatchProbability(pattern, questionSignature, questionEntities, _graph);
+                Console.WriteLine("GetAnswer {0}s", (DateTime.Now - start).TotalSeconds);
+
                 if (match == null)
                     //pattern does not match
                     continue;
@@ -92,9 +96,11 @@ namespace WebBackend.GeneralizationQA
                 //find answer candidates (intersect substitution paths)
                 var answerGroupCandidates = findCandidates(match);
                 //rank them according to answer pattern match
+                
                 var rankedGroupCandidates = rankCandidates(answerGroupCandidates, pattern);
                 var orderedGroupCandidates = rankedGroupCandidates.OrderByDescending(c => c.Rank).ToArray();
                 var bestGroupCandidate = orderedGroupCandidates.FirstOrDefault();
+
                 if (bestGroupCandidate == null)
                     continue;
 
@@ -149,7 +155,7 @@ namespace WebBackend.GeneralizationQA
             return signature.ToLowerInvariant().Split(' ').Where(w => !w.StartsWith("$")).Distinct().ToArray();
         }
 
-        private IEnumerable<Ranked<NodeReference>> rankCandidates(IEnumerable<NodeReference> answerCandidates, MultiTraceLog pattern)
+        private IEnumerable<Ranked<NodeReference>> rankCandidates(IEnumerable<NodeReference> answerCandidates, MultiTraceLog2 pattern)
         {
             var candidates = new List<Ranked<NodeReference>>();
             foreach (var answerCandidate in answerCandidates)
@@ -160,11 +166,11 @@ namespace WebBackend.GeneralizationQA
             return candidates;
         }
 
-        private double getRank(NodeReference answerCandidate, MultiTraceLog pattern)
+        private double getRank(NodeReference answerCandidate, MultiTraceLog2 pattern)
         {
             var commonTraceNodes = getCommonTraceNodes(answerCandidate, pattern);
             var rank = 0.0;
-            var initialNodeCount = pattern.NodeBatch.Count();
+            var initialNodeCount = pattern.InitialNodes.Count();
             foreach (var traceNode in commonTraceNodes)
             {
                 var compatibleNodes = traceNode.CompatibleInitialNodes.ToArray();
@@ -176,9 +182,9 @@ namespace WebBackend.GeneralizationQA
             return rank / commonTraceNodes.Count();
         }
 
-        private IEnumerable<TraceNode> getCommonTraceNodes(NodeReference answerCandidate, MultiTraceLog pattern)
+        private IEnumerable<TraceNode2> getCommonTraceNodes(NodeReference answerCandidate, MultiTraceLog2 pattern)
         {
-            var compatibleTraces = new List<TraceNode>();
+            var compatibleTraces = new List<TraceNode2>();
             var filteredTraces = getFilteredTraces(pattern);
             foreach (var node in filteredTraces)
             {
@@ -186,7 +192,7 @@ namespace WebBackend.GeneralizationQA
                     //we are not interested in root
                     continue;
 
-                var tracePath = node.GetPathFromRoot();
+                var tracePath = node.Path;
                 if (_graph.GetForwardTargets(new[] { answerCandidate }, tracePath).Any())
                     compatibleTraces.Add(node);
             }
@@ -241,7 +247,7 @@ namespace WebBackend.GeneralizationQA
             questionSignature = signature.ToString().ToLowerInvariant();
         }
 
-        internal PatternSubstitutionMatch PatternMatchProbability(MultiTraceLog pattern, string questionSignature, IEnumerable<NodeReference> questionEnities, ComposedGraph graph)
+        internal PatternSubstitutionMatch PatternMatchProbability(MultiTraceLog2 pattern, string questionSignature, IEnumerable<NodeReference> questionEnities, ComposedGraph graph)
         {
             var bestSubstitutions = new List<PathSubstitution>();
             foreach (var node in questionEnities)
@@ -252,7 +258,7 @@ namespace WebBackend.GeneralizationQA
                 {
                     var currentPath = path;
                     var originalNodes = currentPath.OriginalTrace.CurrentNodes;
-                    var confidence = currentPath.Rank / pattern.NodeBatch.Count();
+                    var confidence = currentPath.Rank / pattern.InitialNodes.Count();
                     //TODO consider context 
                     confidence *= SubstitutionProbability(currentPath.Substitution, originalNodes);
                     currentPath = currentPath.Reranked(confidence);
@@ -289,7 +295,7 @@ namespace WebBackend.GeneralizationQA
             }
         }
 
-        private IEnumerable<PathSubstitution> getSubstitutedPaths(MultiTraceLog pattern, NodeReference substitutionNode, ComposedGraph graph)
+        private IEnumerable<PathSubstitution> getSubstitutedPaths(MultiTraceLog2 pattern, NodeReference substitutionNode, ComposedGraph graph)
         {
             var substitution = new SubstitutionValidator(substitutionNode, graph);
 
@@ -305,13 +311,15 @@ namespace WebBackend.GeneralizationQA
             }
         }
 
-        private IEnumerable<TraceNode> getFilteredTraces(MultiTraceLog pattern)
+        private IEnumerable<TraceNode2> getFilteredTraces(MultiTraceLog2 pattern)
         {
-            TraceNode[] result;
+            TraceNode2[] result;
             if (!_cachedFilteredTraces.TryGetValue(pattern, out result))
             {
+                var start = DateTime.Now;
+
                 result = pattern.TraceNodes.Where(n =>
-                {
+                { 
                     //TODO this is workaround how to filter out irrelevant paths
                     var pathLen = n.Path.Count();
                     var distinctPathLen = n.Path.Distinct().Count();
@@ -319,12 +327,8 @@ namespace WebBackend.GeneralizationQA
                     return pathLen == distinctPathLen;
                 }).OrderByDescending(t => t.CompatibleInitialNodes.Count()).Take(100).ToArray();
 
-                if (pattern.TraceNodes.Count() <= 1)
-                {
-                    result = pattern.CreateAllTraces(1, _graph).ToArray();
-                }
-
                 _cachedFilteredTraces[pattern] = result;
+                Console.WriteLine("GetFilteredTraces {0}s", (DateTime.Now - start).TotalSeconds);
             }
 
             return result;

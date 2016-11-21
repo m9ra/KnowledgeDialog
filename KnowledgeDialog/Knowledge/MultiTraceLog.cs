@@ -10,9 +10,9 @@ namespace KnowledgeDialog.Knowledge
 {
     public class MultiTraceLog
     {
-        public static readonly int Width = 2000;
+        public static readonly int Width = 200;
 
-        public static readonly int MaxPathLength = 4;
+        public static readonly int MaxPathLength = 1;
 
         /// <summary>
         /// Trace nodes where whole trace ends. (All traces for the route are joined here or no other way for trace is possible.)
@@ -44,12 +44,13 @@ namespace KnowledgeDialog.Knowledge
             {
                 var currentNode = worklist.Dequeue();
                 allNodes.Add(currentNode);
-                if (!currentNode.HasContinuation || currentNode.Path.Count() > 1)
+                if (!currentNode.HasContinuation || currentNode.Path.Count() >= MaxPathLength)
                     //current node cannot be extended
                     continue;
 
                 //extend trace node according to all edges
                 var edges = getEdges(currentNode, graph);
+               // Console.WriteLine("M"+edges.Count());
                 foreach (var edge in edges)
                 {
                     if (edge.Inverse().Equals(currentNode.CurrentEdge))
@@ -87,12 +88,13 @@ namespace KnowledgeDialog.Knowledge
             {
                 var currentNode = worklist.Dequeue();
                 allNodes.Add(currentNode);
-                if (currentNode.Path.Count() > pathLengthLimit)
+                if (currentNode.Path.Count() >= pathLengthLimit)
                     //current node cannot be extended
                     continue;
 
                 //extend trace node according to all edges
                 var edges = getEdges(currentNode, graph);
+                //Console.WriteLine("A" + edges.Count());
                 foreach (var edge in edges)
                 {
                     if (edge.Inverse().Equals(currentNode.CurrentEdge))
@@ -147,7 +149,7 @@ namespace KnowledgeDialog.Knowledge
         }
 
         protected readonly HashSet<NodeReference> VisitedNodes = new HashSet<NodeReference>();
-
+         
         private readonly Dictionary<NodeReference, Trace> _traceIndex = new Dictionary<NodeReference, Trace>();
 
         internal TraceNode(IEnumerable<NodeReference> initialNodes)
@@ -162,6 +164,7 @@ namespace KnowledgeDialog.Knowledge
             }
 
             VisitedNodes.UnionWith(initialNodes);
+
             //if there is more than one node, we could try to merge them
             HasContinuation = initialNodes.Skip(1).Any();
         }
@@ -178,6 +181,7 @@ namespace KnowledgeDialog.Knowledge
             CurrentEdge = edge;
             VisitedNodes.UnionWith(previousNode.VisitedNodes);
 
+            var startTime = DateTime.Now;
             var currentlyVisitedNodes = new HashSet<NodeReference>();
 
             var traceTargetIndex = new Dictionary<NodeReference, List<Trace>>();
@@ -216,6 +220,11 @@ namespace KnowledgeDialog.Knowledge
             //If there is node, that is not saturated - we will trace path further (because it can add more information)
             var hasNonSaturatedTrace = _traceIndex.Any(p => p.Value.InitialNodes.Count() != inputInitialNodes.Count);
             HasContinuation = hasNonSaturatedTrace && Path.Count() < MultiTraceLog.MaxPathLength;
+
+            var endTime = DateTime.Now;
+            var duration = (endTime - startTime).TotalSeconds;
+          //  Console.WriteLine("Tracenode creation {0:0.000}s", duration);
+          //  Console.WriteLine("TraceNode {0},{1}", VisitedNodes.Count, _traceIndex.Count);
         }
 
         internal Trace GetTrace(NodeReference node)

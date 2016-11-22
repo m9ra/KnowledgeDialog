@@ -17,7 +17,7 @@ namespace KnowledgeDialog.Knowledge
 
         public readonly IEnumerable<TraceNode2> TraceNodes;
 
-        public MultiTraceLog2(IEnumerable<NodeReference> initialNodes, ComposedGraph graph, bool fullExpansion, int maxWidth, int depth)
+        public MultiTraceLog2(IEnumerable<NodeReference> initialNodes, ComposedGraph graph, bool fullExpansion, int maxWidth, int maxDepth)
         {
             InitialNodes = initialNodes.ToArray();
             Root = new TraceNode2(InitialNodes);
@@ -26,15 +26,17 @@ namespace KnowledgeDialog.Knowledge
             worklist.Enqueue(Root);
             var allNodes = new List<TraceNode2>();
 
+            var start2 = DateTime.Now;
+     //       Console.WriteLine("MultiTraceLog2 START");
             while (worklist.Count > 0)
             {
                 var node = worklist.Dequeue();
                 allNodes.Add(node);
-                if (node.TraceDepth >= maxWidth || (!fullExpansion && !node.HasContinuation))
+                if (node.TraceDepth >= maxDepth || (!fullExpansion && !node.HasContinuation))
                     continue;
 
                 //targets available from the node
-                var targets = node.GetTargets(graph, maxWidth);
+                var targets = node.GetTargets(graph, maxWidth).ToArray();
 
                 // index targets according to initial nodes and edges
                 var initialNodeTargetsIndex = new Dictionary<Edge, Dictionary<NodeReference, HashSet<NodeReference>>>();
@@ -59,6 +61,7 @@ namespace KnowledgeDialog.Knowledge
                 }
             }
 
+ //           Console.WriteLine("MultiTraceLog2 {0}s", (DateTime.Now - start2).TotalSeconds);
             TraceNodes = allNodes;
         }
     }
@@ -137,6 +140,7 @@ namespace KnowledgeDialog.Knowledge
 
         internal TraceNode2(TraceNode2 parent, Edge edge, Dictionary<NodeReference, HashSet<NodeReference>> initialToTargetsIndex)
         {
+            PreviousNode = parent;
             TraceDepth = parent.TraceDepth + 1;
             CurrentEdge = edge;
             _initialToTargetIndex = initialToTargetsIndex;

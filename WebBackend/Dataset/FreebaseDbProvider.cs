@@ -119,7 +119,6 @@ namespace WebBackend.Dataset
                 return entry;
 
             var startTime = DateTime.Now;
-            Console.WriteLine(_entryCache.Count);
             var docs = getScoredIdDocs(id);
 
             string label = null;
@@ -159,7 +158,7 @@ namespace WebBackend.Dataset
             var endTime = DateTime.Now;
 
             var duration = (endTime - startTime).TotalSeconds;
-            Console.WriteLine("DB Entry creation {0:0.000}s", duration);
+            //Console.WriteLine("DB Entry creation {0:0.000}s", duration);
             return entry;
         }
 

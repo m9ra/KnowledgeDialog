@@ -81,10 +81,12 @@ namespace WebBackend.GeneralizationQA
                 if (rankedSignature.Rank <= 0.9)
                     continue;
 
-                
-                var answerGroup = GetAnswerGroup(rankedSignature.Value);
 
-                var pattern = answerGroup.FindEdgePattern(1, 100);
+                var answerGroup = GetAnswerGroup(rankedSignature.Value);
+                if (answerGroup.Count <= 1)
+                    continue;
+
+                var pattern = answerGroup.FindEdgePattern(1, 1000);
                 var start = DateTime.Now;
                 var match = PatternMatchProbability(pattern, questionSignature, questionEntities, _graph);
                 Console.WriteLine("GetAnswer {0}s", (DateTime.Now - start).TotalSeconds);
@@ -96,7 +98,7 @@ namespace WebBackend.GeneralizationQA
                 //find answer candidates (intersect substitution paths)
                 var answerGroupCandidates = findCandidates(match);
                 //rank them according to answer pattern match
-                
+
                 var rankedGroupCandidates = rankCandidates(answerGroupCandidates, pattern);
                 var orderedGroupCandidates = rankedGroupCandidates.OrderByDescending(c => c.Rank).ToArray();
                 var bestGroupCandidate = orderedGroupCandidates.FirstOrDefault();
@@ -189,12 +191,17 @@ namespace WebBackend.GeneralizationQA
             foreach (var node in filteredTraces)
             {
                 if (node.PreviousNode == null)
-                    //we are not interested in root
-                    continue;
-
-                var tracePath = node.Path;
-                if (_graph.GetForwardTargets(new[] { answerCandidate }, tracePath).Any())
-                    compatibleTraces.Add(node);
+                {
+                    if (node.CurrentNodes.Contains(answerCandidate))
+                        //candidate matches directly as an answer
+                        compatibleTraces.Add(node);
+                }
+                else
+                {
+                    var tracePath = node.Path;
+                    if (_graph.GetForwardTargets(new[] { answerCandidate }, tracePath).Any())
+                        compatibleTraces.Add(node);
+                }
             }
 
             return compatibleTraces;
@@ -319,7 +326,7 @@ namespace WebBackend.GeneralizationQA
                 var start = DateTime.Now;
 
                 result = pattern.TraceNodes.Where(n =>
-                { 
+                {
                     //TODO this is workaround how to filter out irrelevant paths
                     var pathLen = n.Path.Count();
                     var distinctPathLen = n.Path.Distinct().Count();
@@ -328,7 +335,7 @@ namespace WebBackend.GeneralizationQA
                 }).OrderByDescending(t => t.CompatibleInitialNodes.Count()).Take(100).ToArray();
 
                 _cachedFilteredTraces[pattern] = result;
-                Console.WriteLine("GetFilteredTraces {0}s", (DateTime.Now - start).TotalSeconds);
+               // Console.WriteLine("GetFilteredTraces {0}s", (DateTime.Now - start).TotalSeconds);
             }
 
             return result;

@@ -18,6 +18,9 @@ using Version = Lucene.Net.Util.Version;
 
 using KnowledgeDialog.Knowledge;
 using KnowledgeDialog.Dialog.Parsing;
+using Neo4j.Driver.V1;
+
+
 
 namespace WebBackend.Dataset
 {
@@ -60,6 +63,26 @@ namespace WebBackend.Dataset
 
             var idAnalyzer = new KeywordAnalyzer();
             _idParser = new QueryParser(Version.LUCENE_30, "id", idAnalyzer);
+        }
+
+        internal void TestNeo4j()
+        {
+            using (var driver = GraphDatabase.Driver("bolt://localhost", AuthTokens.Basic("neo4j", "neo4jj")))
+            using (var session = driver.Session())
+            {
+                session.Run("CREATE (a:Person {name:'Arthur', title:'King'})");
+                var result = session.Run("MATCH (a:Person) WHERE a.name = 'Arthur' RETURN a.name AS name, a.title AS title");
+
+                foreach (var record in result)
+                {
+                    foreach (var key in record.Keys)
+                    {
+                        Console.Write(record.Values[key]);
+                        Console.Write(" ");
+                    }
+                    Console.WriteLine();
+                }
+            }
         }
 
         public void StartFreebaseIndexRebuild()

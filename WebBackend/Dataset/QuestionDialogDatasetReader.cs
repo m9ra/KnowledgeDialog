@@ -29,7 +29,8 @@ namespace WebBackend.Dataset
                     var question = dialogJson["question"] as string;
                     var annotation = label.GetValue("annotation").Value<string>();
                     var answerTurns = dialogJson["answer_turns"] as JArray;
-                    var dialog = new QuestionDialog(answerMid, annotation, question, parseTurns(answerTurns));
+                    var explanationTurns = dialogJson["explanation_turns"] as JArray;
+                    var dialog = new QuestionDialog(answerMid, annotation, question, parseTurns(explanationTurns), parseTurns(answerTurns));
                     dialogs.Add(dialog);
                 }
             }

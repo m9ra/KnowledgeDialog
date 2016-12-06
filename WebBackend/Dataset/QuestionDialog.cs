@@ -28,12 +28,14 @@ namespace WebBackend.Dataset
         internal readonly bool HasCorrectAnswer;
         internal readonly string Question;
         internal readonly IEnumerable<DialogTurn> AnswerTurns;
+        internal readonly IEnumerable<DialogTurn> ExplanationTurns;
 
-        internal QuestionDialog(string answerMid, string annotation, string question, IEnumerable<DialogTurn> answerTurns)
+        internal QuestionDialog(string answerMid, string annotation, string question,IEnumerable<DialogTurn> explanationTurns, IEnumerable<DialogTurn> answerTurns)
         {
             AnswerMid = answerMid;
             HasCorrectAnswer = annotation == "correct_answer";
             Question = question;
+            ExplanationTurns = explanationTurns.ToArray();
             AnswerTurns = answerTurns.ToArray();
         }
     }

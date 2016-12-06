@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using KnowledgeDialog.Dialog;
+
 namespace KnowledgeDialog.Knowledge
 {
     /// <summary>
@@ -27,7 +29,7 @@ namespace KnowledgeDialog.Knowledge
             var allNodes = new List<TraceNode2>();
 
             var start2 = DateTime.Now;
-     //       Console.WriteLine("MultiTraceLog2 START");
+            //       Console.WriteLine("MultiTraceLog2 START");
             while (worklist.Count > 0)
             {
                 var node = worklist.Dequeue();
@@ -61,7 +63,7 @@ namespace KnowledgeDialog.Knowledge
                 }
             }
 
- //           Console.WriteLine("MultiTraceLog2 {0}s", (DateTime.Now - start2).TotalSeconds);
+            //           Console.WriteLine("MultiTraceLog2 {0}s", (DateTime.Now - start2).TotalSeconds);
             TraceNodes = allNodes;
         }
     }
@@ -158,6 +160,14 @@ namespace KnowledgeDialog.Knowledge
                     }
                 }
             }
+        }
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            var builder = new StringBuilder();
+            ConsoleServices.FillWithPath(builder, Path);
+            return "[TraceNode]" + builder.ToString();
         }
     }
 }

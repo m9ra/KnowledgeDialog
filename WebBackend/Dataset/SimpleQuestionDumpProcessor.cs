@@ -48,6 +48,8 @@ namespace WebBackend.Dataset
         /// </summary>
         internal readonly HashSet<string> _foundIds = new HashSet<string>();
 
+        internal bool UseInterning = true;  
+
         internal SimpleQuestionDumpProcessor(string freebaseDataFile)
         {
             _freebaseDataFile = freebaseDataFile;
@@ -233,6 +235,16 @@ namespace WebBackend.Dataset
             return layer;
         }
 
+
+        internal void ExportEdges(MysqlFreebaseConnector mysqlConnector)
+        {
+            iterateLines((entity, edge, targetEntities) =>
+            {
+                mysqlConnector.WriteEntityEdges(entity, edge, targetEntities);
+            });
+            mysqlConnector.FlushWrites();
+        }
+
         private void iterateLines(EntityLineProcessor processor)
         {
             var totalSize = new FileInfo(_freebaseDataFile).Length;
@@ -290,6 +302,9 @@ namespace WebBackend.Dataset
 
         private string intern(string str)
         {
+            if (!UseInterning)
+                return str;
+
             string result;
             if (!_internedStrings.TryGetValue(str, out result))
                 _internedStrings[str] = result = str;

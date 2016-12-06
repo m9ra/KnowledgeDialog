@@ -10,9 +10,7 @@ using Newtonsoft.Json.Linq;
 using System.IO;
 using System.IO.Compression;
 
-using WebBackend.Dataset;
-
-namespace WebBackend.AnswerExtraction
+namespace WebBackend.Dataset
 {
     delegate void TripletHandler(string freebaseId, string edge, string value);
 
@@ -21,6 +19,8 @@ namespace WebBackend.AnswerExtraction
         internal readonly string FreebaseId;
 
         internal readonly List<string> Aliases = new List<string>();
+
+        internal readonly Dictionary<string, List<string>> TargetIds = new Dictionary<string, List<string>>();
 
         internal string Label;
 
@@ -33,6 +33,16 @@ namespace WebBackend.AnswerExtraction
         internal FreebaseEntity(string freebaseId)
         {
             FreebaseId = freebaseId;
+        }
+
+        internal void AddTargets(string edge, IEnumerable<string> targetIds)
+        {
+            List<string> targetList;
+            if (!TargetIds.TryGetValue(edge, out targetList))
+                TargetIds[edge] = targetList = new List<string>();
+
+            foreach (var targetId in targetIds)
+                targetList.Add(targetId);
         }
     }
 
@@ -84,6 +94,52 @@ namespace WebBackend.AnswerExtraction
             }
             _writer.Close();
             _writer = null;
+        }
+
+
+        internal void ExportNodes(MysqlFreebaseConnector mysql)
+        {
+            iterateLines((freebaseId, edge, value) =>
+            {
+                exportTriplet(freebaseId, edge, value, mysql);
+            });
+
+            mysql.FlushWrites();
+        }
+
+        private void exportTriplet(string freebaseId, string edge, string value, MysqlFreebaseConnector mysql)
+        {
+            //save entity data only
+            if (!freebaseId.StartsWith(RdfIdPrefix))
+                return;
+
+            var id = getId(freebaseId);
+            if (!TargetIds.Contains(id))
+                return;
+
+            var isEnglishValue = value.EndsWith(FreebaseLoader.EnglishSuffix);
+            if (!isEnglishValue)
+                //we are interested in english only
+                return;
+
+            var rawValue = value.Substring(1, value.Length - FreebaseLoader.EnglishSuffix.Length - 2);
+            switch (edge)
+            {
+                /*case "<http://www.w3.org/2000/01/rdf-schema#label>":
+                    entity.Label = rawValue;
+                    break;*/
+                case "<http://rdf.freebase.com/ns/common.topic.description>":
+                    mysql.WriteEntityInfo(id, null, rawValue, null);
+                    break;
+                case "<http://rdf.freebase.com/ns/type.object.name>":
+                    mysql.WriteEntityInfo(id, rawValue, null, null);
+                    break;
+                case "<http://rdf.freebase.com/ns/common.topic.alias>":
+                    mysql.WriteEntityInfo(id, null, null, rawValue);
+                    break;
+                default:
+                    return;
+            }
         }
 
         private void writeTargetIds(string freebaseId, string edge, string value)

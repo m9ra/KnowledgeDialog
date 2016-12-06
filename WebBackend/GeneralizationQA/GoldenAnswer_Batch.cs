@@ -123,7 +123,7 @@ namespace WebBackend.GeneralizationQA
                 generalizer.AddExample(question, answerNode);
             }
 
-            /**/
+            /*/
             //evaluation on dev set
             foreach (var devDialog in trainDialogs)
             {
@@ -144,11 +144,13 @@ namespace WebBackend.GeneralizationQA
                 writeLine();
             }
             /**/
+            var result = generalizer.GetAnswer("What county is ovens auditorium in");
             //var result = generalizer.GetAnswer("What is Obama gender?");
             //var result = generalizer.GetAnswer("is mir khasim ali of the male or female gender");
         }
 
-        private static void writeLine(string format = "", params object[] args)
+
+        private static void logWriteLine(string format = "", params object[] args)
         {
             Console.WriteLine(format, args);
             var writer = new StreamWriter("GoldAnswerBatch.log", true);
@@ -218,6 +220,165 @@ namespace WebBackend.GeneralizationQA
             Console.WriteLine("Precision: {0:0.00}%", 100.0 * correctAnswers /
 totalDialogs);
             Console.ReadKey();
+        }
+
+        internal static void RunGraphMIExperiment()
+        {
+            var trainDataset = Configuration.GetQuestionDialogsTrain();
+            var devDataset = Configuration.GetQuestionDialogsDev();
+
+            var db = Configuration.GetFreebaseDbProvider();
+            db.LoadIndex();
+            var graph = new ComposedGraph(new FreebaseGraphLayer(db));
+
+            var extractor = new AnswerExtraction.EntityExtractor(db);
+            var trainDialogs = trainDataset.Dialogs.ToArray();
+            var simpleQuestions = Configuration.GetSimpleQuestionsDump();
+            var linkedUtterances = cachedLinkedUtterancesTrain(simpleQuestions, extractor, trainDialogs);
+            var linkedUtterancesTrain = cachedLinkedUtterancesTrain(simpleQuestions, extractor, trainDialogs);
+            var linker = new GraphDisambiguatedLinker(extractor, "./verbs.lex");
+            var cachedLinker = new CachedLinker(trainDialogs.Select(d => d.Question).ToArray(), linkedUtterancesTrain, linker);
+
+            var totalNgramCounts = new Dictionary<string, int>();
+            var totalEdgeCounts = new Dictionary<Edge, int>();
+            var ngramEdgeCounts = new Dictionary<Tuple<string, Edge>, int>();
+            foreach (var dialog in trainDataset.Dialogs)
+            {
+                var questionNgrams = getQuestionNgrams(dialog, 4, cachedLinker);
+                var linkedQuestion = cachedLinker.LinkUtterance(dialog.Question);
+
+                Console.WriteLine(dialog.Question);
+                var answerNode = graph.GetNode(db.GetFreebaseId(dialog.AnswerMid));
+                var targets = graph.GetNeighbours(answerNode, 100);
+
+                var questionEntities = linkedQuestion.Parts.SelectMany(p => p.Entities.Select(e => db.GetFreebaseId(e.Mid))).ToArray();
+                var edges = new HashSet<Edge>();
+                foreach (var target in targets)
+                {
+                    var edge = target.Item1;
+                    var targetId = target.Item2.Data;
+                    if (!edges.Add(edge))
+                        continue;
+
+                    if (!questionEntities.Contains(targetId))
+                        continue;
+
+                    foreach (var rawNgram in questionNgrams)
+                    {
+                        if (!rawNgram.Contains(targetId))
+                            continue;
+
+                        var ngram = rawNgram.Replace(targetId, "$");
+
+                        int count;
+                        var key = Tuple.Create(ngram, edge);
+                        ngramEdgeCounts.TryGetValue(key, out count);
+                        ngramEdgeCounts[key] = count + 1;
+
+                        totalNgramCounts.TryGetValue(ngram, out count);
+                        totalNgramCounts[ngram] = count + 1;
+
+                        totalEdgeCounts.TryGetValue(edge, out count);
+                        totalEdgeCounts[edge] = count + 1;
+                    }
+                }
+            }
+
+            var orderedCounts = ngramEdgeCounts.OrderBy(p => getPmi(p.Key, totalNgramCounts, totalEdgeCounts, ngramEdgeCounts));
+            foreach (var pair in orderedCounts)
+            {
+                logWriteLine("{0} -> [{1},{2},{3}] {4:0.00}", pair.Key, pair.Value, totalNgramCounts[pair.Key.Item1], totalEdgeCounts[pair.Key.Item2], getPmi(pair.Key, totalNgramCounts, totalEdgeCounts, ngramEdgeCounts));
+            }
+        }
+
+        private static double getPmi(Tuple<string, Edge> evt, Dictionary<string, int> ngrams, Dictionary<Edge, int> edges, Dictionary<Tuple<string, Edge>, int> events)
+        {
+            var eventSum = events.Values.Sum();
+            var edgesSum = edges.Values.Sum();
+            var ngramsSum = ngrams.Values.Sum();
+
+            var pEdge = 1.0 * edges[evt.Item2] / edgesSum;
+            var pEvt = 1.0 * events[evt] / eventSum;
+            var pNgram = 1.0 * ngrams[evt.Item1] / ngramsSum;
+
+            return Math.Log(pEvt / pNgram / pEdge);
+        }
+
+        private static IEnumerable<string> getQuestionNgrams(QuestionDialog dialog, int n, CachedLinker linker)
+        {
+            var result = new HashSet<string>();
+            for (var i = 2; i <= n; ++i)
+            {
+
+                var question = dialog.Question;
+                //result.UnionWith(getNgrams(question, n));
+
+                var linkedQuestion = linker.LinkUtterance(question);
+                result.UnionWith(getNgrams(linkedQuestion, i));
+                /*
+                foreach (var explanation in dialog.ExplanationTurns)
+                {
+                    result.UnionWith(getNgrams(explanation.InputChat, i));
+                }*/
+            }
+
+            return result;
+        }
+
+        private static IEnumerable<string> getNgrams(LinkedUtterance utterance, int n)
+        {
+            var result = new List<string>();
+            var parts = utterance.Parts.ToArray();
+            for (var i = 0; i < parts.Length; ++i)
+            {
+                var ngram = new StringBuilder();
+                for (var j = 0; j < n; ++j)
+                {
+                    var index = i + j;
+                    var part = parts[i];
+
+                    var word = index >= parts.Length ? "</s>" : getPartRepr(parts[index]);
+                    if (ngram.Length > 0)
+                        ngram.Append(",");
+
+                    ngram.Append(word);
+                }
+
+                result.Add(ngram.ToString());
+            }
+            return result;
+        }
+
+        private static string getPartRepr(LinkedUtterancePart part)
+        {
+            if (!part.Entities.Any())
+                return part.Token;
+
+            var id = FreebaseLoader.GetId(part.Entities.First().Mid);
+            return "[" + id + "]";
+        }
+
+        private static IEnumerable<string> getNgrams(string utterance, int n)
+        {
+            var words = utterance.ToLowerInvariant().Replace(",", " , ").Replace("?", " ? ").Replace(".", " . ").Replace("\"", " \" ").Replace("!", " ! ").Split(' ').ToArray();
+
+            var result = new List<string>();
+            for (var i = 0; i < words.Length; ++i)
+            {
+                var ngram = new StringBuilder();
+                for (var j = 0; j < n; ++j)
+                {
+                    var index = i + j;
+                    var word = index >= words.Length ? "</s>" : words[index];
+                    if (ngram.Length > 0)
+                        ngram.Append(",");
+
+                    ngram.Append(word);
+                }
+
+                result.Add(ngram.ToString());
+            }
+            return result;
         }
 
         private static void printInfo(ComposedGraph graph, FreebaseDbProvider db, params string[] ids)

@@ -226,6 +226,13 @@ namespace WebBackend.GeneralizationQA
                     targets.IntersectWith(substitutionTargets);
                 }
             }
+            if (targets.Count == 0)
+            {
+                foreach (var substitution in match.SubstitutionPaths)
+                {
+                    GoldenAnswer_Batch.DebugInfo(substitution);
+                }
+            }
 
             return targets;
         }
@@ -335,7 +342,7 @@ namespace WebBackend.GeneralizationQA
                 }).OrderByDescending(t => t.CompatibleInitialNodes.Count()).Take(100).ToArray();
 
                 _cachedFilteredTraces[pattern] = result;
-               // Console.WriteLine("GetFilteredTraces {0}s", (DateTime.Now - start).TotalSeconds);
+                // Console.WriteLine("GetFilteredTraces {0}s", (DateTime.Now - start).TotalSeconds);
             }
 
             return result;

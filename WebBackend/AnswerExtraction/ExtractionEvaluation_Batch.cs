@@ -26,8 +26,7 @@ namespace WebBackend.AnswerExtraction
             var db = Configuration.GetFreebaseDbProvider();
             db.LoadIndex();
 
-            var extractor = new AnswerExtraction.EntityExtractor(db);
-            var linker = new GraphDisambiguatedLinker(extractor, "./verbs.lex");
+            var linker = new GraphDisambiguatedLinker(db, "./verbs.lex");
 
             var utterancesToDisambiguate = new List<string>();
             var applicableDialogs = devDataset.Dialogs.Where(d => d.HasCorrectAnswer).ToArray();
@@ -35,8 +34,8 @@ namespace WebBackend.AnswerExtraction
             utterancesToDisambiguate.AddRange(applicableDialogs.Select(d => d.Question));
             utterancesToDisambiguate.AddRange(applicableDialogs.Select(d => getAnswerPhrase(d)));
 
-            linker.RegisterDisambiguationEntities(utterancesToDisambiguate);
-            linker.LoadDisambiguationEntities(simpleQuestions);
+            //linker.RegisterDisambiguationEntities(utterancesToDisambiguate);
+            //linker.LoadDisambiguationEntities(simpleQuestions);
 
             var linkedExtractor = new LinkBasedExtractor(linker, ENTITY_HYP_COUNT);
 
@@ -89,10 +88,8 @@ namespace WebBackend.AnswerExtraction
             var db = Configuration.GetFreebaseDbProvider();
             db.LoadIndex();
 
-            var extractor = new AnswerExtraction.EntityExtractor(db);
-            
             var simpleQuestions = Configuration.GetSimpleQuestionsDump();
-            var linker = new GraphDisambiguatedLinker(extractor, "./verbs.lex");
+            var linker = new GraphDisambiguatedLinker(db, "./verbs.lex");
 
             var utterancesToDisambiguate = new List<string>();
             var applicableDialogs = devDataset.Dialogs.Where(d => d.HasCorrectAnswer).ToArray();
@@ -100,10 +97,9 @@ namespace WebBackend.AnswerExtraction
             utterancesToDisambiguate.AddRange(applicableDialogs.Select(d => d.Question));
             utterancesToDisambiguate.AddRange(applicableDialogs.Select(d => getAnswerPhrase(d)));
 
-            linker.RegisterDisambiguationEntities(utterancesToDisambiguate);
-            linker.LoadDisambiguationEntities(simpleQuestions);
 
-            // var result = linker.LinkUtterance("i think he is a male human");
+            var result = linker.LinkUtterance("i think he is a male human", 5);
+            Console.WriteLine(result.First());
             //var result = linker.LinkUtterance("Dr Who");
             //var result = linker.LinkUtterance("englis language");
 
@@ -174,11 +170,11 @@ namespace WebBackend.AnswerExtraction
             var db = Configuration.GetFreebaseDbProvider();
             db.LoadIndex();
 
-            var extractor = new AnswerExtraction.EntityExtractor(db);
+            var linker = new UtteranceLinker(db, "./verbs.lex");
             foreach (var dialog in trainDataset.Dialogs)
             {
                 if (dialog.HasCorrectAnswer)
-                    extractor.Train(getAnswerHintNgrams(dialog, extractor), dialog.AnswerMid);
+                    linker.Train(getAnswerHintNgrams(dialog, linker), dialog.AnswerMid);
             }
 
             var nbest = 2;
@@ -190,9 +186,9 @@ namespace WebBackend.AnswerExtraction
             {
                 if (dialog.HasCorrectAnswer)
                 {
-                    var hints = getAnswerHintNgrams(dialog, extractor).ToArray();
+                    var hints = getAnswerHintNgrams(dialog, linker).ToArray();
                     var context = getContextNgrams(dialog).ToArray();
-                    var scores = extractor.Score(hints, context);
+                    var scores = linker.Score(hints, context);
                     var bestId = scores.Select(e => e.Mid).FirstOrDefault();
                     if (scores.Take(nbest).Select(e => e.Mid).Contains(dialog.AnswerMid))
                         ++correctNCount;
@@ -266,27 +262,13 @@ namespace WebBackend.AnswerExtraction
               return bestPart;*/
         }
 
-        private static double getScore(string part, Dictionary<string, EntityInfo> context, AnswerExtraction.EntityExtractor extractor)
-        {
-            var ngrams = getNgrams(part);
-            var ngramsArr = ngrams.ToArray();
-            var scores = extractor.RawScores(ngramsArr);
-            var totalScore = 0.0;
-            foreach (var score in scores)
-            {
-                EntityInfo entity;
-                if (context.TryGetValue(score.Key, out entity))
-                    totalScore += entity.Score;
-            }
-            return totalScore;
-        }
 
         private static IEnumerable<string> getContextNgrams(QuestionDialog dialog)
         {
             return getNgrams(dialog.Question);
         }
 
-        private static IEnumerable<string> getAnswerHintNgrams(QuestionDialog dialog, AnswerExtraction.EntityExtractor extractor)
+        private static IEnumerable<string> getAnswerHintNgrams(QuestionDialog dialog, UtteranceLinker linker)
         {
             var turnIndex = 0;
             var ngrams = new List<string>();

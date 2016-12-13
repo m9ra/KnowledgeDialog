@@ -98,16 +98,14 @@ namespace WebBackend.GeneralizationQA
             var db = Configuration.GetFreebaseDbProvider();
             db.LoadIndex();
 
-            var extractor = new AnswerExtraction.EntityExtractor(db);
-
             var trainDialogs = trainDataset.Dialogs.ToArray();
-            var linkedUtterancesTrain = cachedLinkedUtterancesTrain(simpleQuestions, extractor, trainDialogs);
+            var linkedUtterancesTrain = cachedLinkedUtterancesTrain(simpleQuestions, db, trainDialogs);
 
             //var graph = cachedEntityGraph(simpleQuestions, trainDialogs, linkedUtterancesTrain);
 
             var graph = new ComposedGraph(new FreebaseGraphLayer(db));
 
-            var linker = new GraphDisambiguatedLinker(extractor, "./verbs.lex");
+            var linker = new GraphDisambiguatedLinker(db, "./verbs.lex");
             var cachedLinker = new CachedLinker(trainDialogs.Select(d => d.Question).ToArray(), linkedUtterancesTrain, linker);
             var generalizer = new PatternGeneralizer(graph, cachedLinker.LinkUtterance);
             var testDialogs = 0;
@@ -166,10 +164,9 @@ namespace WebBackend.GeneralizationQA
             var simpleQuestions = Configuration.GetSimpleQuestionsDump();
             var db = Configuration.GetFreebaseDbProvider();
             db.LoadIndex();
-            var extractor = new AnswerExtraction.EntityExtractor(db);
 
             var trainDialogs = trainDataset.Dialogs.ToArray();
-            var linkedUtterances = cachedLinkedUtterancesTrain(simpleQuestions, extractor, trainDialogs);
+            var linkedUtterances = cachedLinkedUtterancesTrain(simpleQuestions, db, trainDialogs);
 
             var graph = cachedEntityGraph(simpleQuestions, trainDialogs, linkedUtterances);
 
@@ -231,12 +228,11 @@ totalDialogs);
             db.LoadIndex();
             var graph = new ComposedGraph(new FreebaseGraphLayer(db));
 
-            var extractor = new AnswerExtraction.EntityExtractor(db);
             var trainDialogs = trainDataset.Dialogs.ToArray();
             var simpleQuestions = Configuration.GetSimpleQuestionsDump();
-            var linkedUtterances = cachedLinkedUtterancesTrain(simpleQuestions, extractor, trainDialogs);
-            var linkedUtterancesTrain = cachedLinkedUtterancesTrain(simpleQuestions, extractor, trainDialogs);
-            var linker = new GraphDisambiguatedLinker(extractor, "./verbs.lex");
+            var linkedUtterances = cachedLinkedUtterancesTrain(simpleQuestions, db, trainDialogs);
+            var linkedUtterancesTrain = cachedLinkedUtterancesTrain(simpleQuestions, db, trainDialogs);
+            var linker = new GraphDisambiguatedLinker(db, "./verbs.lex");
             var cachedLinker = new CachedLinker(trainDialogs.Select(d => d.Question).ToArray(), linkedUtterancesTrain, linker);
 
             var totalNgramCounts = new Dictionary<string, int>();
@@ -414,13 +410,11 @@ totalDialogs);
              });
         }
 
-        private static LinkedUtterance[] cachedLinkedUtterancesTrain(SimpleQuestionDumpProcessor simpleQuestions, EntityExtractor extractor, QuestionDialog[] trainDialogs)
+        private static LinkedUtterance[] cachedLinkedUtterancesTrain(SimpleQuestionDumpProcessor simpleQuestions, FreebaseDbProvider  db, QuestionDialog[] trainDialogs)
         {
             var linkedUtterances = ComputationCache.Load("linked_all_train", 1, () =>
             {
-                var linker = new GraphDisambiguatedLinker(extractor, "./verbs.lex");
-                linker.RegisterDisambiguationEntities(trainDialogs.Select(d => d.Question));
-                linker.LoadDisambiguationEntities(simpleQuestions);
+                var linker = new GraphDisambiguatedLinker(db, "./verbs.lex");
 
                 var linkedUtterancesList = new List<LinkedUtterance>();
                 foreach (var dialog in trainDialogs)

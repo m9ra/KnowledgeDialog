@@ -8,6 +8,8 @@ using MySql.Data.MySqlClient;
 
 using ServeRick.Modules.MySQL;
 
+using KnowledgeDialog.Knowledge;
+
 namespace WebBackend.Dataset
 {
     class MysqlFreebaseConnector
@@ -36,16 +38,67 @@ namespace WebBackend.Dataset
             InitializeDB();
         }
 
+        internal Tuple<string, string> GetNodeInfo(string id)
+        {
+            var query = getQuery();
+            query.AppendFormat("SELECT label, description from `freebase_nodes` WHERE id={0} LIMIT 1", query.CreateParameter("id", id));
+
+            Tuple<string, string> result = null;
+            using (var reader = query.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    var label = reader.IsDBNull(0) ? null : reader.GetString(0);
+                    var description = reader.IsDBNull(1) ? null : reader.GetString(1);
+                    result = Tuple.Create(label, description);
+                }
+                reader.Close();
+            }
+
+            return result;
+        }
+
+        internal IEnumerable<Tuple<Edge, string>> GetTargets(string id)
+        {
+            var query = getQuery();
+            query.AppendFormat("SELECT id_from, edge, id_to from `freebase_edges` WHERE id_from={0} OR id_to={0}", query.CreateParameter("id", id));
+
+            var result = new List<Tuple<Edge, string>>();
+            using (var reader = query.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    var idFrom = reader.GetString("id_from");
+                    var edge = reader.GetString("edge");
+                    var idTo = reader.GetString("id_to");
+
+                    if (idFrom == id)
+                    {
+                        result.Add(Tuple.Create(Edge.Outcoming(edge), idTo));
+                    }
+                    else
+                    {
+                        result.Add(Tuple.Create(Edge.Incoming(edge), idFrom));
+                    }
+                }
+
+                reader.Close();
+            }
+
+            return result;
+        }
+
         internal void InitializeDB()
         {
             var query = getQuery();
             executeNonQuery(@"
 CREATE TABLE IF NOT EXISTS `freebase_edges`
 (    
+    id_edge INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     id_from VARCHAR(" + IdLengthLimit + @") NOT NULL,
     edge VARCHAR(120) NOT NULL,
     id_to VARCHAR(" + IdLengthLimit + @") NOT NULL,
-    PRIMARY KEY(id_from,edge,id_to),
+    UNIQUE(id_from,edge,id_to),
     INDEX(id_from),
     INDEX(id_to)    
 )ENGINE = MyISAM;
@@ -131,7 +184,7 @@ CREATE TABLE IF NOT EXISTS `freebase_aliases`
                     sql.Append(",");
 
                 sql.Append("(");
-                var idParameter = sql.AddParameter("id" + rowCount, entity.FreebaseId);
+                var idParameter = sql.CreateParameter("id" + rowCount, entity.FreebaseId);
                 sql.Append(idParameter);
                 var values = valueProcessor(entity);
                 for (var i = 0; i < columns.Length; ++i)
@@ -139,7 +192,7 @@ CREATE TABLE IF NOT EXISTS `freebase_aliases`
                     var value = values[i];
                     var column = columns[i];
                     sql.Append(",");
-                    sql.Append(sql.AddParameter(column + rowCount, value));
+                    sql.Append(sql.CreateParameter(column + rowCount, value));
                 }
                 ++rowCount;
                 sql.Append(")");
@@ -164,9 +217,9 @@ CREATE TABLE IF NOT EXISTS `freebase_aliases`
                     sql.Append(",");
 
                 sql.AppendFormat("({0},{1},{2})",
-                    sql.AddParameter("from" + rowCount, alias.Item1),
-                    sql.AddParameter("edge" + rowCount, alias.Item2),
-                    sql.AddParameter("to" + rowCount, alias.Item3)
+                    sql.CreateParameter("from" + rowCount, alias.Item1),
+                    sql.CreateParameter("edge" + rowCount, alias.Item2),
+                    sql.CreateParameter("to" + rowCount, alias.Item3)
                     );
                 ++rowCount;
             }
@@ -197,7 +250,7 @@ CREATE TABLE IF NOT EXISTS `freebase_aliases`
                 if (rowCount > 0)
                     sql.Append(",");
 
-                sql.AppendFormat("({0},{1})", sql.AddParameter("id" + rowCount, alias.Item1), sql.AddParameter("alias" + rowCount, alias.Item2));
+                sql.AppendFormat("({0},{1})", sql.CreateParameter("id" + rowCount, alias.Item1), sql.CreateParameter("alias" + rowCount, alias.Item2));
                 ++rowCount;
             }
 
@@ -242,5 +295,6 @@ CREATE TABLE IF NOT EXISTS `freebase_aliases`
             var cmd = new SqlQuery(_connection);
             return cmd;
         }
+
     }
 }

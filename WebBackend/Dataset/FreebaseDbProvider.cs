@@ -125,16 +125,6 @@ namespace WebBackend.Dataset
             _searcher = new IndexSearcher(_directory, false);
         }
 
-        internal EntityInfo CreateEntity(string mid, ScoreDoc dc)
-        {
-            var label = GetLabel(mid);
-            var doc = _searcher.Doc(dc.Doc);
-
-            var inBounds = int.Parse(doc.GetField("inBounds").StringValue);
-            var outBounds = int.Parse(doc.GetField("outBounds").StringValue);
-            return new EntityInfo(mid, label, inBounds, outBounds);
-        }
-
         internal FreebaseEntry GetEntryFromId(string id)
         {
             FreebaseEntry entry;
@@ -233,29 +223,14 @@ namespace WebBackend.Dataset
 
         internal IEnumerable<string> GetAliases(string mid)
         {
-            var docs = getScoredMidDocs(mid);
-            var result = new List<string>();
-            foreach (var doc in docs)
-            {
-                var type = getContentCategory(doc);
-                if (type == ContentCategory.A)
-                    result.Add(GetContent(doc));
-            }
-
-            return result;
+            var entry = GetEntryFromId(GetFreebaseId(mid));
+            return entry.Aliases;
         }
 
         internal string GetDescription(string mid)
         {
-            var docs = getScoredMidDocs(mid);
-            foreach (var doc in docs)
-            {
-                var type = getContentCategory(doc);
-                if (type == ContentCategory.D)
-                    return GetContent(doc);
-            }
-
-            return null;
+            var entry = GetEntryFromId(GetFreebaseId(mid));
+            return entry.Description;
         }
 
         internal string GetMid(ScoreDoc scoreDoc)
@@ -392,5 +367,13 @@ namespace WebBackend.Dataset
             return doc;
         }
 
+
+        internal EntityInfo GetEntityInfoFromMid(string mid)
+        {
+            var id = GetFreebaseId(mid);
+            var entry = GetEntryFromId(id);
+
+            return new EntityInfo(mid, entry.Label, entry.Targets.Where(t => !t.Item1.IsOutcoming).Count(), entry.Targets.Where(t => t.Item1.IsOutcoming).Count(), entry.Description);
+        }
     }
 }

@@ -63,7 +63,7 @@ namespace WebBackend.Dataset
         /// <summary>
         /// Runs iteration on the data.
         /// </summary>
-        internal void RunIteration()
+        internal void RunIteration(int lineLimit=int.MaxValue)
         {
             var lineIndex = 0;
             using (var file = new StreamReader(_freebaseDataFile))
@@ -71,6 +71,9 @@ namespace WebBackend.Dataset
                 while (!file.EndOfStream)
                 {
                     ++lineIndex;
+                    if (lineIndex > lineLimit)
+                        break;
+
                     var line = file.ReadLine();
                     var parts = line.Split('\t');
                     var entity1 = getId(parts[0]);

@@ -19,27 +19,11 @@ namespace WebBackend.AnswerExtraction
 
         private HashSet<string> _collectedDisambiguationIds = new HashSet<string>();
 
-        private ComposedGraph _disambiguationGraph;
 
-        internal GraphDisambiguatedLinker(EntityExtractor extractor, string verbsLexicon)
-            : base(extractor, verbsLexicon)
+        internal GraphDisambiguatedLinker(FreebaseDbProvider db, string verbsLexicon, bool useDisambiguation = true)
+            : base(db, verbsLexicon)
         {
 
-        }
-
-        internal void RegisterDisambiguationEntities(IEnumerable<string> utterances)
-        {
-            foreach (var utterance in utterances)
-            {
-                LinkUtterance(utterance, 0);
-            }
-        }
-
-        internal void LoadDisambiguationEntities(SimpleQuestionDumpProcessor processor)
-        {
-            var layer = processor.GetLayerFromIds(_collectedDisambiguationIds);
-            _disambiguationGraph = new ComposedGraph(layer);
-            _useDisambiguation = true;
         }
 
         protected override IEnumerable<EntityInfo> disambiguateTo(IEnumerable<EntityInfo> entities, int entityHypothesisCount)
@@ -50,10 +34,8 @@ namespace WebBackend.AnswerExtraction
             {
                 var orderedEntities = entities.OrderByDescending(e =>
                 {
-                    var entityNode = _disambiguationGraph.GetNode(e.Mid);
-                    var neighbours = _disambiguationGraph.GetNeighbours(entityNode, 1000);
-                    var count = neighbours.Count();
-
+                    var entry = Db.GetEntryFromId(e.Mid);
+                    var count = entry.Targets.Count();
                     return count;
                 });
 

@@ -32,7 +32,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="EntityFramework">
@@ -81,7 +81,6 @@
     <Compile Include="Dataset\FreebaseDbProvider.cs" />
     <Compile Include="Dataset\FreebaseDumpProcessor.cs" />
     <Compile Include="AnswerExtraction\DumpCreation_Batch.cs" />
-    <Compile Include="AnswerExtraction\EntityExtractor.cs" />
     <Compile Include="AnswerExtraction\GraphDisambiguatedLinker.cs" />
     <Compile Include="AnswerExtraction\LinkBasedExtractor.cs" />
     <Compile Include="AnswerExtraction\LinkIndex.cs" />

@@ -77,7 +77,6 @@ namespace WebBackend.AnswerExtraction
                 foreach (var match in _matches.SelectMany(m => m))
                 {
                     var hasCollision = usedMatches.Any(u => testCollision(match, u));
-
                     if (hasCollision)
                         continue;
 
@@ -88,7 +87,6 @@ namespace WebBackend.AnswerExtraction
                     var currentScore = match.Entity.Score;
                     if (bestScore < currentScore)
                         bestMatch = match;
-
                 }
                 if (bestMatch == null)
                     break;
@@ -115,8 +113,7 @@ namespace WebBackend.AnswerExtraction
                             entities.Add(ambigMatch.Entity);
                         }
                     }
-
-
+                    
                     linkedParts.Add(LinkedUtterancePart.Entity(ngram, entities.ToArray()));
                     i += match.Length - 1;
                 }

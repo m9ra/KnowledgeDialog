@@ -42,7 +42,7 @@ namespace WebBackend.AnswerExtraction
             _nonInformativeWords.UnionWith(loadVerbs(verbsLexicon));
         }
 
-        internal IEnumerable<LinkedUtterance> LinkUtterance(string utterance, int entityHypCount)
+        internal virtual IEnumerable<LinkedUtterance> LinkUtterance(string utterance, int entityHypCount)
         {
             var sanitizedUtterance = utterance.Replace(".", " ").Replace(",", " ").Replace("?", " ").Replace("!", " ").Replace("`s", "'s").Replace("'s", " 's");
             var index = new EntityIndex(sanitizedUtterance.Split(' ').Where(w => w.Length > 0).ToArray(), this, entityHypCount);
@@ -51,7 +51,7 @@ namespace WebBackend.AnswerExtraction
             return new LinkedUtterance[] { result };
         }
 
-        internal IEnumerable<EntityInfo> GetValidEntities(string ngram, int entityHypothesisCount)
+        internal virtual IEnumerable<EntityInfo> GetValidEntities(string ngram, int entityHypothesisCount)
         {
             var words = ngram.Split(' ');
             var informativeWords = words.Where(w => !_nonInformativeWords.Contains(w)).ToArray();
@@ -64,7 +64,7 @@ namespace WebBackend.AnswerExtraction
                 .Where(e => e.Description != null)
                 .OrderByDescending(e => e.InBounds + e.OutBounds).ToArray();
 
-            entities = disambiguateTo(entities, entityHypothesisCount).ToArray();
+            entities = pruneEntities(entities, entityHypothesisCount).ToArray();
 
 
             var nonInformativeWords = words.Except(informativeWords).Select(w => w.ToLowerInvariant()).ToList();
@@ -86,9 +86,9 @@ namespace WebBackend.AnswerExtraction
             return entities;
         }
 
-        protected virtual IEnumerable<EntityInfo> disambiguateTo(IEnumerable<EntityInfo> entities, int entityHypothesisCount)
+        protected virtual IEnumerable<EntityInfo> pruneEntities(IEnumerable<EntityInfo> entities, int entityHypothesisCount)
         {
-            return entities.Take(entityHypothesisCount);
+            return entities.OrderByDescending(e => e.Score).Take(entityHypothesisCount);
         }
 
         private IEnumerable<string> loadVerbs(string path)
@@ -157,8 +157,10 @@ namespace WebBackend.AnswerExtraction
                     score = score + leadingScore * (float)leadingScoreFactor;
                     if (content.ToLowerInvariant() == ngram.ToLowerInvariant())
                     {
+                        //exact match
                         score *= 5 * ngram.Length;
                     }
+
                     if (isAlias)
                     {
                         var lengthDiff = Math.Abs(content.Length - ngram.Length);

@@ -89,7 +89,7 @@ namespace WebBackend.AnswerExtraction
             db.LoadIndex();
 
             var simpleQuestions = Configuration.GetSimpleQuestionsDump();
-            var linker = new GraphDisambiguatedLinker(db, "./verbs.lex");
+            var linker = new GraphDisambiguatedLinker(db, "./verbs.lex", useGraphDisambiguation: true);
 
             var utterancesToDisambiguate = new List<string>();
             var applicableDialogs = devDataset.Dialogs.Where(d => d.HasCorrectAnswer).ToArray();
@@ -98,8 +98,8 @@ namespace WebBackend.AnswerExtraction
             utterancesToDisambiguate.AddRange(applicableDialogs.Select(d => getAnswerPhrase(d)));
 
 
-            var result = linker.LinkUtterance("i think he is a male human", 5);
-            Console.WriteLine(result.First());
+            var result = linker.LinkUtterance("Scooter Libby wrote a novel called The Apprentice", 5);
+            //var result = linker.LinkUtterance("It can come from a cow or a goat", 5);
             //var result = linker.LinkUtterance("Dr Who");
             //var result = linker.LinkUtterance("englis language");
 
@@ -111,7 +111,7 @@ namespace WebBackend.AnswerExtraction
                 if (dialog.HasCorrectAnswer)
                 {
                     var answerPhrase = getAnswerPhrase(dialog);
-                    var linkedUtterance = linker.LinkUtterance(answerPhrase, 1).First();
+                    var linkedUtterance = linker.LinkUtterance(answerPhrase, 5).First();
 
                     Console.WriteLine(linkedUtterance);
 
@@ -170,7 +170,7 @@ namespace WebBackend.AnswerExtraction
             var db = Configuration.GetFreebaseDbProvider();
             db.LoadIndex();
 
-            var linker = new UtteranceLinker(db, "./verbs.lex");
+            var linker = new GraphDisambiguatedLinker(db, "./verbs.lex", useGraphDisambiguation: true);
             foreach (var dialog in trainDataset.Dialogs)
             {
                 if (dialog.HasCorrectAnswer)

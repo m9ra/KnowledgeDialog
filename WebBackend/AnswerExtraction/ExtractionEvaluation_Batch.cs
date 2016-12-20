@@ -15,6 +15,52 @@ namespace WebBackend.AnswerExtraction
     /// </summary>
     class ExtractionEvaluation_Batch
     {
+
+        private static void extractAnswer(string utterance, GraphDisambiguatedLinker linker, LinkBasedExtractor extractor, QuestionDialogDatasetReader dataset)
+        {
+            var utteranceWords = getCleanWords(utterance).Distinct();
+
+            QuestionDialog dialogToAnswer = null;
+            foreach (var dialog in dataset.Dialogs)
+            {
+                if (!dialog.HasCorrectAnswer)
+                    continue;
+
+                var questionWords = getCleanWords(dialog.Question);
+                if (utteranceWords.Except(questionWords).Count() == 0)
+                    dialogToAnswer = dialog;
+
+                foreach (var turn in dialog.AnswerTurns)
+                {
+                    var words = getCleanWords(turn.InputChat);
+                    if (utteranceWords.Except(words).Count() == 0)
+                    {
+                        dialogToAnswer = dialog;
+                        break;
+                    }
+                }
+
+                if (dialogToAnswer != null)
+                    break;
+            }
+
+            Console.WriteLine(dialogToAnswer.Question);
+
+            var answerPhrase = getAnswerPhrase(dialogToAnswer);
+            var linkedQuestion = linker.LinkUtterance(dialogToAnswer.Question);
+            Console.WriteLine(linkedQuestion);
+
+            var contextEntities = linkedQuestion.Parts.SelectMany(p => p.Entities).ToArray();
+            var result = linker.LinkUtterance(answerPhrase, contextEntities);
+            Console.WriteLine(result);
+
+            var answers = extractor.ExtractAnswerEntity(dialogToAnswer);
+            foreach (var answer in answers)
+            {
+                Console.WriteLine(answer);
+            }
+        }
+
         internal static void RunLinkedAnswerExtractionExperiment()
         {
             var ENTITY_HYP_COUNT = 1;
@@ -34,10 +80,10 @@ namespace WebBackend.AnswerExtraction
             utterancesToDisambiguate.AddRange(applicableDialogs.Select(d => d.Question));
             utterancesToDisambiguate.AddRange(applicableDialogs.Select(d => getAnswerPhrase(d)));
 
-            //linker.RegisterDisambiguationEntities(utterancesToDisambiguate);
-            //linker.LoadDisambiguationEntities(simpleQuestions);
 
-            var linkedExtractor = new LinkBasedExtractor(linker, ENTITY_HYP_COUNT);
+
+            var linkedExtractor = new LinkBasedExtractor(linker);
+            extractAnswer("It is a short film", linker, linkedExtractor, devDataset);
 
             var correctCount = 0;
             var totalCount = 0;
@@ -45,12 +91,13 @@ namespace WebBackend.AnswerExtraction
             {
                 if (dialog.HasCorrectAnswer)
                 {
-                    var answerPhrase = getAnswerPhrase(dialog);
 
-                    var linkedQuestion = linker.LinkUtterance(dialog.Question, ENTITY_HYP_COUNT).First();
-                    var linkedAnswer = linker.LinkUtterance(getAnswerPhrase(dialog), ENTITY_HYP_COUNT).First();
-
+                    var linkedQuestion = linker.LinkUtterance(dialog.Question);
+                    var contextEntities = linkedQuestion.Parts.SelectMany(p => p.Entities).ToArray();
                     Console.WriteLine(linkedQuestion);
+
+                    var answerPhrase = getAnswerPhrase(dialog);
+                    var linkedAnswer = linker.LinkUtterance(answerPhrase, contextEntities);
                     Console.WriteLine(linkedAnswer);
 
                     var correctAnswer = db.GetLabel(dialog.AnswerMid);
@@ -69,6 +116,10 @@ namespace WebBackend.AnswerExtraction
                     else
                     {
                         Console.WriteLine("\tNO");
+                        foreach (var entity in answerEntities)
+                        {
+                            Console.WriteLine("\t\t{0}[{1}/{2}]", entity, entity.InBounds, entity.OutBounds);
+                        }
                     }
 
                     ++totalCount;
@@ -80,6 +131,45 @@ namespace WebBackend.AnswerExtraction
             Console.WriteLine(linkedExtractor.TotalEntityCount + " answer entities");
             Console.WriteLine("END");
             Console.ReadKey();
+        }
+
+        private static void linkOnAnswerHint(string utterance, GraphDisambiguatedLinker linker, QuestionDialogDatasetReader dataset)
+        {
+            var utteranceWords = utterance.ToLowerInvariant().Split(' ').Distinct();
+
+            QuestionDialog dialogToLink = null;
+            foreach (var dialog in dataset.Dialogs)
+            {
+                if (!dialog.HasCorrectAnswer)
+                    continue;
+
+                var questionWords = dialog.Question.ToLowerInvariant().Split(' ');
+                if (utteranceWords.Except(questionWords).Count() == 0)
+                    dialogToLink = dialog;
+
+                foreach (var turn in dialog.AnswerTurns)
+                {
+                    var words = turn.InputChat.ToLowerInvariant().Split(' ').Distinct();
+                    if (utteranceWords.Except(words).Count() == 0)
+                    {
+                        dialogToLink = dialog;
+                        break;
+                    }
+                }
+
+                if (dialogToLink != null)
+                    break;
+            }
+
+            Console.WriteLine(dialogToLink.Question);
+
+            var answerPhrase = getAnswerPhrase(dialogToLink);
+            var linkedQuestion = linker.LinkUtterance(dialogToLink.Question);
+            Console.WriteLine(linkedQuestion);
+
+            var contextEntities = linkedQuestion.Parts.SelectMany(p => p.Entities).ToArray();
+            var result = linker.LinkUtterance(answerPhrase, contextEntities);
+            Console.WriteLine(result);
         }
 
         internal static void RunLinkingExperiment()
@@ -97,8 +187,10 @@ namespace WebBackend.AnswerExtraction
             utterancesToDisambiguate.AddRange(applicableDialogs.Select(d => d.Question));
             utterancesToDisambiguate.AddRange(applicableDialogs.Select(d => getAnswerPhrase(d)));
 
-
-            var result = linker.LinkUtterance("Scooter Libby wrote a novel called The Apprentice", 5);
+            linkOnAnswerHint("What is karim khalili known for being", linker, devDataset);
+            //linkOnAnswerHint("The film was in Portuguese and dubbed in English", linker, devDataset);
+            //var result = linker.LinkUtterance("The Apprentice", 5);
+            //var result = linker.LinkUtterance("Scooter Libby wrote a novel called The Apprentice", 5);
             //var result = linker.LinkUtterance("It can come from a cow or a goat", 5);
             //var result = linker.LinkUtterance("Dr Who");
             //var result = linker.LinkUtterance("englis language");
@@ -110,9 +202,12 @@ namespace WebBackend.AnswerExtraction
             {
                 if (dialog.HasCorrectAnswer)
                 {
-                    var answerPhrase = getAnswerPhrase(dialog);
-                    var linkedUtterance = linker.LinkUtterance(answerPhrase, 5).First();
+                    var linkedQuestion = linker.LinkUtterance(dialog.Question);
+                    var contextEntities = linkedQuestion.Parts.SelectMany(p => p.Entities).ToArray();
+                    Console.WriteLine(linkedQuestion);
 
+                    var answerPhrase = getAnswerPhrase(dialog);
+                    var linkedUtterance = linker.LinkUtterance(answerPhrase, contextEntities);
                     Console.WriteLine(linkedUtterance);
 
                     var correctAnswer = db.GetLabel(dialog.AnswerMid);
@@ -162,67 +257,6 @@ namespace WebBackend.AnswerExtraction
             Console.ReadKey();
         }
 
-        internal static void RunAnswerExtractionEvaluation()
-        {
-            var trainDataset = Configuration.GetQuestionDialogsTrain();
-            var devDataset = Configuration.GetQuestionDialogsDev();
-
-            var db = Configuration.GetFreebaseDbProvider();
-            db.LoadIndex();
-
-            var linker = new GraphDisambiguatedLinker(db, "./verbs.lex", useGraphDisambiguation: true);
-            foreach (var dialog in trainDataset.Dialogs)
-            {
-                if (dialog.HasCorrectAnswer)
-                    linker.Train(getAnswerHintNgrams(dialog, linker), dialog.AnswerMid);
-            }
-
-            var nbest = 2;
-            var correctCount = 0;
-            var correctNCount = 0;
-            var totalCount = 0;
-
-            foreach (var dialog in devDataset.Dialogs)
-            {
-                if (dialog.HasCorrectAnswer)
-                {
-                    var hints = getAnswerHintNgrams(dialog, linker).ToArray();
-                    var context = getContextNgrams(dialog).ToArray();
-                    var scores = linker.Score(hints, context);
-                    var bestId = scores.Select(e => e.Mid).FirstOrDefault();
-                    if (scores.Take(nbest).Select(e => e.Mid).Contains(dialog.AnswerMid))
-                        ++correctNCount;
-
-                    if (bestId == dialog.AnswerMid)
-                    {
-                        Console.WriteLine("OK " + bestId);
-                        ++correctCount;
-                    }
-                    else
-                    {
-                        Console.WriteLine("NO " + bestId);
-                        Console.WriteLine("\t " + getAnswerPhrase(dialog));
-                        var correctAnswer = db.GetLabel(dialog.AnswerMid);
-                        Console.WriteLine("\t desired: {0}({1})", correctAnswer, db.GetFreebaseId(dialog.AnswerMid));
-                        foreach (var entity in scores.Take(5))
-                        {
-                            Console.WriteLine("\t {0}: {1:0.00}({2})({3})", entity.BestAliasMatch, entity.Score, db.GetFreebaseId(entity.Mid), db.GetLabel(entity.Mid));
-                        }
-
-                    }
-
-                    ++totalCount;
-
-                    Console.WriteLine("\tprecision {0:00.00}% ({2}best precision {1:00.00}%)", 100.0 * correctCount / totalCount, 100.0 * correctNCount / totalCount, nbest);
-                }
-
-            }
-
-            Console.WriteLine("END");
-            Console.ReadKey();
-
-        }
-
         private static string getNamesRepresentation(string freebaseId, FreebaseLoader loader)
         {
             var names = loader.GetNames(freebaseId);
@@ -237,82 +271,11 @@ namespace WebBackend.AnswerExtraction
 
             var text = answerTurn.InputChat;
             return text;
-            /*  //  text = text.Split('.').First();
-              //  return text;
-              var parts = text.Split(new[] { " is " }, StringSplitOptions.RemoveEmptyEntries);
-              if (parts.Length == 1)
-                  return parts[0];
-
-              return parts[1];
-              string bestPart = null;
-              var bestScore = double.NegativeInfinity;
-              var contextNgrams = getContextNgrams(dialog).ToArray();
-              var context = extractor.RawScores(contextNgrams);
-              foreach (var part in parts)
-              {
-                  //we are searching for part with lowest match to context
-                  var partScore = getScore(part, context, extractor);
-                  if (partScore > bestScore)
-                  {
-                      bestPart = part;
-                      bestScore = partScore;
-                  }
-              }
-
-              return bestPart;*/
         }
 
-
-        private static IEnumerable<string> getContextNgrams(QuestionDialog dialog)
+        private static IEnumerable<string> getCleanWords(string utterance)
         {
-            return getNgrams(dialog.Question);
-        }
-
-        private static IEnumerable<string> getAnswerHintNgrams(QuestionDialog dialog, UtteranceLinker linker)
-        {
-            var turnIndex = 0;
-            var ngrams = new List<string>();
-            foreach (var answerTurn in dialog.AnswerTurns)
-            {
-                var isOddTurn = turnIndex % 2 == 1;
-                if (isOddTurn)
-                    ngrams.AddRange(getNgrams(answerTurn.InputChat));
-
-                turnIndex += 1;
-            }
-
-            //return ngrams;
-            var answerText = getAnswerPhrase(dialog);
-            return getNgrams(answerText);
-        }
-
-        private static IEnumerable<string> getNgrams(string text)
-        {
-            if (text == null)
-                yield break;
-
-            text = text.ToLowerInvariant().Replace(".", " ").Replace(",", " ").Replace("'", " ").Replace("  ", " ").Replace("  ", " ");
-            var words = text.Split(' ').Select(w => w.Trim()).Where(w => w.Length > 0).ToArray();
-            for (var i = 0; i < words.Length; ++i)
-            {
-                var j = i + 1;
-                var k = i + 2;
-                var l = i + 3;
-
-                var wordI = words[i];
-                var wordK = k < words.Length ? words[k] : "";
-
-                yield return wordI;
-                if (j < words.Length)
-                    yield return wordI + " " + words[j];
-
-                if (k < words.Length)
-                    yield return wordI + " " + words[j] + " " + words[k];
-                /*                
-                                             if (l < words.Length)
-                                                 yield return wordI + " " + words[j] + " " + words[k] +" "+ words[l];
-                */
-            }
+            return utterance.ToLowerInvariant().Replace(".", " ").Replace(",", " ").Split(' ');
         }
     }
 }

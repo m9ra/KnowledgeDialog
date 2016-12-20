@@ -77,9 +77,8 @@ namespace WebBackend
             customCulture.NumberFormat.NumberDecimalSeparator = ".";
             System.Threading.Thread.CurrentThread.CurrentCulture = customCulture;
 
-            AnswerExtraction.ExtractionEvaluation_Batch.RunLinkingExperiment();
-            //AnswerExtraction.ExtractionEvaluation_Batch.RunLinkedAnswerExtractionExperiment();
-            //AnswerExtraction.ExtractionEvaluation_Batch.RunAnswerExtractionEvaluation();
+            //AnswerExtraction.ExtractionEvaluation_Batch.RunLinkingExperiment();
+            AnswerExtraction.ExtractionEvaluation_Batch.RunLinkedAnswerExtractionExperiment();
             //AnswerExtraction.LuceneIndex_Batch.BuildIndex();
             //AnswerExtraction.DumpCreation_Batch.BenchmarkMySQLEdges(); 
             //AnswerExtraction.DumpCreation_Batch.FillMySQLEdges();

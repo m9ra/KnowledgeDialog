@@ -17,56 +17,67 @@ namespace WebBackend.AnswerExtraction
 
         private bool _useDisambiguation = false;
 
+        private Dictionary<string, EntityInfo> _context = new Dictionary<string, EntityInfo>();
+
         internal GraphDisambiguatedLinker(FreebaseDbProvider db, string verbsLexicon, bool useGraphDisambiguation = true)
             : base(db, verbsLexicon)
         {
             _useDisambiguation = useGraphDisambiguation;
         }
 
-        internal override IEnumerable<LinkedUtterance> LinkUtterance(string utterance, int entityHypCount)
+        internal LinkedUtterance LinkUtterance(string utterance, IEnumerable<EntityInfo> context = null)
         {
-            var linkedUtterances = base.LinkUtterance(utterance, entityHypCount);
-            if (!_useDisambiguation)
-                return linkedUtterances;
-
-            var disambiguatedUtterances = new List<LinkedUtterance>();
-            foreach (var linkedUtterance in linkedUtterances)
+            _context.Clear();
+            if (context != null)
             {
-                var entityClusters = new List<EntityInfo[]>();
-                foreach (var part in linkedUtterance.Parts)
+                foreach (var entity in context)
                 {
-                    if (part.Entities.Any())
-                    {
-                        entityClusters.Add(part.Entities.ToArray());
-                    }
+                    _context[Db.GetFreebaseId(entity.Mid)] = entity;
                 }
-
-                var disambiguatedClusters = disambiguateClusters(entityClusters);
-                var entityQueue = new Queue<EntityInfo>(disambiguatedClusters);
-                var disambiguatedParts = new List<LinkedUtterancePart>();
-                foreach (var part in linkedUtterance.Parts)
-                {
-                    if (part.Entities.Any())
-                    {
-                        disambiguatedParts.Add(LinkedUtterancePart.Entity(part.Token, new[] { entityQueue.Dequeue() }));
-                    }
-                    else
-                    {
-                        disambiguatedParts.Add(part);
-                    }
-                }
-
-                disambiguatedUtterances.Add(new LinkedUtterance(disambiguatedParts));
             }
 
-            return disambiguatedUtterances;
+            var linkedUtterance = base.LinkUtterance(utterance, 20).First();
+            if (!_useDisambiguation)
+                return linkedUtterance;
+
+            var entityClusters = new List<EntityInfo[]>();
+            foreach (var part in linkedUtterance.Parts)
+            {
+                if (part.Entities.Any())
+                {
+                    entityClusters.Add(part.Entities.ToArray());
+                }
+            }
+
+            var disambiguatedClusters = disambiguateClusters(entityClusters);
+            var entityQueue = new Queue<EntityInfo>(disambiguatedClusters);
+            var disambiguatedParts = new List<LinkedUtterancePart>();
+            foreach (var part in linkedUtterance.Parts)
+            {
+                if (part.Entities.Any())
+                {
+                    disambiguatedParts.Add(LinkedUtterancePart.Entity(part.Token, new[] { entityQueue.Dequeue() }));
+                }
+                else
+                {
+                    disambiguatedParts.Add(part);
+                }
+            }
+
+            return new LinkedUtterance(disambiguatedParts);
+        }
+
+        internal override IEnumerable<LinkedUtterance> LinkUtterance(string utterance, int entityHypCount)
+        {
+            throw new NotSupportedException();
         }
 
         private EntityInfo[] disambiguateClusters(IEnumerable<EntityInfo[]> entityClusters)
         {
             //we are trying to find largest best scored entity component
 
-            var clusterArray = entityClusters.ToArray();
+
+            var clusterArray = pruneClusters(entityClusters);
             var entityMap = new Dictionary<string, HashSet<EntityInfo>>();
             var componentSizes = new Dictionary<EntityInfo, int>();
 
@@ -93,6 +104,43 @@ namespace WebBackend.AnswerExtraction
                 result.Add(clusterArray[i][bestSelection[i]]);
             }
             return result.ToArray();
+        }
+
+        private EntityInfo[][] pruneClusters(IEnumerable<EntityInfo[]> clusters)
+        {
+            var clustersArray = clusters.ToArray();
+
+            var maxIterationLimit = 2000;
+            while (getIterationCount(clustersArray) > maxIterationLimit)
+            {
+                shrinkClusters(clustersArray);
+            }
+
+            return clustersArray;
+        }
+
+        private void shrinkClusters(EntityInfo[][] clusters)
+        {
+            var maxClusterSize = clusters.Select(c => c.Length).Max();
+            for (var i = 0; i < clusters.Length; ++i)
+            {
+                if (clusters[i].Length < maxClusterSize)
+                    continue;
+
+                clusters[i] = pruneEntities(clusters[i], maxClusterSize - 1).ToArray();
+                return;
+            }
+        }
+
+        private long getIterationCount(EntityInfo[][] clusters)
+        {
+            var totalIterationCount = 1L;
+            foreach (var cluster in clusters)
+            {
+                totalIterationCount *= cluster.Length;
+            }
+
+            return totalIterationCount;
         }
 
         private void updateToNextSelection(ref int[] selection, EntityInfo[][] entities)
@@ -123,7 +171,8 @@ namespace WebBackend.AnswerExtraction
             var accumulator = 0.0;
             foreach (var component in components)
             {
-                var componentScore = 1.0;
+                var componentScale = component.Count() * 100000;
+                var componentScore = 1.0 + componentScale;
                 foreach (var entity in component)
                 {
                     componentScore *= entity.Score;
@@ -154,6 +203,10 @@ namespace WebBackend.AnswerExtraction
                 var entitiesToProcess = new Queue<EntityInfo>();
                 entitiesToProcess.Enqueue(componentSeed);
                 entityIndex.Remove(componentSeedId);
+                if (_context.ContainsKey(componentSeedId))
+                    //compensate for beiing in context itself
+                    component.Add(componentSeed);
+
 
                 //construct component from the seed
                 while (entitiesToProcess.Count > 0)
@@ -163,6 +216,13 @@ namespace WebBackend.AnswerExtraction
 
                     foreach (var target in Db.GetEntryFromId(Db.GetFreebaseId(entity.Mid)).Targets)
                     {
+                        if (_context.ContainsKey(target.Item2))
+                        {
+                            var contextEntity = _context[target.Item2];
+                            if (!component.Contains(contextEntity))
+                                component.Add(contextEntity);
+                        }
+
                         if (entityIndex.ContainsKey(target.Item2))
                         {
                             //component was enlarged
@@ -180,22 +240,29 @@ namespace WebBackend.AnswerExtraction
 
         protected override IEnumerable<EntityInfo> pruneEntities(IEnumerable<EntityInfo> entities, int entityHypothesisCount)
         {
-            /*if (_useDisambiguation)
+            if (_useDisambiguation)
             {
+                var contextMatchFactor = 10000;
                 entities = base.pruneEntities(entities, entityHypothesisCount * 2);
                 var orderedEntities = entities.OrderByDescending(e =>
                 {
                     var entry = Db.GetEntryFromId(e.Mid);
-                    var count = entry.Targets.Count();
-                    return count;
+                    var accumulator = e.Score;
+                    foreach (var target in entry.Targets)
+                    {
+                        if (_context.ContainsKey(target.Item2))
+                            accumulator += contextMatchFactor;
+                    }
+
+                    return accumulator;
                 });
 
                 return orderedEntities.Take(entityHypothesisCount);
             }
             else
-            {*/
+            {
                 return base.pruneEntities(entities, entityHypothesisCount);
-            //}
+            }
         }
     }
 }

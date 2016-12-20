@@ -148,7 +148,7 @@ namespace WebBackend.Dataset
                     targets = getTargets(doc);
 
                 var content = GetContent(doc);
-                var contentCategory = getContentCategory(doc);
+                var contentCategory = GetContentCategory(doc);
                 switch (contentCategory)
                 {
                     case ContentCategory.A:
@@ -253,10 +253,10 @@ namespace WebBackend.Dataset
         private bool hasLabel(ScoreDoc scoreDoc)
         {
             var doc = _searcher.Doc(scoreDoc.Doc);
-            return getContentCategory(scoreDoc) == ContentCategory.L;
+            return GetContentCategory(scoreDoc) == ContentCategory.L;
         }
 
-        private ContentCategory getContentCategory(ScoreDoc scoreDoc)
+        internal ContentCategory GetContentCategory(ScoreDoc scoreDoc)
         {
             var doc = _searcher.Doc(scoreDoc.Doc);
             switch (doc.GetField("contentCategory").StringValue)

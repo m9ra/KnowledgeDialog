@@ -13,24 +13,21 @@ namespace WebBackend.AnswerExtraction
 {
     class LinkBasedExtractor
     {
-        private readonly UtteranceLinker _linker;
-
-        private readonly int _entityHypCount;
+        private readonly GraphDisambiguatedLinker _linker;
 
         internal int TotalEntityCount { get; private set; }
 
-        internal LinkBasedExtractor(UtteranceLinker linker, int entityHypCount)
+        internal LinkBasedExtractor(GraphDisambiguatedLinker linker)
         {
             _linker = linker;
-            _entityHypCount = entityHypCount;
         }
 
         internal IEnumerable<EntityInfo> ExtractAnswerEntity(QuestionDialog dialog)
         {
-            var linkedQuestion = _linker.LinkUtterance(dialog.Question, _entityHypCount).First();
-
-            var answerPhaseEntities = getAnswerPhaseEntities(dialog);
+            var linkedQuestion = _linker.LinkUtterance(dialog.Question);
             var questionEntities = linkedQuestion.Parts.SelectMany(p => p.Entities).ToArray();
+
+            var answerPhaseEntities = getAnswerPhaseEntities(dialog, questionEntities);
 
             var selectedAnswerEntities = getAnswerEntities(dialog, answerPhaseEntities, questionEntities).ToArray();
 
@@ -54,13 +51,13 @@ namespace WebBackend.AnswerExtraction
             }
             return selectedAnswerEntities;
         }
-               
-        private IEnumerable<EntityInfo> getAnswerPhaseEntities(QuestionDialog dialog)
+
+        private IEnumerable<EntityInfo> getAnswerPhaseEntities(QuestionDialog dialog, IEnumerable<EntityInfo> questionEntities)
         {
             var entities = new List<EntityInfo>();
             foreach (var answerTurn in dialog.AnswerTurns)
             {
-                var linkedAnswerUtterance = _linker.LinkUtterance(answerTurn.InputChat, _entityHypCount).First();
+                var linkedAnswerUtterance = _linker.LinkUtterance(answerTurn.InputChat, questionEntities);
                 entities.AddRange(linkedAnswerUtterance.Parts.SelectMany(p => p.Entities));
             }
 

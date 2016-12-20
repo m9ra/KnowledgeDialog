@@ -120,87 +120,7 @@ namespace WebBackend.AnswerExtraction
             }
         }
 
-        private Dictionary<string, EntityInfo> rawScores(string[] ngrams, int aliasLength, double leadingScoreFactor)
-        {
-            int leadingScore = 0;
-            var scores = new Dictionary<string, EntityInfo>();
-            var skipNext = false;
-            foreach (var ngram in ngrams)
-            {
-                int badCount;
-                _badNgramCounts.TryGetValue(ngram, out badCount);
-                if (badCount > 0)
-                    continue;
-
-                int preBadCount;
-                _preBadNgramCounts.TryGetValue(ngram, out preBadCount);
-                if (preBadCount > 10)
-                {
-                    skipNext = true;
-                    continue;
-                }
-
-                if (skipNext)
-                {
-                    skipNext = false;
-                    continue;
-                }
-
-                var scoredDocs = Db.GetScoredContentDocs(ngram);
-                foreach (var dc in scoredDocs)
-                {
-                    var mid = Db.GetMid(dc);
-                    var content = Db.GetContent(dc);
-                    var isAlias = content.Length < aliasLength;
-                    var score = dc.Score;
-                    score = score * ngram.Length;
-                    score = score + leadingScore * (float)leadingScoreFactor;
-                    if (content.ToLowerInvariant() == ngram.ToLowerInvariant())
-                    {
-                        //exact match
-                        score *= 5 * ngram.Length;
-                    }
-
-                    if (isAlias)
-                    {
-                        var lengthDiff = Math.Abs(content.Length - ngram.Length);
-                        score = score / content.Length * 2;
-                    }
-                    else
-                    {
-                        score = score / 15;
-                    }
-
-                    EntityInfo entity;
-                    if (!scores.TryGetValue(mid, out entity))
-                    {
-                        scores[mid] = entity = Db.GetEntityInfoFromMid(mid);
-                    }
-
-                    score = entity.InBounds + entity.OutBounds;
-                    scores[mid] = entity.AddScore(content, score);
-                }
-
-                int currentScore;
-                _leadingNgramCounts.TryGetValue(ngram, out currentScore);
-                leadingScore += currentScore;
-            }
-            /*
-            var sum = scores.Values.Sum();
-            foreach (var key in scores.Keys.ToArray())
-            {
-                scores[key] = scores[key] / sum;
-            }
-            */
-            return scores;
-        }
-
-        internal Dictionary<string, EntityInfo> RawScores(string[] ngrams)
-        {
-            var aliasLength = 15;
-            return rawScores(ngrams, aliasLength, 3);
-        }
-
+       
         internal IEnumerable<EntityInfo> GetEntities(string ngram)
         {
             var scores = new Dictionary<string, EntityInfo>();
@@ -209,16 +129,30 @@ namespace WebBackend.AnswerExtraction
             {
                 var mid = Db.GetMid(dc);
                 var content = Db.GetContent(dc);
-                var isAlias = content.Length < 15;
+                var category = Db.GetContentCategory(dc);
+                var isLabel = category == ContentCategory.L;
+                var isAlias = category == ContentCategory.A || isLabel;
+
                 var score = dc.Score;
                 score = score * ngram.Length;
+
+                if (isLabel)
+                {
+                    score *= 2;
+                }
+
                 if (content.ToLowerInvariant() == ngram.ToLowerInvariant())
                 {
+                    //exact match
                     score *= 5 * ngram.Length;
                 }
+
                 if (isAlias)
                 {
                     var lengthDiff = Math.Abs(content.Length - ngram.Length);
+                    if (lengthDiff > 3)
+                        //difference is too large
+                        continue;
                     score = score / content.Length * 2;
                 }
                 else
@@ -236,32 +170,7 @@ namespace WebBackend.AnswerExtraction
 
             return scores.Values;
         }
-
-        internal EntityInfo[] Score(string[] ngrams, string[] contextNgrams)
-        {
-            var scores = RawScores(ngrams);
-            if (scores.Count == 0)
-                return new EntityInfo[0];
-
-            var badScores = rawScores(contextNgrams, 15, 3.0);
-            foreach (var badScore in badScores)
-            {
-                //break;
-                if (scores.ContainsKey(badScore.Key))
-                    scores[badScore.Key] = scores[badScore.Key].SubtractScore(badScore.Value.Score / 10);
-            }
-
-            var rankedAnswers = new List<EntityInfo>();
-            foreach (var pair in scores)
-            {
-                rankedAnswers.Add(pair.Value);
-            }
-
-            rankedAnswers.Sort();
-            rankedAnswers.Reverse();
-            return rankedAnswers.ToArray();
-        }
-
+                
         internal void Train(IEnumerable<string> ngrams, string correctAnswer)
         {
             string strongestNgram = null;

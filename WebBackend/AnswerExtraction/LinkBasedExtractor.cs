@@ -28,39 +28,57 @@ namespace WebBackend.AnswerExtraction
             var questionEntities = linkedQuestion.Parts.SelectMany(p => p.Entities).ToArray();
 
             var answerPhaseEntities = getAnswerPhaseEntities(dialog, questionEntities);
-
             var selectedAnswerEntities = getAnswerEntities(dialog, answerPhaseEntities, questionEntities).ToArray();
 
             TotalEntityCount += selectedAnswerEntities.Length;
-
-            var answerEntities = selectedAnswerEntities.Distinct().OrderByDescending(e => e.OutBounds + e.InBounds).Take(1).ToArray();
+            var answerEntities = selectedAnswerEntities.Distinct().OrderByDescending(e => e.OutBounds + e.InBounds).ToArray();
 
             return answerEntities;
         }
 
         private static IEnumerable<EntityInfo> getAnswerEntities(QuestionDialog dialog, IEnumerable<EntityInfo> answerPhaseEntities, EntityInfo[] questionEntities)
         {
-            IEnumerable<EntityInfo> selectedAnswerEntities;
+            var entityScores = new Dictionary<EntityInfo, double>();
+            foreach (var entity in answerPhaseEntities)
+            {
+                entityScores[entity] = entity.Score;
+            }
+
             if (dialog.Question.ToLowerInvariant().Split(' ').Contains("or"))
             {
-                selectedAnswerEntities = answerPhaseEntities.Intersect(questionEntities);
+                foreach (var entity in questionEntities)
+                {
+                    if (!entityScores.ContainsKey(entity))
+                        continue;
+
+                    entityScores[entity] += entity.Score;
+                }
             }
             else
             {
-                selectedAnswerEntities = answerPhaseEntities.Except(questionEntities);
+                foreach (var entity in questionEntities)
+                {
+                    if (!entityScores.ContainsKey(entity))
+                        continue;
+
+                    entityScores[entity] -= entity.Score;
+                }
             }
-            return selectedAnswerEntities;
+            return answerPhaseEntities.OrderByDescending(e => entityScores[e]).ToArray();
         }
 
         private IEnumerable<EntityInfo> getAnswerPhaseEntities(QuestionDialog dialog, IEnumerable<EntityInfo> questionEntities)
         {
             var entities = new List<EntityInfo>();
-            foreach (var answerTurn in dialog.AnswerTurns)
+            /*foreach (var answerTurn in dialog.AnswerTurns)
             {
                 var linkedAnswerUtterance = _linker.LinkUtterance(answerTurn.InputChat, questionEntities);
                 entities.AddRange(linkedAnswerUtterance.Parts.SelectMany(p => p.Entities));
-            }
+            }*/
 
+            var answerTurn = dialog.AnswerTurns.Last();
+            var linkedAnswerUtterance = _linker.LinkUtterance(answerTurn.InputChat, questionEntities);
+            entities.AddRange(linkedAnswerUtterance.Parts.SelectMany(p => p.Entities));
             return entities;
         }
     }

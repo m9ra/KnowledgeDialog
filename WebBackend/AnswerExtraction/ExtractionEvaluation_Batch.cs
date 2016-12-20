@@ -63,8 +63,6 @@ namespace WebBackend.AnswerExtraction
 
         internal static void RunLinkedAnswerExtractionExperiment()
         {
-            var ENTITY_HYP_COUNT = 1;
-
             var trainDataset = Configuration.GetQuestionDialogsTrain();
             var devDataset = Configuration.GetQuestionDialogsDev();
 
@@ -83,7 +81,7 @@ namespace WebBackend.AnswerExtraction
 
 
             var linkedExtractor = new LinkBasedExtractor(linker);
-            extractAnswer("It is a short film", linker, linkedExtractor, devDataset);
+            extractAnswer("Short film", linker, linkedExtractor, devDataset);
 
             var correctCount = 0;
             var totalCount = 0;

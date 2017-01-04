@@ -88,6 +88,7 @@
     <Compile Include="Dialog\Parsing\LinkedUtterance.cs" />
     <Compile Include="Dialog\Parsing\PatternConfiguration.cs" />
     <Compile Include="Dialog\Parsing\PatternState.cs" />
+    <Compile Include="Dialog\Parsing\Utilities.cs" />
     <Compile Include="Dialog\Parsing\UtterancePattern.cs" />
     <Compile Include="Dialog\QuestionAnswering\SingleQuestionLog.cs" />
     <Compile Include="Dialog\QuestionAnswering\TurnLog.cs" />

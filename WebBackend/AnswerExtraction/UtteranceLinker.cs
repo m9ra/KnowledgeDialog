@@ -24,23 +24,33 @@ namespace WebBackend.AnswerExtraction
         private readonly Dictionary<string, int> _leadingNgramCounts = new Dictionary<string, int>();
 
 
-        private readonly HashSet<string> _nonInformativeWords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        private readonly HashSet<string> _nonInformativeWords1 = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "'s","a","an","the","I","we","he","she","it","you","they","me",
+            "Im","its","his","her","their","us","our",
             "think","thought","know","knew","assume","assumed", "look","looked",
             "have","has","had","can","could",
             "is","are","were","was","been","would",
             "in","on","at","to","from","there","that",
-            "who","why","what","where","which","whose","how",
-            "with","and","or","any","neither", "out", "by","of",
+            "who","why","what","where","which","whose","how", "when","whenever","whatever","anywhere",
+            "much","many",
+            "with","without","within",
+            "and","or","any","neither", "out", "by","of",
             "up","down","top","bottom",
-            "only", "for", "believe"
+            "only", "for", "believe", "so",
+            "do","did","done","does",
+            "wont","will","would",
+            "have","has","had",
+            "all","every","each","never","ever","always",
         };
+
+        private readonly HashSet<string> _nonInformativeWords2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         internal UtteranceLinker(FreebaseDbProvider db, string verbsLexicon = null)
         {
             Db = db;
-            _nonInformativeWords.UnionWith(loadVerbs(verbsLexicon));
+            _nonInformativeWords2.UnionWith(_nonInformativeWords1);
+            _nonInformativeWords2.UnionWith(loadVerbs(verbsLexicon));
         }
 
         internal virtual IEnumerable<LinkedUtterance> LinkUtterance(string utterance, int entityHypCount)
@@ -49,7 +59,7 @@ namespace WebBackend.AnswerExtraction
                 //the utterance is too long
                 return Enumerable.Empty<LinkedUtterance>();
 
-            var sanitizedUtterance = utterance.Replace(".", " ").Replace(",", " ").Replace("(", " ").Replace(")", " ").Replace("?", " ").Replace("!", " ").Replace("`s", "'s").Replace("'s", " 's");
+            var sanitizedUtterance = utterance.ToLowerInvariant().Replace(".", " ").Replace(",", " ").Replace("(", " ").Replace(")", " ").Replace("?", " ").Replace("!", " ").Replace("`s", "'s").Replace("'s", " 's");
             var index = new EntityIndex(sanitizedUtterance.Split(' ').Where(w => w.Length > 0).ToArray(), this, entityHypCount);
             var result = index.LinkedUtterance_Hungry();
 
@@ -59,7 +69,7 @@ namespace WebBackend.AnswerExtraction
         internal virtual IEnumerable<EntityInfo> GetValidEntities(string ngram, int entityHypothesisCount)
         {
             var words = ngram.Split(' ');
-            var informativeWords = words.Where(w => !_nonInformativeWords.Contains(w)).ToArray();
+            var informativeWords = words.Where(w => !_nonInformativeWords2.Contains(w)).ToArray();
 
             if (!informativeWords.Any())
                 return new EntityInfo[0];
@@ -67,25 +77,32 @@ namespace WebBackend.AnswerExtraction
             var entities = GetEntities(ngram)
                 .Where(e => e.Label != null)
                 .Where(e => e.Description != null)
+                .Where(e => KnowledgeDialog.Dialog.Parsing.Utilities.Levenshtein(e.BestAliasMatch.ToLowerInvariant(), ngram) < 3)
                 .OrderByDescending(e => e.InBounds + e.OutBounds).ToArray();
 
             entities = pruneEntities(entities, entityHypothesisCount).ToArray();
 
 
             var nonInformativeWords = words.Except(informativeWords).Select(w => w.ToLowerInvariant()).ToList();
-
+            var canBeUsed = nonInformativeWords.Count == 0;
             foreach (var entity in entities)
             {
+                if (canBeUsed)
+                    break;
+
                 var aliases = new[] { entity.Label }.Concat(Db.GetAliases(entity.Mid));
                 foreach (var alias in aliases)
                 {
                     var entityWords = alias.ToLowerInvariant().Split(' ');
-                    foreach (var word in entityWords)
-                        nonInformativeWords.Remove(word);
+                    if (nonInformativeWords.Intersect(entityWords).Count() == nonInformativeWords.Count)
+                    {
+                        canBeUsed = true;
+                        break;
+                    }
                 }
             }
 
-            if (nonInformativeWords.Count > 0)
+            if (!canBeUsed)
                 return new EntityInfo[0];
 
             return entities;
@@ -111,10 +128,16 @@ namespace WebBackend.AnswerExtraction
                 if (verbForms.Length == 1)
                 {
                     //regular verb
+                    yield return basicForm + "s";
+                    yield return basicForm + "ing";
                     if (basicForm.EndsWith("e"))
+                    {
                         yield return basicForm + "d";
+                    }
                     else
+                    {
                         yield return basicForm + "ed";
+                    }
                 }
                 else
                 {
@@ -136,7 +159,6 @@ namespace WebBackend.AnswerExtraction
                 var content = Db.GetContent(dc);
                 var category = Db.GetContentCategory(dc);
                 var isLabel = category == ContentCategory.L;
-                var isAlias = category == ContentCategory.A || isLabel;
 
                 var score = dc.Score;
                 score = score * ngram.Length;
@@ -150,19 +172,6 @@ namespace WebBackend.AnswerExtraction
                 {
                     //exact match
                     score *= 5 * ngram.Length;
-                }
-
-                if (isAlias)
-                {
-                    var lengthDiff = Math.Abs(content.Length - ngram.Length);
-                    if (lengthDiff > 3)
-                        //difference is too large
-                        continue;
-                    score = score / content.Length * 2;
-                }
-                else
-                {
-                    score = score / 15;
                 }
 
                 EntityInfo entity;

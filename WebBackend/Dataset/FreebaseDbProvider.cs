@@ -198,28 +198,9 @@ namespace WebBackend.Dataset
 
         internal string GetLabel(string mid)
         {
-            var docs = getScoredMidDocs(mid);
-            string label = null;
-            foreach (var doc in docs)
-            {
-                var docMid = GetMid(doc);
-                if (docMid != mid)
-                    continue;
-
-                var content = GetContent(doc);
-                if (hasLabel(doc))
-                    return content;
-
-                if (label == null)
-                    label = content;
-
-                if (content.Length < label.Length)
-                    label = content;
-            }
-
-            return label;
+            var entry = GetEntryFromId(FreebaseLoader.GetId(mid));
+            return entry.Label;
         }
-
 
         internal IEnumerable<string> GetAliases(string mid)
         {
@@ -275,13 +256,13 @@ namespace WebBackend.Dataset
         internal int GetInBounds(string mid)
         {
             var entry = GetEntryFromId(GetFreebaseId(mid));
-            return entry.Targets.Select(e => !e.Item1.IsOutcoming).Count();
+            return entry.Targets.Where(e => !e.Item1.IsOutcoming).Count();
         }
 
         internal int GetOutBounds(string mid)
         {
             var entry = GetEntryFromId(GetFreebaseId(mid));
-            return entry.Targets.Select(e => e.Item1.IsOutcoming).Count();
+            return entry.Targets.Where(e => e.Item1.IsOutcoming).Count();
         }
 
         internal IEnumerable<ScoreDoc> GetScoredContentDocs(string termVariant)
@@ -304,19 +285,13 @@ namespace WebBackend.Dataset
             return docs;
         }
 
-        private IEnumerable<ScoreDoc> getScoredMidDocs(string mid)
-        {
-            var id = GetFreebaseId(mid);
-            return getScoredIdDocs(id);
-        }
-
         private IEnumerable<ScoreDoc> getScoredIdDocs(string id)
         {
             ScoreDoc[] docs;
-            var queryStr = "\"" + QueryParser.Escape(id) + "\"";
-            var query = _idParser.Parse(queryStr);
-
-            var hits = _searcher.Search(query, 100);
+            var query1 = new TermQuery(new Term("id", id));
+            var boolQuery = new BooleanQuery();
+            boolQuery.Add(query1, Occur.MUST);
+            var hits = _searcher.Search(boolQuery, 100);
             docs = hits.ScoreDocs.ToArray();
 
             return docs;

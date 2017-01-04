@@ -65,67 +65,73 @@ namespace WebBackend.AnswerExtraction
         internal static void RunLinkedAnswerExtractionExperiment()
         {
             var trainDataset = Configuration.GetQuestionDialogsTrain();
-            var devDataset = Configuration.GetQuestionDialogsTrain();
+            var devDataset = Configuration.GetQuestionDialogsDev();
 
             var db = Configuration.GetFreebaseDbProvider();
             db.LoadIndex();
 
-            var linker = getTrainDataLinker(db);
-            
-            var linkedExtractor = new LinkBasedExtractor(linker);
+            var linker = getFullDataLinker(db);
+            var linkedExtractor = new LinkBasedExtractor(linker, db);
             foreach (var dialog in trainDataset.Dialogs)
             {
                 if (dialog.HasCorrectAnswer)
+                {
+                    Console.WriteLine(dialog.Question);
                     linkedExtractor.Train(dialog);
+                }
             }
 
-            var desiredEntityInfoPrintingEnabled = false;
+            var desiredEntityInfoPrintingEnabled = true;
 
 
-            extractAnswer("Which anime series did toei animation produce", linker, linkedExtractor, devDataset);
+            //extractAnswer("Which anime series did toei animation produce", linker, linkedExtractor, devDataset);
 
             var correctCount = 0;
             var totalCount = 0;
-            foreach (var dialog in trainDataset.Dialogs)
+            foreach (var dialog in devDataset.Dialogs)
             {
                 if (!dialog.HasCorrectAnswer)
                     continue;
 
-                    var linkedQuestion = linker.LinkUtterance(dialog.Question);
-                    var contextEntities = linkedQuestion.Parts.SelectMany(p => p.Entities).ToArray();
-                    Console.WriteLine(linkedQuestion);
+                var linkedQuestion = linker.LinkUtterance(dialog.Question);
+                var contextEntities = linkedQuestion.Parts.SelectMany(p => p.Entities).ToArray();
+                Console.WriteLine(linkedQuestion);
 
-                    var answerPhrase = getAnswerPhrase(dialog);
-                    var linkedAnswer = linker.LinkUtterance(answerPhrase, contextEntities);
-                    Console.WriteLine(linkedAnswer);
+                var answerPhrase = getAnswerPhrase(dialog);
+                var linkedAnswer = linker.LinkUtterance(answerPhrase, contextEntities);
+                Console.WriteLine(linkedAnswer);
 
-                    if (desiredEntityInfoPrintingEnabled)
-                    {
-                        var correctAnswer = db.GetLabel(dialog.AnswerMid);
-                        var answerInBounds = db.GetInBounds(dialog.AnswerMid);
-                        var answerOutBounds = db.GetOutBounds(dialog.AnswerMid);
-                        Console.WriteLine("\tdesired: {0}({1})[{2}/{3}]", correctAnswer, db.GetFreebaseId(dialog.AnswerMid), answerInBounds, answerOutBounds);
-                    }
-                
-                    var answerEntities = linkedExtractor.ExtractAnswerEntity(dialog);
-                    var isCorrect = answerEntities.Select(e => e.Mid).Take(1).Contains(dialog.AnswerMid);
-                    if (isCorrect)
-                    {
-                        Console.WriteLine("\tOK");
-                        ++correctCount;
-                    }
-                    else
-                    {
-                        Console.WriteLine("\tNO");
-                        foreach (var entity in answerEntities)
-                        {
-                            Console.WriteLine("\t\t{0}[{1}/{2}]", entity, entity.InBounds, entity.OutBounds);
-                        }
-                    }
+                if (desiredEntityInfoPrintingEnabled)
+                {
+                    var correctAnswer = db.GetLabel(dialog.AnswerMid);
+                    var answerInBounds = db.GetInBounds(dialog.AnswerMid);
+                    var answerOutBounds = db.GetOutBounds(dialog.AnswerMid);
+                    Console.WriteLine("\tdesired: {0}({1})[{2}/{3}]", correctAnswer, db.GetFreebaseId(dialog.AnswerMid), answerInBounds, answerOutBounds);
+                }
+                else
+                {
+                    Console.WriteLine("\tdesired: {0}", db.GetFreebaseId(dialog.AnswerMid));
+                }
 
-                    ++totalCount;
-                    Console.WriteLine("\tprecision {0:00.00}%", 100.0 * correctCount / totalCount);
-                    Console.WriteLine();
+                var answerEntities = linkedExtractor.ExtractAnswerEntity(dialog);
+                var isCorrect = answerEntities.Select(e => e.Mid).Take(1).Contains(dialog.AnswerMid);
+                if (isCorrect)
+                {
+                    Console.WriteLine("\tOK");
+                    ++correctCount;
+                }
+                else
+                {
+                    Console.WriteLine("\tNO");
+                    foreach (var entity in answerEntities)
+                    {
+                        Console.WriteLine("\t\t{0}({1})[{2}/{3}] {4:0.00}", entity.Label, db.GetFreebaseId(entity.Mid), entity.InBounds, entity.OutBounds, entity.Score);
+                    }
+                }
+
+                ++totalCount;
+                Console.WriteLine("\tprecision {0:00.00}%", 100.0 * correctCount / totalCount);
+                Console.WriteLine();
             }
 
             Console.WriteLine(linkedExtractor.TotalEntityCount + " answer entities");
@@ -133,11 +139,11 @@ namespace WebBackend.AnswerExtraction
             Console.ReadKey();
         }
 
-        private static ILinker getTrainDataLinker(FreebaseDbProvider db)
+        private static ILinker getFullDataLinker(FreebaseDbProvider db)
         {
             var coreLinker = new GraphDisambiguatedLinker(db, "./verbs.lex");
-            var linker = new DiskCachedLinker("../train_data.link", 1, (u) => coreLinker.LinkUtterance(u));
-
+            var linker = new DiskCachedLinker("../full.link", 1, (u) => coreLinker.LinkUtterance(u));
+            linker.CacheResult = true;
             return linker;
         }
 

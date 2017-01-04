@@ -15,6 +15,8 @@ namespace WebBackend.AnswerExtraction
     {
         private readonly ILinker _linker;
 
+        private readonly FreebaseDbProvider _db;
+
         internal int TotalEntityCount { get; private set; }
 
         private Dictionary<string, int> _positiveCounts = new Dictionary<string, int>();
@@ -25,8 +27,9 @@ namespace WebBackend.AnswerExtraction
 
         private readonly string _contextAnswerPlaceholder = "$";
 
-        internal LinkBasedExtractor(ILinker linker)
+        internal LinkBasedExtractor(ILinker linker, FreebaseDbProvider db)
         {
+            _db = db;
             _linker = linker;
         }
 
@@ -51,6 +54,7 @@ namespace WebBackend.AnswerExtraction
         private IEnumerable<EntityInfo> getAnswerEntities(QuestionDialog dialog, EntityInfo[] questionEntities)
         {
             var answerPhaseEntities = getAnswerPhaseEntities(dialog, questionEntities);
+            var intersectEntities = answerPhaseEntities.Intersect(questionEntities).ToArray();
 
             var entityScores = new Dictionary<EntityInfo, double>();
             foreach (var entity in answerPhaseEntities)
@@ -85,9 +89,27 @@ namespace WebBackend.AnswerExtraction
 
             var ngrams = linkedAnswerHint.GetNgrams(_contextNgramSize);
 
-            //return answerPhaseEntities.Distinct().OrderByDescending(e => contextScore(e, ngrams)).ThenByDescending(e => entityScores[e]).ToArray();
-            return answerPhaseEntities.Distinct().OrderByDescending(e => contextScore(e, ngrams)).ThenByDescending(e => entityScores[e]).ToArray();
-            //return answerPhaseEntities.Distinct().OrderByDescending(e => entityScores[e]).ToArray();
+            answerPhaseEntities = answerPhaseEntities.Intersect(entityScores.Keys).Distinct().ToArray();
+
+            return answerPhaseEntities.OrderByDescending(e => e.InBounds + e.OutBounds).ToArray();
+            //return answerPhaseEntities.OrderByDescending(e => contextScore(e, ngrams)).ThenByDescending(e => entityScores[e]).ToArray();
+            //return answerPhaseEntities.OrderByDescending(e => entityScores[e]).ToArray();
+            //return answerPhaseEntities.OrderByDescending(e => questionContextScore(e, questionEntities)).ToArray();
+        }
+
+        private double questionContextScore(EntityInfo entity, IEnumerable<EntityInfo> questionEntities)
+        {
+            var score = 0.0;
+            var entityIds = new HashSet<string>(questionEntities.Select(e => FreebaseLoader.GetId(e.Mid)));
+
+            var entry = _db.GetEntryFromId(FreebaseLoader.GetId(entity.Mid));
+            foreach (var target in entry.Targets)
+            {
+                if (entityIds.Contains(target.Item2))
+                    score += 1;
+            }
+
+            return score;
         }
 
         private double contextScore(EntityInfo e, IEnumerable<string> ngrams)

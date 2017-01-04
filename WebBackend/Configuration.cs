@@ -10,7 +10,7 @@ namespace WebBackend
 {
     static class Configuration
     {
-        internal static readonly string LuceneIndex_Path = @"C:\REPOSITORIES\lucene_freebase_v2_index";
+        internal static readonly string LuceneIndex_Path = @"C:\REPOSITORIES\lucene_freebase_v3_index";
 
         internal static readonly string SimpleQuestionFB2M_Path = @"C:\Databases\SimpleQuestions_v2\SimpleQuestions_v2\freebase-subsets\freebase-FB2M.txt";
 

@@ -16,7 +16,7 @@ namespace WebBackend.AnswerExtraction
     class ExtractionEvaluation_Batch
     {
 
-        private static void extractAnswer(string utterance, GraphDisambiguatedLinker linker, LinkBasedExtractor extractor, QuestionDialogDatasetReader dataset)
+        private static void extractAnswer(string utterance, ILinker linker, LinkBasedExtractor extractor, QuestionDialogDatasetReader dataset)
         {
             var utteranceWords = getCleanWords(utterance).Distinct();
 
@@ -61,34 +61,35 @@ namespace WebBackend.AnswerExtraction
             }
         }
 
+
         internal static void RunLinkedAnswerExtractionExperiment()
         {
             var trainDataset = Configuration.GetQuestionDialogsTrain();
-            var devDataset = Configuration.GetQuestionDialogsDev();
+            var devDataset = Configuration.GetQuestionDialogsTrain();
 
-            var simpleQuestions = Configuration.GetSimpleQuestionsDump();
             var db = Configuration.GetFreebaseDbProvider();
             db.LoadIndex();
 
-            var linker = new GraphDisambiguatedLinker(db, "./verbs.lex");
-
-            var utterancesToDisambiguate = new List<string>();
-            var applicableDialogs = devDataset.Dialogs.Where(d => d.HasCorrectAnswer).ToArray();
-
-            utterancesToDisambiguate.AddRange(applicableDialogs.Select(d => d.Question));
-            utterancesToDisambiguate.AddRange(applicableDialogs.Select(d => getAnswerPhrase(d)));
-
-
-
+            var linker = getTrainDataLinker(db);
+            
             var linkedExtractor = new LinkBasedExtractor(linker);
-            extractAnswer("Short film", linker, linkedExtractor, devDataset);
+            foreach (var dialog in trainDataset.Dialogs)
+            {
+                if (dialog.HasCorrectAnswer)
+                    linkedExtractor.Train(dialog);
+            }
+
+            var desiredEntityInfoPrintingEnabled = false;
+
+
+            extractAnswer("Which anime series did toei animation produce", linker, linkedExtractor, devDataset);
 
             var correctCount = 0;
             var totalCount = 0;
-            foreach (var dialog in devDataset.Dialogs)
+            foreach (var dialog in trainDataset.Dialogs)
             {
-                if (dialog.HasCorrectAnswer)
-                {
+                if (!dialog.HasCorrectAnswer)
+                    continue;
 
                     var linkedQuestion = linker.LinkUtterance(dialog.Question);
                     var contextEntities = linkedQuestion.Parts.SelectMany(p => p.Entities).ToArray();
@@ -98,14 +99,16 @@ namespace WebBackend.AnswerExtraction
                     var linkedAnswer = linker.LinkUtterance(answerPhrase, contextEntities);
                     Console.WriteLine(linkedAnswer);
 
-                    var correctAnswer = db.GetLabel(dialog.AnswerMid);
-                    var answerInBounds = db.GetInBounds(dialog.AnswerMid);
-                    var answerOutBounds = db.GetOutBounds(dialog.AnswerMid);
-                    Console.WriteLine("\tdesired: {0}({1})[{2}/{3}]", correctAnswer, db.GetFreebaseId(dialog.AnswerMid), answerInBounds, answerOutBounds);
-
-
+                    if (desiredEntityInfoPrintingEnabled)
+                    {
+                        var correctAnswer = db.GetLabel(dialog.AnswerMid);
+                        var answerInBounds = db.GetInBounds(dialog.AnswerMid);
+                        var answerOutBounds = db.GetOutBounds(dialog.AnswerMid);
+                        Console.WriteLine("\tdesired: {0}({1})[{2}/{3}]", correctAnswer, db.GetFreebaseId(dialog.AnswerMid), answerInBounds, answerOutBounds);
+                    }
+                
                     var answerEntities = linkedExtractor.ExtractAnswerEntity(dialog);
-                    var isCorrect = answerEntities.Select(e => e.Mid).Contains(dialog.AnswerMid);
+                    var isCorrect = answerEntities.Select(e => e.Mid).Take(1).Contains(dialog.AnswerMid);
                     if (isCorrect)
                     {
                         Console.WriteLine("\tOK");
@@ -123,12 +126,19 @@ namespace WebBackend.AnswerExtraction
                     ++totalCount;
                     Console.WriteLine("\tprecision {0:00.00}%", 100.0 * correctCount / totalCount);
                     Console.WriteLine();
-                }
             }
 
             Console.WriteLine(linkedExtractor.TotalEntityCount + " answer entities");
             Console.WriteLine("END");
             Console.ReadKey();
+        }
+
+        private static ILinker getTrainDataLinker(FreebaseDbProvider db)
+        {
+            var coreLinker = new GraphDisambiguatedLinker(db, "./verbs.lex");
+            var linker = new DiskCachedLinker("../train_data.link", 1, (u) => coreLinker.LinkUtterance(u));
+
+            return linker;
         }
 
         private static void linkOnAnswerHint(string utterance, GraphDisambiguatedLinker linker, QuestionDialogDatasetReader dataset)
@@ -185,8 +195,9 @@ namespace WebBackend.AnswerExtraction
             utterancesToDisambiguate.AddRange(applicableDialogs.Select(d => d.Question));
             utterancesToDisambiguate.AddRange(applicableDialogs.Select(d => getAnswerPhrase(d)));
 
-            linkOnAnswerHint("What is karim khalili known for being", linker, devDataset);
+            //linkOnAnswerHint("What is karim khalili known for being", linker, devDataset);
             //linkOnAnswerHint("The film was in Portuguese and dubbed in English", linker, devDataset);
+            //var result = linker.LinkUtterance("derek hagan");
             //var result = linker.LinkUtterance("The Apprentice", 5);
             //var result = linker.LinkUtterance("Scooter Libby wrote a novel called The Apprentice", 5);
             //var result = linker.LinkUtterance("It can come from a cow or a goat", 5);

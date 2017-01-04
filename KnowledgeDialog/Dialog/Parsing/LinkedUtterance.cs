@@ -52,6 +52,39 @@ namespace KnowledgeDialog.Dialog.Parsing
             Parts = parts.ToArray();
         }
 
+        public IEnumerable<string> GetNgrams(int n)
+        {
+            var result = new List<string>();
+            var parts = Parts.ToArray();
+            for (var i = 0; i < parts.Length; ++i)
+            {
+                var ngram = new StringBuilder();
+                for (var j = 0; j < n; ++j)
+                {
+                    var index = i + j;
+                    var part = parts[i];
+
+                    var word = index >= parts.Length ? "</s>" : getPartRepr(parts[index]);
+                    if (ngram.Length > 0)
+                        ngram.Append(",");
+
+                    ngram.Append(word);
+                }
+
+                result.Add(ngram.ToString());
+            }
+            return result;
+        }
+        
+        private static string getPartRepr(LinkedUtterancePart part)
+        {
+            if (!part.Entities.Any())
+                return part.Token;
+
+            var id = part.Entities.First().Mid;
+            return "[" + id + "]";
+        }
+        
         public override string ToString()
         {
             return string.Join(" ", Parts);

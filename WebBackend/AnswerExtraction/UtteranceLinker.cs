@@ -33,7 +33,8 @@ namespace WebBackend.AnswerExtraction
             "in","on","at","to","from","there","that",
             "who","why","what","where","which","whose","how",
             "with","and","or","any","neither", "out", "by","of",
-            "up","down","top","bottom"
+            "up","down","top","bottom",
+            "only", "for", "believe"
         };
 
         internal UtteranceLinker(FreebaseDbProvider db, string verbsLexicon = null)
@@ -44,7 +45,11 @@ namespace WebBackend.AnswerExtraction
 
         internal virtual IEnumerable<LinkedUtterance> LinkUtterance(string utterance, int entityHypCount)
         {
-            var sanitizedUtterance = utterance.Replace(".", " ").Replace(",", " ").Replace("?", " ").Replace("!", " ").Replace("`s", "'s").Replace("'s", " 's");
+            if (utterance.Length > 200)
+                //the utterance is too long
+                return Enumerable.Empty<LinkedUtterance>();
+
+            var sanitizedUtterance = utterance.Replace(".", " ").Replace(",", " ").Replace("(", " ").Replace(")", " ").Replace("?", " ").Replace("!", " ").Replace("`s", "'s").Replace("'s", " 's");
             var index = new EntityIndex(sanitizedUtterance.Split(' ').Where(w => w.Length > 0).ToArray(), this, entityHypCount);
             var result = index.LinkedUtterance_Hungry();
 
@@ -120,7 +125,7 @@ namespace WebBackend.AnswerExtraction
             }
         }
 
-       
+
         internal IEnumerable<EntityInfo> GetEntities(string ngram)
         {
             var scores = new Dictionary<string, EntityInfo>();
@@ -170,7 +175,7 @@ namespace WebBackend.AnswerExtraction
 
             return scores.Values;
         }
-                
+
         internal void Train(IEnumerable<string> ngrams, string correctAnswer)
         {
             string strongestNgram = null;

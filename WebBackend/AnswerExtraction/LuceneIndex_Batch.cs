@@ -24,11 +24,15 @@ namespace WebBackend.AnswerExtraction
             extractor.StartFreebaseIndexRebuild();
             foreach (var id in dumpLoader.Ids)
             {
-                var names = dumpLoader.GetNames(id);
+                var label = dumpLoader.GetLabel(id);
+                if (label == null)
+                    continue;
+
+                var aliases = dumpLoader.GetAliases(id);
                 var description = dumpLoader.GetDescription(id);
                 var inBounds = simpleQuestionsProcessor.GetInTargets(id);
                 var outBounds = simpleQuestionsProcessor.GetOutTargets(id);
-                extractor.AddEntry(FreebaseLoader.IdPrefix + id, names, description, inBounds, outBounds);
+                extractor.AddEntry(FreebaseLoader.GetMid(id), label, aliases, description, inBounds, outBounds);
             }
             extractor.FinishFreebaseIndexRebuild();
             extractor.LoadIndex();
@@ -40,7 +44,8 @@ namespace WebBackend.AnswerExtraction
                 if (!dialog.HasCorrectAnswer)
                     continue;
 
-                var label = dumpLoader.GetLabel(dialog.AnswerMid);
+                var id = FreebaseLoader.GetId(dialog.AnswerMid);
+                var label = dumpLoader.GetLabel(id);
                 if (label != null)
                     includedCount += 1;
                 else

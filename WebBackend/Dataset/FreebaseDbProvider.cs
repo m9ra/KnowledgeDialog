@@ -58,7 +58,7 @@ namespace WebBackend.Dataset
             _indexPath = indexPath;
             _directory = Store.FSDirectory.Open(_indexPath);
             _analyzer = new StandardAnalyzer(Version.LUCENE_30);
-
+            //_analyzer = new KeywordAnalyzer();
             _contentParser = new QueryParser(Version.LUCENE_30, "content", _analyzer);
 
             var idAnalyzer = new KeywordAnalyzer();
@@ -97,16 +97,16 @@ namespace WebBackend.Dataset
             _indexWriter = new IndexWriter(_directory, _analyzer, IndexWriter.MaxFieldLength.UNLIMITED);
         }
 
-        internal void AddEntry(string mid, IEnumerable<string> aliases, string description, IEnumerable<Tuple<string, string>> inTargets, IEnumerable<Tuple<string, string>> outTargets)
+        internal void AddEntry(string mid, string label, IEnumerable<string> aliases, string description, IEnumerable<Tuple<string, string>> inTargets, IEnumerable<Tuple<string, string>> outTargets)
         {
-            _indexWriter.AddDocument(getDocumentWithContent(description, mid, ContentCategory.D, inTargets, outTargets));
-            var isLabel = true;
+            _indexWriter.AddDocument(getDocumentWithContent(label.Trim('"'), mid, ContentCategory.L, inTargets, outTargets));
+            _indexWriter.AddDocument(getDocumentWithContent(description, mid, ContentCategory.D, null, null));
+
             foreach (var alias in aliases)
             {
                 var sanitizedAlias = alias.Trim('"');
-                var category = isLabel ? ContentCategory.L : ContentCategory.A;
-                _indexWriter.AddDocument(getDocumentWithContent(sanitizedAlias, mid, category, inTargets, outTargets));
-                isLabel = false; //first alias is considered to be a label
+                var category = ContentCategory.A;
+                _indexWriter.AddDocument(getDocumentWithContent(sanitizedAlias, mid, category, null, null));
             }
         }
 
@@ -274,24 +274,14 @@ namespace WebBackend.Dataset
 
         internal int GetInBounds(string mid)
         {
-            foreach (var scoredDoc in getScoredMidDocs(mid))
-            {
-                var doc = _searcher.Doc(scoredDoc.Doc);
-                return int.Parse(doc.GetField("inBounds").StringValue);
-            }
-
-            return 0;
+            var entry = GetEntryFromId(GetFreebaseId(mid));
+            return entry.Targets.Select(e => !e.Item1.IsOutcoming).Count();
         }
 
         internal int GetOutBounds(string mid)
         {
-            foreach (var scoredDoc in getScoredMidDocs(mid))
-            {
-                var doc = _searcher.Doc(scoredDoc.Doc);
-                return int.Parse(doc.GetField("outBounds").StringValue);
-            }
-
-            return 0;
+            var entry = GetEntryFromId(GetFreebaseId(mid));
+            return entry.Targets.Select(e => e.Item1.IsOutcoming).Count();
         }
 
         internal IEnumerable<ScoreDoc> GetScoredContentDocs(string termVariant)
@@ -300,7 +290,11 @@ namespace WebBackend.Dataset
             if (!_scoredDocsCache.TryGetValue(termVariant, out docs))
             {
                 var queryStr = "\"" + QueryParser.Escape(termVariant) + "\"";
-                var query = _contentParser.Parse(queryStr);
+                Query query;
+                //  if (termVariant.Contains(' '))
+                query = _contentParser.Parse(queryStr);
+                //  else
+                //      query = new FuzzyQuery(new Term("content", queryStr), 0.5f);
 
                 var hits = _searcher.Search(query, 100);
                 docs = hits.ScoreDocs.ToArray();
@@ -345,25 +339,22 @@ namespace WebBackend.Dataset
             var inBounds = inTargets == null ? 0 : inTargets.Count();
             var outBounds = outTargets == null ? 0 : outTargets.Count();
 
-            var fldInBounds = new Field("inBounds", inBounds.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-
-            var fldOutBounds = new Field("outBounds", outBounds.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO);
-
             var doc = new Document();
             doc.Add(fldContent);
             doc.Add(fldId);
             doc.Add(fldContentCategory);
-            doc.Add(fldInBounds);
-            doc.Add(fldOutBounds);
 
-            if (inTargets != null)
-                foreach (var inTarget in inTargets)
-                    doc.Add(new Field("inTargets", inTarget.Item1 + ";" + inTarget.Item2, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+            if (category == ContentCategory.L)
+            {
+                //targets will come only with label
+                if (inTargets != null)
+                    foreach (var inTarget in inTargets)
+                        doc.Add(new Field("inTargets", inTarget.Item1 + ";" + inTarget.Item2, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
 
-            if (outTargets != null)
-                foreach (var outTarget in outTargets)
-                    doc.Add(new Field("outTargets", outTarget.Item1 + ";" + outTarget.Item2, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
-
+                if (outTargets != null)
+                    foreach (var outTarget in outTargets)
+                        doc.Add(new Field("outTargets", outTarget.Item1 + ";" + outTarget.Item2, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+            }
             return doc;
         }
 

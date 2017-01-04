@@ -19,7 +19,12 @@ namespace WebBackend.Dataset
         /// <summary>
         /// Id to names.
         /// </summary>
-        private readonly Dictionary<string, string[]> _names = new Dictionary<string, string[]>();
+        private readonly Dictionary<string, string[]> _aliases = new Dictionary<string, string[]>();
+
+        /// <summary>
+        /// Id to labels
+        /// </summary>
+        private readonly Dictionary<string, string> _labels = new Dictionary<string, string>();
 
         /// <summary>
         /// Id to descriptions.
@@ -39,7 +44,7 @@ namespace WebBackend.Dataset
         /// <summary>
         /// Ids collected by the loader.
         /// </summary>
-        internal IEnumerable<string> Ids { get { return _names.Keys; } }
+        internal IEnumerable<string> Ids { get { return _labels.Keys; } }
 
         internal DumpLoader(string dumpPath)
         {
@@ -73,33 +78,30 @@ namespace WebBackend.Dataset
                     _descriptions[freebaseId] = description;
                     _inBounds[freebaseId] = int.Parse(inBounds);
                     _outBounds[freebaseId] = int.Parse(outBounds);
-                    var names = new List<string>();
-                    names.Add(label);
+                    var aliasList = new List<string>();
+                    aliasList.Add(label);
                     if (aliases != "")
                     {
-                        names.AddRange(aliases.Split(';'));
+                        aliasList.AddRange(aliases.Split(';'));
                     }
-                    _names[freebaseId] = names.ToArray();
-
+                    _aliases[freebaseId] = aliasList.ToArray();
+                    _labels[freebaseId] = label;
                 }
             }
         }
 
-        internal string GetLabel(string freebaseId)
+        internal string GetLabel(string id)
         {
-            var id = freebaseId.Substring(FreebaseLoader.IdPrefix.Length);
+            string label;
+            _labels.TryGetValue(id, out label);
 
-            string[] names;
-            if (!_names.TryGetValue(id, out names) || names.Length <= 0)
-                return null;
-
-            return names[0];
+            return label;
         }
 
-        internal string[] GetNames(string id)
+        internal string[] GetAliases(string id)
         {
             string[] result;
-            _names.TryGetValue(id, out result);
+            _aliases.TryGetValue(id, out result);
 
             return result;
         }

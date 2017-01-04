@@ -11,7 +11,12 @@ using WebBackend.Dataset;
 
 namespace WebBackend.AnswerExtraction
 {
-    class GraphDisambiguatedLinker : UtteranceLinker
+    interface ILinker
+    {
+        LinkedUtterance LinkUtterance(string utterance, IEnumerable<EntityInfo> context = null);
+    }
+
+    class GraphDisambiguatedLinker : UtteranceLinker, ILinker
     {
         private List<ExplicitLayer> _disambiguationLayers = new List<ExplicitLayer>();
 
@@ -25,7 +30,7 @@ namespace WebBackend.AnswerExtraction
             _useDisambiguation = useGraphDisambiguation;
         }
 
-        internal LinkedUtterance LinkUtterance(string utterance, IEnumerable<EntityInfo> context = null)
+        public LinkedUtterance LinkUtterance(string utterance, IEnumerable<EntityInfo> context = null)
         {
             _context.Clear();
             if (context != null)
@@ -36,8 +41,8 @@ namespace WebBackend.AnswerExtraction
                 }
             }
 
-            var linkedUtterance = base.LinkUtterance(utterance, 20).First();
-            if (!_useDisambiguation)
+            var linkedUtterance = base.LinkUtterance(utterance, 20).FirstOrDefault();
+            if (!_useDisambiguation || linkedUtterance == null)
                 return linkedUtterance;
 
             var entityClusters = new List<EntityInfo[]>();

@@ -310,7 +310,7 @@ totalDialogs);
                 //result.UnionWith(getNgrams(question, n));
 
                 var linkedQuestion = linker.LinkUtterance(question);
-                result.UnionWith(getNgrams(linkedQuestion, i));
+                result.UnionWith(linkedQuestion.GetNgrams(i));
                 /*
                 foreach (var explanation in dialog.ExplanationTurns)
                 {
@@ -321,38 +321,6 @@ totalDialogs);
             return result;
         }
 
-        private static IEnumerable<string> getNgrams(LinkedUtterance utterance, int n)
-        {
-            var result = new List<string>();
-            var parts = utterance.Parts.ToArray();
-            for (var i = 0; i < parts.Length; ++i)
-            {
-                var ngram = new StringBuilder();
-                for (var j = 0; j < n; ++j)
-                {
-                    var index = i + j;
-                    var part = parts[i];
-
-                    var word = index >= parts.Length ? "</s>" : getPartRepr(parts[index]);
-                    if (ngram.Length > 0)
-                        ngram.Append(",");
-
-                    ngram.Append(word);
-                }
-
-                result.Add(ngram.ToString());
-            }
-            return result;
-        }
-
-        private static string getPartRepr(LinkedUtterancePart part)
-        {
-            if (!part.Entities.Any())
-                return part.Token;
-
-            var id = FreebaseLoader.GetId(part.Entities.First().Mid);
-            return "[" + id + "]";
-        }
 
         private static IEnumerable<string> getNgrams(string utterance, int n)
         {
@@ -410,7 +378,7 @@ totalDialogs);
              });
         }
 
-        private static LinkedUtterance[] cachedLinkedUtterancesTrain(SimpleQuestionDumpProcessor simpleQuestions, FreebaseDbProvider  db, QuestionDialog[] trainDialogs)
+        private static LinkedUtterance[] cachedLinkedUtterancesTrain(SimpleQuestionDumpProcessor simpleQuestions, FreebaseDbProvider db, QuestionDialog[] trainDialogs)
         {
             var linkedUtterances = ComputationCache.Load("linked_all_train", 1, () =>
             {

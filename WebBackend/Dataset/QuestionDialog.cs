@@ -24,14 +24,16 @@ namespace WebBackend.Dataset
 
     class QuestionDialog
     {
+        internal readonly long Id;
         internal readonly string AnswerMid;
         internal readonly bool HasCorrectAnswer;
         internal readonly string Question;
         internal readonly IEnumerable<DialogTurn> AnswerTurns;
         internal readonly IEnumerable<DialogTurn> ExplanationTurns;
 
-        internal QuestionDialog(string answerMid, string annotation, string question,IEnumerable<DialogTurn> explanationTurns, IEnumerable<DialogTurn> answerTurns)
+        internal QuestionDialog(long dialogId,string answerMid, string annotation, string question,IEnumerable<DialogTurn> explanationTurns, IEnumerable<DialogTurn> answerTurns)
         {
+            Id = dialogId;
             AnswerMid = answerMid;
             HasCorrectAnswer = annotation == "correct_answer";
             Question = question;

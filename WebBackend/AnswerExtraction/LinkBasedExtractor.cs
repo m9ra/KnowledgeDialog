@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using System.Text.RegularExpressions;
+
 using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Dialog.Parsing;
 
@@ -17,15 +19,21 @@ namespace WebBackend.AnswerExtraction
 
         private readonly FreebaseDbProvider _db;
 
+        private readonly Regex _entityIdParser = new Regex(@"[\[][^\]$]+[\]]", RegexOptions.Compiled);
+
         internal int TotalEntityCount { get; private set; }
 
         private Dictionary<string, int> _positiveCounts = new Dictionary<string, int>();
+
+        private Dictionary<string, int> _falsePositiveCounts = new Dictionary<string, int>();
 
         private Dictionary<string, int> _totalCounts = new Dictionary<string, int>();
 
         private readonly int _contextNgramSize = 3;
 
-        private readonly string _contextAnswerPlaceholder = "$";
+        private readonly string _testedEntityPlaceholder = "$t";
+
+        private readonly string _contextEntityPlaceholder = "$c";
 
         internal LinkBasedExtractor(ILinker linker, FreebaseDbProvider db)
         {
@@ -91,8 +99,8 @@ namespace WebBackend.AnswerExtraction
 
             answerPhaseEntities = answerPhaseEntities.Intersect(entityScores.Keys).Distinct().ToArray();
 
-            return answerPhaseEntities.OrderByDescending(e => e.InBounds + e.OutBounds).ToArray();
-            //return answerPhaseEntities.OrderByDescending(e => contextScore(e, ngrams)).ThenByDescending(e => entityScores[e]).ToArray();
+            //return answerPhaseEntities.OrderByDescending(e => e.InBounds + e.OutBounds).ToArray();
+            return answerPhaseEntities.OrderByDescending(e => contextScore(e, ngrams, questionEntities)).ThenByDescending(e => entityScores[e]).ToArray();
             //return answerPhaseEntities.OrderByDescending(e => entityScores[e]).ToArray();
             //return answerPhaseEntities.OrderByDescending(e => questionContextScore(e, questionEntities)).ToArray();
         }
@@ -112,22 +120,53 @@ namespace WebBackend.AnswerExtraction
             return score;
         }
 
-        private double contextScore(EntityInfo e, IEnumerable<string> ngrams)
+        private double contextScore(EntityInfo e, IEnumerable<string> ngrams, IEnumerable<EntityInfo> questionEntities)
         {
             var totalScore = 0.0;
-            foreach (var ngram in ngrams)
+            var processedNgrams = getPositiveNgrams(ngrams, questionEntities, e.Mid);
+            foreach (var ngram in processedNgrams)
             {
-                if (!ngram.Contains(e.Mid))
-                    continue;
+                int positiveScore;
+                _positiveCounts.TryGetValue(ngram, out positiveScore);
 
-                var replaced = ngram.Replace(e.Mid, _contextAnswerPlaceholder);
-                int ngramScore;
-                _positiveCounts.TryGetValue(replaced, out ngramScore);
+                int negativeScore;
+                _falsePositiveCounts.TryGetValue(ngram, out negativeScore);
 
-                totalScore += ngramScore;
+                totalScore += positiveScore - negativeScore;
             }
 
             return totalScore;
+        }
+
+        private IEnumerable<string> getPositiveNgrams(IEnumerable<string> ngrams, IEnumerable<EntityInfo> contextEntities, string testedEntityMid)
+        {
+            var contextIds = new HashSet<string>();
+            contextIds.UnionWith(contextEntities.Select(e => e.Mid));
+
+            var result = new List<string>();
+
+            foreach (var ngram in ngrams)
+            {
+                if (!ngram.Contains(testedEntityMid))
+                    //we are interested in positive ngrams only
+                    continue;
+
+                var processedNgram = ngram.Replace(testedEntityMid, _testedEntityPlaceholder);
+                foreach (var contextId in contextIds)
+                {
+                    processedNgram = processedNgram.Replace(contextId, _contextEntityPlaceholder);
+                }
+
+                processedNgram = _entityIdParser.Replace(processedNgram, m => "[]");
+                result.Add(processedNgram);
+            }
+
+            return result;
+        }
+
+        private IEnumerable<string> getNegativeNgrams(IEnumerable<string> ngrams, IEnumerable<EntityInfo> contextEntities, EntityInfo testedEntity)
+        {
+            throw new NotImplementedException();
         }
 
         private IEnumerable<EntityInfo> getAnswerPhaseEntities(QuestionDialog dialog, IEnumerable<EntityInfo> questionEntities)
@@ -161,23 +200,40 @@ namespace WebBackend.AnswerExtraction
             if (answerHint == null)
                 return;
 
-            foreach (var ngram in answerHint.GetNgrams(_contextNgramSize))
+            var ngrams = answerHint.GetNgrams(_contextNgramSize);
+            var positiveNgrams = getPositiveNgrams(ngrams, questionEntities, dialog.AnswerMid);
+            foreach (var ngram in positiveNgrams)
             {
-                var replaced = ngram.Replace(dialog.AnswerMid, _contextAnswerPlaceholder);
-                if (ngram.Contains(dialog.AnswerMid))
+                int count;
+                _positiveCounts.TryGetValue(ngram, out count);
+                _positiveCounts[ngram] = ++count;
+            }
+
+            var answerPhaseEntities = getAnswerEntities(dialog, questionEntities);
+            var falseAnswerEntities = answerPhaseEntities.Where(e => e.Mid != dialog.AnswerMid);
+
+            foreach (var falseEntity in falseAnswerEntities)
+            {
+                var falsePositiveNgrams = getPositiveNgrams(ngrams, questionEntities, falseEntity.Mid);
+                foreach (var ngram in falsePositiveNgrams)
                 {
                     int count;
-                    _positiveCounts.TryGetValue(replaced, out count);
-                    ++count;
-                    _positiveCounts[replaced] = count;
-                    Console.WriteLine(replaced);
+                    _falsePositiveCounts.TryGetValue(ngram, out count);
+                    _falsePositiveCounts[ngram] = ++count;
                 }
             }
         }
 
         internal void PrintInfo()
         {
+            Console.WriteLine("POSITIVE");
             foreach (var countPair in _positiveCounts.OrderBy(p => p.Value))
+            {
+                Console.WriteLine(countPair.Value + ": " + countPair.Key);
+            }
+
+            Console.WriteLine("FALSE POSITIVE");
+            foreach (var countPair in _falsePositiveCounts.OrderBy(p => p.Value))
             {
                 Console.WriteLine(countPair.Value + ": " + countPair.Key);
             }

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using System.IO;
+
 using WebBackend.Dataset;
 
 using KnowledgeDialog.Dialog.Parsing;
@@ -61,11 +63,26 @@ namespace WebBackend.AnswerExtraction
             }
         }
 
+        internal static void ExportAnswerExtractionData()
+        {
+            var trainDataset = Configuration.GetQuestionDialogsTrain();
+            var devDataset = Configuration.GetQuestionDialogsDev();
+            var testDataset = Configuration.GetQuestionDialogsTest();
+
+            var db = Configuration.GetFreebaseDbProvider();
+            db.LoadIndex();
+
+            var linker = getFullDataLinker(db);
+            exportLinkedAnswerHints(linker, "train.qdd_ae", trainDataset.Dialogs.Where(d => d.HasCorrectAnswer));
+            exportLinkedAnswerHints(linker, "dev.qdd_ae", devDataset.Dialogs.Where(d => d.HasCorrectAnswer));
+            exportLinkedAnswerHints(linker, "test.qdd_ae", testDataset.Dialogs.Where(d => d.HasCorrectAnswer));
+
+        }
 
         internal static void RunLinkedAnswerExtractionExperiment()
         {
             var trainDataset = Configuration.GetQuestionDialogsTrain();
-            var devDataset = Configuration.GetQuestionDialogsDev();
+            var devDataset = Configuration.GetQuestionDialogsTrain();
 
             var db = Configuration.GetFreebaseDbProvider();
             db.LoadIndex();
@@ -81,12 +98,16 @@ namespace WebBackend.AnswerExtraction
                 }
             }
 
-            var desiredEntityInfoPrintingEnabled = true;
+            linkedExtractor.PrintInfo();
+
+            var desiredEntityInfoPrintingEnabled = false;
 
 
-            //extractAnswer("Which anime series did toei animation produce", linker, linkedExtractor, devDataset);
+            //extractAnswer("what is the gender of paul boutilier", linker, linkedExtractor, devDataset);
 
-            var correctCount = 0;
+            var evaluationN = 1;
+            var correctLinkCount = 0;
+            var correctAnswerCount = 0;
             var totalCount = 0;
             foreach (var dialog in devDataset.Dialogs)
             {
@@ -114,15 +135,24 @@ namespace WebBackend.AnswerExtraction
                 }
 
                 var answerEntities = linkedExtractor.ExtractAnswerEntity(dialog);
-                var isCorrect = answerEntities.Select(e => e.Mid).Take(1).Contains(dialog.AnswerMid);
+                var isCorrect = answerEntities.Select(e => e.Mid).Take(evaluationN).Contains(dialog.AnswerMid);
                 if (isCorrect)
                 {
                     Console.WriteLine("\tOK");
-                    ++correctCount;
+                    ++correctAnswerCount;
+                    ++correctLinkCount;
                 }
                 else
                 {
-                    Console.WriteLine("\tNO");
+                    if (answerEntities.Select(e => e.Mid).Contains(dialog.AnswerMid))
+                    {
+                        ++correctLinkCount;
+                        Console.WriteLine("\tLINK ONLY");
+                    }
+                    else
+                    {
+                        Console.WriteLine("\tNO");
+                    }
                     foreach (var entity in answerEntities)
                     {
                         Console.WriteLine("\t\t{0}({1})[{2}/{3}] {4:0.00}", entity.Label, db.GetFreebaseId(entity.Mid), entity.InBounds, entity.OutBounds, entity.Score);
@@ -130,13 +160,38 @@ namespace WebBackend.AnswerExtraction
                 }
 
                 ++totalCount;
-                Console.WriteLine("\tprecision {0:00.00}%", 100.0 * correctCount / totalCount);
+                Console.WriteLine("\tprecision answer {0:00.00}%, link {1:00.00}%", 100.0 * correctAnswerCount / totalCount, 100.0 * correctLinkCount / totalCount);
                 Console.WriteLine();
             }
 
             Console.WriteLine(linkedExtractor.TotalEntityCount + " answer entities");
             Console.WriteLine("END");
             Console.ReadKey();
+        }
+
+        private static void exportLinkedAnswerHints(ILinker linker, string filePath, IEnumerable<QuestionDialog> dialogs)
+        {
+            var file = new StreamWriter(filePath);
+            foreach (var dialog in dialogs)
+            {
+                var linkedQuestion = linker.LinkUtterance(dialog.Question);
+                var questionEntities = linkedQuestion.Parts.SelectMany(p => p.Entities).ToArray();
+
+                var answerTurn = dialog.AnswerTurns.Last();
+                var answerHint = answerTurn.InputChat;
+                var linkedAnswerHint = linker.LinkUtterance(answerHint, questionEntities);
+                if (linkedAnswerHint == null)
+                    continue;
+
+                var featureText = linkedQuestion.GetEntityBasedRepresentation() + " ## " + linkedAnswerHint.GetEntityBasedRepresentation();
+
+                if (featureText.Contains("|"))
+                    throw new NotImplementedException("escape feature text");
+
+                file.WriteLine("{0}|{1}|{2}", dialog.Id, featureText, dialog.AnswerMid);
+            }
+
+            file.Close();
         }
 
         private static ILinker getFullDataLinker(FreebaseDbProvider db)
@@ -290,7 +345,7 @@ namespace WebBackend.AnswerExtraction
 
         private static IEnumerable<string> getCleanWords(string utterance)
         {
-            return utterance.ToLowerInvariant().Replace(".", " ").Replace(",", " ").Split(' ');
+            return utterance.ToLowerInvariant().Replace(".", " ").Replace("?", " ").Replace(",", " ").Split(' ');
         }
     }
 }

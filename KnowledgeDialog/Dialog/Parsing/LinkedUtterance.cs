@@ -47,6 +47,8 @@ namespace KnowledgeDialog.Dialog.Parsing
     {
         public readonly IEnumerable<LinkedUtterancePart> Parts;
 
+        public IEnumerable<EntityInfo> Entities { get { return Parts.SelectMany(p => p.Entities).ToArray(); } }
+
         public LinkedUtterance(IEnumerable<LinkedUtterancePart> parts)
         {
             Parts = parts.ToArray();

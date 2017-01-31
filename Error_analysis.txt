@@ -1,0 +1,88 @@
+DEV data errors:
+=========Wrong entity ID==============
+which [country] is the [lomax township] situated
+[lomax township] is in the [united states]
+        desired: united states of america(09c7w0)[402635/95092]
+        NO
+                [lomax township]:
+                        lomax township(02q771h)[3/3]  :lomax township | lomax to
+wnship, henderson county, illinois
+                                lomax township is one of eleven townships in hen
+de
+
+                [united states]:
+                        united states(0dmmqxb)[23/24]  :united states
+
+
+        precision 66.67%
+		
+what [language] was spoken in [whiskycast]
+[whiskycast] is in [english]
+        desired: english language(02h40lc)[126214/1411]
+        NO
+                [whiskycast]:
+                        whiskycast(03r50sl)[2/3]  :whiskycast
+                                each episode features the latest whisky news, a
+ca
+
+                [english]:
+                        english(04l)[1056/41]  :english
+                                the english language
+
+        precision 69.77%
+		
+		
+==============Plural not recognized=========
+which formulation is in [zonisamide]
+zonaisamide is available in 25mg 50mg 100mg; capsules
+        desired: zonisamide 100 liquid filled capsule(0hqtb19)[4/5]
+        NO
+        precision 65.63%
+		
+which [time zones] is [ostiglia] located in
+the [eastern] and [central] [time zones]
+        desired: central european time zone(02llzg)[9448/9474]
+        NO
+                [eastern]:
+                        eastern(0fdk888)[2/4]  :eastern
+
+
+                [central]:
+                        central(01z1ph4)[6/5]  :central | yukon-koyukuk census a
+rea / central cdp | central, alaska
+                                central is a census-designated place in yukon-ko
+yu
+
+                [time zones]:
+                        time zones(04w7v02)[3/3]  :time zones		
+
+==============Confused entity=========		
+which [country] is [cheney tech] in
+it is [in america]
+        desired: united states of america(09c7w0)[402635/95092]
+        NO
+                [in america]:
+                        in america(02d44q)[5/12]  :in america | in america - il
+sogno che non c'era | drömmarnas land
+                                in america is a 2002 irish-american-british dram
+a
+
+        precision 67.74%		
+		
+		
+where is [richard reid] from
+[richard reid] is from [england]
+        desired: united kingdom(07ssc)[79321/14404]
+        NO
+                [richard reid]:
+                        richard reid(0r3sqvn)[2/5]  :richard reid
+                                richard reid is a former ulster unionist politic
+ia
+
+                [england]:
+                        england(02jx1)[32926/7767]  :england | england | pow sow
+s
+                                england /'??gl?nd/ is a country that is part of
+th
+
+        precision 60.87%		

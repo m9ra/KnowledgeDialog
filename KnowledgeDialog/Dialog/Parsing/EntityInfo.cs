@@ -64,6 +64,11 @@ namespace KnowledgeDialog.Dialog.Parsing
             return new EntityInfo(Mid, Label, InBounds, OutBounds, BestAliasMatch, Score - score, _bestLabelScore, Description);
         }
 
+        public EntityInfo WithScore(double score)
+        {
+            return new EntityInfo(Mid, Label, InBounds, OutBounds, BestAliasMatch, score, _bestLabelScore, Description);
+        }
+
         public override bool Equals(object obj)
         {
             var o = obj as EntityInfo;

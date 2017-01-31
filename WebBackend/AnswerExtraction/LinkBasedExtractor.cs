@@ -44,9 +44,8 @@ namespace WebBackend.AnswerExtraction
         internal IEnumerable<EntityInfo> ExtractAnswerEntity(QuestionDialog dialog)
         {
             var questionEntities = getQuestionEntities(dialog);
-
-
             var answerEntities = getAnswerEntities(dialog, questionEntities).ToArray();
+            
             TotalEntityCount += answerEntities.Length;
 
             return answerEntities;

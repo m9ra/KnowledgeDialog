@@ -92,6 +92,7 @@ namespace WebBackend
             var simpleQuestions1 = loadSimpleQuestions("questions1.smpq");
 
             var simpleQuestionsTrain = loadSimpleQuestions("questions_train.smpq");
+            var extensionQuestions = loadExtensionQuestions("questions_train.smpq");
 
             Experiments = new ExperimentCollection(ExperimentsRootPath,
                 //main experiment where only CrowdFlower's people have access
@@ -141,27 +142,20 @@ namespace WebBackend
 
                 new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_9", 100, simpleQuestionsTrain),
 
-                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_10", 100, simpleQuestionsTrain)
+                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_10", 100, simpleQuestionsTrain),
+
+                new QuestionCollectionExperiment(ExperimentsRootPath, "qdd_extension_r_1", 100, simpleQuestionsTrain),
+                new QuestionCollectionExperiment(ExperimentsRootPath, "qdd_extension_r_2", 100, simpleQuestionsTrain),
+                new QuestionCollectionExperiment(ExperimentsRootPath, "qdd_extension_r_3", 100, simpleQuestionsTrain),
+                new QuestionCollectionExperiment(ExperimentsRootPath, "qdd_extension_r_4", 100, simpleQuestionsTrain),
+                new QuestionCollectionExperiment(ExperimentsRootPath, "qdd_extension_r_5", 100, simpleQuestionsTrain)
                 );
 
 
 
-            QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "question_collection_r_");
-
-
-            //AnswerExtraction.DumpCreation_Batch.DumpQuestions();
-
-
-            //QuestionDialogProvider.Refresh();
-            //AnswerExtraction.LuceneIndex_Batch.BuildIndex(FreebaseLoader);
-            //AnswerExtraction.ExtractionEvaluation_Batch.RunEvaluation(FreebaseLoader);
-            //return;
+            QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "qdd_extension_r_");
 
             //writeQuestionDataset();
-
-
-            var experiment = Experiments.Get("data_collection5");
-            writeDataset(experiment);
 
             //run server
             runServer(RootPath);
@@ -396,6 +390,34 @@ namespace WebBackend
             }
 
             return new QuestionCollection(questions, answerIds);
+        }
+
+        private static QuestionCollection loadExtensionQuestions(string questionFile)
+        {
+            var allQuestions = loadSimpleQuestions(questionFile);
+
+            var answerIds = new List<string>();
+            var questions = new List<string>();
+
+            fillWithHintedQuestions(Configuration.GetQuestionDialogsTrain(), questions);
+            fillWithHintedQuestions(Configuration.GetQuestionDialogsDev(), questions);
+            fillWithHintedQuestions(Configuration.GetQuestionDialogsTest(), questions);
+
+            foreach (var question in questions)
+            {
+                answerIds.Add(allQuestions.GetAnswerId(question));
+            }
+
+            return new QuestionCollection(questions, answerIds);
+        }
+
+        private static void fillWithHintedQuestions(QuestionDialogDatasetReader qdd, List<string> questions)
+        {
+            foreach (var dialog in qdd.Dialogs)
+            {
+                if (dialog.HasCorrectAnswer)
+                    questions.Add(dialog.Question);
+            }
         }
 
         #region Server utilities

@@ -54,6 +54,11 @@ namespace KnowledgeDialog.DataCollection
             return _questionToAnswerId[sanitize(question)];
         }
 
+        public string GetQuestion(string question)
+        {
+            return _questionToAnswerId[sanitize(question)];
+        }
+
         internal string GetRandomQuestion()
         {
             lock (_L_questions)

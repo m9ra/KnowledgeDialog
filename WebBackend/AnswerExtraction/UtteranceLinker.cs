@@ -74,12 +74,26 @@ namespace WebBackend.AnswerExtraction
             if (!informativeWords.Any())
                 return new EntityInfo[0];
 
-            var entities = GetEntities(ngram)
+            var entities = GetEntities(ngram).ToArray();
+            entities = entities
                 .Where(e => e.Label != null)
                 .Where(e => e.Description != null)
                 .Where(e => KnowledgeDialog.Dialog.Parsing.Utilities.Levenshtein(e.BestAliasMatch.ToLowerInvariant(), ngram) < 3)
                 .OrderByDescending(e => e.InBounds + e.OutBounds).ToArray();
 
+            var rescoredEntities = new List<EntityInfo>();
+            foreach (var entity in entities)
+            {
+                var lengthFactor = (ngram.Length + entity.BestAliasMatch.Length) / 2.0;
+                var distance = KnowledgeDialog.Dialog.Parsing.Utilities.Levenshtein(entity.BestAliasMatch.ToLowerInvariant(), ngram);
+                var matchScore = lengthFactor / (lengthFactor + distance);
+                var newEntityScore = lengthFactor * matchScore;
+
+                var newEntity = entity.WithScore(newEntityScore);
+                rescoredEntities.Add(newEntity);
+            }
+
+            entities = rescoredEntities.OrderByDescending(e => e.Score).ToArray();
             entities = pruneEntities(entities, entityHypothesisCount).ToArray();
 
 
@@ -163,10 +177,10 @@ namespace WebBackend.AnswerExtraction
                 var score = dc.Score;
                 score = score * ngram.Length;
 
-                if (isLabel)
-                {
-                    score *= 2;
-                }
+                /* if (isLabel)
+                 {
+                     score *= 2;
+                 }*/
 
                 if (content.ToLowerInvariant() == ngram.ToLowerInvariant())
                 {

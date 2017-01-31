@@ -17,7 +17,7 @@ namespace WebBackend.AnswerExtraction
     /// <summary>
     /// Provider which gives linked utterances.
     /// </summary>
-    delegate LinkedUtterance LinkProvider(string utterance);
+    delegate LinkedUtterance LinkProvider(string utterance, IEnumerable<EntityInfo> context);
 
     class DiskCachedLinker : ILinker
     {
@@ -46,7 +46,7 @@ namespace WebBackend.AnswerExtraction
             LinkedUtterance result;
             if (!_cachedUtterances.TryGetValue(key, out result))
             {
-                result = _provider(utterance);
+                result = _provider(utterance, context);
                 if (CacheResult)
                 {
                     _cachedUtterances[key] = result;

@@ -287,6 +287,36 @@ namespace WebBackend
             experimentHandler(experimentName);
         }
 
+        public void qdd_extension_r_1()
+        {
+            var experimentName = "qdd_extension_r_1";
+            experimentHandler(experimentName);
+        }
+
+        public void qdd_extension_r_2()
+        {
+            var experimentName = "qdd_extension_r_2";
+            experimentHandler(experimentName);
+        }
+
+        public void qdd_extension_r_3()
+        {
+            var experimentName = "qdd_extension_r_3";
+            experimentHandler(experimentName);
+        }
+
+        public void qdd_extension_r_4()
+        {
+            var experimentName = "qdd_extension_r_4";
+            experimentHandler(experimentName);
+        }
+
+        public void qdd_extension_r_5()
+        {
+            var experimentName = "qdd_extension_r_5";
+            experimentHandler(experimentName);
+        }
+
         public void data_collection()
         {
             var experimentName = "data_collection";

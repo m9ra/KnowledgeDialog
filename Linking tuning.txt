@@ -1,0 +1,18 @@
+Linking only
+69.77 dev
+55.30 train?
+
+Extraction
+TRAIN 	: precision answer 46.59%, link 56.82%, extraction 82.00%
+DEV 	: precision answer 41.86%, link 60.47%, extraction 69.23%
+TEST	: precision answer 30.30%, link 50.76%, extraction 59.70%
+
+Extraction (With graph linking disambiguation) 
+TRAIN 	: precision answer 48.86%, link 59.09%, extraction 82.69%
+DEV 	: precision answer 46.51%, link 69.77%, extraction 66.67%
+TEST	: precision answer 32.58%, link 55.30%, extraction 58.90%
+
+Extraction (Improved lexical matching - good matches cant overweight context)
+TRAIN	: precision answer 53.98%, link 65.91%, extraction 81.90%
+DEV		: precision answer 51.16%, link 81.40%, extraction 62.86%
+TEST	: precision answer 38.64%, link 62.88%, extraction 61.45%

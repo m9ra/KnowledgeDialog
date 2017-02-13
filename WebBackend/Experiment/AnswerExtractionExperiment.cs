@@ -4,19 +4,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using WebBackend.Task;
+using WebBackend.DialogProvider;
+
 using KnowledgeDialog.Knowledge;
 using KnowledgeDialog.DataCollection;
 
 using WebBackend.Task;
 using WebBackend.DialogProvider;
 
+
 namespace WebBackend.Experiment
 {
-    class QuestionCollectionExperiment : ExperimentBase
+    class AnswerExtractionExperiment : ExperimentBase
     {
         private readonly QuestionCollection _questions;
 
-        public QuestionCollectionExperiment(string experimentsRoot, string experimentId, int taskCount, QuestionCollection questions)
+        public AnswerExtractionExperiment(string experimentsRoot, string experimentId, int taskCount, QuestionCollection questions)
             : base(experimentsRoot, experimentId)
         {
             _questions = questions;
@@ -53,7 +57,7 @@ namespace WebBackend.Experiment
         ///<inheritdoc/>
         protected override WebConsoleBase createConsole(string databasePath)
         {
-            return new QuestionCollectionWebConsole(databasePath, _questions);
+            return new AnswerExtractionWebConsole(databasePath, _questions);
         }
     }
 }

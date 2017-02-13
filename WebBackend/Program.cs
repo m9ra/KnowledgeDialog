@@ -78,7 +78,7 @@ namespace WebBackend
             System.Threading.Thread.CurrentThread.CurrentCulture = customCulture;
 
             //AnswerExtraction.ExtractionEvaluation_Batch.RunLinkingExperiment();
-            AnswerExtraction.ExtractionEvaluation_Batch.ExportAnswerExtractionData();
+            //AnswerExtraction.ExtractionEvaluation_Batch.ExportAnswerExtractionData();
             //AnswerExtraction.ExtractionEvaluation_Batch.RunLinkedAnswerExtractionExperiment();
             //AnswerExtraction.LuceneIndex_Batch.BuildIndex();
             //AnswerExtraction.DumpCreation_Batch.BenchmarkMySQLEdges(); 
@@ -86,7 +86,7 @@ namespace WebBackend
             //AnswerExtraction.DumpCreation_Batch.DumpQuestions();
             //GeneralizationQA.GoldenAnswer_Batch.RunAnswerGeneralizationDev();
             //GeneralizationQA.GoldenAnswer_Batch.RunGraphMIExperiment();
-            return;
+            //return;
 
             FreebaseLoader = new FreebaseLoader(Path.Combine(DataPath, "freebase"));
             var simpleQuestions1 = loadSimpleQuestions("questions1.smpq");
@@ -146,9 +146,10 @@ namespace WebBackend
 
                 new QuestionCollectionExperiment(ExperimentsRootPath, "qdd_extension_r_1", 100, simpleQuestionsTrain),
                 new QuestionCollectionExperiment(ExperimentsRootPath, "qdd_extension_r_2", 100, simpleQuestionsTrain),
-                new QuestionCollectionExperiment(ExperimentsRootPath, "qdd_extension_r_3", 100, simpleQuestionsTrain),
-                new QuestionCollectionExperiment(ExperimentsRootPath, "qdd_extension_r_4", 100, simpleQuestionsTrain),
-                new QuestionCollectionExperiment(ExperimentsRootPath, "qdd_extension_r_5", 100, simpleQuestionsTrain)
+                new QuestionCollectionExperiment(ExperimentsRootPath, "qdd_extension_r_3", 100, extensionQuestions),
+                new QuestionCollectionExperiment(ExperimentsRootPath, "qdd_extension_r_4", 100, extensionQuestions),
+                new QuestionCollectionExperiment(ExperimentsRootPath, "qdd_extension_r_5", 100, extensionQuestions),
+                new AnswerExtractionExperiment(ExperimentsRootPath, "answer_extraction", 100, simpleQuestionsTrain)
                 );
 
 

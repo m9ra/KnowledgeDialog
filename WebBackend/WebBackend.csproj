@@ -78,7 +78,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AnswerExtraction\DialogContext.cs" />
+    <Compile Include="AnswerExtraction\IModel.cs" />
+    <Compile Include="AnswerExtraction\Models\RuleBasedDenotationModel.cs" />
+    <Compile Include="AnswerExtraction\QuestionInfo.cs" />
     <Compile Include="AnswerExtraction\CachedLinker.cs" />
+    <Compile Include="AnswerExtraction\ExtractionKnowledge.cs" />
     <Compile Include="Dataset\FreebaseDbProvider.cs" />
     <Compile Include="Dataset\FreebaseDumpProcessor.cs" />
     <Compile Include="AnswerExtraction\DumpCreation_Batch.cs" />
@@ -115,10 +120,12 @@
     <Compile Include="Dataset\QuestionDialogDatasetReader.cs" />
     <Compile Include="Dataset\QuestionDialogProvider.cs" />
     <Compile Include="Dataset\SplitDescription.cs" />
+    <Compile Include="DialogProvider\AnswerExtractionWebConsole.cs" />
     <Compile Include="DialogProvider\QuestionCollectionWebConsole.cs" />
     <Compile Include="DialogProvider\DataCollectionWebConsole.cs" />
     <Compile Include="DialogProvider\HeuristicManagerWebConsole.cs" />
     <Compile Include="Experiment\AnnotatedActionEntry.cs" />
+    <Compile Include="Experiment\AnswerExtractionExperiment.cs" />
     <Compile Include="Experiment\QuestionCollectionExperiment.cs" />
     <Compile Include="Experiment\DataCollectionExperiment.cs" />
     <Compile Include="Experiment\AnnotatedLogFile.cs" />

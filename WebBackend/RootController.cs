@@ -317,6 +317,12 @@ namespace WebBackend
             experimentHandler(experimentName);
         }
 
+        public void answer_extraction()
+        {
+            var experimentName = "answer_extraction";
+            experimentHandler(experimentName);
+        }
+
         public void data_collection()
         {
             var experimentName = "data_collection";

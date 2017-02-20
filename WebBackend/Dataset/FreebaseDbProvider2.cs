@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+
 using System.IO;
 
 using KnowledgeDialog.Knowledge;
@@ -11,6 +14,7 @@ using KnowledgeDialog.Dialog.Parsing;
 
 namespace WebBackend.Dataset
 {
+    [Serializable]
     internal struct DbPointer
     {
         internal uint Offset;
@@ -27,9 +31,9 @@ namespace WebBackend.Dataset
 
         private readonly Dictionary<DbPointer, FreebaseEntry> _entryCache = new Dictionary<DbPointer, FreebaseEntry>();
 
-        private readonly Dictionary<string, DbPointer[]> _aliasIndex = new Dictionary<string, DbPointer[]>(StringComparer.InvariantCultureIgnoreCase);
+        private Dictionary<string, DbPointer[]> _aliasIndex = new Dictionary<string, DbPointer[]>(StringComparer.InvariantCultureIgnoreCase);
 
-        private readonly Dictionary<string, DbPointer> _idIndex = new Dictionary<string, DbPointer>();
+        private Dictionary<string, DbPointer> _idIndex = new Dictionary<string, DbPointer>();
 
         private readonly StreamReader _dbReader;
 
@@ -39,16 +43,25 @@ namespace WebBackend.Dataset
             loadIndex(dbPath + ".index");
         }
 
-        private void loadIndex(string path)
+        private void loadIndex(string indexPath)
         {
-            //TODO serialize index
+            if (File.Exists(indexPath + "._idIndex"))
+            {
+                Console.WriteLine("Loading index");
+                _idIndex = DeserializePointers(indexPath, "_idIndex");
+                _aliasIndex = DeserializePointerArrays(indexPath, "_aliasIndex");
+                Console.WriteLine("\tfinished.");
+                return;
+            }
 
+            Console.WriteLine("DB index creation");
             var currentPosition = 0u;
             while (!_dbReader.EndOfStream)
             {
                 var pointer = new DbPointer(currentPosition);
                 var line = _dbReader.ReadLine();
-                currentPosition += (uint)(line.Length + 1);
+                var lineLength = _dbReader.CurrentEncoding.GetBytes(line).Length;
+                currentPosition += (uint)(lineLength + 1);
 
                 string id;
                 var aliases = DumpLoader.ParseLabels(line, out id);
@@ -61,6 +74,85 @@ namespace WebBackend.Dataset
                 }
 
                 _idIndex[id] = pointer;
+            }
+            Console.WriteLine("\tserializing");
+            Serialize(indexPath, "_aliasIndex", _aliasIndex);
+            Serialize(indexPath, "_idIndex", _idIndex);
+            Console.WriteLine("\tfinished.");
+        }
+
+        public void Serialize(string dbFile, string index, Dictionary<string, DbPointer> dictionary)
+        {
+            var file = dbFile + "." + index;
+            using (var writer = new BinaryWriter(new FileStream(file, FileMode.Create)))
+            {
+                writer.Write(dictionary.Count);
+                foreach (var kvp in dictionary)
+                {
+                    writer.Write(kvp.Key);
+                    writer.Write(kvp.Value.Offset);
+                }
+                writer.Flush();
+                writer.Close();
+            }
+        }
+
+        public Dictionary<string, DbPointer> DeserializePointers(string dbFile, string index)
+        {
+            var file = dbFile + "." + index;
+            using (var reader = new BinaryReader(new FileStream(file, FileMode.Open)))
+            {
+                var count = reader.ReadInt32();
+                var dictionary = new Dictionary<string, DbPointer>(count);
+                for (int n = 0; n < count; n++)
+                {
+                    var key = reader.ReadString();
+                    var value = reader.ReadUInt32();
+                    dictionary.Add(key, new DbPointer(value));
+                }
+                return dictionary;
+            }
+        }
+
+        public void Serialize(string dbFile, string index, Dictionary<string, DbPointer[]> dictionary)
+        {
+            var file = dbFile + "." + index;
+            using (var writer = new BinaryWriter(new FileStream(file, FileMode.Create)))
+            {
+                writer.Write(dictionary.Count);
+                foreach (var kvp in dictionary)
+                {
+                    writer.Write(kvp.Key);
+                    writer.Write(kvp.Value.Length);
+                    for (var i = 0; i < kvp.Value.Length; ++i)
+                    {
+                        writer.Write(kvp.Value[i].Offset);
+                    }
+                }
+                writer.Flush();
+                writer.Close();
+            }
+        }
+
+        public Dictionary<string, DbPointer[]> DeserializePointerArrays(string dbFile, string index)
+        {
+            var file = dbFile + "." + index;
+            using (var reader = new BinaryReader(new FileStream(file, FileMode.Open)))
+            {
+                var count = reader.ReadInt32();
+                var dictionary = new Dictionary<string, DbPointer[]>(count);
+                for (int n = 0; n < count; n++)
+                {
+                    var key = reader.ReadString();
+                    var arraySize = reader.ReadInt32();
+                    var array = new DbPointer[arraySize];
+                    for (var i = 0; i < array.Length; ++i)
+                    {
+                        array[i] = new DbPointer(reader.ReadUInt32());
+                    }
+                    dictionary.Add(key, array);
+                }
+                return dictionary;
             }
         }
 
@@ -86,6 +178,7 @@ namespace WebBackend.Dataset
         private FreebaseEntry loadEntry(DbPointer pointer)
         {
             _dbReader.BaseStream.Seek(pointer.Offset, SeekOrigin.Begin);
+            _dbReader.DiscardBufferedData();
             var entryLine = _dbReader.ReadLine();
 
             return DumpLoader.ParseEntry(entryLine);

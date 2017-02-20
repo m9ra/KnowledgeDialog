@@ -45,6 +45,42 @@ namespace WebBackend.AnswerExtraction
             dump.ExportEdges(mysqlConnector);
         }
 
+        internal static void BenchmarkFreebaseProviderNodes()
+        {
+            var db = new FreebaseDbProvider2(Configuration.FreebaseDB_Path);
+            var test = db.GetEntryFromId("02rwv9s");
+
+            var dump = Configuration.GetSimpleQuestionsDump();
+            dump.RunIteration(100000);
+            Console.WriteLine("Dump prepared.");
+            var ids = dump.AllIds.ToArray();
+            Console.WriteLine("Id count " + ids.Length);
+
+            var idRepetitionCount = 1000;
+
+            var rnd = new Random();
+            var output = 0;
+            for (var sample = 0; sample < 1000; ++sample)
+            {
+                var start = DateTime.Now;
+                for (var i = 0; i < idRepetitionCount; ++i)
+                {
+                    var rndIndex = rnd.Next(ids.Length);
+                    var id = ids[rndIndex];
+
+                    var info = db.GetEntryFromId(id);
+                    if (info == null)
+                        continue;
+
+                    output += info.Label.Length;
+                }
+                var duration = DateTime.Now - start;
+                Console.WriteLine("Time for entity: {0:0.000}ms", duration.TotalMilliseconds / idRepetitionCount);
+            }
+
+            Console.WriteLine(output);
+        }
+
         internal static void BenchmarkMySQLEdges()
         {
             var mysqlConnector = new MysqlFreebaseConnector();

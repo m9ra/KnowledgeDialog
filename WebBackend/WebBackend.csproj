@@ -85,6 +85,7 @@
     <Compile Include="AnswerExtraction\QuestionInfo.cs" />
     <Compile Include="AnswerExtraction\CachedLinker.cs" />
     <Compile Include="AnswerExtraction\ExtractionKnowledge.cs" />
+    <Compile Include="Dataset\FileReader.cs" />
     <Compile Include="Dataset\FreebaseDbProvider2.cs" />
     <Compile Include="Dataset\FreebaseDbProvider.cs" />
     <Compile Include="Dataset\FreebaseDumpProcessor.cs" />

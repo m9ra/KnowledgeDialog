@@ -64,6 +64,9 @@ namespace WebBackend.Dataset
 
         private static IEnumerable<Tuple<Edge, string>> parseEdges(string edgeStr, bool isOutcoming)
         {
+            if (edgeStr == "")
+                yield break;
+
             var edgeAssignments = edgeStr.Split(';');
             foreach (var edgeAssignment in edgeAssignments)
             {

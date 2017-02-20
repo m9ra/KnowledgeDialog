@@ -77,14 +77,14 @@ namespace WebBackend.GeneralizationQA
 
         internal static void DebugInfo(PathSubstitution substitution)
         {
-            var db = Configuration.GetFreebaseDbProvider();
+            var db = Configuration.Db;
 
             Console.WriteLine("Substitution trace: " + substitution.OriginalTrace.ToString());
             Console.WriteLine("Rank: " + substitution.Rank);
-            Console.WriteLine("Substitution node: {0} ({1})", db.GetLabel(FreebaseLoader.GetMid(substitution.Substitution.Data)), substitution.Substitution);
+            Console.WriteLine("Substitution node: {0} ({1})", db.GetLabel(FreebaseDbProvider.GetMid(substitution.Substitution.Data)), substitution.Substitution);
             foreach (var node in substitution.OriginalTrace.CurrentNodes.Take(20))
             {
-                Console.WriteLine("\t{0} ({1})", db.GetLabel(FreebaseLoader.GetMid(node.Data)), node);
+                Console.WriteLine("\t{0} ({1})", db.GetLabel(FreebaseDbProvider.GetMid(node.Data)), node);
             }
         }
 
@@ -94,7 +94,7 @@ namespace WebBackend.GeneralizationQA
             var devDataset = Configuration.GetQuestionDialogsDev();
 
             var simpleQuestions = Configuration.GetSimpleQuestionsDump();
-            var db = Configuration.GetFreebaseDbProvider();
+            var db = Configuration.Db;
 
             var trainDialogs = trainDataset.Dialogs.ToArray();
             var linkedUtterancesTrain = cachedLinkedUtterancesTrain(simpleQuestions, db, trainDialogs);
@@ -113,7 +113,7 @@ namespace WebBackend.GeneralizationQA
             {
                 var trainDialog = trainDialogs[i];
                 var question = trainDialog.Question;
-                var answerNodeId = FreebaseLoader.GetId(trainDialog.AnswerMid);
+                var answerNodeId = FreebaseDbProvider.GetId(trainDialog.AnswerMid);
                 var answerNode = graph.GetNode(answerNodeId);
 
                 generalizer.AddExample(question, answerNode);
@@ -160,7 +160,7 @@ namespace WebBackend.GeneralizationQA
             var devDataset = Configuration.GetQuestionDialogsDev();
 
             var simpleQuestions = Configuration.GetSimpleQuestionsDump();
-            var db = Configuration.GetFreebaseDbProvider();
+            var db = Configuration.Db;
 
             var trainDialogs = trainDataset.Dialogs.ToArray();
             var linkedUtterances = cachedLinkedUtterancesTrain(simpleQuestions, db, trainDialogs);
@@ -221,7 +221,7 @@ totalDialogs);
             var trainDataset = Configuration.GetQuestionDialogsTrain();
             var devDataset = Configuration.GetQuestionDialogsDev();
 
-            var db = Configuration.GetFreebaseDbProvider();
+            var db = Configuration.Db;
             var graph = new ComposedGraph(new FreebaseGraphLayer(db));
 
             var trainDialogs = trainDataset.Dialogs.ToArray();
@@ -345,7 +345,7 @@ totalDialogs);
         {
             foreach (var id in ids)
             {
-                var mid = FreebaseLoader.GetMid(id);
+                var mid = FreebaseDbProvider.GetMid(id);
 
                 var label = db.GetLabel(mid);
                 var description = db.GetDescription(mid);
@@ -365,7 +365,7 @@ totalDialogs);
 
                  foreach (var entityId in trainEntities)
                  {
-                     simpleQuestions.AddTargetMid(FreebaseLoader.GetMid(entityId));
+                     simpleQuestions.AddTargetMid(FreebaseDbProvider.GetMid(entityId));
                  }
                  simpleQuestions.RunIteration();
                  var layer = simpleQuestions.GetLayerFromIds(simpleQuestions.AllIds);
@@ -396,12 +396,12 @@ totalDialogs);
             var result = new List<string>();
             foreach (var dialog in trainDialogs)
             {
-                result.Add(FreebaseLoader.GetId(dialog.AnswerMid));
+                result.Add(FreebaseDbProvider.GetId(dialog.AnswerMid));
             }
 
             foreach (var utterance in utterances)
             {
-                result.AddRange(utterance.Parts.SelectMany(p => p.Entities).Select(e => FreebaseLoader.GetId(e.Mid)));
+                result.AddRange(utterance.Parts.SelectMany(p => p.Entities).Select(e => FreebaseDbProvider.GetId(e.Mid)));
             }
 
             return result;
@@ -409,7 +409,7 @@ totalDialogs);
 
         static NodeReference getNode(string freebaseMid, ComposedGraph graph)
         {
-            var id = FreebaseLoader.GetId(freebaseMid);
+            var id = FreebaseDbProvider.GetId(freebaseMid);
             return graph.GetNode(id);
         }
 
@@ -419,7 +419,7 @@ totalDialogs);
             foreach (var part in linkedUtterance.Parts)
             {
                 if (part.Entities.Any())
-                    result.Add(FreebaseLoader.GetId(part.Entities.First().Mid));
+                    result.Add(FreebaseDbProvider.GetId(part.Entities.First().Mid));
                 else
                     result.Add(part.Token);
             }

@@ -20,11 +20,14 @@ namespace WebBackend.Experiment
 
         private readonly ExtractionKnowledge _knowledge;
 
-        public AnswerExtractionExperiment(string experimentsRoot, string experimentId, int taskCount, QuestionCollection questions)
+        private readonly LinkBasedExtractor _extractor;
+
+        public AnswerExtractionExperiment(string experimentsRoot, string experimentId, int taskCount, QuestionCollection questions, LinkBasedExtractor extractor)
             : base(experimentsRoot, experimentId)
         {
             _questions = questions;
             _knowledge = new ExtractionKnowledge();
+            _extractor = extractor;
 
             var writer = new CrowdFlowerCodeWriter(ExperimentRootPath, experimentId);
 
@@ -59,7 +62,7 @@ namespace WebBackend.Experiment
         ///<inheritdoc/>
         protected override WebConsoleBase createConsole(string databasePath)
         {
-            return new AnswerExtractionWebConsole(databasePath, _questions, _knowledge);
+            return new AnswerExtractionWebConsole(databasePath, _questions, _knowledge, _extractor);
         }
     }
 }

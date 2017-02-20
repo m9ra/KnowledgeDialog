@@ -245,7 +245,7 @@ namespace WebBackend.GeneralizationQA
             var signature = new StringBuilder();
             foreach (var part in linkedQuestion.Parts)
             {
-                var partEntities = part.Entities.Select(e => _graph.GetNode(FreebaseLoader.GetId(e.Mid))).ToArray();
+                var partEntities = part.Entities.Select(e => _graph.GetNode(FreebaseDbProvider.GetId(e.Mid))).ToArray();
                 entities.AddRange(partEntities);
 
                 if (signature.Length > 0)

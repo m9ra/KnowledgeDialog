@@ -12,7 +12,7 @@ namespace WebBackend.Experiment
     /// <summary>
     /// Task experiment implementatio for CrowdFlower
     /// </summary>
-    class CrowdFlowerExperiment : ExperimentBase
+    abstract class CrowdFlowerExperiment : ExperimentBase
     {
         /// <summary>
         /// Factories indexed by task id.
@@ -52,10 +52,6 @@ namespace WebBackend.Experiment
             writer.Close();
         }
 
-        protected override WebConsoleBase createConsole(string databasePath)
-        {
-            return new HeuristicManagerWebConsole(databasePath);
-        }
 
         internal override TaskInstance GetTask(int taskId)
         {

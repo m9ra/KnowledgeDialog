@@ -57,7 +57,7 @@ namespace WebBackend.Dataset
 
         internal void AddTargetMid(string mid)
         {
-            TargetIds.Add(getId(mid));
+            TargetIds.Add(FreebaseDbProvider.GetId(mid));
         }
 
         /// <summary>
@@ -96,6 +96,11 @@ namespace WebBackend.Dataset
                     }
                 }
             }
+        }
+
+        private string getId(string id)
+        {
+            return FreebaseDbProvider.GetId(id);
         }
 
         internal void LoadInOutBounds()
@@ -240,16 +245,6 @@ namespace WebBackend.Dataset
             return layer;
         }
 
-
-        internal void ExportEdges(MysqlFreebaseConnector mysqlConnector)
-        {
-            iterateLines((entity, edge, targetEntities) =>
-            {
-                mysqlConnector.WriteEntityEdges(entity, edge, targetEntities);
-            });
-            mysqlConnector.FlushWrites();
-        }
-
         private void iterateLines(EntityLineProcessor processor)
         {
             var totalSize = new FileInfo(_freebaseDataFile).Length;
@@ -270,7 +265,7 @@ namespace WebBackend.Dataset
                     var line = file.ReadLine();
                     var parts = line.Split('\t');
                     var entity1 = getId(parts[0]);
-                    var edge = processEdge(parts[1]);
+                    var edge = FreebaseDbProvider.GetShortEdgeName(parts[1]);
 
                     var targetMids = parts[2].Split(' ');
                     var targetEntities = new string[targetMids.Length];
@@ -282,27 +277,6 @@ namespace WebBackend.Dataset
                     processor(intern(entity1), intern(edge), targetEntities);
                 }
             }
-        }
-
-        private string processEdge(string edgeId)
-        {
-            if (!edgeId.StartsWith(FreebaseLoader.EdgePrefix))
-                throw new NotSupportedException("Edge format unknown: " + edgeId);
-
-            return edgeId.Substring(FreebaseLoader.EdgePrefix.Length);
-        }
-
-        private string getId(string mid)
-        {
-            if (!mid.StartsWith(FreebaseLoader.IdPrefix))
-                throw new NotSupportedException("Mid format unknown: " + mid);
-
-            return mid.Substring(FreebaseLoader.IdPrefix.Length);
-        }
-
-        private string getMid(string id)
-        {
-            return FreebaseLoader.IdPrefix + id;
         }
 
         private string intern(string str)

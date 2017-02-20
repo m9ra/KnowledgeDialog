@@ -28,6 +28,8 @@ namespace WebBackend.AnswerExtraction
 
         private readonly ExtractionKnowledge _knowledge;
 
+        private readonly LinkBasedExtractor _extractor;
+
         private readonly HashSet<string> _discussedTopics = new HashSet<string>();
 
         private readonly HashSet<ResponseBase> _discussedQuestions = new HashSet<ResponseBase>();
@@ -50,10 +52,11 @@ namespace WebBackend.AnswerExtraction
         public bool CanBeCompleted { get; private set; }
 
 
-        internal AnswerExtractionManager(QuestionCollection questions, ExtractionKnowledge knowledge)
+        internal AnswerExtractionManager(QuestionCollection questions, ExtractionKnowledge knowledge, LinkBasedExtractor extractor)
         {
             _questions = questions;
             _knowledge = knowledge;
+            _extractor = extractor;
         }
 
         /// </inheritdoc>
@@ -107,7 +110,7 @@ namespace WebBackend.AnswerExtraction
             else
                 topic = selectTopic();
 
-            var model = new Models.RuleBasedDenotationModel(_knowledge);
+            var model = new Models.RuleBasedDenotationModel(_knowledge, _extractor);
             while (topicQuestion == null)
             {
                 topicQuestion = selectQuestion(topic, model);

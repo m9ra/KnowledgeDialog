@@ -107,9 +107,9 @@ namespace WebBackend.AnswerExtraction
         private double questionContextScore(EntityInfo entity, IEnumerable<EntityInfo> questionEntities)
         {
             var score = 0.0;
-            var entityIds = new HashSet<string>(questionEntities.Select(e => FreebaseLoader.GetId(e.Mid)));
+            var entityIds = new HashSet<string>(questionEntities.Select(e => FreebaseDbProvider.GetId(e.Mid)));
 
-            var entry = _db.GetEntryFromId(FreebaseLoader.GetId(entity.Mid));
+            var entry = _db.GetEntryFromId(FreebaseDbProvider.GetId(entity.Mid));
             foreach (var target in entry.Targets)
             {
                 if (entityIds.Contains(target.Item2))

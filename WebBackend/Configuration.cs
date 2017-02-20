@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using WebBackend.Dataset;
+using WebBackend.AnswerExtraction;
 
 namespace WebBackend
 {
@@ -26,6 +27,19 @@ namespace WebBackend
 
         internal static readonly string QuestionDialogsTest_Path = @"./question_dialogs-test.json";
 
+        private static FreebaseDbProvider _db = null;
+
+        internal static FreebaseDbProvider Db
+        {
+            get
+            {
+                if (_db == null)
+                    _db = new FreebaseDbProvider(FreebaseDB_Path);
+
+                return _db;
+            }
+        }
+
         internal static QuestionDialogDatasetReader GetQuestionDialogsTrain()
         {
             return new QuestionDialogDatasetReader(QuestionDialogsTrain_Path);
@@ -46,9 +60,12 @@ namespace WebBackend
             return new SimpleQuestionDumpProcessor(SimpleQuestionFB2M_Path);
         }
 
-        internal static FreebaseDbProvider GetFreebaseDbProvider()
+        internal static DiskCachedLinker GetCachedLinker(FreebaseDbProvider db, string storage)
         {
-            return new FreebaseDbProvider(FreebaseDB_Path);
+            var coreLinker = new GraphDisambiguatedLinker(db, "./verbs.lex", useGraphDisambiguation: true);
+            var linker = new DiskCachedLinker("../" + storage + ".link", 1, (u, c) => coreLinker.LinkUtterance(u, c));
+            linker.CacheResult = true;
+            return linker;
         }
     }
 }

@@ -23,7 +23,7 @@ namespace WebBackend.AnswerExtraction
             var devDataset = Configuration.GetQuestionDialogsDev();
             var testDataset = Configuration.GetQuestionDialogsTest();
 
-            var db = Configuration.GetFreebaseDbProvider();
+            var db = Configuration.Db;
 
             var linker = getFullDataLinker(db);
             exportLinkedAnswerHints(linker, "train.qdd_ae", trainDataset.Dialogs.Where(d => d.HasCorrectAnswer));
@@ -36,7 +36,7 @@ namespace WebBackend.AnswerExtraction
             var trainDataset = Configuration.GetQuestionDialogsTrain();
             var devDataset = Configuration.GetQuestionDialogsDev();
 
-            var db = Configuration.GetFreebaseDbProvider();
+            var db = Configuration.Db;
 
             var linker = getFullDataLinker(db);
             var linkedExtractor = new LinkBasedExtractor(linker, db);
@@ -124,7 +124,7 @@ namespace WebBackend.AnswerExtraction
         internal static void LogLinkingErrors()
         {
             var dataset = Configuration.GetQuestionDialogsTrain();
-            var db = Configuration.GetFreebaseDbProvider();
+            var db = Configuration.Db;
 
             var linker = getFullDataLinker(db);
 
@@ -199,7 +199,7 @@ namespace WebBackend.AnswerExtraction
         internal static void RunLinkingExperiment()
         {
             var devDataset = Configuration.GetQuestionDialogsTrain();
-            var db = Configuration.GetFreebaseDbProvider();
+            var db = Configuration.Db;
 
             //var linker = new GraphDisambiguatedLinker(db, "./verbs.lex", useGraphDisambiguation: true);
             var linker = getFullDataLinker(db);
@@ -408,9 +408,9 @@ namespace WebBackend.AnswerExtraction
             Console.WriteLine(result);
         }
 
-        private static string getNamesRepresentation(string freebaseId, FreebaseLoader loader)
+        private static string getNamesRepresentation(string freebaseId, FreebaseDbProvider db)
         {
-            var names = loader.GetNames(freebaseId);
+            var names = db.GetNames(freebaseId);
             return string.Join(",", names.ToArray()).Replace("\"", "");
         }
 

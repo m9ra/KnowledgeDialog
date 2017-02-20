@@ -62,7 +62,7 @@ namespace WebBackend.AnswerExtraction
             if (context == null)
                 return utterance;
 
-            var contextStr = string.Join(",", context.OrderBy(e => e.Mid).Select(e => FreebaseLoader.GetId(e.Mid)));
+            var contextStr = string.Join(",", context.OrderBy(e => e.Mid).Select(e => FreebaseDbProvider.GetId(e.Mid)));
             return utterance + "|" + contextStr;
         }
 

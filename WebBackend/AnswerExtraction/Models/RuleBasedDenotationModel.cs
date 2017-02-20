@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Dialog.Acts;
+using KnowledgeDialog.Dialog.Parsing;
+using KnowledgeDialog.Knowledge;
 using KnowledgeDialog.DataCollection;
 using KnowledgeDialog.DataCollection.MachineActs;
 
@@ -32,12 +34,16 @@ namespace WebBackend.AnswerExtraction.Models
         /// </summary>
         private readonly LinkBasedExtractor _extractor;
 
-        internal RuleBasedDenotationModel(ExtractionKnowledge knowledge)
+        internal RuleBasedDenotationModel(ExtractionKnowledge knowledge, LinkBasedExtractor extractor)
         {
             _knowledge = knowledge;
+            _extractor = extractor;
 
             if (_knowledge == null)
-                throw new NullReferenceException();
+                throw new NullReferenceException("knowledge");
+
+            if (_extractor == null)
+                throw new NullReferenceException("extractor");
         }
 
         public IEnumerable<ResponseBase> PoseQuestions(QuestionInfo question)
@@ -107,9 +113,9 @@ namespace WebBackend.AnswerExtraction.Models
             }
         }
 
-        private Dictionary<FreebaseEntity, int> getHintsStatistics(QuestionInfo question)
+        private Dictionary<EntityInfo, int> getHintsStatistics(QuestionInfo question)
         {
-            var statistics = new Dictionary<FreebaseEntity, int>();
+            var statistics = new Dictionary<EntityInfo, int>();
             foreach (var answerHint in question.AnswerHints)
             {
                 int count;
@@ -122,7 +128,7 @@ namespace WebBackend.AnswerExtraction.Models
             return statistics;
         }
 
-        private FreebaseEntity extractAnswer(QuestionInfo question, string answerHint)
+        private EntityInfo extractAnswer(QuestionInfo question, string answerHint)
         {
             throw new NotImplementedException();
         }

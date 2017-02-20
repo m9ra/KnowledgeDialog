@@ -29,7 +29,11 @@ namespace WebBackend.Dataset
 
     class FreebaseDbProvider
     {
+        internal static readonly string EdgePrefix = "www.freebase.com";
+
         internal static readonly string IdPrefix = "www.freebase.com/m/";
+
+        internal static string EnglishSuffix = "@en";
 
         private readonly Dictionary<DbPointer, FreebaseEntry> _entryCache = new Dictionary<DbPointer, FreebaseEntry>();
 
@@ -38,6 +42,7 @@ namespace WebBackend.Dataset
         private Dictionary<string, DbPointer> _idIndex = new Dictionary<string, DbPointer>();
 
         private readonly StreamReader _dbReader;
+        
 
         internal FreebaseDbProvider(string dbPath)
         {
@@ -160,7 +165,31 @@ namespace WebBackend.Dataset
 
         internal FreebaseEntry GetEntryFromMid(string mid)
         {
-            return GetEntryFromId(FreebaseLoader.GetId(mid));
+            return GetEntryFromId(GetId(mid));
+        }
+
+        internal static string GetId(string mid)
+        {
+            if (!mid.StartsWith(IdPrefix))
+                throw new NotSupportedException("Mid format unknown: " + mid);
+
+            return mid.Substring(IdPrefix.Length);
+        }
+
+        internal static string GetMid(string id)
+        {
+            if (id.StartsWith(IdPrefix))
+                throw new NotImplementedException("Id prefix is already present." + id);
+
+            return IdPrefix + id;
+        }
+
+        internal static string GetShortEdgeName(string edgeId)
+        {
+            if (!edgeId.StartsWith(EdgePrefix))
+                throw new NotSupportedException("Edge format unknown: " + edgeId);
+
+            return edgeId.Substring(edgeId.Length);
         }
 
         internal FreebaseEntry GetEntryFromId(string id)
@@ -193,7 +222,7 @@ namespace WebBackend.Dataset
 
         internal string GetLabel(string mid)
         {
-            var entry = GetEntryFromId(FreebaseLoader.GetId(mid));
+            var entry = GetEntryFromId(FreebaseDbProvider.GetId(mid));
             if (entry == null)
                 return null;
             return entry.Label;
@@ -203,6 +232,13 @@ namespace WebBackend.Dataset
         {
             var entry = GetEntryFromId(GetFreebaseId(mid));
             return entry.Aliases;
+        }
+
+
+        internal IEnumerable<string> GetNames(string id)
+        {
+            var entry = GetEntryFromId(id);
+            return new[] { entry.Label }.Concat(entry.Aliases);
         }
 
         internal string GetDescription(string mid)
@@ -220,6 +256,7 @@ namespace WebBackend.Dataset
         {
             return GetEntry(pointer).Id;
         }
+
 
         internal int GetInBounds(string mid)
         {
@@ -262,7 +299,7 @@ namespace WebBackend.Dataset
         {
             var entry = GetEntry(pointer);
 
-            return new EntityInfo(FreebaseLoader.GetMid(entry.Id), entry.Label, entry.Targets.Where(t => !t.Item1.IsOutcoming).Count(), entry.Targets.Where(t => t.Item1.IsOutcoming).Count(), entry.Description);
+            return new EntityInfo(FreebaseDbProvider.GetMid(entry.Id), entry.Label, entry.Targets.Where(t => !t.Item1.IsOutcoming).Count(), entry.Targets.Where(t => t.Item1.IsOutcoming).Count(), entry.Description);
         }
 
         internal EntityInfo GetEntityInfoFromMid(string mid)

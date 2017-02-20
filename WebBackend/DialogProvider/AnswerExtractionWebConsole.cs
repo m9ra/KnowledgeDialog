@@ -19,16 +19,19 @@ namespace WebBackend.DialogProvider
 
         private readonly ExtractionKnowledge _knowledge;
 
-        internal AnswerExtractionWebConsole(string databasePath, QuestionCollection questions, ExtractionKnowledge knowledge)
+        private readonly LinkBasedExtractor _extractor;
+
+        internal AnswerExtractionWebConsole(string databasePath, QuestionCollection questions, ExtractionKnowledge knowledge, LinkBasedExtractor extract)
         {
             _databasePath = databasePath;
             _questions = questions;
             _knowledge = knowledge;
+            _extractor = extract;
         }
 
         protected override IInputDialogManager createDialogManager()
         {
-            return new AnswerExtractionManager(_questions, _knowledge);
+            return new AnswerExtractionManager(_questions, _knowledge, _extractor);
         }
     }
 }

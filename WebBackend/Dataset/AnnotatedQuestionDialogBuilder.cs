@@ -63,7 +63,7 @@ namespace WebBackend.Dataset
             if (!HasValidDialog)
                 throw new NotSupportedException("Cannot create invalid dialog");
 
-            var answerNames = Program.FreebaseLoader.GetNames(_answerId);
+            var answerNames = Configuration.Db.GetNames(_answerId);
             return new AnnotatedQuestionDialog(_log, _question, _answerId, answerNames, _explanationTurns, _answerTurns);
         }
 

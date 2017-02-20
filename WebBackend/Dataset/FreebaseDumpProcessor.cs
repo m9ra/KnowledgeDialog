@@ -63,7 +63,7 @@ namespace WebBackend.Dataset
 
         internal void AddTargetMid(string mid)
         {
-            TargetIds.Add(processMid(mid));
+            TargetIds.Add(FreebaseDbProvider.GetId(mid));
         }
 
         /// <summary>
@@ -88,52 +88,6 @@ namespace WebBackend.Dataset
             _writer = null;
         }
 
-
-        internal void ExportNodes(MysqlFreebaseConnector mysql)
-        {
-            iterateLines((freebaseId, edge, value) =>
-            {
-                exportTriplet(freebaseId, edge, value, mysql);
-            });
-
-            mysql.FlushWrites();
-        }
-
-        private void exportTriplet(string freebaseId, string edge, string value, MysqlFreebaseConnector mysql)
-        {
-            //save entity data only
-            if (!freebaseId.StartsWith(RdfIdPrefix))
-                return;
-
-            var id = getId(freebaseId);
-            if (!TargetIds.Contains(id))
-                return;
-
-            var isEnglishValue = value.EndsWith(FreebaseLoader.EnglishSuffix);
-            if (!isEnglishValue)
-                //we are interested in english only
-                return;
-
-            var rawValue = value.Substring(1, value.Length - FreebaseLoader.EnglishSuffix.Length - 2);
-            switch (edge)
-            {
-                /*case "<http://www.w3.org/2000/01/rdf-schema#label>":
-                    entity.Label = rawValue;
-                    break;*/
-                case "<http://rdf.freebase.com/ns/common.topic.description>":
-                    mysql.WriteEntityInfo(id, null, rawValue, null);
-                    break;
-                case "<http://rdf.freebase.com/ns/type.object.name>":
-                    mysql.WriteEntityInfo(id, rawValue, null, null);
-                    break;
-                case "<http://rdf.freebase.com/ns/common.topic.alias>":
-                    mysql.WriteEntityInfo(id, null, null, rawValue);
-                    break;
-                default:
-                    return;
-            }
-        }
-
         private void writeTargetIds(string freebaseId, string edge, string value)
         {
             //save entity data
@@ -146,12 +100,12 @@ namespace WebBackend.Dataset
 
             var entity = getEntity(id);
 
-            var isEnglishValue = value.EndsWith(FreebaseLoader.EnglishSuffix);
+            var isEnglishValue = value.EndsWith(FreebaseDbProvider.EnglishSuffix);
             if (!isEnglishValue)
                 //we are interested in english only
                 return;
 
-            var rawValue = value.Substring(1, value.Length - FreebaseLoader.EnglishSuffix.Length - 2);
+            var rawValue = value.Substring(1, value.Length - FreebaseDbProvider.EnglishSuffix.Length - 2);
             switch (edge)
             {
                 /*case "<http://www.w3.org/2000/01/rdf-schema#label>":
@@ -283,22 +237,6 @@ namespace WebBackend.Dataset
 
             var value = valueObject.ToString();
             return value;
-        }
-
-        private string processEdge(string edgeId)
-        {
-            if (!edgeId.StartsWith(FreebaseLoader.EdgePrefix))
-                throw new NotSupportedException("Edge format unknown: " + edgeId);
-
-            return edgeId.Substring(edgeId.Length);
-        }
-
-        private string processMid(string mid)
-        {
-            if (!mid.StartsWith(FreebaseLoader.IdPrefix))
-                throw new NotSupportedException("Mid format unknown: " + mid);
-
-            return mid.Substring(FreebaseLoader.IdPrefix.Length);
         }
 
         internal void AddTargetMids(IEnumerable<string> ids)

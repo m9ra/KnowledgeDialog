@@ -79,9 +79,9 @@ namespace WebBackend
 
             //AnswerExtraction.ExtractionEvaluation_Batch.RunLinkingExperiment();
             //AnswerExtraction.ExtractionEvaluation_Batch.ExportAnswerExtractionData();
-            //AnswerExtraction.ExtractionEvaluation_Batch.RunLinkedAnswerExtractionExperiment();
+            AnswerExtraction.ExtractionEvaluation_Batch.RunLinkedAnswerExtractionExperiment();
             //AnswerExtraction.LuceneIndex_Batch.BuildIndex();
-            AnswerExtraction.DumpCreation_Batch.BenchmarkFreebaseProviderNodes();
+            //AnswerExtraction.DumpCreation_Batch.BenchmarkFreebaseProviderNodes();
             //AnswerExtraction.DumpCreation_Batch.BuildFreebaseDB();
             //AnswerExtraction.DumpCreation_Batch.BenchmarkMySQLEdges(); 
             //AnswerExtraction.DumpCreation_Batch.FillMySQLEdges();

@@ -78,7 +78,6 @@ namespace WebBackend.GeneralizationQA
         internal static void DebugInfo(PathSubstitution substitution)
         {
             var db = Configuration.GetFreebaseDbProvider();
-            db.LoadIndex();
 
             Console.WriteLine("Substitution trace: " + substitution.OriginalTrace.ToString());
             Console.WriteLine("Rank: " + substitution.Rank);
@@ -96,7 +95,6 @@ namespace WebBackend.GeneralizationQA
 
             var simpleQuestions = Configuration.GetSimpleQuestionsDump();
             var db = Configuration.GetFreebaseDbProvider();
-            db.LoadIndex();
 
             var trainDialogs = trainDataset.Dialogs.ToArray();
             var linkedUtterancesTrain = cachedLinkedUtterancesTrain(simpleQuestions, db, trainDialogs);
@@ -163,7 +161,6 @@ namespace WebBackend.GeneralizationQA
 
             var simpleQuestions = Configuration.GetSimpleQuestionsDump();
             var db = Configuration.GetFreebaseDbProvider();
-            db.LoadIndex();
 
             var trainDialogs = trainDataset.Dialogs.ToArray();
             var linkedUtterances = cachedLinkedUtterancesTrain(simpleQuestions, db, trainDialogs);
@@ -225,7 +222,6 @@ totalDialogs);
             var devDataset = Configuration.GetQuestionDialogsDev();
 
             var db = Configuration.GetFreebaseDbProvider();
-            db.LoadIndex();
             var graph = new ComposedGraph(new FreebaseGraphLayer(db));
 
             var trainDialogs = trainDataset.Dialogs.ToArray();

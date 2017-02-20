@@ -251,7 +251,7 @@ namespace WebBackend.AnswerExtraction
                 entities = base.pruneEntities(entities, entityHypothesisCount * 2);
                 var orderedEntities = entities.OrderByDescending(e =>
                 {
-                    var entry = Db.GetEntryFromId(e.Mid);
+                    var entry = Db.GetEntryFromMid(e.Mid);
                     var accumulator = e.Score;
                     foreach (var target in entry.Targets)
                     {

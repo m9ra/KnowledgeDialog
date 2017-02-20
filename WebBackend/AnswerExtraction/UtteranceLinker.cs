@@ -169,11 +169,7 @@ namespace WebBackend.AnswerExtraction
             var scoredDocs = Db.GetScoredContentDocs(ngram);
             foreach (var dc in scoredDocs)
             {
-                var mid = Db.GetMid(dc);
-                var content = Db.GetContent(dc);
-                var category = Db.GetContentCategory(dc);
-                var isLabel = category == ContentCategory.L;
-
+                var entity = Db.GetEntity(dc);
                 var score = dc.Score;
                 score = score * ngram.Length;
 
@@ -182,18 +178,19 @@ namespace WebBackend.AnswerExtraction
                      score *= 2;
                  }*/
 
-                if (content.ToLowerInvariant() == ngram.ToLowerInvariant())
+                /*if (content.ToLowerInvariant() == ngram.ToLowerInvariant())
                 {
                     //exact match
                     score *= 5 * ngram.Length;
-                }
+                }*/
 
-                EntityInfo entity;
-                if (!scores.TryGetValue(mid, out entity))
+                var mid = entity.Mid;
+                EntityInfo storedEntity;
+                if (!scores.TryGetValue(mid, out storedEntity))
                 {
-                    scores[mid] = entity = Db.GetEntityInfoFromMid(mid);
+                    scores[mid] = storedEntity = entity;
                 }
-                scores[mid] = entity.AddScore(content, score);
+                scores[mid] = storedEntity.AddScore(ngram, score);
             }
 
             return scores.Values;
@@ -208,11 +205,11 @@ namespace WebBackend.AnswerExtraction
             foreach (var ngram in ngrams)
             {
                 var docs = Db.GetScoredContentDocs(ngram);
-                var bestDoc = docs.FirstOrDefault();
-                if (bestDoc == null)
+                if (!docs.Any())
                     //nothing found for the ngram
                     continue;
 
+                var bestDoc = docs.First();
                 var id = Db.GetMid(bestDoc);
                 if (id == correctAnswer)
                 {

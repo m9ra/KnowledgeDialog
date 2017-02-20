@@ -47,7 +47,7 @@ namespace WebBackend.AnswerExtraction
 
         internal static void BenchmarkFreebaseProviderNodes()
         {
-            var db = new FreebaseDbProvider2(Configuration.FreebaseDB_Path);
+            var db = new FreebaseDbProvider(Configuration.FreebaseDB_Path);
             var test = db.GetEntryFromId("02rwv9s");
 
             var dump = Configuration.GetSimpleQuestionsDump();

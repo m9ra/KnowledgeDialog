@@ -45,16 +45,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
-    <Reference Include="Lucene.Net, Version=3.0.3.0, Culture=neutral, PublicKeyToken=85089178b9ac3181, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Lucene.Net.3.0.3\lib\NET40\Lucene.Net.dll</HintPath>
-    </Reference>
     <Reference Include="MySql.Data, Version=6.7.4.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Actual projects\ServeRick\trunk\VSProjects\ServeRick\bin\Debug\MySql.Data.dll</HintPath>
-    </Reference>
-    <Reference Include="Neo4j.Driver">
-      <HintPath>..\packages\Neo4j.Driver.1.0.2\lib\portable-win8+net45+wp8\Neo4j.Driver.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -86,7 +79,6 @@
     <Compile Include="AnswerExtraction\CachedLinker.cs" />
     <Compile Include="AnswerExtraction\ExtractionKnowledge.cs" />
     <Compile Include="Dataset\FileReader.cs" />
-    <Compile Include="Dataset\FreebaseDbProvider2.cs" />
     <Compile Include="Dataset\FreebaseDbProvider.cs" />
     <Compile Include="Dataset\FreebaseDumpProcessor.cs" />
     <Compile Include="AnswerExtraction\DumpCreation_Batch.cs" />
@@ -96,7 +88,6 @@
     <Compile Include="Dataset\FreebaseEntry.cs" />
     <Compile Include="Dataset\FreebaseGraphLayer.cs" />
     <Compile Include="Dataset\MysqlFreebaseConnector.cs" />
-    <Compile Include="Dataset\Neo4jDbProvider.cs" />
     <Compile Include="Dataset\SimpleQuestionDumpProcessor.cs" />
     <Compile Include="AnswerExtraction\SearchContext.cs" />
     <Compile Include="AnswerExtraction\ExtractionEvaluation_Batch.cs" />

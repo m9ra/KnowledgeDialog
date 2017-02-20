@@ -24,7 +24,6 @@ namespace WebBackend.AnswerExtraction
             var testDataset = Configuration.GetQuestionDialogsTest();
 
             var db = Configuration.GetFreebaseDbProvider();
-            db.LoadIndex();
 
             var linker = getFullDataLinker(db);
             exportLinkedAnswerHints(linker, "train.qdd_ae", trainDataset.Dialogs.Where(d => d.HasCorrectAnswer));
@@ -35,10 +34,9 @@ namespace WebBackend.AnswerExtraction
         internal static void RunLinkedAnswerExtractionExperiment()
         {
             var trainDataset = Configuration.GetQuestionDialogsTrain();
-            var devDataset = Configuration.GetQuestionDialogsTest();
+            var devDataset = Configuration.GetQuestionDialogsDev();
 
             var db = Configuration.GetFreebaseDbProvider();
-            db.LoadIndex();
 
             var linker = getFullDataLinker(db);
             var linkedExtractor = new LinkBasedExtractor(linker, db);
@@ -127,7 +125,6 @@ namespace WebBackend.AnswerExtraction
         {
             var dataset = Configuration.GetQuestionDialogsTrain();
             var db = Configuration.GetFreebaseDbProvider();
-            db.LoadIndex();
 
             var linker = getFullDataLinker(db);
 
@@ -203,12 +200,11 @@ namespace WebBackend.AnswerExtraction
         {
             var devDataset = Configuration.GetQuestionDialogsTrain();
             var db = Configuration.GetFreebaseDbProvider();
-            db.LoadIndex();
 
             //var linker = new GraphDisambiguatedLinker(db, "./verbs.lex", useGraphDisambiguation: true);
             var linker = getFullDataLinker(db);
 
-           // var result = linker.LinkUtterance("cd");
+            // var result = linker.LinkUtterance("cd");
 
             var correctLabelCount = 0;
             var correctCount = 0;
@@ -241,7 +237,7 @@ namespace WebBackend.AnswerExtraction
                 totalEntityCount += utteranceEntities.Length;
 
                 var isCorrect = utteranceEntities.Select(e => e.Mid).Contains(dialog.AnswerMid);
-                var isLabelCorrect = utteranceEntities.Select(e => db.GetLabel(e.Mid).ToLowerInvariant()).Contains(db.GetLabel(dialog.AnswerMid).ToLowerInvariant());
+                var isLabelCorrect = utteranceEntities.Select(e => string.Format("{0}", db.GetLabel(e.Mid)).ToLowerInvariant()).Contains(string.Format("{0}", db.GetLabel(dialog.AnswerMid)).ToLowerInvariant());
                 if (isLabelCorrect)
                 {
                     ++correctLabelCount;

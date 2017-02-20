@@ -48,7 +48,7 @@ namespace WebBackend
 
         internal static FreebaseDbProvider GetFreebaseDbProvider()
         {
-            return new FreebaseDbProvider(LuceneIndex_Path);
+            return new FreebaseDbProvider(FreebaseDB_Path);
         }
     }
 }

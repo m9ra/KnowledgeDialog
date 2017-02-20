@@ -8,14 +8,14 @@ using KnowledgeDialog.Dialog;
 
 namespace KnowledgeDialog.DataCollection.MachineActs
 {
-    class WelcomeWithAnswerRequestAct : MachineActionBase
+    public class WelcomeWithAnswerRequestAct : MachineActionBase
     {
         /// <summary>
         /// Question presented with the weolcome.
         /// </summary>
         private readonly ParsedUtterance _question;
 
-        internal WelcomeWithAnswerRequestAct(ParsedUtterance question)
+        public WelcomeWithAnswerRequestAct(ParsedUtterance question)
         {
             _question = question;
         }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using KnowledgeDialog.Dialog;
 using KnowledgeDialog.Dialog.Acts;
+using KnowledgeDialog.DataCollection;
 using KnowledgeDialog.DataCollection.MachineActs;
 
 using WebBackend.Dataset;
@@ -34,9 +35,12 @@ namespace WebBackend.AnswerExtraction.Models
         internal RuleBasedDenotationModel(ExtractionKnowledge knowledge)
         {
             _knowledge = knowledge;
+
+            if (_knowledge == null)
+                throw new NullReferenceException();
         }
 
-        public IEnumerable<MachineActionBase> PoseQuestions(QuestionInfo question)
+        public IEnumerable<ResponseBase> PoseQuestions(QuestionInfo question)
         {
             var hintsStatistics = getHintsStatistics(question);
 
@@ -46,16 +50,61 @@ namespace WebBackend.AnswerExtraction.Models
 
             if (topEvidence > _minimalHintCount && _sureFactor * remainingEvidence > topEvidence)
                 //we are sure about denotation of the question
-                return new MachineActionBase[0];
+                return new ResponseBase[0];
 
-            return new MachineActionBase[]{
+            return new ResponseBase[]{
                 new DirectAnswerHintQuestionAct(question.Utterance)
             };
         }
 
-        public void ParseResponse(DialogContext context, ParsedUtterance response)
+        public void UpdateContext(DialogContext context)
         {
-            throw new NotImplementedException("parse answer hint");
+            var nextOutput = createNextOutput(context);
+            context.RegisterNextOutput(nextOutput);
+        }
+
+        private MachineActionBase createNextOutput(DialogContext context)
+        {
+            //input processing
+            var utteranceAct = context.BestUserInputAct;
+
+            if (context.IsDontKnow || context.HasNegation)
+            {
+                // USER DOES NOT KNOW THE ANSWER
+                context.CompletitionStatus = CompletitionStatus.NotUseful;
+                return null;
+            }
+            else if (context.HasAffirmation)
+            {
+                // USER IS SUGGESTING THAT HE KNOWS THE ANSWER
+                return new ContinueAct();
+            }
+            else if (context.IsQuestionOnInput)
+            {
+                // USER IS ASKING A QUESTION
+                throw new NotImplementedException();
+            }
+            else
+            {
+                // USER PROVIDED ANSWER
+                var utterance = context.UserInput;
+                if (utterance.Words.Count() < 3)
+                    return new TooBriefAnswerAct();
+
+                var answerInformativeWords = QuestionCollectionManager.GetInformativeWords(utterance);
+                var questionInformativeWords = QuestionCollectionManager.GetInformativeWords(context.Topic.Utterance);
+
+                var questionBinding = answerInformativeWords.Intersect(questionInformativeWords);
+
+                if (questionBinding.Count() < 1)
+                    return new TooBriefAnswerAct();
+
+                context.HadInformativeInput = true;
+
+                _knowledge.AddAnswerHint(context.Topic, utterance);
+                context.CompletitionStatus = CompletitionStatus.Useful;
+                return null;
+            }
         }
 
         private Dictionary<FreebaseEntity, int> getHintsStatistics(QuestionInfo question)
@@ -64,7 +113,7 @@ namespace WebBackend.AnswerExtraction.Models
             foreach (var answerHint in question.AnswerHints)
             {
                 int count;
-                var entity = extractAnswer(question, answerHint);
+                var entity = extractAnswer(question, answerHint.OriginalSentence);
                 statistics.TryGetValue(entity, out count);
                 count += 1;
                 statistics[entity] = count;

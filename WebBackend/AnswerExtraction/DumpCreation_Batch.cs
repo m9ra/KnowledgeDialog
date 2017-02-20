@@ -13,15 +13,17 @@ namespace WebBackend.AnswerExtraction
     /// </summary>
     class DumpCreation_Batch
     {
-        internal static void DumpQuestions()
+        internal static void BuildFreebaseDB()
         {
             var freebaseWriter = new FreebaseDumpProcessor(Configuration.WholeFreebase_Path);
 
             var dump = Configuration.GetSimpleQuestionsDump();
-            dump.RunIteration();
+            dump.LoadInOutBounds();
 
+            Console.WriteLine("Adding target {0} Ids.", dump.AllIds.Count);
             freebaseWriter.AddTargetMids(dump.AllIds);
-            freebaseWriter.WriteDump(Configuration.FreebaseDump_Path);
+            GC.Collect();
+            freebaseWriter.WriteDB(Configuration.FreebaseDB_Path, id => dump.GetInTargets(id), id => dump.GetOutTargets(id));
         }
 
         internal static void FillMySQLNodes()

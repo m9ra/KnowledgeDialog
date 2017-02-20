@@ -100,8 +100,8 @@ namespace KnowledgeDialog.DataCollection
             }
             else if (_isRephrasePhase)
             {
-                var rephraseInformativeWords = getInformativeWords(utterance);
-                var questionInformativeWords = getInformativeWords(_actualQuestion);
+                var rephraseInformativeWords = GetInformativeWords(utterance);
+                var questionInformativeWords = GetInformativeWords(_actualQuestion);
 
                 if (rephraseInformativeWords.Count() < questionInformativeWords.Count() - 1)
                     //rephrase is too short
@@ -129,8 +129,8 @@ namespace KnowledgeDialog.DataCollection
                 if (utterance.Words.Count() < 3)
                     return new TooBriefAnswerAct();
 
-                var answerInformativeWords = getInformativeWords(utterance);
-                var questionInformativeWords = getInformativeWords(_actualQuestion);
+                var answerInformativeWords = GetInformativeWords(utterance);
+                var questionInformativeWords = GetInformativeWords(_actualQuestion);
 
                 var questionBinding = answerInformativeWords.Intersect(questionInformativeWords.Union(_questionRephraseWords));
 
@@ -146,8 +146,8 @@ namespace KnowledgeDialog.DataCollection
                 if (explanationLength < 5)
                     return new TooBriefExplanationAct();
 
-                var utteranceInformativeWords = getInformativeWords(utterance);
-                var questionInformativeWords = getInformativeWords(_actualQuestion);
+                var utteranceInformativeWords = GetInformativeWords(utterance);
+                var questionInformativeWords = GetInformativeWords(_actualQuestion);
                 var newInformativeWords = utteranceInformativeWords.Except(questionInformativeWords).Except(_questionRephraseWords);
 
                 if (newInformativeWords.Count() < 3)
@@ -184,12 +184,12 @@ namespace KnowledgeDialog.DataCollection
             return new RephraseQuestionProposeAct(_actualQuestion, atLeast);
         }
 
-        private IEnumerable<string> getInformativeWords(ParsedUtterance utterance)
+        public static IEnumerable<string> GetInformativeWords(ParsedUtterance utterance)
         {
             return lower(utterance.Words.Except(NonInformativeWords).Distinct());
         }
 
-        private IEnumerable<string> lower(IEnumerable<string> words)
+        private static IEnumerable<string> lower(IEnumerable<string> words)
         {
             return words.Select(w => w.ToLowerInvariant()).ToArray();
         }

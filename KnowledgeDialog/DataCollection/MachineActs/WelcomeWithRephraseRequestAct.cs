@@ -8,7 +8,7 @@ using KnowledgeDialog.Dialog;
 
 namespace KnowledgeDialog.DataCollection.MachineActs
 {
-    class WelcomeWithRephraseRequestAct : MachineActionBase
+    public class WelcomeWithRephraseRequestAct : MachineActionBase
     {
         /// <summary>
         /// Question presented with the weolcome.

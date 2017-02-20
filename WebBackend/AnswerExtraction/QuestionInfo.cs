@@ -10,13 +10,29 @@ namespace WebBackend.AnswerExtraction
 {
     class QuestionInfo
     {
-        private readonly List<string> _answerHints = new List<string>();
+        private readonly List<ParsedUtterance> _answerHints = new List<ParsedUtterance>();
 
-        private readonly List<string> _typeHints = new List<string>();
+        private readonly List<ParsedUtterance> _typeHints = new List<ParsedUtterance>();
 
         internal readonly ParsedUtterance Utterance;
 
-        internal readonly IEnumerable<string> AnswerHints;
-         
+        internal IEnumerable<ParsedUtterance> AnswerHints { get { return _answerHints; } }
+
+        internal QuestionInfo(ParsedUtterance utterance)
+        {
+            Utterance = utterance;
+        }
+
+        private QuestionInfo(ParsedUtterance utterance, IEnumerable<ParsedUtterance> answerHints, IEnumerable<ParsedUtterance> typeHints)
+        {
+            Utterance = utterance;
+            _answerHints.AddRange(answerHints);
+            _typeHints.AddRange(typeHints);
+        }
+
+        internal QuestionInfo WithAnswerHint(ParsedUtterance answerHint)
+        {
+            return new QuestionInfo(answerHint, _answerHints.Concat(new [] { answerHint }), _typeHints);
+        }
     }
 }

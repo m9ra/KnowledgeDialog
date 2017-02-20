@@ -8,7 +8,7 @@ using KnowledgeDialog.Dialog;
 
 namespace KnowledgeDialog.DataCollection.MachineActs
 {
-    class TooBriefRephraseAct : MachineActionBase
+    public class TooBriefRephraseAct : MachineActionBase
     {
         /// <inheritdoc/>
         protected override string initializeMessage()

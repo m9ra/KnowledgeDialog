@@ -16,6 +16,8 @@ namespace WebBackend
 
         internal static readonly string FreebaseDump_Path = @"C:/REPOSITORIES/Wikidata-Toolkit/wdtk-examples/dumpfiles/20160510.freebase.v3.gz";
 
+        internal static readonly string FreebaseDB_Path = @"C:/REPOSITORIES/freebase.db";
+
         internal static readonly string WholeFreebase_Path = @"C:/REPOSITORIES/freebase.zip";
 
         internal static readonly string QuestionDialogsTrain_Path = @"./question_dialogs-train.json";

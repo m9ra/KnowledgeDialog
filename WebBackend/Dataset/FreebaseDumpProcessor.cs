@@ -14,35 +14,21 @@ namespace WebBackend.Dataset
 {
     delegate void TripletHandler(string freebaseId, string edge, string value);
 
+    delegate IEnumerable<Tuple<string, string>> EdgeProvider(string id);
+
     class FreebaseEntity
     {
         internal readonly string FreebaseId;
 
         internal readonly List<string> Aliases = new List<string>();
 
-        internal readonly Dictionary<string, List<string>> TargetIds = new Dictionary<string, List<string>>();
-
         internal string Label;
 
         internal string Description;
 
-        internal int InBounds;
-
-        internal int OutBounds;
-
         internal FreebaseEntity(string freebaseId)
         {
             FreebaseId = freebaseId;
-        }
-
-        internal void AddTargets(string edge, IEnumerable<string> targetIds)
-        {
-            List<string> targetList;
-            if (!TargetIds.TryGetValue(edge, out targetList))
-                TargetIds[edge] = targetList = new List<string>();
-
-            foreach (var targetId in targetIds)
-                targetList.Add(targetId);
         }
     }
 
@@ -83,15 +69,21 @@ namespace WebBackend.Dataset
         /// <summary>
         /// Runs iteration on the data.
         /// </summary>
-        internal void WriteDump(string output)
+        internal void WriteDB(string output, EdgeProvider inputEdges, EdgeProvider outputEdges)
         {
             iterateLines(writeTargetIds);
+            Console.WriteLine("Writing {0} entities.", _entitiesToWrite.Count);
 
             _writer = new DumpWriter(output);
             foreach (var value in _entitiesToWrite.Values)
             {
-                _writer.Write(value.FreebaseId, value.Label, value.Aliases, value.Description, value.InBounds, value.OutBounds);
+                if (value.Label == null || value.Description == null)
+                    //skip incomplete entities
+                    continue;
+
+                _writer.Write(value.FreebaseId, value.Label, value.Aliases, value.Description, inputEdges(value.FreebaseId), outputEdges(value.FreebaseId));
             }
+
             _writer.Close();
             _writer = null;
         }
@@ -144,40 +136,22 @@ namespace WebBackend.Dataset
 
         private void writeTargetIds(string freebaseId, string edge, string value)
         {
-            //count in/out bounds
-            if (value.StartsWith(RdfIdPrefix))
-            {
-                //we have inbound
-                var inBoundId = getId(value);
-                if (TargetIds.Contains(inBoundId))
-                {
-                    var inBoundEntity = getEntity(inBoundId);
-                    ++inBoundEntity.InBounds;
-                }
-            }
-
             //save entity data
             if (!freebaseId.StartsWith(RdfIdPrefix))
                 return;
 
             var id = getId(freebaseId);
-
             if (!TargetIds.Contains(id))
                 return;
 
             var entity = getEntity(id);
-            if (value.StartsWith(RdfIdPrefix))
-                ++entity.OutBounds;
 
             var isEnglishValue = value.EndsWith(FreebaseLoader.EnglishSuffix);
             if (!isEnglishValue)
                 //we are interested in english only
                 return;
 
-
-
             var rawValue = value.Substring(1, value.Length - FreebaseLoader.EnglishSuffix.Length - 2);
-
             switch (edge)
             {
                 /*case "<http://www.w3.org/2000/01/rdf-schema#label>":
@@ -233,7 +207,7 @@ namespace WebBackend.Dataset
                             var line = file.ReadLine();
 
                             ++lineIndex;
-                            if (lineIndex % 50000 == 0)
+                            if (lineIndex % 1000000 == 0)
                             {
                                 var percentage = 100.0 * currentPosition / fileLength;
 

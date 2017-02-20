@@ -10,9 +10,7 @@ using WebBackend.DialogProvider;
 using KnowledgeDialog.Knowledge;
 using KnowledgeDialog.DataCollection;
 
-using WebBackend.Task;
-using WebBackend.DialogProvider;
-
+using WebBackend.AnswerExtraction;
 
 namespace WebBackend.Experiment
 {
@@ -20,10 +18,14 @@ namespace WebBackend.Experiment
     {
         private readonly QuestionCollection _questions;
 
+        private readonly ExtractionKnowledge _knowledge;
+
         public AnswerExtractionExperiment(string experimentsRoot, string experimentId, int taskCount, QuestionCollection questions)
             : base(experimentsRoot, experimentId)
         {
             _questions = questions;
+            _knowledge = new ExtractionKnowledge();
+
             var writer = new CrowdFlowerCodeWriter(ExperimentRootPath, experimentId);
 
             //generate all tasks
@@ -57,7 +59,7 @@ namespace WebBackend.Experiment
         ///<inheritdoc/>
         protected override WebConsoleBase createConsole(string databasePath)
         {
-            return new AnswerExtractionWebConsole(databasePath, _questions);
+            return new AnswerExtractionWebConsole(databasePath, _questions, _knowledge);
         }
     }
 }

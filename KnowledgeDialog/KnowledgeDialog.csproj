@@ -48,7 +48,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataCollection\AnswerExtractionManager.cs" />
     <Compile Include="DataCollection\MachineActs\DirectAnswerHintQuestionAct.cs" />
     <Compile Include="DataCollection\MachineActs\WelcomeWithAnswerRequestAct.cs" />
     <Compile Include="DataCollection\MachineActs\TooBriefAnswerAct.cs" />

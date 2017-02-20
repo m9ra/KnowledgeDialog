@@ -21,11 +21,11 @@ namespace WebBackend.AnswerExtraction
         /// <summary>
         /// Poses questions about information needed for a given question.
         /// </summary>
-        IEnumerable<MachineActionBase> PoseQuestions(QuestionInfo question);
+        IEnumerable<ResponseBase> PoseQuestions(QuestionInfo question);
 
         /// <summary>
         /// Parse an informative response provided for a context.
         /// </summary>
-        void ParseResponse(DialogContext context, ParsedUtterance response);
+        void UpdateContext(DialogContext context);
     }
 }

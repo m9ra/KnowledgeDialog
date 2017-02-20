@@ -8,7 +8,7 @@ using KnowledgeDialog.Dialog;
 
 namespace KnowledgeDialog.DataCollection.MachineActs
 {
-    class RequestExplanationAct : MachineActionBase
+    public class RequestExplanationAct : MachineActionBase
     {
         private readonly bool _isAtLeastRequest;
 

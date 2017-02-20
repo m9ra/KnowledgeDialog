@@ -81,12 +81,13 @@ namespace WebBackend
             //AnswerExtraction.ExtractionEvaluation_Batch.ExportAnswerExtractionData();
             //AnswerExtraction.ExtractionEvaluation_Batch.RunLinkedAnswerExtractionExperiment();
             //AnswerExtraction.LuceneIndex_Batch.BuildIndex();
+            AnswerExtraction.DumpCreation_Batch.BuildFreebaseDB();
             //AnswerExtraction.DumpCreation_Batch.BenchmarkMySQLEdges(); 
             //AnswerExtraction.DumpCreation_Batch.FillMySQLEdges();
             //AnswerExtraction.DumpCreation_Batch.DumpQuestions();
             //GeneralizationQA.GoldenAnswer_Batch.RunAnswerGeneralizationDev();
             //GeneralizationQA.GoldenAnswer_Batch.RunGraphMIExperiment();
-            //return;
+            return;
 
             FreebaseLoader = new FreebaseLoader(Path.Combine(DataPath, "freebase"));
             var simpleQuestions1 = loadSimpleQuestions("questions1.smpq");

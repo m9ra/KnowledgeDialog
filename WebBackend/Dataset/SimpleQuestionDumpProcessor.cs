@@ -48,7 +48,7 @@ namespace WebBackend.Dataset
         /// </summary>
         internal readonly HashSet<string> _foundIds = new HashSet<string>();
 
-        internal bool UseInterning = true;  
+        internal bool UseInterning = true;
 
         internal SimpleQuestionDumpProcessor(string freebaseDataFile)
         {
@@ -63,7 +63,7 @@ namespace WebBackend.Dataset
         /// <summary>
         /// Runs iteration on the data.
         /// </summary>
-        internal void RunIteration(int lineLimit=int.MaxValue)
+        internal void RunIteration(int lineLimit = int.MaxValue)
         {
             var lineIndex = 0;
             using (var file = new StreamReader(_freebaseDataFile))
@@ -105,8 +105,10 @@ namespace WebBackend.Dataset
 
         private void _loadInOutBounds(string sourceId, string edge, string[] targetIds)
         {
-
             Tuple<string, string>[] currentOutBounds;
+            AllIds.Add(sourceId);
+            AllIds.UnionWith(targetIds);
+
             var outTargets = targetIds.Select(i => Tuple.Create(edge, i));
             if (_outTargets.TryGetValue(sourceId, out currentOutBounds))
             {

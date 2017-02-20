@@ -9,7 +9,7 @@ using KnowledgeDialog.Dialog.Acts;
 
 namespace KnowledgeDialog.DataCollection.MachineActs
 {
-    class ChitChatAnswerAct : MachineActionBase
+    public class ChitChatAnswerAct : MachineActionBase
     {
         private readonly ChitChatDomain _domain;
 

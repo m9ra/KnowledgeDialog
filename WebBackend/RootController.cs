@@ -9,11 +9,34 @@ using System.IO;
 using ServeRick;
 
 using WebBackend.Experiment;
+using WebBackend.AnswerExtraction;
 
 namespace WebBackend
 {
     class RootController : ResponseController
     {
+        public void knowledge()
+        {
+            var knowledgeIds = ExtractionKnowledge.RegisteredKnowledge.Select(k => k.StoragePath).ToArray();
+            var currentKnowledgeId = GET("id");
+            if (currentKnowledgeId == null)
+                currentKnowledgeId = knowledgeIds.FirstOrDefault();
+
+            var reports = new List<KnowledgeReport>();
+            foreach (var knowledge in ExtractionKnowledge.RegisteredKnowledge)
+            {
+                if (knowledge.StoragePath == currentKnowledgeId)
+                    reports.Add(new KnowledgeReport(knowledge, Configuration.AnswerExtractor));
+            }
+
+            SetParam("knowledge_reports", reports);
+            SetParam("knowledge_ids", knowledgeIds);
+            SetParam("current_knowledge_id", currentKnowledgeId);
+
+            Layout("layout.haml");
+            Render("knowledge.haml");
+        }
+
         public void logs()
         {
             //look for all stored experiments

@@ -1,0 +1,49 @@
+﻿@knowledge_reports +WebBackend.AnswerExtraction.KnowledgeReport
+@knowledge_ids +string
+@current_knowledge_id string
+
+.container
+	%nav{class: "navbar navbar-inverse navbar-fixed-top"}
+		.navbar-header
+			%button{type: "button", class: "navbar-toggle", data-toggle: "collapse", data-target: "navbar-collapse"}
+				%span.sr-only
+					Expand navigation	
+				%span.icon-bar
+				%span.icon-bar
+				%span.icon-bar
+
+			%a{class: "navbar-brand", href: "/"} Mgr. Vodolán Miroslav
+.jumbotron#preface
+	.container
+		%h1 Knowledge
+		%p 
+			Knowledge collected during answer extraction experiments.
+
+		%h2 Available storages
+		%p
+			- @knowledge_ids.each do |knowledge_id|
+				.experiment_row
+					- if knowledge_id == @current_knowledge_id
+						%b
+							= knowledge_id
+					- else
+						%a{href: LinkToKnowledge(knowledge_id)}
+							= knowledge_id
+
+.container	
+	- @knowledge_reports.each do |knowledge_report|
+		%h2 
+			= "Storage: " + (knowledge_report.StoragePath)
+			%br
+			%br
+
+			- knowledge_report.Questions.each do |question_report|
+				.question_report
+					.question
+						= question_report.Question
+					- question_report.CollectedDenotations.each do |denotation|		
+						.denotation
+							.answer_hint
+								= denotation.Item1
+							.entity
+								= denotation.Item2

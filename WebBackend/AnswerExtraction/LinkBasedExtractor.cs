@@ -15,9 +15,9 @@ namespace WebBackend.AnswerExtraction
 {
     class LinkBasedExtractor
     {
-        private readonly ILinker _linker;
+        internal readonly ILinker Linker;
 
-        private readonly FreebaseDbProvider _db;
+        internal readonly FreebaseDbProvider Db;
 
         private readonly Regex _entityIdParser = new Regex(@"[\[][^\]$]+[\]]", RegexOptions.Compiled);
 
@@ -37,30 +37,37 @@ namespace WebBackend.AnswerExtraction
 
         internal LinkBasedExtractor(ILinker linker, FreebaseDbProvider db)
         {
-            _db = db;
-            _linker = linker;
+            Db = db;
+            Linker = linker;
         }
 
         internal IEnumerable<EntityInfo> ExtractAnswerEntity(QuestionDialog dialog)
         {
-            var questionEntities = getQuestionEntities(dialog);
-            var answerEntities = getAnswerEntities(dialog, questionEntities).ToArray();
-            
+            return ExtractAnswerEntity(dialog.Question, getAnswerHint(dialog));
+        }
+
+
+        internal IEnumerable<EntityInfo> ExtractAnswerEntity(string question, string answerHint)
+        {
+            var questionEntities = getQuestionEntities(question);
+            var answerEntities = getAnswerEntities(question, answerHint, questionEntities).ToArray();
+
             TotalEntityCount += answerEntities.Length;
 
             return answerEntities;
         }
 
-        private EntityInfo[] getQuestionEntities(QuestionDialog dialog)
+
+        private EntityInfo[] getQuestionEntities(string question)
         {
-            var linkedQuestion = _linker.LinkUtterance(dialog.Question);
+            var linkedQuestion = Linker.LinkUtterance(question);
             var questionEntities = linkedQuestion.Parts.SelectMany(p => p.Entities).ToArray();
             return questionEntities;
         }
 
-        private IEnumerable<EntityInfo> getAnswerEntities(QuestionDialog dialog, EntityInfo[] questionEntities)
+        private IEnumerable<EntityInfo> getAnswerEntities(string question, string answerHint, EntityInfo[] questionEntities)
         {
-            var answerPhaseEntities = getAnswerPhaseEntities(dialog, questionEntities);
+            var answerPhaseEntities = getAnswerHintEntities(answerHint, questionEntities);
             var intersectEntities = answerPhaseEntities.Intersect(questionEntities).ToArray();
 
             var entityScores = new Dictionary<EntityInfo, double>();
@@ -69,7 +76,7 @@ namespace WebBackend.AnswerExtraction
                 entityScores[entity] = entity.Score;
             }
 
-            if (dialog.Question.ToLowerInvariant().Split(' ').Contains("or"))
+            if (question.ToLowerInvariant().Split(' ').Contains("or"))
             {
                 foreach (var entity in questionEntities)
                 {
@@ -90,7 +97,7 @@ namespace WebBackend.AnswerExtraction
                 }
             }
 
-            var linkedAnswerHint = getLinkedAnswerHint(dialog, questionEntities);
+            var linkedAnswerHint = getLinkedAnswerHint(answerHint, questionEntities);
             if (linkedAnswerHint == null)
                 return entityScores.Keys;
 
@@ -109,7 +116,7 @@ namespace WebBackend.AnswerExtraction
             var score = 0.0;
             var entityIds = new HashSet<string>(questionEntities.Select(e => FreebaseDbProvider.GetId(e.Mid)));
 
-            var entry = _db.GetEntryFromId(FreebaseDbProvider.GetId(entity.Mid));
+            var entry = Db.GetEntryFromId(FreebaseDbProvider.GetId(entity.Mid));
             foreach (var target in entry.Targets)
             {
                 if (entityIds.Contains(target.Item2))
@@ -168,7 +175,7 @@ namespace WebBackend.AnswerExtraction
             throw new NotImplementedException();
         }
 
-        private IEnumerable<EntityInfo> getAnswerPhaseEntities(QuestionDialog dialog, IEnumerable<EntityInfo> questionEntities)
+        private IEnumerable<EntityInfo> getAnswerHintEntities(string answerHint, IEnumerable<EntityInfo> questionEntities)
         {
             var entities = new List<EntityInfo>();
             /*foreach (var answerTurn in dialog.AnswerTurns)
@@ -177,25 +184,29 @@ namespace WebBackend.AnswerExtraction
                 entities.AddRange(linkedAnswerUtterance.Parts.SelectMany(p => p.Entities));
             }*/
 
-            var linkedAnswerUtterance = getLinkedAnswerHint(dialog, questionEntities);
+            var linkedAnswerUtterance = getLinkedAnswerHint(answerHint, questionEntities);
             if (linkedAnswerUtterance == null)
                 return Enumerable.Empty<EntityInfo>();
             entities.AddRange(linkedAnswerUtterance.Parts.SelectMany(p => p.Entities));
             return entities;
         }
 
-        private LinkedUtterance getLinkedAnswerHint(QuestionDialog dialog, IEnumerable<EntityInfo> questionEntities)
+        private LinkedUtterance getLinkedAnswerHint(string answerHint, IEnumerable<EntityInfo> questionEntities)
+        {
+            var linkedAnswerUtterance = Linker.LinkUtterance(answerHint, questionEntities);
+            return linkedAnswerUtterance;
+        }
+
+        private string getAnswerHint(QuestionDialog dialog)
         {
             var answerTurn = dialog.AnswerTurns.Last();
-            var answerText = answerTurn.InputChat;
-            var linkedAnswerUtterance = _linker.LinkUtterance(answerText, questionEntities);
-            return linkedAnswerUtterance;
+            return answerTurn.InputChat;
         }
 
         internal void Train(QuestionDialog dialog)
         {
-            var questionEntities = getQuestionEntities(dialog);
-            var answerHint = getLinkedAnswerHint(dialog, questionEntities);
+            var questionEntities = getQuestionEntities(dialog.Question);
+            var answerHint = getLinkedAnswerHint(getAnswerHint(dialog), questionEntities);
             if (answerHint == null)
                 return;
 
@@ -208,7 +219,7 @@ namespace WebBackend.AnswerExtraction
                 _positiveCounts[ngram] = ++count;
             }
 
-            var answerPhaseEntities = getAnswerEntities(dialog, questionEntities);
+            var answerPhaseEntities = getAnswerEntities(dialog.Question, getAnswerHint(dialog), questionEntities);
             var falseAnswerEntities = answerPhaseEntities.Where(e => e.Mid != dialog.AnswerMid);
 
             foreach (var falseEntity in falseAnswerEntities)

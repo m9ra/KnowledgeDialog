@@ -39,15 +39,38 @@ namespace WebBackend.Dataset
 
         private Dictionary<string, DbPointer[]> _aliasIndex = new Dictionary<string, DbPointer[]>(StringComparer.InvariantCultureIgnoreCase);
 
+        private Dictionary<string, List<DbPointer>> _valueConfusions;
+
         private Dictionary<string, DbPointer> _idIndex = new Dictionary<string, DbPointer>();
 
         private readonly StreamReader _dbReader;
-        
+
 
         internal FreebaseDbProvider(string dbPath)
         {
             _dbReader = new StreamReader(dbPath);
             loadIndex(dbPath + ".index");
+            loadConfusions();
+        }
+
+        private void loadConfusions()
+        {
+            _valueConfusions = new Dictionary<string, List<DbPointer>>(_aliasIndex.Count, StringComparer.InvariantCultureIgnoreCase);
+            return;
+            foreach (var pair in _aliasIndex)
+            {
+                var name = pair.Key;
+                var confusedValue = sanitizeName(name);
+
+                if (confusedValue != name)
+                {
+                    List<DbPointer> pointers;
+                    if (!_valueConfusions.TryGetValue(confusedValue, out pointers))
+                        _valueConfusions[confusedValue] = pointers = new List<DbPointer>();
+
+                    pointers.AddRange(pair.Value);
+                }
+            }
         }
 
         private void loadIndex(string indexPath)
@@ -163,6 +186,16 @@ namespace WebBackend.Dataset
             }
         }
 
+        private string sanitizeName(string name)
+        {
+            var sanitized = name.Replace('.', ' ').Replace(':', ' ').Replace(',', ' ').Replace('\'', ' ').Replace('"', ' ').Replace('/', ' ').Replace('\\', ' ').Trim();
+
+            while (sanitized.Contains("  "))
+                sanitized = sanitized.Replace("  ", " ");
+
+            return sanitized;
+        }
+
         internal FreebaseEntry GetEntryFromMid(string mid)
         {
             return GetEntryFromId(GetId(mid));
@@ -241,6 +274,11 @@ namespace WebBackend.Dataset
             return new[] { entry.Label }.Concat(entry.Aliases);
         }
 
+        internal IEnumerable<string> GetNamesFromMid(string mid)
+        {
+            return GetNames(GetId(mid));
+        }
+
         internal string GetDescription(string mid)
         {
             var entry = GetEntryFromId(GetFreebaseId(mid));
@@ -256,7 +294,6 @@ namespace WebBackend.Dataset
         {
             return GetEntry(pointer).Id;
         }
-
 
         internal int GetInBounds(string mid)
         {
@@ -280,10 +317,16 @@ namespace WebBackend.Dataset
         {
             DbPointer[] pointers;
 
+            var result = new HashSet<DbPointer>();
             if (_aliasIndex.TryGetValue(termVariant, out pointers))
-                return pointers;
+                result.UnionWith(pointers);
 
-            return Enumerable.Empty<DbPointer>();
+            termVariant = sanitizeName(termVariant);
+            List<DbPointer> pointers2;
+            if (_valueConfusions.TryGetValue(termVariant, out pointers2))
+                result.UnionWith(pointers2);
+
+            return result;
         }
 
         internal string GetFreebaseId(string mid)

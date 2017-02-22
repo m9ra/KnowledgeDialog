@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataCollection\MachineActs\DirectAnswerHintQuestionAct.cs" />
+    <Compile Include="DataCollection\MachineActs\NoConnectionToEntityAct.cs" />
     <Compile Include="DataCollection\MachineActs\WelcomeWithAnswerRequestAct.cs" />
     <Compile Include="DataCollection\MachineActs\TooBriefAnswerAct.cs" />
     <Compile Include="DataCollection\MachineActs\RephraseQuestionProposeAct.cs" />

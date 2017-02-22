@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using System.IO;
+
 using WebBackend.Task;
 using WebBackend.DialogProvider;
 
@@ -26,7 +28,7 @@ namespace WebBackend.Experiment
             : base(experimentsRoot, experimentId)
         {
             _questions = questions;
-            _knowledge = new ExtractionKnowledge();
+            _knowledge = new ExtractionKnowledge(Path.Combine(ExperimentRootPath, "knowledge.knw"));
             _extractor = extractor;
 
             var writer = new CrowdFlowerCodeWriter(ExperimentRootPath, experimentId);

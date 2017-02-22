@@ -1,4 +1,88 @@
-/* Errno::ENOENT: No such file or directory - C:\Users\m9ra\Disk Google\Projekty\MFF\Ph.D. studium\V�zkum\Implementation\KnowledgeDialog\WebBackend\www\css\style.scss
-  Use --trace for backtrace.
+.control_pane {
+  margin: 5px; }
+  .control_pane .controls {
+    margin: 5px;
+    background-color: lightgray; }
+  .control_pane a {
+    margin: 5px; }
+  .control_pane input {
+    margin: 5px; }
 
- */
+.dialog_log {
+  width: 555px;
+  height: 300px;
+  border: 1px solid gray;
+  overflow-x: hidden;
+  overflow-y: scroll; }
+
+.utterance {
+  margin-top: 10px;
+  width: 505px; }
+
+.act {
+  font-size: small;
+  font-style: italic; }
+
+.utterance_submit {
+  width: 50px; }
+
+.system_text, .user_text {
+  margin-bottom: 2px; }
+
+.system_text {
+  color: black;
+  font-weight: bold; }
+
+.user_text {
+  color: black; }
+
+.feedback_textarea {
+  width: 555px;
+  height: 300px; }
+
+.T_utterance, .act {
+  background-color: lightblue; }
+
+.T_response {
+  background-color: lightblue;
+  font-weight: bold; }
+
+.T_reset {
+  background-color: orange; }
+
+.T_completition {
+  background-color: lightgreen; }
+
+.T_task {
+  background-color: yellow; }
+
+.T_Info {
+  font-style: italic; }
+
+.T_advice {
+  background-color: lightgreen; }
+
+.T_equivalence {
+  background-color: lightblue; }
+
+.question_report {
+  margin: 20px 0 0 0;
+  padding: 5px;
+  border: 1px lightgray solid;
+  font-size: 20px; }
+  .question_report .question {
+    margin-bottom: 10px;
+    color: black;
+    font-weight: bold;
+    font-size: 22px; }
+  .question_report .denotation {
+    margin-left: 20px;
+    clear: both;
+    overflow: hidden; }
+    .question_report .denotation .answer_hint {
+      display: inline; }
+    .question_report .denotation .entity {
+      display: inline;
+      margin-left: 20px;
+      color: darkblue; }
+

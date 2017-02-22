@@ -69,12 +69,11 @@ namespace WebBackend
             //AnswerExtraction.DumpCreation_Batch.DumpQuestions();
             //GeneralizationQA.GoldenAnswer_Batch.RunAnswerGeneralizationDev();
             //GeneralizationQA.GoldenAnswer_Batch.RunGraphMIExperiment();
-            //return;
+            RunWebInterface();
+        }
 
-            var db = Configuration.Db;
-            var linker = Configuration.GetCachedLinker(db, "answer_extraction");
-            var extractor = new AnswerExtraction.LinkBasedExtractor(linker, db);
-
+        private static void RunWebInterface()
+        {
             var simpleQuestions1 = loadSimpleQuestions("questions1.smpq");
             var simpleQuestionsTrain = loadSimpleQuestions("questions_train.smpq");
             var extensionQuestions = loadExtensionQuestions("questions_train.smpq");
@@ -114,12 +113,10 @@ namespace WebBackend
                 new QuestionCollectionExperiment(ExperimentsRootPath, "qdd_extension_r_3", 100, extensionQuestions),
                 new QuestionCollectionExperiment(ExperimentsRootPath, "qdd_extension_r_4", 100, extensionQuestions),
                 new QuestionCollectionExperiment(ExperimentsRootPath, "qdd_extension_r_5", 100, extensionQuestions),
-                new AnswerExtractionExperiment(ExperimentsRootPath, "answer_extraction", 100, simpleQuestionsTrain, extractor)
+                new AnswerExtractionExperiment(ExperimentsRootPath, "answer_extraction", 100, simpleQuestionsTrain, Configuration.AnswerExtractor)
                 );
 
             QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "qdd_extension_r_");
-
-            //writeQuestionDataset();
 
             //run server
             runServer(RootPath);

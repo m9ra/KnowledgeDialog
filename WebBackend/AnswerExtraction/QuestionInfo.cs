@@ -8,6 +8,7 @@ using KnowledgeDialog.Dialog;
 
 namespace WebBackend.AnswerExtraction
 {
+    [Serializable]
     class QuestionInfo
     {
         private readonly List<ParsedUtterance> _answerHints = new List<ParsedUtterance>();
@@ -32,7 +33,7 @@ namespace WebBackend.AnswerExtraction
 
         internal QuestionInfo WithAnswerHint(ParsedUtterance answerHint)
         {
-            return new QuestionInfo(answerHint, _answerHints.Concat(new [] { answerHint }), _typeHints);
+            return new QuestionInfo(Utterance, _answerHints.Concat(new [] { answerHint }), _typeHints);
         }
     }
 }

@@ -38,6 +38,11 @@ namespace WebBackend
             return "/logs?experiment=" + experimentId;
         }
 
+        public static string LinkToKnowledge(string knowledgeId)
+        {
+            return "/knowledge?id=" + knowledgeId;
+        }
+
         public static string Size(int bytes)
         {
             var result = string.Format("{0:0.##} KB", bytes / KB);

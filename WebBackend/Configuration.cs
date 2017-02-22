@@ -11,15 +11,11 @@ namespace WebBackend
 {
     static class Configuration
     {
-        internal static readonly string LuceneIndex_Path = @"C:/REPOSITORIES/lucene_freebase_v3_index";
+        internal static readonly string SimpleQuestionFB2M_Path = @"C:/DATABASES/SimpleQuestions_v2/SimpleQuestions_v2/freebase-subsets/freebase-FB2M.txt";
 
-        internal static readonly string SimpleQuestionFB2M_Path = @"C:/Databases/SimpleQuestions_v2/SimpleQuestions_v2/freebase-subsets/freebase-FB2M.txt";
+        internal static readonly string FreebaseDB_Path = @"C:/DATABASES/Freebase/freebase.db";
 
-        internal static readonly string FreebaseDump_Path = @"C:/REPOSITORIES/Wikidata-Toolkit/wdtk-examples/dumpfiles/20160510.freebase.v3.gz";
-
-        internal static readonly string FreebaseDB_Path = @"C:/REPOSITORIES/freebase.db";
-
-        internal static readonly string WholeFreebase_Path = @"C:/REPOSITORIES/freebase.zip";
+        internal static readonly string WholeFreebase_Path = @"C:/DATABASES/Freebase/freebase.zip";
 
         internal static readonly string QuestionDialogsTrain_Path = @"./question_dialogs-train.json";
 
@@ -29,6 +25,10 @@ namespace WebBackend
 
         private static FreebaseDbProvider _db = null;
 
+        private static ILinker _linker = null;
+
+        private static LinkBasedExtractor _extractor = null;
+
         internal static FreebaseDbProvider Db
         {
             get
@@ -37,6 +37,28 @@ namespace WebBackend
                     _db = new FreebaseDbProvider(FreebaseDB_Path);
 
                 return _db;
+            }
+        }
+
+        internal static ILinker Linker
+        {
+            get
+            {
+                if (_linker == null)
+                    _linker = Configuration.CreateCachedLinker(Db, "linker");
+
+                return _linker;
+            }
+        }
+
+        internal static LinkBasedExtractor AnswerExtractor
+        {
+            get
+            {
+                if (_extractor == null)
+                    _extractor = new AnswerExtraction.LinkBasedExtractor(Linker, Db);
+
+                return _extractor;
             }
         }
 
@@ -60,7 +82,7 @@ namespace WebBackend
             return new SimpleQuestionDumpProcessor(SimpleQuestionFB2M_Path);
         }
 
-        internal static DiskCachedLinker GetCachedLinker(FreebaseDbProvider db, string storage)
+        internal static DiskCachedLinker CreateCachedLinker(FreebaseDbProvider db, string storage)
         {
             var coreLinker = new GraphDisambiguatedLinker(db, "./verbs.lex", useGraphDisambiguation: true);
             var linker = new DiskCachedLinker("../" + storage + ".link", 1, (u, c) => coreLinker.LinkUtterance(u, c));

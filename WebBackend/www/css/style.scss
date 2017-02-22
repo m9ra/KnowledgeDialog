@@ -89,3 +89,32 @@
 .T_equivalence{
 	background-color: lightblue;
 }
+
+.question_report{
+	margin: 20px 0 0 0;
+	padding: 5px;
+	border: 1px lightgray solid;
+	font-size:20px;
+	.question{
+		margin-bottom: 10px;
+		color: black;
+		font-weight: bold;
+		font-size: 22px;
+	}
+
+	.denotation{
+		margin-left: 20px;
+		clear: both;
+		overflow: hidden;
+
+		.answer_hint{
+			display:inline;
+		}
+
+		.entity{
+			display:inline;
+			margin-left:20px;
+			color: darkblue;
+		}
+	}
+}

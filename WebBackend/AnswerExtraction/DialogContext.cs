@@ -12,7 +12,7 @@ using KnowledgeDialog.DataCollection.MachineActs;
 
 namespace WebBackend.AnswerExtraction
 {
-    enum CompletitionStatus { None, Useful, NotUseful };
+    enum CompletitionStatus { None, Useful, NotUseful, NotUnderstandable };
 
     class DialogContext
     {
@@ -20,7 +20,7 @@ namespace WebBackend.AnswerExtraction
         internal readonly SLUFactory Factory;
 
         internal readonly IModel HandlingModel;
-        
+
         internal readonly QuestionInfo Topic;
 
         internal readonly ResponseBase ContextQuestion;

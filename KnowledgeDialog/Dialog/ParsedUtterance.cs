@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.Dialog
 {
+    [Serializable]
     public class ParsedUtterance
     {
         public IEnumerable<string> Words { get { return _words; } }

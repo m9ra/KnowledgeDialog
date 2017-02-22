@@ -34,6 +34,8 @@ namespace WebBackend.AnswerExtraction.Models
         /// </summary>
         private readonly LinkBasedExtractor _extractor;
 
+        private readonly Random _rnd = new Random();
+
         internal RuleBasedDenotationModel(ExtractionKnowledge knowledge, LinkBasedExtractor extractor)
         {
             _knowledge = knowledge;
@@ -88,22 +90,29 @@ namespace WebBackend.AnswerExtraction.Models
             else if (context.IsQuestionOnInput)
             {
                 // USER IS ASKING A QUESTION
-                throw new NotImplementedException();
+                context.CompletitionStatus = CompletitionStatus.NotUnderstandable;
+                return null;
             }
             else
             {
                 // USER PROVIDED ANSWER
                 var utterance = context.UserInput;
-                if (utterance.Words.Count() < 3)
+                if (utterance.Words.Count() <=1)
                     return new TooBriefAnswerAct();
 
-                var answerInformativeWords = QuestionCollectionManager.GetInformativeWords(utterance);
-                var questionInformativeWords = QuestionCollectionManager.GetInformativeWords(context.Topic.Utterance);
+                var question = context.Topic.Utterance.OriginalSentence;
+                var answerHint = utterance.OriginalSentence;
 
-                var questionBinding = answerInformativeWords.Intersect(questionInformativeWords);
+                var questionEntities = getEntities(question);
+                var answerHintEntities = getEntities(answerHint, question);
+
+                var questionEntityNames = getEntityNames(questionEntities);
+                var answerHintEntityNames = getEntityNames(answerHintEntities);
+
+                var questionBinding = questionEntities.Intersect(answerHintEntities);
 
                 if (questionBinding.Count() < 1)
-                    return new TooBriefAnswerAct();
+                    return new NoConnectionToEntityAct(selectNoConnectionEntity(questionEntities));
 
                 context.HadInformativeInput = true;
 
@@ -113,6 +122,41 @@ namespace WebBackend.AnswerExtraction.Models
             }
         }
 
+        private EntityInfo selectNoConnectionEntity(EntityInfo[] entities)
+        {
+            var entityIndex = _rnd.Next(entities.Length);
+            return entities[entityIndex];
+        }
+
+        private IEnumerable<string> getEntityNames(IEnumerable<EntityInfo> entities)
+        {
+            return entities.SelectMany(e => _extractor.Db.GetNames(e.Mid));
+        }
+
+        private EntityInfo[] getEntities(string utterance, string contextUtterance = null)
+        {
+            var linked = link(utterance, contextUtterance);
+            if (linked == null)
+                return Enumerable.Empty<EntityInfo>().ToArray();
+
+            return linked.Entities.ToArray();
+        }
+
+        private LinkedUtterance link(string utterance, string contextUtterance = null)
+        {
+            var linker = _extractor.Linker;
+
+            var contextEntities = new List<EntityInfo>();
+            if (contextUtterance != null)
+            {
+                var linkedContext = linker.LinkUtterance(contextUtterance);
+                if (linkedContext != null)
+                    contextEntities.AddRange(linkedContext.Entities);
+            }
+
+            return _extractor.Linker.LinkUtterance(utterance, contextEntities);
+        }
+
         private Dictionary<EntityInfo, int> getHintsStatistics(QuestionInfo question)
         {
             var statistics = new Dictionary<EntityInfo, int>();
@@ -120,6 +164,9 @@ namespace WebBackend.AnswerExtraction.Models
             {
                 int count;
                 var entity = extractAnswer(question, answerHint.OriginalSentence);
+                if (entity == null)
+                    continue;
+
                 statistics.TryGetValue(entity, out count);
                 count += 1;
                 statistics[entity] = count;
@@ -130,7 +177,7 @@ namespace WebBackend.AnswerExtraction.Models
 
         private EntityInfo extractAnswer(QuestionInfo question, string answerHint)
         {
-            throw new NotImplementedException();
+            return _extractor.ExtractAnswerEntity(question.Utterance.OriginalSentence, answerHint).FirstOrDefault();
         }
     }
 }

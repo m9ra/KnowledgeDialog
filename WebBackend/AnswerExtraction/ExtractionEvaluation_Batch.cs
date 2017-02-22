@@ -198,14 +198,14 @@ namespace WebBackend.AnswerExtraction
 
         internal static void RunLinkingExperiment()
         {
-            var devDataset = Configuration.GetQuestionDialogsTrain();
+            var devDataset = Configuration.GetQuestionDialogsTest();
             var db = Configuration.Db;
 
             //var linker = new GraphDisambiguatedLinker(db, "./verbs.lex", useGraphDisambiguation: true);
             var linker = getFullDataLinker(db);
 
-            // var result = linker.LinkUtterance("cd");
-
+            var result = linker.LinkUtterance("George W. Bush");
+            var entities = db.GetScoredContentDocs("George W Bush").Select(d => db.GetEntry(d)).ToArray();
             var correctLabelCount = 0;
             var correctCount = 0;
             var totalCount = 0;
@@ -365,7 +365,7 @@ namespace WebBackend.AnswerExtraction
         {
             var coreLinker = new GraphDisambiguatedLinker(db, "./verbs.lex", useGraphDisambiguation: true);
             var linker = new DiskCachedLinker("../full.link", 1, (u, c) => coreLinker.LinkUtterance(u, c));
-            linker.CacheResult = true;
+            linker.CacheResult = false;
             return linker;
         }
 

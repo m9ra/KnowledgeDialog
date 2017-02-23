@@ -65,7 +65,7 @@ namespace WebBackend.AnswerExtraction
             return GetValue<bool>(variableName);
         }
 
-        internal void RegisterNextOutput(MachineActionBase nextOutput)
+        internal void RegisterNextOutput(ResponseBase nextOutput)
         {
             NextMachineOutput = nextOutput;
         }

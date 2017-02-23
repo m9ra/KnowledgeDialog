@@ -40,7 +40,7 @@ namespace KnowledgeDialog.DataCollection.MachineActs
         /// <inheritdoc/>
         protected override ActRepresentation initializeDialogActRepresentation()
         {
-            var representation=new ActRepresentation("ChitChatAnswer");
+            var representation = new ActRepresentation("ChitChatAnswer");
 
             representation.AddParameter("domain", _domain);
             return representation;

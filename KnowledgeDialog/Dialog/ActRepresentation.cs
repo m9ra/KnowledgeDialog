@@ -47,7 +47,9 @@ namespace KnowledgeDialog.Dialog
                 var value = parameter.Value;
                 var name = parameter.Key;
                 var valueRepresentation = value is string ? string.Format("'{0}'", value) : value;
-                parameterDefinitions.Add(string.Format("{0}={1}", name, value));
+                if (value is ResponseBase)
+                    valueRepresentation = ((ResponseBase)value).GetDialogActRepresentation();
+                parameterDefinitions.Add(string.Format("{0}={1}", name, valueRepresentation));
             }
 
             builder.Append(ActName);

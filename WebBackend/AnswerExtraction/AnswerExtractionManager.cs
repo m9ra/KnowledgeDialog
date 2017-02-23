@@ -120,7 +120,32 @@ namespace WebBackend.AnswerExtraction
 
             _discussedTopics.Add(topic.Utterance.OriginalSentence);
             _discussedQuestions.Add(topicQuestion);
-            return new DialogContext(topic, topicQuestion, model, Factory);
+            var context = new DialogContext(topic, topicQuestion, model, Factory);
+            context.RegisterNextOutput(decorateTopicQuestion(topicQuestion));
+            return context; 
+        }
+
+        private ResponseBase decorateTopicQuestion(ResponseBase topicQuestion)
+        {
+            var lastStatus=_actualContext==null? CompletitionStatus.None : _actualContext.CompletitionStatus;
+            var isSampeTopic=_actualContext==null?false: _actualContext.Topic.Equals(topicQuestion);
+            switch (lastStatus)
+            {
+                case CompletitionStatus.None:
+                    return topicQuestion;
+
+                case CompletitionStatus.NotUseful:
+                    return new NotUsefulContinuationAct(topicQuestion);
+
+                case CompletitionStatus.Useful:
+                    return new UsefulContinuationAct(topicQuestion);
+
+                case CompletitionStatus.NotUnderstandable:
+                    return new NotUnderstandableContinuationAct(topicQuestion);
+
+                default:
+                    throw new NotImplementedException();
+            }
         }
 
         private QuestionInfo selectTopic()
@@ -132,7 +157,12 @@ namespace WebBackend.AnswerExtraction
             {
                 if (_rnd.NextDouble() < newQuestionProbability)
                 {
-                    topicCandidate = _questions.GetRandomQuestion();
+                    do
+                    {
+                        topicCandidate = _questions.GetRandomQuestion();
+                    } while (!isGoodQuestion(topicCandidate));
+
+                    _extractor.Linker.LinkUtterance(topicCandidate); //cache linked information
                     _knowledge.AddQuestion(topicCandidate);
                 }
                 else
@@ -145,6 +175,15 @@ namespace WebBackend.AnswerExtraction
             }
 
             return _knowledge.GetInfo(topicCandidate);
+        }
+
+        private bool isGoodQuestion(string question)
+        {
+            var hasCapitalLetter = char.IsUpper(question[0]);
+            var hasQuestionMark = question.Last() == '?';
+            var hasSimpleCoding = question.ToLowerInvariant() == question.ToLower();
+
+            return hasCapitalLetter && hasQuestionMark && hasSimpleCoding;
         }
 
         private ResponseBase selectQuestion(QuestionInfo topic, IModel model)

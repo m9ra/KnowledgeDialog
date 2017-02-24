@@ -8,6 +8,8 @@ using System.IO;
 
 using ServeRick;
 
+
+using WebBackend.Dataset;
 using WebBackend.Experiment;
 using WebBackend.AnswerExtraction;
 
@@ -15,6 +17,35 @@ namespace WebBackend
 {
     class RootController : ResponseController
     {
+        public void database()
+        {
+            var db = Configuration.Db;
+
+            var query = GET("query");
+            SetParam("query", query);
+
+            if (query != null)
+            {
+                var currentKnowledgeId = FreebaseDbProvider.TryGetId(query);
+                if (db.ContainsId(currentKnowledgeId))
+                {
+                    SetParam("result_entry", db.GetEntryFromId(currentKnowledgeId));
+                }
+                else
+                {
+                    var scores = db.GetScoredDocs(query);
+                    var resultEntries = scores.Select(s => db.GetEntry(s)).ToArray();
+                    var resultCount = resultEntries.Length;
+
+                    SetParam("result_entries", resultEntries);
+                    SetParam("result_entries_count", resultCount);
+                }
+            }
+
+            Layout("layout.haml");
+            Render("database.haml");
+        }
+
         public void knowledge()
         {
             var knowledgeIds = ExtractionKnowledge.RegisteredKnowledge.Select(k => k.StoragePath).ToArray();

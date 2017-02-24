@@ -21,6 +21,9 @@ namespace WebBackend.AnswerExtraction
             var reports = new List<QuestionReport>();
             foreach (var question in knowledge.Questions)
             {
+                if (!question.AnswerHints.Any())
+                    continue;
+
                 var report = new QuestionReport(question, extractor);
                 reports.Add(report);
             }

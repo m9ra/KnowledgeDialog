@@ -1,3 +1,6 @@
+.entity_search input {
+  font-size: large; }
+
 .control_pane {
   margin: 5px; }
   .control_pane .controls {
@@ -65,24 +68,36 @@
 .T_equivalence {
   background-color: lightblue; }
 
+.typing_progress {
+  width: 44px;
+  height: 44px;
+  margin: auto;
+  display: block; }
+
 .question_report {
   margin: 20px 0 0 0;
   padding: 5px;
   border: 1px lightgray solid;
   font-size: 20px; }
   .question_report .question {
-    margin-bottom: 10px;
     color: black;
+    margin-bottom: 10px;
     font-weight: bold;
     font-size: 22px; }
+    .question_report .question a {
+      color: black; }
   .question_report .denotation {
     margin-left: 20px;
     clear: both;
-    overflow: hidden; }
+    overflow: hidden;
+    color: #777; }
+    .question_report .denotation a {
+      color: #777; }
     .question_report .denotation .answer_hint {
       display: inline; }
     .question_report .denotation .entity {
       display: inline;
-      margin-left: 20px;
-      color: darkblue; }
+      margin-left: 20px; }
+      .question_report .denotation .entity a {
+        color: #1976D2; }
 

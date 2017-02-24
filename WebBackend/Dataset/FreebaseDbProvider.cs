@@ -53,149 +53,6 @@ namespace WebBackend.Dataset
             loadConfusions();
         }
 
-        private void loadConfusions()
-        {
-            _valueConfusions = new Dictionary<string, List<DbPointer>>(_aliasIndex.Count, StringComparer.InvariantCultureIgnoreCase);
-            return;
-            foreach (var pair in _aliasIndex)
-            {
-                var name = pair.Key;
-                var confusedValue = sanitizeName(name);
-
-                if (confusedValue != name)
-                {
-                    List<DbPointer> pointers;
-                    if (!_valueConfusions.TryGetValue(confusedValue, out pointers))
-                        _valueConfusions[confusedValue] = pointers = new List<DbPointer>();
-
-                    pointers.AddRange(pair.Value);
-                }
-            }
-        }
-
-        private void loadIndex(string indexPath)
-        {
-            if (File.Exists(indexPath + "._idIndex"))
-            {
-                Console.WriteLine("Loading index");
-                _idIndex = DeserializePointers(indexPath, "_idIndex");
-                _aliasIndex = DeserializePointerArrays(indexPath, "_aliasIndex", StringComparer.InvariantCultureIgnoreCase);
-                Console.WriteLine("\tfinished.");
-                return;
-            }
-
-            Console.WriteLine("DB index creation");
-            var currentPosition = 0u;
-            while (!_dbReader.EndOfStream)
-            {
-                var pointer = new DbPointer(currentPosition);
-                var line = _dbReader.ReadLine();
-                var lineLength = _dbReader.CurrentEncoding.GetBytes(line).Length;
-                currentPosition += (uint)(lineLength + 1);
-
-                string id;
-                var aliases = DumpLoader.ParseLabels(line, out id);
-                foreach (var alias in aliases)
-                {
-                    if (_aliasIndex.ContainsKey(alias))
-                        _aliasIndex[alias] = _aliasIndex[alias].Concat(new[] { pointer }).ToArray();
-                    else
-                        _aliasIndex[alias] = new[] { pointer };
-                }
-
-                _idIndex[id] = pointer;
-            }
-            Console.WriteLine("\tserializing");
-            Serialize(indexPath, "_aliasIndex", _aliasIndex);
-            Serialize(indexPath, "_idIndex", _idIndex);
-            Console.WriteLine("\tfinished.");
-        }
-
-        public void Serialize(string dbFile, string index, Dictionary<string, DbPointer> dictionary)
-        {
-            var file = dbFile + "." + index;
-            using (var writer = new BinaryWriter(new FileStream(file, FileMode.Create)))
-            {
-                writer.Write(dictionary.Count);
-                foreach (var kvp in dictionary)
-                {
-                    writer.Write(kvp.Key);
-                    writer.Write(kvp.Value.Offset);
-                }
-                writer.Flush();
-                writer.Close();
-            }
-        }
-
-        public Dictionary<string, DbPointer> DeserializePointers(string dbFile, string index)
-        {
-            var file = dbFile + "." + index;
-            using (var reader = new BinaryReader(new FileStream(file, FileMode.Open)))
-            {
-                var count = reader.ReadInt32();
-                var dictionary = new Dictionary<string, DbPointer>(count);
-                for (int n = 0; n < count; n++)
-                {
-                    var key = reader.ReadString();
-                    var value = reader.ReadUInt32();
-                    dictionary.Add(key, new DbPointer(value));
-                }
-                return dictionary;
-            }
-        }
-
-        public void Serialize(string dbFile, string index, Dictionary<string, DbPointer[]> dictionary)
-        {
-            var file = dbFile + "." + index;
-            using (var writer = new BinaryWriter(new FileStream(file, FileMode.Create)))
-            {
-                writer.Write(dictionary.Count);
-                foreach (var kvp in dictionary)
-                {
-                    writer.Write(kvp.Key);
-                    writer.Write(kvp.Value.Length);
-                    for (var i = 0; i < kvp.Value.Length; ++i)
-                    {
-                        writer.Write(kvp.Value[i].Offset);
-                    }
-                }
-                writer.Flush();
-                writer.Close();
-            }
-        }
-
-        public Dictionary<string, DbPointer[]> DeserializePointerArrays(string dbFile, string index, StringComparer comparer = null)
-        {
-            var file = dbFile + "." + index;
-            using (var reader = new BinaryReader(new FileStream(file, FileMode.Open)))
-            {
-                var count = reader.ReadInt32();
-                var dictionary = new Dictionary<string, DbPointer[]>(count, comparer);
-                for (int n = 0; n < count; n++)
-                {
-                    var key = reader.ReadString();
-                    var arraySize = reader.ReadInt32();
-                    var array = new DbPointer[arraySize];
-                    for (var i = 0; i < array.Length; ++i)
-                    {
-                        array[i] = new DbPointer(reader.ReadUInt32());
-                    }
-                    dictionary.Add(key, array);
-                }
-                return dictionary;
-            }
-        }
-
-        private string sanitizeName(string name)
-        {
-            var sanitized = name.Replace('.', ' ').Replace(':', ' ').Replace(',', ' ').Replace('\'', ' ').Replace('"', ' ').Replace('/', ' ').Replace('\\', ' ').Trim();
-
-            while (sanitized.Contains("  "))
-                sanitized = sanitized.Replace("  ", " ");
-
-            return sanitized;
-        }
-
         internal FreebaseEntry GetEntryFromMid(string mid)
         {
             return GetEntryFromId(GetId(mid));
@@ -223,7 +80,16 @@ namespace WebBackend.Dataset
                 throw new NotSupportedException("Edge format unknown: " + edgeId);
 
             return edgeId.Substring(edgeId.Length);
+        }        
+
+        internal static string TryGetId(string identifier)
+        {
+            if (identifier.StartsWith(IdPrefix))
+                return GetMid(identifier);
+
+            return identifier;
         }
+
 
         internal FreebaseEntry GetEntryFromId(string id)
         {
@@ -271,6 +137,8 @@ namespace WebBackend.Dataset
         internal IEnumerable<string> GetNames(string id)
         {
             var entry = GetEntryFromId(id);
+            if (entry == null)
+                return new string[0];
             return new[] { entry.Label }.Concat(entry.Aliases);
         }
 
@@ -313,7 +181,7 @@ namespace WebBackend.Dataset
             return entry.Targets.Where(e => e.Item1.IsOutcoming).Count();
         }
 
-        internal IEnumerable<DbPointer> GetScoredContentDocs(string termVariant)
+        internal IEnumerable<DbPointer> GetScoredDocs(string termVariant)
         {
             DbPointer[] pointers;
 
@@ -352,5 +220,157 @@ namespace WebBackend.Dataset
 
             return new EntityInfo(mid, entry.Label, entry.Targets.Where(t => !t.Item1.IsOutcoming).Count(), entry.Targets.Where(t => t.Item1.IsOutcoming).Count(), entry.Description);
         }
+
+        internal bool ContainsId(string id)
+        {
+            return _idIndex.ContainsKey(id);
+        }
+
+        #region Index utilities
+
+        private void loadConfusions()
+        {
+            _valueConfusions = new Dictionary<string, List<DbPointer>>(_aliasIndex.Count, StringComparer.InvariantCultureIgnoreCase);
+            
+            foreach (var pair in _aliasIndex)
+            {
+                var name = pair.Key;
+                var confusedValue = sanitizeName(name);
+
+                if (confusedValue != name)
+                {
+                    List<DbPointer> pointers;
+                    if (!_valueConfusions.TryGetValue(confusedValue, out pointers))
+                        _valueConfusions[confusedValue] = pointers = new List<DbPointer>();
+
+                    pointers.AddRange(pair.Value);
+                }
+            }
+        }
+
+        private void loadIndex(string indexPath)
+        {
+            if (File.Exists(indexPath + "._idIndex"))
+            {
+                Console.WriteLine("Loading index");
+                _idIndex = deserializePointers(indexPath, "_idIndex");
+                _aliasIndex = deserializePointerArrays(indexPath, "_aliasIndex", StringComparer.InvariantCultureIgnoreCase);
+                Console.WriteLine("\tfinished.");
+                return;
+            }
+
+            Console.WriteLine("DB index creation");
+            var currentPosition = 0u;
+            while (!_dbReader.EndOfStream)
+            {
+                var pointer = new DbPointer(currentPosition);
+                var line = _dbReader.ReadLine();
+                var lineLength = _dbReader.CurrentEncoding.GetBytes(line).Length;
+                currentPosition += (uint)(lineLength + 1);
+
+                string id;
+                var aliases = DumpLoader.ParseLabels(line, out id);
+                foreach (var alias in aliases)
+                {
+                    if (_aliasIndex.ContainsKey(alias))
+                        _aliasIndex[alias] = _aliasIndex[alias].Concat(new[] { pointer }).ToArray();
+                    else
+                        _aliasIndex[alias] = new[] { pointer };
+                }
+
+                _idIndex[id] = pointer;
+            }
+            Console.WriteLine("\tserializing");
+            serialize(indexPath, "_aliasIndex", _aliasIndex);
+            serialize(indexPath, "_idIndex", _idIndex);
+            Console.WriteLine("\tfinished.");
+        }
+
+        public void serialize(string dbFile, string index, Dictionary<string, DbPointer> dictionary)
+        {
+            var file = dbFile + "." + index;
+            using (var writer = new BinaryWriter(new FileStream(file, FileMode.Create)))
+            {
+                writer.Write(dictionary.Count);
+                foreach (var kvp in dictionary)
+                {
+                    writer.Write(kvp.Key);
+                    writer.Write(kvp.Value.Offset);
+                }
+                writer.Flush();
+                writer.Close();
+            }
+        }
+
+        public Dictionary<string, DbPointer> deserializePointers(string dbFile, string index)
+        {
+            var file = dbFile + "." + index;
+            using (var reader = new BinaryReader(new FileStream(file, FileMode.Open)))
+            {
+                var count = reader.ReadInt32();
+                var dictionary = new Dictionary<string, DbPointer>(count);
+                for (int n = 0; n < count; n++)
+                {
+                    var key = reader.ReadString();
+                    var value = reader.ReadUInt32();
+                    dictionary.Add(key, new DbPointer(value));
+                }
+                return dictionary;
+            }
+        }
+
+        public void serialize(string dbFile, string index, Dictionary<string, DbPointer[]> dictionary)
+        {
+            var file = dbFile + "." + index;
+            using (var writer = new BinaryWriter(new FileStream(file, FileMode.Create)))
+            {
+                writer.Write(dictionary.Count);
+                foreach (var kvp in dictionary)
+                {
+                    writer.Write(kvp.Key);
+                    writer.Write(kvp.Value.Length);
+                    for (var i = 0; i < kvp.Value.Length; ++i)
+                    {
+                        writer.Write(kvp.Value[i].Offset);
+                    }
+                }
+                writer.Flush();
+                writer.Close();
+            }
+        }
+
+        public Dictionary<string, DbPointer[]> deserializePointerArrays(string dbFile, string index, StringComparer comparer = null)
+        {
+            var file = dbFile + "." + index;
+            using (var reader = new BinaryReader(new FileStream(file, FileMode.Open)))
+            {
+                var count = reader.ReadInt32();
+                var dictionary = new Dictionary<string, DbPointer[]>(count, comparer);
+                for (int n = 0; n < count; n++)
+                {
+                    var key = reader.ReadString();
+                    var arraySize = reader.ReadInt32();
+                    var array = new DbPointer[arraySize];
+                    for (var i = 0; i < array.Length; ++i)
+                    {
+                        array[i] = new DbPointer(reader.ReadUInt32());
+                    }
+                    dictionary.Add(key, array);
+                }
+                return dictionary;
+            }
+        }
+
+        private string sanitizeName(string name)
+        {
+            var sanitized = name.Replace('.', ' ').Replace(':', ' ').Replace(',', ' ').Replace('\'', ' ').Replace('"', ' ').Replace('/', ' ').Replace('\\', ' ').Trim();
+
+            while (sanitized.Contains("  "))
+                sanitized = sanitized.Replace("  ", " ");
+
+            return sanitized;
+        }
+
+        #endregion
     }
 }

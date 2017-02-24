@@ -17,11 +17,6 @@ namespace WebBackend.AnswerExtraction
     public class AnswerExtractionManager : CollectionManagerBase, IInformativeFeedbackProvider
     {
         /// <summary>
-        /// Determine whether manager expects new answer.
-        /// </summary>
-        private bool _expectsAnswer;
-
-        /// <summary>
         /// Pool with selected questions.
         /// </summary>
         private readonly QuestionCollection _questions;
@@ -62,7 +57,6 @@ namespace WebBackend.AnswerExtraction
         /// </inheritdoc>
         public override ResponseBase Initialize()
         {
-            _expectsAnswer = true;
             _actualContext = createNewContext();
 
             return formulateOutput(_actualContext.NextMachineOutput);
@@ -77,8 +71,10 @@ namespace WebBackend.AnswerExtraction
         /// </inheritdoc>
         public override ResponseBase Input(ParsedUtterance utterance)
         {
-            CanBeCompleted = false;
+            //we require enough informative turns only
+            CanBeCompleted = true; 
             HadInformativeInput = false;
+
             if (IsDialogClosed)
                 //dialog has been closed - don't say anything
                 return null;
@@ -181,7 +177,7 @@ namespace WebBackend.AnswerExtraction
         {
             var hasCapitalLetter = char.IsUpper(question[0]);
             var hasQuestionMark = question.Last() == '?';
-            var hasSimpleCoding = question.ToLowerInvariant() == question.ToLower();
+            var hasSimpleCoding = question.All(ch => (int)ch < 255);
 
             return hasCapitalLetter && hasQuestionMark && hasSimpleCoding;
         }
@@ -198,11 +194,6 @@ namespace WebBackend.AnswerExtraction
         {
             context.RegisterInput(input);
             context.HandlingModel.UpdateContext(context);
-        }
-
-        private ParsedUtterance getNextQuestion()
-        {
-            return UtteranceParser.Parse(_questions.GetRandomQuestion());
         }
     }
 }

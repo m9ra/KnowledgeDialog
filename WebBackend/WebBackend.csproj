@@ -152,6 +152,7 @@
     <None Include="www\action_log.haml" />
     <None Include="www\annotate.haml" />
     <None Include="www\annotate2.haml" />
+    <None Include="www\database.haml" />
     <None Include="www\knowledge.haml" />
     <None Include="www\question_collection.haml" />
     <None Include="www\logs.haml" />

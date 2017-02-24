@@ -106,12 +106,13 @@ namespace WebBackend.AnswerExtraction.Models
                 var questionEntities = getEntities(question);
                 var answerHintEntities = getEntities(answerHint, question);
 
-                var questionEntityNames = getEntityNames(questionEntities);
-                var answerHintEntityNames = getEntityNames(answerHintEntities);
+                var questionEntityNames = getEntityNames(questionEntities).ToArray();
+                var answerHintEntityNames = getEntityNames(answerHintEntities).ToArray();
 
-                var questionBinding = questionEntities.Intersect(answerHintEntities);
+                var questionBinding = questionEntities.Intersect(answerHintEntities).ToArray();
+                var questionBindingNames = questionEntityNames.Intersect(answerHintEntityNames).ToArray();
 
-                if (questionBinding.Count() < 1)
+                if (questionBindingNames.Count() < 1)
                     return new NoConnectionToEntityAct(selectNoConnectionEntity(questionEntities));
 
                 context.HadInformativeInput = true;
@@ -130,7 +131,7 @@ namespace WebBackend.AnswerExtraction.Models
 
         private IEnumerable<string> getEntityNames(IEnumerable<EntityInfo> entities)
         {
-            return entities.SelectMany(e => _extractor.Db.GetNames(e.Mid));
+            return entities.SelectMany(e => _extractor.Db.GetNamesFromMid(e.Mid));
         }
 
         private EntityInfo[] getEntities(string utterance, string contextUtterance = null)
@@ -139,6 +140,7 @@ namespace WebBackend.AnswerExtraction.Models
             if (linked == null)
                 return Enumerable.Empty<EntityInfo>().ToArray();
 
+            Console.WriteLine(linked);
             return linked.Entities.ToArray();
         }
 

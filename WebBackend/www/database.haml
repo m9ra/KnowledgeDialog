@@ -1,0 +1,59 @@
+﻿@query string
+@result_entry WebBackend.Dataset.FreebaseEntry
+@result_entries +WebBackend.Dataset.FreebaseEntry
+@result_entries_count int
+
+.container
+	%nav{class: "navbar navbar-inverse navbar-fixed-top"}
+		.navbar-header
+			%button{type: "button", class: "navbar-toggle", data-toggle: "collapse", data-target: "navbar-collapse"}
+				%span.sr-only
+					Expand navigation	
+				%span.icon-bar
+				%span.icon-bar
+				%span.icon-bar
+
+			%a{class: "navbar-brand", href: "/"} Mgr. Vodolán Miroslav
+.jumbotron#preface
+	.container
+		%h1 Database
+		%p 
+			Actual database used by system.
+
+		%h2 Query
+		%p
+			%form.entity_search
+				%input{name: "query", value: @query}
+				%input{type: "submit", value: "search"}
+
+.container	
+	-if @result_entry
+		%h2
+			= @result_entry.Label
+
+		%p
+			= @result_entry.Description
+
+		.aliases
+			%h4 Aliases
+			- @result_entry.Aliases.each do |alias|
+				= alias + " | "
+		
+		.targets
+			%h4 Targets
+			- @result_entry.Targets.each do |target|
+				.target
+					%a{href: "database?query=" + (target.Item2)}
+						%b	
+							= target.Item2
+					= target.Item1
+
+	-if @result_entries
+		%h2
+			= "Results found: " + @result_entries_count
+
+		.result_entries
+			- @result_entries.each do |entry|
+				.result_row
+					%a{href: "database?query=" + (entry.Id)}
+						= entry.Label + " (" + (entry.Id) + ")"

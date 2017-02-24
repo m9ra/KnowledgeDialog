@@ -18,6 +18,8 @@ namespace WebBackend.Experiment
 {
     class AnswerExtractionExperiment : ExperimentBase
     {
+        internal readonly int RequiredInformativeTurnCount = 3;
+
         private readonly QuestionCollection _questions;
 
         private readonly ExtractionKnowledge _knowledge;
@@ -45,7 +47,7 @@ namespace WebBackend.Experiment
         ///<inheritdoc/>
         internal override TaskInstance GetTask(int taskId)
         {
-            return new InformativeTaskInstance(taskId, "Chat with the bot", new NodeReference[0], new NodeReference[0], "question_collection", _validationCodes[taskId], "question_collection.haml");
+            return new InformativeTaskInstance(taskId, "Chat with the bot", new NodeReference[0], new NodeReference[0], "question_collection", _validationCodes[taskId], RequiredInformativeTurnCount, "question_collection.haml");
         }
 
         /// <summary>

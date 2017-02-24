@@ -16,6 +16,8 @@ namespace WebBackend.Experiment
     {
         private readonly QuestionCollection _questions;
 
+        internal readonly int RequiredInformativeTurnCount = 6;
+
         public QuestionCollectionExperiment(string experimentsRoot, string experimentId, int taskCount, QuestionCollection questions)
             : base(experimentsRoot, experimentId)
         {
@@ -34,7 +36,7 @@ namespace WebBackend.Experiment
         ///<inheritdoc/>
         internal override TaskInstance GetTask(int taskId)
         {
-            return new InformativeTaskInstance(taskId, "Chat with the bot", new NodeReference[0], new NodeReference[0], "question_collection", _validationCodes[taskId], "question_collection.haml");
+            return new InformativeTaskInstance(taskId, "Chat with the bot", new NodeReference[0], new NodeReference[0], "question_collection", _validationCodes[taskId], RequiredInformativeTurnCount, "question_collection.haml");
         }
 
         /// <summary>

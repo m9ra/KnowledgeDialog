@@ -12,6 +12,11 @@ namespace WebBackend.Task
     class InformativeTaskInstance : TaskInstance
     {
         /// <summary>
+        /// How many informative turns are required for taking the task as complete.
+        /// </summary>
+        private readonly int _requiredInformativeTurnCount;
+
+        /// <summary>
         /// How many informative utterances has been registered.
         /// </summary>
         private int _informativeTurnCount = 0;
@@ -24,9 +29,10 @@ namespace WebBackend.Task
         /// <inheritdoc/>
         public override bool IsComplete { get { return _isComplete; } }
 
-        internal InformativeTaskInstance(int id, string taskFormat, IEnumerable<NodeReference> substitutions, IEnumerable<NodeReference> expectedAnswers, string key, int validationCodeKey, string experimentHAML = "experiment.haml")
+        internal InformativeTaskInstance(int id, string taskFormat, IEnumerable<NodeReference> substitutions, IEnumerable<NodeReference> expectedAnswers, string key, int validationCodeKey, int requiredInformativeTurnCount, string experimentHAML = "experiment.haml")
             : base(id, taskFormat, substitutions, expectedAnswers, key, validationCodeKey, experimentHAML)
         {
+            _requiredInformativeTurnCount = requiredInformativeTurnCount;
         }
 
         /// <inheritdoc/>
@@ -40,7 +46,7 @@ namespace WebBackend.Task
             if (provider.HadInformativeInput)
                 ++_informativeTurnCount;
 
-            if (_informativeTurnCount > 5 && provider.CanBeCompleted)
+            if (_informativeTurnCount >= _requiredInformativeTurnCount && provider.CanBeCompleted)
                 _isComplete = true;
         }
     }

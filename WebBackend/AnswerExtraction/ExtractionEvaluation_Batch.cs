@@ -205,7 +205,7 @@ namespace WebBackend.AnswerExtraction
             var linker = getFullDataLinker(db);
 
             var result = linker.LinkUtterance("George W. Bush");
-            var entities = db.GetScoredContentDocs("George W Bush").Select(d => db.GetEntry(d)).ToArray();
+            var entities = db.GetScoredDocs("George W Bush").Select(d => db.GetEntry(d)).ToArray();
             var correctLabelCount = 0;
             var correctCount = 0;
             var totalCount = 0;

@@ -16,7 +16,7 @@ namespace WebBackend
             )
         {
             ErrorPage(404, "404.haml");
-            PublicExtensions("png", "jpg", "css", "js", "scss", "md", "swf", "ico", "txt");
+            PublicExtensions("png", "gif", "jpg", "css", "js", "scss", "md", "swf", "ico", "txt");
         }
     }
 }

@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 using ServeRick;
 
+using KnowledgeDialog.Dialog.Parsing;
+
 using WebBackend.Dataset;
 
 namespace WebBackend
@@ -41,6 +43,34 @@ namespace WebBackend
         public static string LinkToKnowledge(string knowledgeId)
         {
             return "/knowledge?id=" + knowledgeId;
+        }
+
+        public static string EntityLink(EntityInfo entity)
+        {
+            var id = FreebaseDbProvider.GetId(entity.Mid);
+            return string.Format("<a href='/database?query={0}'>{1} ({2})</a>", id, entity.Label, id);
+        }
+
+        public static string LinkedUtteranceLink(LinkedUtterance utterance)
+        {
+            var builder = new StringBuilder();
+            foreach (var part in utterance.Parts)
+            {
+                if (builder.Length > 0)
+                    builder.Append(' ');
+
+                if (!part.Entities.Any())
+                {
+                    builder.Append(part.Token);
+                    continue;
+                }
+
+                var entity = part.Entities.First();
+
+                builder.AppendFormat("<a href='/database?query={0}'>[{1}]</a>", FreebaseDbProvider.GetId(entity.Mid), entity.BestAliasMatch);
+            }
+
+            return builder.ToString();
         }
 
         public static string Size(int bytes)

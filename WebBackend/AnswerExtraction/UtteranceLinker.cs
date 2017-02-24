@@ -166,7 +166,7 @@ namespace WebBackend.AnswerExtraction
         internal IEnumerable<EntityInfo> GetEntities(string ngram)
         {
             var scores = new Dictionary<string, EntityInfo>();
-            var scoredDocs = Db.GetScoredContentDocs(ngram);
+            var scoredDocs = Db.GetScoredDocs(ngram);
             foreach (var dc in scoredDocs)
             {
                 var entity = Db.GetEntity(dc);
@@ -204,7 +204,7 @@ namespace WebBackend.AnswerExtraction
 
             foreach (var ngram in ngrams)
             {
-                var docs = Db.GetScoredContentDocs(ngram);
+                var docs = Db.GetScoredDocs(ngram);
                 if (!docs.Any())
                     //nothing found for the ngram
                     continue;

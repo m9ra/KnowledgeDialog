@@ -18,6 +18,9 @@ function chat_submit(experiment_id, task_id) {
     var utterance = $(".utterance");
     var text = utterance.val();
 
+    $(".dialog_log").append("<div class='system_text'><img class='typing_progress' src='/images/typing.gif'/></div>");
+    scroll_chat_bottom();
+
     var result = $.get("/dialog_data", { "utterance": text, "experiment_id": experiment_id, "taskid": task_id }, function (data) {
         $(".dialog_log").html(data);
         scroll_chat_bottom();

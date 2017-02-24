@@ -40,10 +40,10 @@
 			- knowledge_report.Questions.each do |question_report|
 				.question_report
 					.question
-						= question_report.Question
+						= raw LinkedUtteranceLink(question_report.Question)
 					- question_report.CollectedDenotations.each do |denotation|		
 						.denotation
 							.answer_hint
-								= denotation.Item1
+								= raw LinkedUtteranceLink(denotation.Item1)
 							.entity
-								= denotation.Item2
+								= raw EntityLink(denotation.Item2)

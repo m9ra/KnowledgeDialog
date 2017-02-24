@@ -1,3 +1,9 @@
+.entity_search{
+	input{
+		font-size: large;
+	}
+}
+
 .control_pane{
 	margin: 5px;
 
@@ -90,16 +96,30 @@
 	background-color: lightblue;
 }
 
+.typing_progress{
+	width:44px;
+	height:44px;
+	margin: auto;
+	display: block;
+}
+
 .question_report{
 	margin: 20px 0 0 0;
 	padding: 5px;
 	border: 1px lightgray solid;
 	font-size:20px;
+
+	
 	.question{
-		margin-bottom: 10px;
 		color: black;
+		margin-bottom: 10px;		
 		font-weight: bold;
 		font-size: 22px;
+
+		a{
+			color: black;
+		}
+
 	}
 
 	.denotation{
@@ -107,14 +127,21 @@
 		clear: both;
 		overflow: hidden;
 
+		color: #777;
+		a{
+			color: #777; 
+		}
+
 		.answer_hint{
 			display:inline;
 		}
-
+		
 		.entity{
 			display:inline;
 			margin-left:20px;
-			color: darkblue;
+			a{
+				color: #1976D2;
+			}
 		}
 	}
 }

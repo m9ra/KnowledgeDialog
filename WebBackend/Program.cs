@@ -19,20 +19,7 @@ namespace WebBackend
 {
     class Program
     {
-        /// <summary>
-        /// Root path of web application.
-        /// </summary>
-        public static string RootPath { get; private set; }
 
-        /// <summary>
-        /// Path with stored data.
-        /// </summary>
-        public static string DataPath { get { return Path.Combine(RootPath, "data"); } }
-
-        /// <summary>
-        /// Path where experiments are stored.
-        /// </summary>
-        public static string ExperimentsRootPath { get { return Path.Combine(DataPath, "experiments"); } }
 
         /// <summary>
         /// Currently available experiments.
@@ -74,52 +61,54 @@ namespace WebBackend
 
         private static void RunWebInterface()
         {
-            var simpleQuestions1 = loadSimpleQuestions("questions1.smpq");
-            var simpleQuestionsTrain = loadSimpleQuestions("questions_train.smpq");
-            var extensionQuestions = loadExtensionQuestions("questions_train.smpq");
+            var simpleQuestions1 = Configuration.LoadSimpleQuestions("questions1.smpq");
+            var simpleQuestionsTrain = Configuration.SimpleQuestionsTrain;
+            var extensionQuestions = loadExtensionQuestions(Configuration.SimpleQuestionsTrain_Path);
 
-            Experiments = new ExperimentCollection(ExperimentsRootPath,
+            var experimentsRootPath = Configuration.ExperimentsRootPath;
+
+            Experiments = new ExperimentCollection(experimentsRootPath,
 
                 //question collection experiment 
-                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection", 15, simpleQuestions1),
+                new QuestionCollectionExperiment(experimentsRootPath, "question_collection", 15, simpleQuestions1),
 
                 //question collection experiment 
-                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection2", 50, simpleQuestionsTrain),
+                new QuestionCollectionExperiment(experimentsRootPath, "question_collection2", 50, simpleQuestionsTrain),
 
 
                 //full operation question collection experiment 
-                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_1", 100, simpleQuestionsTrain),
+                new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_1", 100, simpleQuestionsTrain),
 
-                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_2", 100, simpleQuestionsTrain),
+                new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_2", 100, simpleQuestionsTrain),
 
-                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_3", 100, simpleQuestionsTrain),
+                new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_3", 100, simpleQuestionsTrain),
 
-                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_4", 100, simpleQuestionsTrain),
+                new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_4", 100, simpleQuestionsTrain),
 
-                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_5", 100, simpleQuestionsTrain),
+                new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_5", 100, simpleQuestionsTrain),
 
-                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_6", 100, simpleQuestionsTrain),
+                new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_6", 100, simpleQuestionsTrain),
 
-                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_7", 100, simpleQuestionsTrain),
+                new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_7", 100, simpleQuestionsTrain),
 
-                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_8", 100, simpleQuestionsTrain),
+                new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_8", 100, simpleQuestionsTrain),
 
-                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_9", 100, simpleQuestionsTrain),
+                new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_9", 100, simpleQuestionsTrain),
 
-                new QuestionCollectionExperiment(ExperimentsRootPath, "question_collection_r_10", 100, simpleQuestionsTrain),
+                new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_10", 100, simpleQuestionsTrain),
 
-                new QuestionCollectionExperiment(ExperimentsRootPath, "qdd_extension_r_1", 100, simpleQuestionsTrain),
-                new QuestionCollectionExperiment(ExperimentsRootPath, "qdd_extension_r_2", 100, simpleQuestionsTrain),
-                new QuestionCollectionExperiment(ExperimentsRootPath, "qdd_extension_r_3", 100, extensionQuestions),
-                new QuestionCollectionExperiment(ExperimentsRootPath, "qdd_extension_r_4", 100, extensionQuestions),
-                new QuestionCollectionExperiment(ExperimentsRootPath, "qdd_extension_r_5", 100, extensionQuestions),
-                new AnswerExtractionExperiment(ExperimentsRootPath, "answer_extraction", 100, simpleQuestionsTrain, Configuration.AnswerExtractor)
+                new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_1", 100, simpleQuestionsTrain),
+                new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_2", 100, simpleQuestionsTrain),
+                new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_3", 100, extensionQuestions),
+                new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_4", 100, extensionQuestions),
+                new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_5", 100, extensionQuestions),
+                new AnswerExtractionExperiment(experimentsRootPath, "answer_extraction", 100, simpleQuestionsTrain, Configuration.AnswerExtractor)
                 );
 
             QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "qdd_extension_r_");
 
             //run server
-            runServer(RootPath);
+            runServer(Configuration.RootPath);
             runConsole();
         }
 
@@ -130,47 +119,27 @@ namespace WebBackend
         /// <returns><c>true</c> if parsing was successful, <c>false</c> otherwise.</returns>
         private static bool parseArguments(string[] args)
         {
-            if (args.Length != 1)
+            if (args.Length != 2)
             {
-                Console.WriteLine("Expects path to root folder of web");
+                Console.WriteLine("Expects path to root folder of web and path to configuration file.");
                 return false;
             }
 
-            RootPath = args[0];
-            if (!Directory.Exists(RootPath))
-                throw new NotSupportedException("Given path doesn't exists. " + Path.GetFullPath(RootPath));
+            var rootPath = args[0];
+            var configPath = args[1];
+            if (!Directory.Exists(rootPath))
+                throw new NotSupportedException("Given directory path doesn't exists. " + Path.GetFullPath(rootPath));
 
+            if (!File.Exists(configPath))
+                throw new NotSupportedException("Given file path doesn't exists. " + Path.GetFullPath(configPath));
 
+            Configuration.LoadConfig(rootPath, configPath);
             return true;
-        }
-
-        /// <summary>
-        /// Loads <see cref="QuestionCollection"/> from given question file.
-        /// </summary>
-        /// <param name="questionFile">The file with questions.</param>
-        /// <returns>The created collection.</returns>
-        private static QuestionCollection loadSimpleQuestions(string questionFile)
-        {
-            var questionFilePath = Path.Combine(DataPath, questionFile);
-            var questionLines = File.ReadAllLines(questionFilePath, Encoding.UTF8);
-
-            var questions = new List<string>();
-            var answerIds = new List<string>();
-            foreach (var line in questionLines)
-            {
-                var lineParts = line.Split('\t');
-                var question = lineParts[3];
-                var answerId = lineParts[2];
-                questions.Add(question);
-                answerIds.Add(answerId);
-            }
-
-            return new QuestionCollection(questions, answerIds);
         }
 
         private static QuestionCollection loadExtensionQuestions(string questionFile)
         {
-            var allQuestions = loadSimpleQuestions(questionFile);
+            var allQuestions = Configuration.LoadSimpleQuestions(questionFile);
 
             var answerIds = new List<string>();
             var questions = new List<string>();
@@ -181,7 +150,7 @@ namespace WebBackend
 
             foreach (var question in questions)
             {
-                answerIds.Add(allQuestions.GetAnswerId(question));
+                answerIds.Add(allQuestions.GetAnswerMid(question));
             }
 
             return new QuestionCollection(questions, answerIds);

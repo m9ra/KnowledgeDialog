@@ -57,7 +57,7 @@ namespace WebBackend
             foreach (var knowledge in ExtractionKnowledge.RegisteredKnowledge)
             {
                 if (knowledge.StoragePath == currentKnowledgeId)
-                    reports.Add(new KnowledgeReport(knowledge, Configuration.AnswerExtractor));
+                    reports.Add(new KnowledgeReport(knowledge, Configuration.AnswerExtractor, Configuration.SimpleQuestionsTrain));
             }
 
             SetParam("knowledge_reports", reports);
@@ -71,14 +71,14 @@ namespace WebBackend
         public void logs()
         {
             //look for all stored experiments
-            var experimentIds = new List<string>(Directory.EnumerateDirectories(Program.ExperimentsRootPath).Select(Path.GetFileNameWithoutExtension));
+            var experimentIds = new List<string>(Directory.EnumerateDirectories(Configuration.ExperimentsRootPath).Select(Path.GetFileNameWithoutExtension));
 
             //select actual experiment
             var currentExperimentId = GET("experiment");
             if (!experimentIds.Contains(currentExperimentId))
                 currentExperimentId = experimentIds.Last();
 
-            var experimentRootPath = Path.Combine(Program.ExperimentsRootPath, currentExperimentId);
+            var experimentRootPath = Path.Combine(Configuration.ExperimentsRootPath, currentExperimentId);
             var statistics = new Statistics(experimentRootPath);
 
             SetParam("experiment_statistics", statistics);
@@ -110,7 +110,7 @@ namespace WebBackend
                     break;
             }
 
-            var logfilePath = Path.Combine(Program.ExperimentsRootPath, experimentId, ExperimentBase.RelativeUserPath, logFileId);
+            var logfilePath = Path.Combine(Configuration.ExperimentsRootPath, experimentId, ExperimentBase.RelativeUserPath, logFileId);
             var file = new LogFile(logfilePath);
 
             var actions = file.LoadActions();
@@ -132,7 +132,7 @@ namespace WebBackend
                 return;
             }
 
-            var logfilePath = Path.Combine(Program.ExperimentsRootPath, experimentId, ExperimentBase.RelativeUserPath, logFileId);
+            var logfilePath = Path.Combine(Configuration.ExperimentsRootPath, experimentId, ExperimentBase.RelativeUserPath, logFileId);
             var file = new LogFile(logfilePath);
             var annotation = new AnnotatedLogFile(file);
 
@@ -212,10 +212,6 @@ namespace WebBackend
 
         public void index()
         {
-            var dialogStorage = GET("storage");
-            var solution = getSolution(dialogStorage, 0);
-
-            SetParam("dialog", solution.GetDialogHTML());
             Layout("layout.haml");
             Render("index.haml");
         }

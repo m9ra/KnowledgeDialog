@@ -48,8 +48,17 @@ namespace WebBackend
         public static string EntityLink(EntityInfo entity)
         {
             var id = FreebaseDbProvider.GetId(entity.Mid);
-            return string.Format("<a href='/database?query={0}'>{1} ({2})</a>", id, entity.Label, id);
+            return string.Format("<a href='/database?query={0}'>{1} ({0})</a>", id, entity.Label);
         }
+
+        public static string EntryLink(FreebaseEntry entry)
+        {
+            if (entry == null)
+                return "NOT FOUND";
+
+            return string.Format("<a href='/database?query={0}'>{1} ({0})</a>", entry.Id, entry.Label);
+        }
+
 
         public static string LinkedUtteranceLink(LinkedUtterance utterance)
         {

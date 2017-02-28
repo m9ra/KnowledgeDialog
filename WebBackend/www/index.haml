@@ -1,10 +1,4 @@
-﻿@dialog string
-
-%script{language: "javascript"}
-	var EXPERIMENT_ID="index";
-	var TASK_ID=0;
-
-.container
+﻿.container
 	%nav{class: "navbar navbar-inverse navbar-fixed-top"}
 		.navbar-header
 			%button{type: "button", class: "navbar-toggle", data-toggle: "collapse", data-target: "navbar-collapse"}
@@ -17,29 +11,4 @@
 			%a{class: "navbar-brand", href: "/"} Mgr. Vodolán Miroslav
 
 
-
-.jumbotron#preface
-	.container
-		%h1 Introduction
-		%p This is experimental page for <b>Knowledge dialog</b> presentation
-
-
-		%a{class: "btn btn-primary"} About
-
-.container
-	%article{class: "alert alert-warning"}
-		%strong Warning
-		%p This service is currently under heavy developement. Therefore some functionality may be missing, faulty or incomplete.
-
-.container
-	.row
-		.dialog_log
-			= raw @dialog
-		%input{class:"utterance", type: "text"}
-			=""
-		%input{class:"utterance_submit", type: "submit", value: "Send"}
-			=""
-
-%script{src: "js/chat.js"}
-	=""
 

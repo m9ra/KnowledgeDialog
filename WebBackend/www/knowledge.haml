@@ -32,18 +32,35 @@
 
 .container	
 	- @knowledge_reports.each do |knowledge_report|
+		.knowledge_report
 		%h2 
-			= "Storage: " + (knowledge_report.StoragePath)
-			%br
-			%br
+			Statistics
+		.statistics
+			%p
+				%b Question count: 
+				= knowledge_report.QuestionCount
 
-			- knowledge_report.Questions.each do |question_report|
-				.question_report
-					.question
-						= raw LinkedUtteranceLink(question_report.Question)
-					- question_report.CollectedDenotations.each do |denotation|		
-						.denotation
-							.answer_hint
-								= raw LinkedUtteranceLink(denotation.Item1)
-							.entity
-								= raw EntityLink(denotation.Item2)
+			%p
+				%b Answer hint count: 
+				= knowledge_report.AnswerHintCount	
+						
+			%p
+				%b Question with answer hint count: 
+				= knowledge_report.QuestionWithAnswerHintCount
+
+			%p
+				%b Question with correct denotation count: 
+				= knowledge_report.QuestionWithCorrectDenotationCount
+
+		- knowledge_report.Questions.each do |question_report|
+			%div{correct: question_report.HasCorrectDenotation.ToString()}.question_report
+				.question
+					= raw LinkedUtteranceLink(question_report.Question)
+					.label
+						= raw EntryLink(question_report.AnswerLabel)
+				- question_report.CollectedDenotations.each do |denotation|		
+					.denotation
+						.answer_hint
+							= raw LinkedUtteranceLink(denotation.Item1)
+						.entity
+							= raw EntityLink(denotation.Item2)

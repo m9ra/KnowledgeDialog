@@ -4,6 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using System.IO;
+
+using KnowledgeDialog.DataCollection;
+
 using WebBackend.Dataset;
 using WebBackend.AnswerExtraction;
 
@@ -11,23 +15,53 @@ namespace WebBackend
 {
     static class Configuration
     {
-        internal static readonly string SimpleQuestionFB2M_Path = @"C:/DATABASES/SimpleQuestions_v2/SimpleQuestions_v2/freebase-subsets/freebase-FB2M.txt";
+        /// <summary>
+        /// Root path of web application.
+        /// </summary>
+        public static string RootPath { get; private set; }
 
-        internal static readonly string FreebaseDB_Path = @"C:/DATABASES/Freebase/freebase.db";
+        /// <summary>
+        /// Path with stored data.
+        /// </summary>
+        public static string DataPath { get { return Path.Combine(RootPath, "data"); } }
 
-        internal static readonly string WholeFreebase_Path = @"C:/DATABASES/Freebase/freebase.zip";
+        /// <summary>
+        /// Path where experiments are stored.
+        /// </summary>
+        public static string ExperimentsRootPath { get { return Path.Combine(DataPath, "experiments"); } }
 
-        internal static readonly string QuestionDialogsTrain_Path = @"./question_dialogs-train.json";
+        internal static string SimpleQuestionFB2M_Path { get; private set; }
 
-        internal static readonly string QuestionDialogsDev_Path = @"./question_dialogs-dev.json";
+        internal static string FreebaseDB_Path { get; private set; }
 
-        internal static readonly string QuestionDialogsTest_Path = @"./question_dialogs-test.json";
+        internal static string WholeFreebase_Path { get; private set; }
+
+        internal static string QuestionDialogsTrain_Path { get; private set; }
+
+        internal static string QuestionDialogsDev_Path { get; private set; }
+
+        internal static string QuestionDialogsTest_Path { get; private set; }
+
+        internal static string SimpleQuestionsTrain_Path { get; private set; }
 
         private static FreebaseDbProvider _db = null;
 
         private static ILinker _linker = null;
 
         private static LinkBasedExtractor _extractor = null;
+
+        internal static QuestionCollection _simpleQuestionsTrain;
+
+        internal static QuestionCollection SimpleQuestionsTrain
+        {
+            get
+            {
+                if (_simpleQuestionsTrain == null)
+                    _simpleQuestionsTrain = LoadSimpleQuestions(SimpleQuestionsTrain_Path);
+
+                return _simpleQuestionsTrain;
+            }
+        }
 
         internal static FreebaseDbProvider Db
         {
@@ -62,6 +96,24 @@ namespace WebBackend
             }
         }
 
+        internal static void LoadConfig(string rootPath, string configPath)
+        {
+            if (RootPath != null)
+                throw new NotSupportedException("Config can be load only once");
+
+            RootPath = rootPath;
+
+            var config = File.ReadAllLines(configPath).Where(l => l.Trim() != "").Select(l => l.Split(new[] { ':' }, 2)).ToDictionary(p => p[0].Trim(), p => p[1].Trim());
+
+            SimpleQuestionFB2M_Path = config["SimpleQuestionFB2M_Path"];
+            FreebaseDB_Path = config["FreebaseDB_Path"];
+            WholeFreebase_Path = config["WholeFreebase_Path"];
+            QuestionDialogsTrain_Path = config["QuestionDialogsTrain_Path"];
+            QuestionDialogsDev_Path = config["QuestionDialogsDev_Path"];
+            QuestionDialogsTest_Path = config["QuestionDialogsTest_Path"];
+            SimpleQuestionsTrain_Path = config["SimpleQuestionsTrain_Path"];
+        }
+
         internal static QuestionDialogDatasetReader GetQuestionDialogsTrain()
         {
             return new QuestionDialogDatasetReader(QuestionDialogsTrain_Path);
@@ -88,6 +140,30 @@ namespace WebBackend
             var linker = new DiskCachedLinker("../" + storage + ".link", 1, (u, c) => coreLinker.LinkUtterance(u, c));
             linker.CacheResult = true;
             return linker;
+        }
+
+        /// <summary>
+        /// Loads <see cref="QuestionCollection"/> from given question file.
+        /// </summary>
+        /// <param name="questionFile">The file with questions.</param>
+        /// <returns>The created collection.</returns>
+        internal static QuestionCollection LoadSimpleQuestions(string questionFile)
+        {
+            var questionFilePath = Path.Combine(DataPath, questionFile);
+            var questionLines = File.ReadAllLines(questionFilePath, Encoding.UTF8);
+
+            var questions = new List<string>();
+            var answerIds = new List<string>();
+            foreach (var line in questionLines)
+            {
+                var lineParts = line.Split('\t');
+                var question = lineParts[3];
+                var answerId = lineParts[2];
+                questions.Add(question);
+                answerIds.Add(answerId);
+            }
+
+            return new QuestionCollection(questions, answerIds);
         }
     }
 }

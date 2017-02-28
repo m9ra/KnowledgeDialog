@@ -74,30 +74,39 @@
   margin: auto;
   display: block; }
 
-.question_report {
+.knowledge_report .statistics {
+  padding-left: 20px; }
+.knowledge_report .question_report[correct=True] {
+  border-left: 10px solid green; }
+.knowledge_report .question_report[correct=False] {
+  border-left: 10px solid red; }
+.knowledge_report .question_report {
   margin: 20px 0 0 0;
   padding: 5px;
   border: 1px lightgray solid;
   font-size: 20px; }
-  .question_report .question {
+  .knowledge_report .question_report .question {
     color: black;
     margin-bottom: 10px;
     font-weight: bold;
     font-size: 22px; }
-    .question_report .question a {
+    .knowledge_report .question_report .question a {
       color: black; }
-  .question_report .denotation {
+    .knowledge_report .question_report .question .label, .knowledge_report .question_report .question .label a {
+      color: magenta;
+      margin-left: 30px; }
+  .knowledge_report .question_report .denotation {
     margin-left: 20px;
     clear: both;
     overflow: hidden;
     color: #777; }
-    .question_report .denotation a {
+    .knowledge_report .question_report .denotation a {
       color: #777; }
-    .question_report .denotation .answer_hint {
+    .knowledge_report .question_report .denotation .answer_hint {
       display: inline; }
-    .question_report .denotation .entity {
+    .knowledge_report .question_report .denotation .entity {
       display: inline;
       margin-left: 20px; }
-      .question_report .denotation .entity a {
+      .knowledge_report .question_report .denotation .entity a {
         color: #1976D2; }
 

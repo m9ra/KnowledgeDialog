@@ -49,7 +49,7 @@ namespace KnowledgeDialog.DataCollection
             }
         }
 
-        public string GetAnswerId(string question)
+        public string GetAnswerMid(string question)
         {
             return _questionToAnswerId[sanitize(question)];
         }

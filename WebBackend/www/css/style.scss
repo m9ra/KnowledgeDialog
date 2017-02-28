@@ -103,44 +103,64 @@
 	display: block;
 }
 
-.question_report{
-	margin: 20px 0 0 0;
-	padding: 5px;
-	border: 1px lightgray solid;
-	font-size:20px;
-
-	
-	.question{
-		color: black;
-		margin-bottom: 10px;		
-		font-weight: bold;
-		font-size: 22px;
-
-		a{
-			color: black;
-		}
-
+.knowledge_report{
+	.statistics{
+		padding-left: 20px;
 	}
 
-	.denotation{
-		margin-left: 20px;
-		clear: both;
-		overflow: hidden;
+	.question_report[correct=True]{
+		border-left: 10px solid green;
+	}
 
-		color: #777;
-		a{
-			color: #777; 
-		}
+	.question_report[correct=False]{
+		border-left: 10px solid red;
+	}
 
-		.answer_hint{
-			display:inline;
-		}
-		
-		.entity{
-			display:inline;
-			margin-left:20px;
+	.question_report{
+		margin: 20px 0 0 0;
+		padding: 5px;
+		border: 1px lightgray solid;
+		font-size:20px;
+
+	
+		.question{
+			color: black;
+			margin-bottom: 10px;		
+			font-weight: bold;
+			font-size: 22px;
+
 			a{
-				color: #1976D2;
+				color: black;
+			}
+
+			.label, .label a{
+				color: magenta;
+				margin-left: 30px;
+			}
+		}
+
+
+
+		.denotation{
+			margin-left: 20px;
+			clear: both;
+			overflow: hidden;
+
+			color: #777;
+			a{
+				color: #777; 
+			}
+
+			.answer_hint{
+				display:inline;
+			}
+		
+			.entity{
+				display:inline;
+				margin-left:20px;
+				a{
+					color: #1976D2;
+				}
 			}
 		}
 	}

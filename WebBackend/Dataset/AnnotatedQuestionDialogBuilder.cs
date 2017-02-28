@@ -72,7 +72,7 @@ namespace WebBackend.Dataset
             if (action.IsDialogStart)
             {
                 _question = action.ParseQuestion();
-                _answerId = _questions.GetAnswerId(_question);
+                _answerId = _questions.GetAnswerMid(_question);
             }
 
             if (!action.IsRegularTurn)

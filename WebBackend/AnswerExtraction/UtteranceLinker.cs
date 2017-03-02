@@ -59,7 +59,7 @@ namespace WebBackend.AnswerExtraction
                 //the utterance is too long
                 return Enumerable.Empty<LinkedUtterance>();
 
-            var sanitizedUtterance = utterance.ToLowerInvariant().Replace(".", " ").Replace(",", " ").Replace("(", " ").Replace(")", " ").Replace("?", " ").Replace("!", " ").Replace("`s", "'s").Replace("'s", " 's");
+            var sanitizedUtterance = utterance.ToLowerInvariant().Replace(".", " ").Replace(",", " ").Replace("(", " ").Replace(")", " ").Replace("?", " ").Replace("!", " ").Replace("`s", "'s").Replace("'s", " 's").Replace("s'", " s'");
             var index = new EntityIndex(sanitizedUtterance.Split(' ').Where(w => w.Length > 0).ToArray(), this, entityHypCount);
             var result = index.LinkedUtterance_Hungry();
 

@@ -37,7 +37,7 @@ namespace WebBackend.AnswerExtraction
 
         public readonly string StoragePath;
 
-        internal KnowledgeReport(ExtractionKnowledge knowledge, LinkBasedExtractor extractor, QuestionCollection questions)
+        internal KnowledgeReport(ExtractionKnowledge knowledge, LinkBasedExtractor extractor, QuestionCollection questions, bool fruitOnly)
         {
             StoragePath = knowledge.StoragePath;
             QuestionCount = knowledge.Questions.Count();
@@ -49,6 +49,13 @@ namespace WebBackend.AnswerExtraction
 
                 var answerId = FreebaseDbProvider.GetId(questions.GetAnswerMid(question.Utterance.OriginalSentence));
                 var report = new QuestionReport(question, answerId, extractor);
+                if (fruitOnly)
+                {
+                    if (report.TopDenotationEvidence < 2 || report.CollectedDenotations.Count() - report.TopDenotationEvidence * 2 >= 0)
+                        //not enough evidence
+                        continue;
+                }
+
                 reports.Add(report);
             }
 
@@ -65,6 +72,8 @@ namespace WebBackend.AnswerExtraction
         public readonly IEnumerable<Tuple<LinkedUtterance, EntityInfo, bool>> CollectedDenotations;
 
         public readonly bool HasCorrectDenotation;
+
+        public readonly int TopDenotationEvidence;
 
         internal QuestionReport(QuestionInfo info, string answerId, LinkBasedExtractor extractor)
         {
@@ -93,6 +102,9 @@ namespace WebBackend.AnswerExtraction
             var maxDenotation = denotationCounts.OrderByDescending(t => t.Item2).FirstOrDefault();
             if (maxDenotation != null && AnswerLabel != null)
                 HasCorrectDenotation = maxDenotation.Item1 == AnswerLabel.Id;
+
+            if (maxDenotation != null)
+                TopDenotationEvidence = maxDenotation.Item2;
         }
     }
 }

@@ -46,11 +46,29 @@ namespace WebBackend.AnswerExtraction
                 return linkedUtterance;
 
             var entityClusters = new List<EntityInfo[]>();
+            var contextIndex = new HashSet<string>();
+            if (context != null)
+                contextIndex.UnionWith(context.Select(e => e.Mid));
+
             foreach (var part in linkedUtterance.Parts)
             {
                 if (part.Entities.Any())
                 {
-                    entityClusters.Add(part.Entities.ToArray());
+                    //force context entities
+                    var entities = part.Entities.ToArray();
+                    EntityInfo contextEntity = null;
+                    foreach (var entity in entities)
+                    {
+                        if (!contextIndex.Contains(entity.Mid))
+                            continue;
+
+                        contextEntity = entity;
+                        break;
+                    }
+                    if (contextEntity == null)
+                        entityClusters.Add(entities);
+                    else
+                        entityClusters.Add(new[] { contextEntity });
                 }
             }
 

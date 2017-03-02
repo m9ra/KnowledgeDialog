@@ -198,7 +198,7 @@ namespace WebBackend.AnswerExtraction
 
         internal static void RunLinkingExperiment()
         {
-            var devDataset = Configuration.GetQuestionDialogsTest();
+            var devDataset = Configuration.GetQuestionDialogsDev();
             var db = Configuration.Db;
 
             //var linker = new GraphDisambiguatedLinker(db, "./verbs.lex", useGraphDisambiguation: true);

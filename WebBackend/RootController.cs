@@ -53,11 +53,13 @@ namespace WebBackend
             if (currentKnowledgeId == null)
                 currentKnowledgeId = knowledgeIds.FirstOrDefault();
 
+            var fruitOnly = GET("fruitOnly")!=null;
+
             var reports = new List<KnowledgeReport>();
             foreach (var knowledge in ExtractionKnowledge.RegisteredKnowledge)
             {
                 if (knowledge.StoragePath == currentKnowledgeId)
-                    reports.Add(new KnowledgeReport(knowledge, Configuration.AnswerExtractor, Configuration.SimpleQuestionsTrain));
+                    reports.Add(new KnowledgeReport(knowledge, Configuration.AnswerExtractor, Configuration.SimpleQuestionsTrain, fruitOnly));
             }
 
             SetParam("knowledge_reports", reports);

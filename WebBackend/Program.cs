@@ -19,8 +19,6 @@ namespace WebBackend
 {
     class Program
     {
-
-
         /// <summary>
         /// Currently available experiments.
         /// </summary>
@@ -45,8 +43,13 @@ namespace WebBackend
             customCulture.NumberFormat.NumberDecimalSeparator = ".";
             System.Threading.Thread.CurrentThread.CurrentCulture = customCulture;
 
+
+            AnswerExtraction.Omegle_Batch.ObserveDialogCollection();
+            InitializeExperiments();
+
             //AnswerExtraction.ExtractionEvaluation_Batch.RunLinkingExperiment();
             //AnswerExtraction.ExtractionEvaluation_Batch.ExportAnswerExtractionData();
+            //AnswerExtraction.Statistics_Batch.CountReferences();
             //AnswerExtraction.ExtractionEvaluation_Batch.RunLinkedAnswerExtractionExperiment();
             //AnswerExtraction.LuceneIndex_Batch.BuildIndex();
             //AnswerExtraction.DumpCreation_Batch.BenchmarkFreebaseProviderNodes();
@@ -59,7 +62,7 @@ namespace WebBackend
             RunWebInterface();
         }
 
-        private static void RunWebInterface()
+        private static void InitializeExperiments()
         {
             var simpleQuestions1 = Configuration.LoadSimpleQuestions("questions1.smpq");
             var simpleQuestionsTrain = Configuration.SimpleQuestionsTrain;
@@ -106,7 +109,10 @@ namespace WebBackend
                 );
 
             QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "qdd_extension_r_");
+        }
 
+        private static void RunWebInterface()
+        {
             //run server
             runServer(Configuration.RootPath);
             runConsole();

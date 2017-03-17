@@ -34,30 +34,7 @@ namespace KnowledgeDialog.DataCollection
         /// <summary>
         /// Denotation which has been asked lastly.
         /// </summary>
-        protected DenotationType LastDenotationQuestion = DenotationType.None;
-
-        /// <summary>
-        /// Words that does not give any explanatory information.
-        /// </summary>
-        static protected readonly HashSet<string> NonInformativeWords = new HashSet<string>()
-        {
-            "of","for","a","to", "by","about","the","whether","what","how","who","which","when","why", "with", "without", "whatever", "whoever", "whenever", "however", "then", "than", "please", "correct", "whats", "what's", "s",
-
-            "and", "or",
-
-            "answer", "question", "questioner" ,"ask" ,"say", "saying" ,"asking",
-
-            "wonder", "wondering", "know", "knowing", "want",
-
-            "curios", "interested", "interesting", "interest", "answer", "answering", "look", "looking", "try", "trying", "find", "finding",
-
-            "think", "thinks", "was", "were",
-
-            "you", "it", "me", "i", "m", "we",
-
-            "can", "could", "will", "would", "tell", "give", "name", "think", "thing"
-        };
-
+        protected DenotationType LastDenotationQuestion = DenotationType.None;       
 
         /// <inheritdoc/>
         public abstract ResponseBase Initialize();

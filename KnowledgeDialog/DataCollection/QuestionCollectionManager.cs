@@ -186,7 +186,7 @@ namespace KnowledgeDialog.DataCollection
 
         public static IEnumerable<string> GetInformativeWords(ParsedUtterance utterance)
         {
-            return lower(utterance.Words.Except(NonInformativeWords).Distinct());
+            return lower(utterance.Words.Except(UtteranceParser.NonInformativeWords).Distinct());
         }
 
         private static IEnumerable<string> lower(IEnumerable<string> words)

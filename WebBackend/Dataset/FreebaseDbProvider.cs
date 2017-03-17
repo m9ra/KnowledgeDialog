@@ -217,6 +217,8 @@ namespace WebBackend.Dataset
         {
             var id = GetFreebaseId(mid);
             var entry = GetEntryFromId(id);
+            if (entry == null)
+                return null;
 
             return new EntityInfo(mid, entry.Label, entry.Targets.Where(t => !t.Item1.IsOutcoming).Count(), entry.Targets.Where(t => t.Item1.IsOutcoming).Count(), entry.Description);
         }
@@ -363,7 +365,7 @@ namespace WebBackend.Dataset
 
         private string sanitizeName(string name)
         {
-            var sanitized = name.Replace('.', ' ').Replace(':', ' ').Replace(',', ' ').Replace('\'', ' ').Replace('"', ' ').Replace('/', ' ').Replace('\\', ' ').Trim();
+            var sanitized = name.Replace('.', ' ').Replace('!', ' ').Replace('?', ' ').Replace(':', ' ').Replace(',', ' ').Replace('\'', ' ').Replace('"', ' ').Replace('/', ' ').Replace('\\', ' ').Trim();
 
             while (sanitized.Contains("  "))
                 sanitized = sanitized.Replace("  ", " ");

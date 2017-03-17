@@ -45,9 +45,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Sockets.Plugin">
       <HintPath>..\packages\rda.SocketsForPCL.1.2.2\lib\net45\Sockets.Plugin.dll</HintPath>
@@ -72,10 +72,13 @@
     <Compile Include="AnswerExtraction\IModel.cs" />
     <Compile Include="AnswerExtraction\KnowledgeReport.cs" />
     <Compile Include="AnswerExtraction\Models\RuleBasedDenotationModel.cs" />
+    <Compile Include="AnswerExtraction\Omegle_Batch.cs" />
     <Compile Include="AnswerExtraction\QuestionInfo.cs" />
     <Compile Include="AnswerExtraction\CachedLinker.cs" />
     <Compile Include="AnswerExtraction\ExtractionKnowledge.cs" />
+    <Compile Include="AnswerExtraction\Statistics_Batch.cs" />
     <Compile Include="Dataset\DataWriter_Batch.cs" />
+    <Compile Include="Dataset\DialogStatisticCounter.cs" />
     <Compile Include="Dataset\FileReader.cs" />
     <Compile Include="Dataset\FreebaseDbProvider.cs" />
     <Compile Include="Dataset\FreebaseDumpProcessor.cs" />
@@ -108,6 +111,11 @@
     <Compile Include="Dataset\QuestionDialogDatasetReader.cs" />
     <Compile Include="Dataset\QuestionDialogProvider.cs" />
     <Compile Include="Dataset\SplitDescription.cs" />
+    <Compile Include="Dataset\WordStats.cs" />
+    <Compile Include="DataSources\CookieAwareWebClient.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="DataSources\OmegleManager.cs" />
     <Compile Include="DialogProvider\AnswerExtractionWebConsole.cs" />
     <Compile Include="DialogProvider\QuestionCollectionWebConsole.cs" />
     <Compile Include="Experiment\AnnotatedActionEntry.cs" />
@@ -154,6 +162,7 @@
     <None Include="www\annotate2.haml" />
     <None Include="www\answer_extraction.haml" />
     <None Include="www\database.haml" />
+    <None Include="www\omegle.haml" />
     <None Include="www\knowledge.haml" />
     <None Include="www\question_collection.haml" />
     <None Include="www\logs.haml" />

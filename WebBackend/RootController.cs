@@ -8,6 +8,8 @@ using System.IO;
 
 using ServeRick;
 
+using KnowledgeDialog.Dialog;
+
 
 using WebBackend.Dataset;
 using WebBackend.Experiment;
@@ -46,6 +48,21 @@ namespace WebBackend
             Render("database.haml");
         }
 
+        public void omegle()
+        {
+            var questionFile = "which_town_was_tony_sucipto_born.txt";
+            var lines = File.ReadAllLines(questionFile);
+            var question = lines.First();
+            var utterances = lines.Skip(1).Where(u => u.Trim() != "").ToArray();
+
+            SetParam("utterance_count", utterances.Length);
+            SetParam("word_stats", new WordStats(utterances));
+            SetParam("question", question);
+
+            Layout("layout.haml");
+            Render("omegle.haml");
+        }
+
         public void knowledge()
         {
             var knowledgeIds = ExtractionKnowledge.RegisteredKnowledge.Select(k => k.StoragePath).ToArray();
@@ -53,7 +70,7 @@ namespace WebBackend
             if (currentKnowledgeId == null)
                 currentKnowledgeId = knowledgeIds.FirstOrDefault();
 
-            var fruitOnly = GET("fruitOnly")!=null;
+            var fruitOnly = GET("fruitOnly") != null;
 
             var reports = new List<KnowledgeReport>();
             foreach (var knowledge in ExtractionKnowledge.RegisteredKnowledge)

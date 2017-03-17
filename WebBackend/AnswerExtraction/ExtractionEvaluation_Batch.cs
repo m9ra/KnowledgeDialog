@@ -29,6 +29,11 @@ namespace WebBackend.AnswerExtraction
             exportLinkedAnswerHints(linker, "train.qdd_ae", trainDataset.Dialogs.Where(d => d.HasCorrectAnswer));
             exportLinkedAnswerHints(linker, "dev.qdd_ae", devDataset.Dialogs.Where(d => d.HasCorrectAnswer));
             exportLinkedAnswerHints(linker, "test.qdd_ae", testDataset.Dialogs.Where(d => d.HasCorrectAnswer));
+
+            /*
+            exportLinkedAnswerHints(linker, "train_augmented.qdd_ae", trainDataset.Dialogs.Where(d => d.HasCorrectAnswer));
+            exportLinkedAnswerHints(linker, "dev_augmented.qdd_ae", devDataset.Dialogs.Where(d => d.HasCorrectAnswer));
+            exportLinkedAnswerHints(linker, "test_augmented.qdd_ae", testDataset.Dialogs.Where(d => d.HasCorrectAnswer));*/
         }
 
         internal static void RunLinkedAnswerExtractionExperiment()
@@ -347,6 +352,34 @@ namespace WebBackend.AnswerExtraction
 
                 var answerTurn = dialog.AnswerTurns.Last();
                 var answerHint = answerTurn.InputChat;
+                var linkedAnswerHint = linker.LinkUtterance(answerHint, questionEntities);
+                if (linkedAnswerHint == null)
+                    continue;
+
+                var featureText = linkedQuestion.GetEntityBasedRepresentation() + " ## " + linkedAnswerHint.GetEntityBasedRepresentation();
+                if (featureText.Contains("|"))
+                    throw new NotImplementedException("escape feature text");
+
+                file.WriteLine("{0}|{1}|{2}", dialog.Id, featureText, dialog.AnswerMid);
+            }
+
+            file.Close();
+        }
+
+        private static void exportAugmentedLinkedAnswerHints(ILinker linker, string filePath, IEnumerable<QuestionDialog> dialogs)
+        {
+            var file = new StreamWriter(filePath);
+            foreach (var dialog in dialogs)
+            {
+                var answerEntity = new EntityInfo(dialog.AnswerMid, null, 0, 0);
+
+                var linkedQuestion = linker.LinkUtterance(dialog.Question);
+                //inject answer entities to question - forcing correct linking
+                var questionEntities = linkedQuestion.Parts.SelectMany(p => p.Entities).Concat(new[] { answerEntity }).ToArray();
+
+                var answerTurn = dialog.AnswerTurns.Last();
+                var answerHint = answerTurn.InputChat;
+
                 var linkedAnswerHint = linker.LinkUtterance(answerHint, questionEntities);
                 if (linkedAnswerHint == null)
                     continue;

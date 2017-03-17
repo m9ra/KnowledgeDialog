@@ -16,13 +16,43 @@ namespace KnowledgeDialog.Dialog
 
         private static readonly HashSet<string> NonEntityWords = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase) { "is", "yes", "no" };
 
-        private static readonly Regex _inputSanitizer = new Regex("[,.?<>;'\"-]", RegexOptions.Compiled);
+        private static readonly Regex _inputSanitizer = new Regex("[,.?<>;\"-]", RegexOptions.Compiled);
 
         private static readonly Regex _spaceSanitizer = new Regex(@"[ ]{2,}", RegexOptions.Compiled);
 
         private static readonly Dictionary<string, List<string>> _indexedEntities = new Dictionary<string, List<string>>();
 
         private static readonly DoubleMetaphone _metaphone = new DoubleMetaphone();
+
+        public static IEnumerable<string> NonInformativeWords { get { return _nonInformativeWords; } }
+
+        /// <summary>
+        /// Words that does not give any explanatory information.
+        /// </summary>
+        static readonly HashSet<string> _nonInformativeWords = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase)
+        {
+            "of","for","a","to", "by","about","the","whether","what","how","who","which","when","why", "with", "without", "whatever", "whoever", "whenever", "however", "then", "than", "please", "correct", "whats", "what's", "s",
+
+            "and", "or",
+
+            "answer", "question", "questioner" ,"ask" ,"say", "saying" ,"asking",
+
+            "wonder", "wondering", "know", "knowing", "want",
+
+            "curios", "interested", "interesting", "interest", "answer", "answering", "look", "looking", "try", "trying", "find", "finding",
+
+            "think", "thinks", "was", "were",
+
+            "you", "it", "me", "i", "m", "we",
+
+            "can", "could", "will", "would", "tell", "give", "name", "think", "thing",
+
+            "dont", "idk", "hi", "hey", "hei", "on","any","this","hate",
+            "shit","stupid","idiot", "is","in", "im", "is", "that","no","yes", "yeah","are","my","your","his","her","him", "their","they","she","he","it","there","that","this","here","like","so","never","ever","always","any","some","anytime","sometime","from",
+            "has","have","had","will", "u", "not","lol","oh", "asl",
+            "well","bad","good","great", "same","different","another", "just","ha","haha","even","odd", "other", "another","whose"
+        };
+
 
         internal static void RegisterEntity(string entity)
         {
@@ -41,6 +71,15 @@ namespace KnowledgeDialog.Dialog
                 return;
 
             entities.Add(entity);
+        }
+
+        public static bool IsInformativeWord(string word)
+        {
+            word = word.ToLowerInvariant().Replace("'", "");
+            if (word.Length < 3)
+                return false;
+
+            return !_nonInformativeWords.Contains(word) && !word.Contains("fuck");
         }
 
         public static ParsedUtterance Parse(string originalUtterance)

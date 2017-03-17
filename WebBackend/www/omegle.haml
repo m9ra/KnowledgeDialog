@@ -1,0 +1,40 @@
+﻿@word_stats WebBackend.Dataset.WordStats
+@utterance_count int
+@question string
+
+.container
+	%nav{class: "navbar navbar-inverse navbar-fixed-top"}
+		.navbar-header
+			%button{type: "button", class: "navbar-toggle", data-toggle: "collapse", data-target: "navbar-collapse"}
+				%span.sr-only
+					Expand navigation	
+				%span.icon-bar
+				%span.icon-bar
+				%span.icon-bar
+
+			%a{class: "navbar-brand", href: "/"} Mgr. Vodolán Miroslav
+.jumbotron#preface
+	.container
+		%h1 Omegle
+		%p 
+			Data collected from question dialogs observation			
+	
+.container	
+	%h2= @question
+	%p
+		Utterance count: 
+		= @utterance_count
+		%br
+
+		Word count: 
+		= @word_stats.WordCount
+		%br
+
+		%h3
+			Informative word counts
+		%table.table
+			- @word_stats.TopInformativeWordCounts.each do |count|
+				%tr
+					%td=count.Item1
+					%td=count.Item2
+	

@@ -30,6 +30,11 @@ namespace WebBackend
         /// </summary>
         public static string ExperimentsRootPath { get { return Path.Combine(DataPath, "experiments"); } }
 
+        /// <summary>
+        /// Path to omegle experiments
+        /// </summary>
+        public static string OmegleExperimentsRootPath { get { return Path.Combine(ExperimentsRootPath, "omegle"); } }
+
         internal static string SimpleQuestionFB2M_Path { get; private set; }
 
         internal static string FreebaseDB_Path { get; private set; }

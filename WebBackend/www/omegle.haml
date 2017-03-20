@@ -1,6 +1,8 @@
 ﻿@word_stats WebBackend.Dataset.WordStats
 @utterance_count int
 @question string
+@current_experiment_file string
+@experiment_files +string
 
 .container
 	%nav{class: "navbar navbar-inverse navbar-fixed-top"}
@@ -16,8 +18,16 @@
 .jumbotron#preface
 	.container
 		%h1 Omegle
-		%p 
-			Data collected from question dialogs observation			
+		%h2 Available questions
+		%p
+			- @experiment_files.each do |experiment_file|
+				.experiment_row
+					- if experiment_file == @current_experiment_file
+						%b
+							= experiment_file
+					- else
+						%a{href: "/omegle?experimentFile="+experiment_file}
+							= experiment_file
 	
 .container	
 	%h2= @question

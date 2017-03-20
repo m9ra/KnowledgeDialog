@@ -50,11 +50,18 @@ namespace WebBackend
 
         public void omegle()
         {
-            var questionFile = "which_town_was_tony_sucipto_born.txt";
-            var lines = File.ReadAllLines(questionFile);
+            var experimentFile = GET("experimentFile");
+            var experimentFiles = Directory.EnumerateFiles(Configuration.OmegleExperimentsRootPath, "*.omegle_log").Select(f => Path.GetFileName(f)).ToArray();
+
+            if (!experimentFiles.Contains(experimentFile))
+                experimentFile = experimentFiles.First();
+
+            var lines = File.ReadAllLines(Path.Combine(Configuration.OmegleExperimentsRootPath,experimentFile));
             var question = lines.First();
             var utterances = lines.Skip(1).Where(u => u.Trim() != "").ToArray();
 
+            SetParam("experiment_files", experimentFiles);
+            SetParam("current_experiment_file", experimentFile);
             SetParam("utterance_count", utterances.Length);
             SetParam("word_stats", new WordStats(utterances));
             SetParam("question", question);

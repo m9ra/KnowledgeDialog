@@ -50,20 +50,37 @@ namespace WebBackend
 
         public void omegle()
         {
+            var useTfIdf = GET("noTfIdf") == null;
             var experimentFile = GET("experimentFile");
             var experimentFiles = Directory.EnumerateFiles(Configuration.OmegleExperimentsRootPath, "*.omegle_log").Select(f => Path.GetFileName(f)).ToArray();
 
             if (!experimentFiles.Contains(experimentFile))
                 experimentFile = experimentFiles.First();
 
-            var lines = File.ReadAllLines(Path.Combine(Configuration.OmegleExperimentsRootPath,experimentFile));
+            var lines = File.ReadAllLines(Path.Combine(Configuration.OmegleExperimentsRootPath, experimentFile));
             var question = lines.First();
             var utterances = lines.Skip(1).Where(u => u.Trim() != "").ToArray();
+
+            WordStats stats;
+            if (useTfIdf)
+            {
+                var allFileUtterances = new List<IEnumerable<string>>();
+                foreach (var file in experimentFiles)
+                {
+                    allFileUtterances.Add(File.ReadAllLines(Path.Combine(Configuration.OmegleExperimentsRootPath, file)));
+                }
+
+                stats = new WordStats(utterances, allFileUtterances);
+            }
+            else
+            {
+                stats = new WordStats(utterances);
+            }
 
             SetParam("experiment_files", experimentFiles);
             SetParam("current_experiment_file", experimentFile);
             SetParam("utterance_count", utterances.Length);
-            SetParam("word_stats", new WordStats(utterances));
+            SetParam("word_stats", stats);
             SetParam("question", question);
 
             Layout("layout.haml");

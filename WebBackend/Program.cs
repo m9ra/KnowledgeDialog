@@ -44,13 +44,18 @@ namespace WebBackend
             System.Threading.Thread.CurrentThread.CurrentCulture = customCulture;
 
 
-            AnswerExtraction.Omegle_Batch.ObserveDialogCollection();
-            InitializeExperiments();
+            //AnswerExtraction.Omegle_Batch.ObserveDialogCollection();
+            //InitializeExperiments();
 
             //AnswerExtraction.ExtractionEvaluation_Batch.RunLinkingExperiment();
             //AnswerExtraction.ExtractionEvaluation_Batch.ExportAnswerExtractionData();
             //AnswerExtraction.Statistics_Batch.CountReferences();
             //AnswerExtraction.ExtractionEvaluation_Batch.RunLinkedAnswerExtractionExperiment();
+            //AnswerExtraction.SigdialPaperExperiments_Batch.EdgeMaximizationLinking();
+            //AnswerExtraction.SigdialPaperExperiments_Batch.PopularityMaximizationLinking();
+            //AnswerExtraction.SigdialPaperExperiments_Batch.BasicCancelation();
+            //AnswerExtraction.SigdialPaperExperiments_Batch.BasicCancelation_WithEnumDetection();
+            AnswerExtraction.SigdialPaperExperiments_Batch.BasicCancelation_WithEnumAndNgrams();
             //AnswerExtraction.LuceneIndex_Batch.BuildIndex();
             //AnswerExtraction.DumpCreation_Batch.BenchmarkFreebaseProviderNodes();
             //AnswerExtraction.DumpCreation_Batch.BuildFreebaseDB();
@@ -59,7 +64,8 @@ namespace WebBackend
             //AnswerExtraction.DumpCreation_Batch.DumpQuestions();
             //GeneralizationQA.GoldenAnswer_Batch.RunAnswerGeneralizationDev();
             //GeneralizationQA.GoldenAnswer_Batch.RunGraphMIExperiment();
-            RunWebInterface();
+            //RunWebInterface();
+            Console.ReadKey();
         }
 
         private static void InitializeExperiments()

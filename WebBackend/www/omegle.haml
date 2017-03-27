@@ -41,10 +41,15 @@
 		%br
 
 		%h3
-			Informative word counts
+			Informative words only
 		%table.table
+			%tr
+				%th Word
+				%th Count
+				%th TfIdf
 			- @word_stats.TopInformativeWordCounts.each do |count|
 				%tr
 					%td=count.Item1
 					%td=count.Item2
+					%td=count.Item3
 	

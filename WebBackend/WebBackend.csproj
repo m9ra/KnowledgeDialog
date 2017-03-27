@@ -73,9 +73,11 @@
     <Compile Include="AnswerExtraction\KnowledgeReport.cs" />
     <Compile Include="AnswerExtraction\Models\RuleBasedDenotationModel.cs" />
     <Compile Include="AnswerExtraction\Omegle_Batch.cs" />
+    <Compile Include="AnswerExtraction\PopularityMaximizationLinker.cs" />
     <Compile Include="AnswerExtraction\QuestionInfo.cs" />
     <Compile Include="AnswerExtraction\CachedLinker.cs" />
     <Compile Include="AnswerExtraction\ExtractionKnowledge.cs" />
+    <Compile Include="AnswerExtraction\SigdialPaperExperiments_Batch.cs" />
     <Compile Include="AnswerExtraction\Statistics_Batch.cs" />
     <Compile Include="Dataset\DataWriter_Batch.cs" />
     <Compile Include="Dataset\DialogStatisticCounter.cs" />

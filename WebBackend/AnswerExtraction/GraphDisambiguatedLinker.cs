@@ -24,6 +24,8 @@ namespace WebBackend.AnswerExtraction
 
         private Dictionary<string, EntityInfo> _context = new Dictionary<string, EntityInfo>();
 
+        internal int Nbest = 1;
+
         internal GraphDisambiguatedLinker(FreebaseDbProvider db, string verbsLexicon, bool useGraphDisambiguation = true)
             : base(db, verbsLexicon)
         {
@@ -72,14 +74,32 @@ namespace WebBackend.AnswerExtraction
                 }
             }
 
-            var disambiguatedClusters = disambiguateClusters(entityClusters);
-            var entityQueue = new Queue<EntityInfo>(disambiguatedClusters);
+            var disambiguatedClusters = new List<HashSet<EntityInfo>>();
+            for (var clusterIndex = 0; clusterIndex < entityClusters.Count; ++clusterIndex)
+                disambiguatedClusters.Add(new HashSet<EntityInfo>());
+
+            for (var i = 0; i < Nbest; ++i)
+            {
+                var disambiguated = disambiguateClusters(entityClusters);
+
+                for (var clusterIndex = 0; clusterIndex < entityClusters.Count; ++clusterIndex)
+                {
+                    disambiguatedClusters[clusterIndex].Add(disambiguated[clusterIndex]);
+                    if (entityClusters[clusterIndex].Length == 1)
+                        //keep the last entity to prevent empty components
+                        continue;
+
+                    entityClusters[clusterIndex] = entityClusters[clusterIndex].Except(new[] { disambiguated[clusterIndex] }).ToArray();
+                }
+            }
+
+            var entityQueue = new Queue<HashSet<EntityInfo>>(disambiguatedClusters);
             var disambiguatedParts = new List<LinkedUtterancePart>();
             foreach (var part in linkedUtterance.Parts)
             {
                 if (part.Entities.Any())
                 {
-                    disambiguatedParts.Add(LinkedUtterancePart.Entity(part.Token, new[] { entityQueue.Dequeue() }));
+                    disambiguatedParts.Add(LinkedUtterancePart.Entity(part.Token, entityQueue.Dequeue().ToArray()));
                 }
                 else
                 {

@@ -28,5 +28,10 @@ namespace WebBackend.Dataset
             Aliases = aliases.ToArray();
             Targets = targets.ToArray();
         }
+
+        public override string ToString()
+        {
+            return Label + "(" + Id + ")";
+        }
     }
 }

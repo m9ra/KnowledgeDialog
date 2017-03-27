@@ -76,7 +76,7 @@ namespace WebBackend.AnswerExtraction
                           var questionIndex = rnd.Next(questionPool.Length);
                           var question = questionPool[questionIndex];
 
-                          var manager = new OmegleManager(7);
+                          var manager = new OmegleManager(11);
                           var utterances = manager.ObserveQuestion(question, 6);
                           writeQuestionLog(question, utterances);
                       }

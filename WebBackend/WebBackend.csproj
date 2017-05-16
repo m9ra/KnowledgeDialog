@@ -45,9 +45,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Sockets.Plugin">
       <HintPath>..\packages\rda.SocketsForPCL.1.2.2\lib\net45\Sockets.Plugin.dll</HintPath>
@@ -69,8 +68,11 @@
   <ItemGroup>
     <Compile Include="AnswerExtraction\AnswerExtractionManager.cs" />
     <Compile Include="AnswerExtraction\DialogContext.cs" />
+    <Compile Include="AnswerExtraction\GraphNavigationExperiments_Batch.cs" />
+    <Compile Include="AnswerExtraction\GraphNavigationManager.cs" />
     <Compile Include="AnswerExtraction\IModel.cs" />
     <Compile Include="AnswerExtraction\KnowledgeReport.cs" />
+    <Compile Include="AnswerExtraction\Models\IdfAliasDetectionModel.cs" />
     <Compile Include="AnswerExtraction\Models\RuleBasedDenotationModel.cs" />
     <Compile Include="AnswerExtraction\Omegle_Batch.cs" />
     <Compile Include="AnswerExtraction\PopularityMaximizationLinker.cs" />
@@ -118,9 +120,11 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="DataSources\OmegleManager.cs" />
+    <Compile Include="DialogProvider\GraphNavigationWebConsole.cs" />
     <Compile Include="DialogProvider\AnswerExtractionWebConsole.cs" />
     <Compile Include="DialogProvider\QuestionCollectionWebConsole.cs" />
     <Compile Include="Experiment\AnnotatedActionEntry.cs" />
+    <Compile Include="Experiment\GraphNavigationExperiment.cs" />
     <Compile Include="Experiment\AnswerExtractionExperiment.cs" />
     <Compile Include="Experiment\QuestionCollectionExperiment.cs" />
     <Compile Include="Experiment\AnnotatedLogFile.cs" />
@@ -162,6 +166,7 @@
     <None Include="www\action_log.haml" />
     <None Include="www\annotate.haml" />
     <None Include="www\annotate2.haml" />
+    <None Include="www\graph_navigation.haml" />
     <None Include="www\answer_extraction.haml" />
     <None Include="www\database.haml" />
     <None Include="www\omegle.haml" />

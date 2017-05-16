@@ -45,7 +45,7 @@ namespace WebBackend
 
 
             //AnswerExtraction.Omegle_Batch.ObserveDialogCollection();
-            //InitializeExperiments();
+            InitializeExperiments();
 
             //AnswerExtraction.ExtractionEvaluation_Batch.RunLinkingExperiment();
             //AnswerExtraction.ExtractionEvaluation_Batch.ExportAnswerExtractionData();
@@ -54,8 +54,10 @@ namespace WebBackend
             //AnswerExtraction.SigdialPaperExperiments_Batch.EdgeMaximizationLinking();
             //AnswerExtraction.SigdialPaperExperiments_Batch.PopularityMaximizationLinking();
             //AnswerExtraction.SigdialPaperExperiments_Batch.BasicCancelation();
+            //AnswerExtraction.SigdialPaperExperiments_Batch.DatasetStatistics();
+            //AnswerExtraction.GraphNavigationExperiments_Batch.ListUnknownEntityWordsQDD();
             //AnswerExtraction.SigdialPaperExperiments_Batch.BasicCancelation_WithEnumDetection();
-            AnswerExtraction.SigdialPaperExperiments_Batch.BasicCancelation_WithEnumAndNgrams();
+            //AnswerExtraction.SigdialPaperExperiments_Batch.BasicCancelation_WithEnumAndNgrams();
             //AnswerExtraction.LuceneIndex_Batch.BuildIndex();
             //AnswerExtraction.DumpCreation_Batch.BenchmarkFreebaseProviderNodes();
             //AnswerExtraction.DumpCreation_Batch.BuildFreebaseDB();
@@ -64,8 +66,8 @@ namespace WebBackend
             //AnswerExtraction.DumpCreation_Batch.DumpQuestions();
             //GeneralizationQA.GoldenAnswer_Batch.RunAnswerGeneralizationDev();
             //GeneralizationQA.GoldenAnswer_Batch.RunGraphMIExperiment();
-            //RunWebInterface();
-            Console.ReadKey();
+            RunWebInterface();
+            Console.ReadLine();
         }
 
         private static void InitializeExperiments()
@@ -111,7 +113,8 @@ namespace WebBackend
                 new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_3", 100, extensionQuestions),
                 new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_4", 100, extensionQuestions),
                 new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_5", 100, extensionQuestions),
-                new AnswerExtractionExperiment(experimentsRootPath, "answer_extraction", 100, simpleQuestionsTrain, Configuration.AnswerExtractor)
+                new AnswerExtractionExperiment(experimentsRootPath, "answer_extraction", 100, simpleQuestionsTrain, Configuration.AnswerExtractor),
+                new GraphNavigationExperiment(experimentsRootPath, "graph_navigation", 100, Configuration.GetQuestionDialogsTrain(),Configuration.Linker)
                 );
 
             QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "qdd_extension_r_");

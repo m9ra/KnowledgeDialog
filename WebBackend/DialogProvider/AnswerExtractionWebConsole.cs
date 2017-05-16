@@ -29,6 +29,7 @@ namespace WebBackend.DialogProvider
             _extractor = extract;
         }
 
+        /// <inheritdoc/>
         protected override IInputDialogManager createDialogManager()
         {
             return new AnswerExtractionManager(_questions, _knowledge, _extractor);

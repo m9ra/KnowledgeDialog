@@ -397,7 +397,7 @@ namespace WebBackend.AnswerExtraction
         private static ILinker getFullDataLinker(FreebaseDbProvider db)
         {
             var coreLinker = new GraphDisambiguatedLinker(db, "./verbs.lex", useGraphDisambiguation: true);
-            var linker = new DiskCachedLinker("../full.link", 1, (u, c) => coreLinker.LinkUtterance(u, c));
+            var linker = new DiskCachedLinker("../full.link", 1, (u, c) => coreLinker.LinkUtterance(u, c), db);
             linker.CacheResult = false;
             return linker;
         }

@@ -13,26 +13,26 @@ namespace KnowledgeDialog.RuleQuestions
 {
     class NodeQuestion
     {
-        public readonly double Impact;
+        public readonly double Impact = 0;
 
-        public readonly ParsedUtterance OriginalQuestion;
+        public readonly ParsedUtterance OriginalQuestion = null;
 
-        public readonly ParsedUtterance ActualQuestion;
+        public readonly ParsedUtterance ActualQuestion = null;
 
-        public readonly NodeReference QuestionedAnswer;
+        public readonly NodeReference QuestionedAnswer = null;
     }
 
     class TripletRelevanceQuestion
     {
-        public readonly double Impact;
+        public readonly double Impact = 0;
 
-        public readonly ParsedUtterance OriginalQuestion;
+        public readonly ParsedUtterance OriginalQuestion = null;
 
-        public readonly NodeReference Subject;
+        public readonly NodeReference Subject = null;
 
-        public readonly Edge Relation;
+        public readonly Edge Relation = null;
 
-        public readonly NodeReference Object;
+        public readonly NodeReference Object = null;
     }
 
     class QuestionGenerator

@@ -142,7 +142,7 @@ namespace WebBackend
         internal static DiskCachedLinker CreateCachedLinker(FreebaseDbProvider db, string storage)
         {
             var coreLinker = new GraphDisambiguatedLinker(db, "./verbs.lex", useGraphDisambiguation: true);
-            var linker = new DiskCachedLinker("../" + storage + ".link", 1, (u, c) => coreLinker.LinkUtterance(u, c));
+            var linker = new DiskCachedLinker("../" + storage + ".link", 1, (u, c) => coreLinker.LinkUtterance(u, c), db);
             linker.CacheResult = true;
             return linker;
         }

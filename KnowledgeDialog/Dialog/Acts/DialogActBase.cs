@@ -16,6 +16,14 @@ namespace KnowledgeDialog.Dialog.Acts
         /// <returns>The representation when overriden.</returns>
         public abstract ActRepresentation GetDialogAct();
 
+        public bool IsAffirm => this is AffirmAct;
+
+        public bool IsNegate => this is NegateAct;
+
+        public bool IsDontKnow => this is DontKnowAct;
+
+        public bool IsAdvice => this is AdviceAct;
+
         /// </inheritdoc>
         public override bool Equals(object obj)
         {

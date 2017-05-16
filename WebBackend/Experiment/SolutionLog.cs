@@ -46,7 +46,8 @@ namespace WebBackend.Experiment
             _task = experiment.GetTask(taskId);
 
             var isInitialized = false;
-            _logStorage = new CallStorage(experiment.GetLogPath(userData.UserID, taskId));
+            var logPath = experiment.GetLogPath(userData.UserID, taskId);
+            _logStorage = new CallStorage(logPath);
             _infoCall = _logStorage.RegisterCall("Info", c => { isInitialized = true; });
             _completitionCall = _logStorage.RegisterCall("ReportTaskCompletition", c => { });
 

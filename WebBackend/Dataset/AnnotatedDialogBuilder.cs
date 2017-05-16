@@ -63,7 +63,7 @@ namespace WebBackend.Dataset
                 //we have a task description action
                 _context.TaskType = action.Entry.Data["task"].ToString();
                 var substitutionArray = action.Entry.Data["substitutions"] as JArray;
-                if (substitutionArray.Count > 1)
+                if (substitutionArray.Count() > 1)
                     throw new NotSupportedException("We currently doesn't support multiple substitutions");
 
                 _context.SubstitutionData = substitutionArray[0].ToString();

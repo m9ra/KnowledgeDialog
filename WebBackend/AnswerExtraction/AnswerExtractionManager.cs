@@ -46,7 +46,6 @@ namespace WebBackend.AnswerExtraction
         /// </summary>
         public bool CanBeCompleted { get; private set; }
 
-
         internal AnswerExtractionManager(QuestionCollection questions, ExtractionKnowledge knowledge, LinkBasedExtractor extractor)
         {
             _questions = questions;
@@ -72,7 +71,7 @@ namespace WebBackend.AnswerExtraction
         public override ResponseBase Input(ParsedUtterance utterance)
         {
             //we require enough informative turns only
-            CanBeCompleted = true; 
+            CanBeCompleted = true;
             HadInformativeInput = false;
 
             if (IsDialogClosed)
@@ -118,13 +117,13 @@ namespace WebBackend.AnswerExtraction
             _discussedQuestions.Add(topicQuestion);
             var context = new DialogContext(topic, topicQuestion, model, Factory);
             context.RegisterNextOutput(decorateTopicQuestion(topicQuestion));
-            return context; 
+            return context;
         }
 
         private ResponseBase decorateTopicQuestion(ResponseBase topicQuestion)
         {
-            var lastStatus=_actualContext==null? CompletitionStatus.None : _actualContext.CompletitionStatus;
-            var isSampeTopic=_actualContext==null?false: _actualContext.Topic.Equals(topicQuestion);
+            var lastStatus = _actualContext == null ? CompletitionStatus.None : _actualContext.CompletitionStatus;
+            var isSampeTopic = _actualContext == null ? false : _actualContext.Topic.Equals(topicQuestion);
             switch (lastStatus)
             {
                 case CompletitionStatus.None:

@@ -33,7 +33,7 @@ namespace WebBackend.AnswerExtraction
 
         private Dictionary<string, int> _totalCounts = new Dictionary<string, int>();
 
-        private readonly int _contextNgramSize = 5;
+        private readonly int _contextNgramSize = 3;
 
         private readonly string _testedEntityPlaceholder = "$t";
 
@@ -70,7 +70,6 @@ namespace WebBackend.AnswerExtraction
         private IEnumerable<EntityInfo> getAnswerEntities(string question, string answerHint, EntityInfo[] questionEntities)
         {
             var linkedAnswerHint = getLinkedAnswerHint(answerHint, questionEntities);
-            var ngrams = linkedAnswerHint.GetNgrams(_contextNgramSize);
 
             var answerPhaseEntities = getAnswerHintEntities(answerHint, questionEntities);
 
@@ -90,25 +89,22 @@ namespace WebBackend.AnswerExtraction
 
             if (UseNgramOrdering)
             {
-                foreach (var entity in answerPhaseEntities)
+                foreach (var entityNgrams in getNgrams(linkedAnswerHint))
                 {
-                    var entityNgrams = ngrams.Where(n => n.Contains(entity.Mid)).ToArray();
-
                     var scoreSum = 0.0;
-                    foreach (var ngram in entityNgrams)
+                    foreach (var ngram in entityNgrams.Item2)
                     {
                         var processedNgram = _entityIdParser.Replace(ngram, m => "[]");
 
-                        int positiveCount, totalCount;
+                        _positiveCounts.TryGetValue(processedNgram, out var positiveCount);
+                        _totalCounts.TryGetValue(processedNgram, out var totalCount);
 
-
-                        _positiveCounts.TryGetValue(processedNgram, out positiveCount);
-                        _totalCounts.TryGetValue(processedNgram, out totalCount);
-
-                        scoreSum += 1.0 * positiveCount / (totalCount + 1);
+                        var negativeCount = totalCount - positiveCount;
+                        scoreSum += 1.0 * positiveCount - negativeCount;
+                        //scoreSum += 1.0 * positiveCount / totalCount;
                     }
 
-                    entityScores[entity] = scoreSum;
+                    entityScores[entityNgrams.Item1] = scoreSum + 1;
                 }
             }
 
@@ -154,6 +150,34 @@ namespace WebBackend.AnswerExtraction
             answerPhaseEntities = answerPhaseEntities.Intersect(entityScores.Keys).Distinct().ToArray();
 
             return answerPhaseEntities.OrderByDescending(e => entityScores[e]).ThenByDescending(e => e.InBounds + e.OutBounds).ToArray();
+        }
+
+        private IEnumerable<Tuple<EntityInfo, string[]>> getNgrams(LinkedUtterance utterance)
+        {
+            var parts = utterance.Parts.ToArray();
+            for (var i = 1; i < parts.Length; ++i)
+            {
+                var part = parts[i];
+                if (!part.Entities.Any())
+                    //we are interested only in entities
+                    continue;
+
+                var ngrams = new List<string>();
+                var entity = part.Entities.First();
+                var ngram = "[" + entity.BestAliasMatch + "-" + entity.Mid + "]";
+                //var ngram = entity.BestAliasMatch;
+                for (var j = 0; j < _contextNgramSize; ++j)
+                {
+                    var position = i - j;
+                    if (position < 0)
+                        break;
+                    ngram = parts[position].Token + " " + ngram;
+                }
+
+                ngram = ngram.Trim();
+                ngrams.Add(ngram);
+                yield return Tuple.Create(part.Entities.First(), ngrams.ToArray());
+            }
         }
 
         private double questionContextScore(EntityInfo entity, IEnumerable<EntityInfo> questionEntities)
@@ -255,19 +279,22 @@ namespace WebBackend.AnswerExtraction
             if (answerHint == null)
                 return;
 
-            foreach (var ngram in answerHint.GetNgrams(_contextNgramSize))
+            foreach (var entityNgrams in getNgrams(answerHint))
             {
-                var replacedNgram = _entityIdParser.Replace(ngram, m => "[]");
-                int count;
-
-                if (ngram.Contains(dialog.AnswerMid))
+                foreach (var ngram in entityNgrams.Item2)
                 {
-                    _positiveCounts.TryGetValue(replacedNgram, out count);
-                    _positiveCounts[replacedNgram] = count + 1;
-                }
+                    var replacedNgram = _entityIdParser.Replace(ngram, m => "[]");
+                    int count;
 
-                _totalCounts.TryGetValue(ngram, out count);
-                _totalCounts[replacedNgram] = count + 1;
+                    if (ngram.Contains(dialog.AnswerMid))
+                    {
+                        _positiveCounts.TryGetValue(replacedNgram, out count);
+                        _positiveCounts[replacedNgram] = count + 1;
+                    }
+
+                    _totalCounts.TryGetValue(replacedNgram, out count);
+                    _totalCounts[replacedNgram] = count + 1;
+                }
             }
         }
 

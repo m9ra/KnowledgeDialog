@@ -13,6 +13,8 @@ namespace WebBackend.AnswerExtraction
 {
     interface ILinker
     {
+        FreebaseDbProvider GetDb();
+
         LinkedUtterance LinkUtterance(string utterance, IEnumerable<EntityInfo> context = null);
     }
 
@@ -306,6 +308,11 @@ namespace WebBackend.AnswerExtraction
             {
                 return base.pruneEntities(entities, entityHypothesisCount);
             }
+        }
+
+        public FreebaseDbProvider GetDb()
+        {
+            return Db;
         }
     }
 }

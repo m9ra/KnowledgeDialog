@@ -58,6 +58,17 @@ namespace WebBackend.AnswerExtraction
             }
         }
 
+        internal static void DatasetStatistics()
+        {
+            var train = Configuration.GetQuestionDialogsTrain();
+            var dev = Configuration.GetQuestionDialogsDev();
+            var test = Configuration.GetQuestionDialogsTest();
+
+            Console.WriteLine("train: {0}, {1}",train.Dialogs.Count(),countDialogsWithCorrectAnswerHint(train));
+            Console.WriteLine("dev: {0}, {1}", dev.Dialogs.Count(), countDialogsWithCorrectAnswerHint(dev));
+            Console.WriteLine("test: {0}, {1}", test.Dialogs.Count(), countDialogsWithCorrectAnswerHint(test));
+        }
+
         internal static void BasicCancelation()
         {
             var testData = Configuration.GetQuestionDialogsTest();
@@ -66,7 +77,7 @@ namespace WebBackend.AnswerExtraction
             var linkedExtractor = new LinkBasedExtractor(linker, Configuration.Db);
             linkedExtractor.DisableEnumerationDetection = true;
 
-            var result = evaluateExtractor(testData, linker, (d) => linkedExtractor.ExtractAnswerEntity(d));
+            var result = evaluateExtractor(testData, linker, (d) => linkedExtractor.ExtractAnswerEntity(d),2);
             Console.WriteLine(result);
         }
 
@@ -78,7 +89,7 @@ namespace WebBackend.AnswerExtraction
             var linkedExtractor = new LinkBasedExtractor(linker, Configuration.Db);
             //enumeration detection is not disabled here
 
-            var result = evaluateExtractor(testData, linker, (d) => linkedExtractor.ExtractAnswerEntity(d));
+            var result = evaluateExtractor(testData, linker, (d) => linkedExtractor.ExtractAnswerEntity(d),2);
             Console.WriteLine(result);
         }
 
@@ -106,7 +117,7 @@ namespace WebBackend.AnswerExtraction
             Console.WriteLine(result);
         }
 
-        internal static AnswerExtractionResult evaluateExtractor(QuestionDialogDatasetReader dataset, ILinker linker, Func<QuestionDialog, IEnumerable<EntityInfo>> extractor)
+        internal static AnswerExtractionResult evaluateExtractor(QuestionDialogDatasetReader dataset, ILinker linker, Func<QuestionDialog, IEnumerable<EntityInfo>> extractor, int n = 1)
         {
             var totalDialogCount = 0;
             var correctLinkCount = 0;
@@ -135,21 +146,11 @@ namespace WebBackend.AnswerExtraction
 
                 ++correctLinkCount;
 
-                var denotation = extractor(dialog).FirstOrDefault();
-                var isExtractionCorrect = denotation != null && denotation.Mid == dialog.AnswerMid;
+                var denotations = extractor(dialog).Take(n).ToArray();
+                var isExtractionCorrect = denotations.Any(d => d.Mid == dialog.AnswerMid);
+
                 if (isExtractionCorrect)
                     ++correctExtractionCount;
-                else
-                {
-                    Console.WriteLine(linkedQuestion);
-                    Console.WriteLine(linkedAnswer);
-                    var labelEntry = Configuration.Db.GetEntryFromMid(dialog.AnswerMid);
-                    var denotationEntry = Configuration.Db.GetEntryFromMid(denotation.Mid);
-                    Console.WriteLine("Label: {0}", labelEntry);
-                    Console.WriteLine("Denotation: {0}", denotationEntry);
-
-                    Console.WriteLine("\n\n");
-                }
             }
 
             return new AnswerExtractionResult(1.0 * correctExtractionCount / totalDialogCount, 1.0 * correctExtractionCount / correctLinkCount);
@@ -194,5 +195,16 @@ namespace WebBackend.AnswerExtraction
             return text;
         }
 
+        private static int countDialogsWithCorrectAnswerHint(QuestionDialogDatasetReader reader)
+        {
+            var count = 0;
+            foreach(var dialog in reader.Dialogs)
+            {
+                if (dialog.HasCorrectAnswer)
+                    count += 1;
+            }
+
+            return count;
+        }
     }
 }

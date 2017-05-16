@@ -24,5 +24,10 @@ namespace WebBackend.AnswerExtraction
         {
             return _linker.LinkUtterance(utterance, Nbest).FirstOrDefault();
         }
+
+        public FreebaseDbProvider GetDb()
+        {
+            return _linker.Db;
+        }
     }
 }

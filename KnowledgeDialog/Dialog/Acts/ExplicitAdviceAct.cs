@@ -6,16 +6,14 @@ using System.Threading.Tasks;
 
 namespace KnowledgeDialog.Dialog.Acts
 {
-    public class ExplicitAdviceAct : DialogActBase
+    public class ExplicitAdviceAct : AdviceAct
     {
         internal readonly ParsedUtterance Question;
 
-        internal readonly ParsedUtterance Answer;
-
         internal ExplicitAdviceAct(ParsedUtterance question, ParsedUtterance advice)
+            :base(advice)
         {
             Question = question;
-            Answer = advice;
         }
 
         internal override void Visit(IActVisitor visitor)

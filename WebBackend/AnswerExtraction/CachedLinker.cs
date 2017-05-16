@@ -27,15 +27,18 @@ namespace WebBackend.AnswerExtraction
 
         private readonly string _cachePath;
 
+        private readonly FreebaseDbProvider _db;
+
         private Dictionary<string, LinkedUtterance> _cachedUtterances;
 
         internal bool CacheResult = true;
 
-        internal DiskCachedLinker(string cachePath, int version, LinkProvider provider)
+        internal DiskCachedLinker(string cachePath, int version, LinkProvider provider, FreebaseDbProvider db)
         {
             _cachePath = cachePath;
             _version = version;
             _provider = provider;
+            _db = db;
             loadCache();
         }
 
@@ -101,6 +104,9 @@ namespace WebBackend.AnswerExtraction
             }
         }
 
-
+        public FreebaseDbProvider GetDb()
+        {
+            return _db;
+        }
     }
 }

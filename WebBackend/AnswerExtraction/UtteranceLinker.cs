@@ -15,7 +15,7 @@ namespace WebBackend.AnswerExtraction
 {
     class UtteranceLinker
     {
-        protected readonly FreebaseDbProvider Db;
+        public readonly FreebaseDbProvider Db;
 
         private readonly Dictionary<string, int> _badNgramCounts = new Dictionary<string, int>();
 

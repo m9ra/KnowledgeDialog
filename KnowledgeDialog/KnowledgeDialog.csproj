@@ -35,9 +35,8 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -58,6 +57,8 @@
     <Compile Include="DataCollection\MachineActs\TooBriefAnswerAct.cs" />
     <Compile Include="DataCollection\MachineActs\RephraseQuestionProposeAct.cs" />
     <Compile Include="DataCollection\MachineActs\TooBriefRephraseAct.cs" />
+    <Compile Include="DataCollection\MachineActs\RequestEntityLabelAct.cs" />
+    <Compile Include="DataCollection\MachineActs\WelcomeWithEntityLabelRequest.cs" />
     <Compile Include="DataCollection\MachineActs\WelcomeWithRephraseRequestAct.cs" />
     <Compile Include="DataCollection\QuestionCollectionManager.cs" />
     <Compile Include="DataCollection\CollectionManagerBase.cs" />
@@ -111,6 +112,8 @@
     <Compile Include="Dialog\StringSearch.cs" />
     <Compile Include="Dialog\UtteranceParser.cs" />
     <Compile Include="Dialog\IQuestionAnswerManager.cs" />
+    <Compile Include="GraphNavigation\EntityNavigationData.cs" />
+    <Compile Include="GraphNavigation\NavigationData.cs" />
     <Compile Include="Knowledge\Edge.cs" />
     <Compile Include="Knowledge\ExplicitLayer.cs" />
     <Compile Include="Knowledge\KnowledgeClassifier.cs" />
@@ -131,6 +134,8 @@
     <Compile Include="Knowledge\PathFactory.cs" />
     <Compile Include="Knowledge\PathSegment.cs" />
     <Compile Include="Knowledge\Group.cs" />
+    <Compile Include="Knowledge\VoteContainer.cs" />
+    <Compile Include="Knowledge\Votes.cs" />
     <Compile Include="PoolComputation\ActionBlock.cs" />
     <Compile Include="PoolComputation\AnswerReport.cs" />
     <Compile Include="PoolComputation\IMappingProvider.cs" />

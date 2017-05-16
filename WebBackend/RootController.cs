@@ -275,6 +275,7 @@ namespace WebBackend
             Render("validate.haml");
         }
 
+
         public void experiment0()
         {
             var experimentName = "experiment0";
@@ -449,6 +450,12 @@ namespace WebBackend
             var experimentName = "data_collection5";
 
             experimentHandler(experimentName);
+        }
+
+
+        public void graph_navigation()
+        {
+            experimentHandler("graph_navigation");
         }
 
         /// <summary>

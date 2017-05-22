@@ -114,7 +114,7 @@ namespace WebBackend
                 new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_4", 100, extensionQuestions),
                 new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_5", 100, extensionQuestions),
                 new AnswerExtractionExperiment(experimentsRootPath, "answer_extraction", 100, simpleQuestionsTrain, Configuration.AnswerExtractor),
-                new GraphNavigationExperiment(experimentsRootPath, "graph_navigation", 100, Configuration.GetQuestionDialogsTrain(),Configuration.Linker)
+                new GraphNavigationExperiment(experimentsRootPath, "graph_navigation", 100, Configuration.GetQuestionDialogsTrain())
                 );
 
             QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "qdd_extension_r_");

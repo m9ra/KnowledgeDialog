@@ -46,11 +46,19 @@ namespace WebBackend.AnswerExtraction
 
         private readonly HashSet<string> _nonInformativeWords2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
+        private HashSet<string> _blacklistedLabels = new HashSet<string>();
+
         internal UtteranceLinker(FreebaseDbProvider db, string verbsLexicon = null)
         {
             Db = db;
             _nonInformativeWords2.UnionWith(_nonInformativeWords1);
             _nonInformativeWords2.UnionWith(loadVerbs(verbsLexicon));
+        }
+
+        internal void SetBlacklistLabels(IEnumerable<string> labels)
+        {
+            _blacklistedLabels.Clear();
+            _blacklistedLabels.UnionWith(labels);
         }
 
         internal virtual IEnumerable<LinkedUtterance> LinkUtterance(string utterance, int entityHypCount)
@@ -84,6 +92,10 @@ namespace WebBackend.AnswerExtraction
             var rescoredEntities = new List<EntityInfo>();
             foreach (var entity in entities)
             {
+                if (_blacklistedLabels.Contains(entity.BestAliasMatch))
+                    //skip the entity - its blacklisted
+                    continue;
+
                 var lengthFactor = (ngram.Length + entity.BestAliasMatch.Length) / 2.0;
                 var distance = KnowledgeDialog.Dialog.Parsing.Utilities.Levenshtein(entity.BestAliasMatch.ToLowerInvariant(), ngram);
                 var matchScore = lengthFactor / (lengthFactor + distance);

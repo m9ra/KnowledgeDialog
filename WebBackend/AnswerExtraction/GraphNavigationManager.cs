@@ -82,14 +82,19 @@ namespace WebBackend.AnswerExtraction
                 return new ContinueAct();
 
             if (act.IsDontKnow || act.IsNegate)
-                return startNewFrame();
+                return new NotUsefulContinuationAct(startNewFrame());
 
             if (act.IsAdvice)
             {
                 var advice = act as AdviceAct;
                 _currentTopic.AddLabelCandidate(advice.Answer.OriginalSentence);
-                return startNewFrame();
             }
+
+            HadInformativeInput = utterance.Words.Count() > 2;
+            CanBeCompleted = true;
+
+            // now we are just collecting simple data without any negotiation
+            return new UsefulContinuationAct(startNewFrame());
 
             var linkedUtterance = _linker.LinkUtterance(utterance.OriginalSentence);
             if (linkedUtterance.Entities.Count() != 0)

@@ -109,7 +109,7 @@ namespace WebBackend.Dataset
 
             return entry;
         }
-
+        
         private FreebaseEntry loadEntry(DbPointer pointer)
         {
             _dbReader.BaseStream.Seek(pointer.Offset, SeekOrigin.Begin);

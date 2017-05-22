@@ -28,16 +28,18 @@ namespace WebBackend.Experiment
 
         private readonly ILinker _linker;
 
-        public GraphNavigationExperiment(string experimentsRoot, string experimentId, int taskCount, QuestionDialogDatasetReader seedDialogs, ILinker linker)
+        private readonly FreebaseDbProvider _db;
+
+        public GraphNavigationExperiment(string experimentsRoot, string experimentId, int taskCount, QuestionDialogDatasetReader seedDialogs)
             : base(experimentsRoot, experimentId)
         {
-            var phrases = loadPhrases(seedDialogs, linker.GetDb());
-            //TODO exclude phrases from DB
-
+            _db = Configuration.Db;
+            var phrases = loadPhrases(seedDialogs, _db);
             _phrases = phrases.ToArray();
             var navigationDataPath = Path.Combine(ExperimentRootPath, "navigation_data.nvd");
             _data = new NavigationData(navigationDataPath);
-            _linker = linker;
+
+            _linker = createLinker(_phrases);
 
             var writer = new CrowdFlowerCodeWriter(ExperimentRootPath, experimentId);
 
@@ -50,20 +52,47 @@ namespace WebBackend.Experiment
             writer.Close();
         }
 
+        private ILinker createLinker(IEnumerable<string> excludedPhrases)
+        {
+            var coreLinker = new GraphDisambiguatedLinker(_db, "./verbs.lex", useGraphDisambiguation: true);
+            coreLinker.SetBlacklistLabels(excludedPhrases);
+
+            var linker = new DiskCachedLinker(ExperimentRootPath + "/experiment_linker.link", 1, (u, c) => coreLinker.LinkUtterance(u, c), _db);
+            linker.CacheResult = true;
+            return linker;
+        }
+
         private IEnumerable<string> loadPhrases(QuestionDialogDatasetReader seedDialogs, FreebaseDbProvider db)
         {
             var entities = seedDialogs.Dialogs.Select(d => db.GetEntryFromMid(d.AnswerMid)).Where(e => e != null).ToArray();
 
             var phrases = new List<string>();
-            foreach(var entity in entities)
+            foreach (var entity in entities)
             {
                 if (entity.Aliases.Count() < 2)
+                    continue;
+
+                var alias = entity.Aliases.First();
+                if (!meetsPhraseRequirements(alias))
                     continue;
 
                 phrases.Add(entity.Aliases.First());
             }
 
-            return phrases;
+            return phrases.Distinct().ToArray();
+        }
+
+        private bool meetsPhraseRequirements(string alias)
+        {
+            foreach (var ch in alias)
+            {
+                if (!char.IsLetterOrDigit(ch) && !char.IsWhiteSpace(ch))
+                    return false;
+
+                if (ch > 'z')
+                    return false;
+            }
+            return true;
         }
 
         ///<inheritdoc/>

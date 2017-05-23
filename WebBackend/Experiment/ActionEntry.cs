@@ -108,6 +108,24 @@ namespace WebBackend
             }
         }
 
+        internal string ParseAct(string start, string end)
+        {
+            if (Act == null)
+                return null;
+
+            var startIndex = Act.IndexOf(start);
+            if (startIndex < 0)
+                return null;
+
+            startIndex += start.Length;
+
+            var endIndex = Act.IndexOf(end, startIndex);
+            if (endIndex < 0)
+                return null;
+
+            return Act.Substring(startIndex, endIndex - startIndex);
+        }
+
         private string resolveType(Dictionary<string, object> data)
         {
             var callName = data[CallStorage.CallNameEntry] as string;

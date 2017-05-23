@@ -92,6 +92,7 @@
     <Compile Include="AnswerExtraction\LinkIndex.cs" />
     <Compile Include="Dataset\FreebaseEntry.cs" />
     <Compile Include="Dataset\FreebaseGraphLayer.cs" />
+    <Compile Include="Dataset\GraphNavigationDataProvider.cs" />
     <Compile Include="Dataset\SimpleQuestionDumpProcessor.cs" />
     <Compile Include="AnswerExtraction\SearchContext.cs" />
     <Compile Include="AnswerExtraction\ExtractionEvaluation_Batch.cs" />

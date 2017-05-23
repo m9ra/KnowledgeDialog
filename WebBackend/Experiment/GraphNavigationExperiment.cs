@@ -34,7 +34,7 @@ namespace WebBackend.Experiment
             : base(experimentsRoot, experimentId)
         {
             _db = Configuration.Db;
-            var phrases = loadPhrases(seedDialogs, _db);
+            var phrases = LoadPhrases(seedDialogs, _db);
             _phrases = phrases.ToArray();
             var navigationDataPath = Path.Combine(ExperimentRootPath, "navigation_data.nvd");
             _data = new NavigationData(navigationDataPath);
@@ -62,7 +62,7 @@ namespace WebBackend.Experiment
             return linker;
         }
 
-        private IEnumerable<string> loadPhrases(QuestionDialogDatasetReader seedDialogs, FreebaseDbProvider db)
+        internal static IEnumerable<string> LoadPhrases(QuestionDialogDatasetReader seedDialogs, FreebaseDbProvider db)
         {
             var entities = seedDialogs.Dialogs.Select(d => db.GetEntryFromMid(d.AnswerMid)).Where(e => e != null).ToArray();
 
@@ -82,7 +82,7 @@ namespace WebBackend.Experiment
             return phrases.Distinct().ToArray();
         }
 
-        private bool meetsPhraseRequirements(string alias)
+        private static bool meetsPhraseRequirements(string alias)
         {
             foreach (var ch in alias)
             {

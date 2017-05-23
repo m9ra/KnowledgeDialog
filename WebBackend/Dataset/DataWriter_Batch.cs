@@ -13,8 +13,9 @@ namespace WebBackend.Dataset
         private static void writeQuestionDataset()
         {
             var provider = Program.QuestionDialogProvider;
-            var sluFactory = new SLUFactory();
             provider.Refresh();
+
+            var sluFactory = new SLUFactory();
 
             var dialogCount = 0;
             var turnCount = 0;
@@ -80,7 +81,6 @@ namespace WebBackend.Dataset
                 explanationCount += dialog.GetExplanationCount(sluFactory);
                 parahpraseCount += dialog.GetParaphraseCount(sluFactory);
                 answerCount += dialog.GetAnswerCount();
-
 
                 dialogIndexes.Add(i);
             }

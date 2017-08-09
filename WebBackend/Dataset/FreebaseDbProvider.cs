@@ -48,7 +48,8 @@ namespace WebBackend.Dataset
 
         internal FreebaseDbProvider(string dbPath)
         {
-            _dbReader = new StreamReader(dbPath);
+            _dbReader = new StreamReader(dbPath, Encoding.UTF8, false, 4096 * 2);
+
             loadIndex(dbPath + ".index");
             loadConfusions();
         }
@@ -80,7 +81,7 @@ namespace WebBackend.Dataset
                 throw new NotSupportedException("Edge format unknown: " + edgeId);
 
             return edgeId.Substring(edgeId.Length);
-        }        
+        }
 
         internal static string TryGetId(string identifier)
         {
@@ -109,7 +110,7 @@ namespace WebBackend.Dataset
 
             return entry;
         }
-        
+
         private FreebaseEntry loadEntry(DbPointer pointer)
         {
             _dbReader.BaseStream.Seek(pointer.Offset, SeekOrigin.Begin);
@@ -233,7 +234,7 @@ namespace WebBackend.Dataset
         private void loadConfusions()
         {
             _valueConfusions = new Dictionary<string, List<DbPointer>>(_aliasIndex.Count, StringComparer.InvariantCultureIgnoreCase);
-            
+
             foreach (var pair in _aliasIndex)
             {
                 var name = pair.Key;

@@ -48,16 +48,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataCollection\MachineActs\ContinuationActBase.cs" />
+    <Compile Include="DataCollection\MachineActs\EdgeRequestAct.cs" />
     <Compile Include="DataCollection\MachineActs\NotUnderstandableContinuationAct.cs" />
     <Compile Include="DataCollection\MachineActs\UsefulContinuationAct.cs" />
     <Compile Include="DataCollection\MachineActs\DirectAnswerHintQuestionAct.cs" />
     <Compile Include="DataCollection\MachineActs\NoConnectionToEntityAct.cs" />
     <Compile Include="DataCollection\MachineActs\NotUsefulContinuationAct.cs" />
+    <Compile Include="DataCollection\MachineActs\RequestWordingAct.cs" />
     <Compile Include="DataCollection\MachineActs\WelcomeWithAnswerRequestAct.cs" />
     <Compile Include="DataCollection\MachineActs\TooBriefAnswerAct.cs" />
     <Compile Include="DataCollection\MachineActs\RephraseQuestionProposeAct.cs" />
     <Compile Include="DataCollection\MachineActs\TooBriefRephraseAct.cs" />
     <Compile Include="DataCollection\MachineActs\RequestEntityLabelAct.cs" />
+    <Compile Include="DataCollection\MachineActs\EdgeConfirmationRequestAct.cs" />
+    <Compile Include="DataCollection\MachineActs\WelcomeWithEdgeRequest.cs" />
     <Compile Include="DataCollection\MachineActs\WelcomeWithEntityLabelRequest.cs" />
     <Compile Include="DataCollection\MachineActs\WelcomeWithRephraseRequestAct.cs" />
     <Compile Include="DataCollection\QuestionCollectionManager.cs" />
@@ -112,6 +116,7 @@
     <Compile Include="Dialog\StringSearch.cs" />
     <Compile Include="Dialog\UtteranceParser.cs" />
     <Compile Include="Dialog\IQuestionAnswerManager.cs" />
+    <Compile Include="GraphNavigation\EdgeNavigationData.cs" />
     <Compile Include="GraphNavigation\EntityNavigationData.cs" />
     <Compile Include="GraphNavigation\NavigationData.cs" />
     <Compile Include="Knowledge\Edge.cs" />

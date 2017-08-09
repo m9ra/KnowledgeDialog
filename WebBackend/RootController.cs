@@ -458,6 +458,11 @@ namespace WebBackend
             experimentHandler("graph_navigation");
         }
 
+        public void edge_requests()
+        {
+            experimentHandler("edge_requests");
+        }
+
         /// <summary>
         /// Render experiment console. Also handle feedback and tracing of given experiment.
         /// </summary>
@@ -482,6 +487,12 @@ namespace WebBackend
 
 
             var solution = getSolution(experimentName, taskId);
+            if (solution == null)
+            {
+                Console.WriteLine("Empty experiment found: {0}, {1}", experimentName, taskId);
+                return;
+            }
+
             solution.LogMessage("visiting " + experimentName + " " + taskId);
 
             //render the page

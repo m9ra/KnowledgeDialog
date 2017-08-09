@@ -46,7 +46,7 @@ namespace WebBackend.AnswerExtraction
 
         private readonly HashSet<string> _nonInformativeWords2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        private HashSet<string> _blacklistedLabels = new HashSet<string>();
+        private HashSet<string> _blacklistedLabels = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         internal UtteranceLinker(FreebaseDbProvider db, string verbsLexicon = null)
         {

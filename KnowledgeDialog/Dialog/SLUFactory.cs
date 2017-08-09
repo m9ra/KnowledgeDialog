@@ -25,7 +25,7 @@ namespace KnowledgeDialog.Dialog
             RegisterGroup("possesive_pronoun", "his", "her", "its", "their", "our", "yours");
             RegisterGroup("pronoun", "I", "you", "he", "it", "she", "they", "we");
             RegisterGroup("answer_preposition", "for", "of", "on");
-            RegisterGroup("yes_word", "yes", "yeah", "y", "ok", "sure");
+            RegisterGroup("yes_word", "yes", "yeah", "y", "ye", "yea", "ok", "sure", "ofc", "absolutely");
             RegisterGroup("no_word", "no", "nope", "n");
             RegisterGroup("w_word", "which", "what", "who", "where", "when", "why", "how");
             RegisterGroup("stronging_adjective", "definitely", "absolutely", "pretty");
@@ -39,6 +39,8 @@ namespace KnowledgeDialog.Dialog
             RegisterPattern(p => new NegateAct(), "$no_word");
             RegisterPattern(p => new AffirmAct(), "$stronging_adjective $yes_word");
             RegisterPattern(p => new NegateAct(), "$stronging_adjective $no_word");
+            RegisterPattern(p => new AffirmAct(p[1].OriginalSentence), "$yes_word #1");
+            RegisterPattern(p => new NegateAct(p[1].OriginalSentence), "$no_word #1");
             RegisterPattern(p => new DontKnowAct(), "dont know", "don't know", "do not know", "no idea");
             RegisterPattern(p => new DontKnowAct(), "I dont know", "I don't know", "I do not know", "I have no idea");
 
@@ -188,7 +190,7 @@ namespace KnowledgeDialog.Dialog
                 containsExpression(utterance, "google it") ||
                 (containsExpression(utterance, " no ") && containsExpression(utterance, "correct")) ||
                 (containsExpression(utterance, " no ") && containsExpression(utterance, "answer")) ||
-                (containsExpression(utterance, " i ") && containsExpression(utterance, "never"))  ||
+                (containsExpression(utterance, " i ") && containsExpression(utterance, "never")) ||
                 (containsExpression(utterance, " i ") && containsExpression(utterance, "unable")) ||
                 (containsExpression(utterance, " i'") && containsExpression(utterance, "never")) ||
                 (containsExpression(utterance, " ive") && containsExpression(utterance, "never")) ||
@@ -196,7 +198,7 @@ namespace KnowledgeDialog.Dialog
                 (containsExpression(utterance, "google") && containsExpression(utterance, "search")) ||
                 (containsExpression(utterance, "bing") && containsExpression(utterance, "search")) ||
                 (containsExpression(utterance, "web") && containsExpression(utterance, "search")) ||
-                
+
                 startsWith(utterance, "not ") ||
                 startsWith(utterance, "no ") ||
                 startsWith(utterance, "not,") ||

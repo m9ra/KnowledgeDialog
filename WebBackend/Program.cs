@@ -44,10 +44,11 @@ namespace WebBackend
             System.Threading.Thread.CurrentThread.CurrentCulture = customCulture;
 
 
-            //AnswerExtraction.Omegle_Batch.ObserveDialogCollection();
-            InitializeExperiments();
+            //InitializeExperiments();
 
-            AnswerExtraction.GraphNavigationExperiments_Batch.EvaluateLabelRequestInfo();
+            //AnswerExtraction.Omegle_Batch.ObserveDialogCollection();
+            AnswerExtraction.GraphNavigationExperiments_Batch.PrintEdgeVotesInfo();
+            //AnswerExtraction.GraphNavigationExperiments_Batch.EvaluateLabelRequestInfo();
             //AnswerExtraction.ExtractionEvaluation_Batch.RunLinkingExperiment();
             //AnswerExtraction.ExtractionEvaluation_Batch.ExportAnswerExtractionData();
             //AnswerExtraction.Statistics_Batch.CountReferences();
@@ -68,7 +69,7 @@ namespace WebBackend
             //GeneralizationQA.GoldenAnswer_Batch.RunAnswerGeneralizationDev();
             //GeneralizationQA.GoldenAnswer_Batch.RunGraphMIExperiment();
             //RunWebInterface();
-            Console.ReadLine();
+            //Console.ReadLine();
         }
 
         private static void InitializeExperiments()
@@ -115,7 +116,8 @@ namespace WebBackend
                 new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_4", 100, extensionQuestions),
                 new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_5", 100, extensionQuestions),
                 new AnswerExtractionExperiment(experimentsRootPath, "answer_extraction", 100, simpleQuestionsTrain, Configuration.AnswerExtractor),
-                new GraphNavigationExperiment(experimentsRootPath, "graph_navigation", 100, Configuration.GetQuestionDialogsTrain())
+                new GraphNavigationExperiment(experimentsRootPath, "graph_navigation", 100, Configuration.GetQuestionDialogsTrain()),
+                new GraphNavigationExperiment(experimentsRootPath, "edge_requests", 100, Configuration.GetQuestionDialogsTrain())
                 );
 
             QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "qdd_extension_r_");

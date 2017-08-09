@@ -47,7 +47,7 @@ namespace WebBackend.Experiment
 
             ExperimentBase experiment;
             if (!_idToExperiment.TryGetValue(experimentId, out experiment))
-                throw new NotImplementedException("NoTaskExperiment was refactored out");
+                return null;
 
             return experiment;
         }

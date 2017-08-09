@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 15
+VisualStudioVersion = 15.0.26228.10
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebBackend", "WebBackend\WebBackend.csproj", "{7C95FE30-F2D7-4E88-BDBE-0719F9B1562A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleQuestions", "SimpleQuestions\SimpleQuestions.csproj", "{2F7F4F35-7E33-44DD-BE8F-D493AEF39DC5}"
@@ -12,6 +14,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DialogTesting", "DialogTesting\DialogTesting.csproj", "{219B5894-6BCA-45D6-9B0D-0E175B2CDB65}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServeRick", "..\..\Actual projects\ServeRick\trunk\VSProjects\ServeRick\ServeRick.csproj", "{448AA490-1B38-4C66-B915-EBA43D4695DF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerceptiveDialogBasedAgent", "PerceptiveDialogBasedAgent\PerceptiveDialogBasedAgent.csproj", "{FC72D7D8-F6A9-449E-8BAF-C37C35828F01}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +57,14 @@ Global
 		{448AA490-1B38-4C66-B915-EBA43D4695DF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{448AA490-1B38-4C66-B915-EBA43D4695DF}.Release|x86.ActiveCfg = Release|x86
 		{448AA490-1B38-4C66-B915-EBA43D4695DF}.Release|x86.Build.0 = Release|x86
+		{FC72D7D8-F6A9-449E-8BAF-C37C35828F01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC72D7D8-F6A9-449E-8BAF-C37C35828F01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC72D7D8-F6A9-449E-8BAF-C37C35828F01}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FC72D7D8-F6A9-449E-8BAF-C37C35828F01}.Debug|x86.Build.0 = Debug|Any CPU
+		{FC72D7D8-F6A9-449E-8BAF-C37C35828F01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC72D7D8-F6A9-449E-8BAF-C37C35828F01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC72D7D8-F6A9-449E-8BAF-C37C35828F01}.Release|x86.ActiveCfg = Release|Any CPU
+		{FC72D7D8-F6A9-449E-8BAF-C37C35828F01}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

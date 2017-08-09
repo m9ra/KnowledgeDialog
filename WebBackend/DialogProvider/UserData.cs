@@ -82,10 +82,13 @@ namespace WebBackend
                 if (!_experimentToFeedbackCall.TryGetValue(experimentId, out _feedbackCall))
                 {
                     var experiment = Experiments.Get(experimentId);
-                    var feedbackPath = experiment.GetFeedbackPath();
-                    var feedbackStorage = new CallStorage(feedbackPath);
-                    _feedbackCall = feedbackStorage.RegisterCall("Feedback", (c) => { });
-                    _experimentToFeedbackCall[experimentId] = _feedbackCall;
+                    if (experiment != null)
+                    {
+                        var feedbackPath = experiment.GetFeedbackPath();
+                        var feedbackStorage = new CallStorage(feedbackPath);
+                        _feedbackCall = feedbackStorage.RegisterCall("Feedback", (c) => { });
+                        _experimentToFeedbackCall[experimentId] = _feedbackCall;
+                    }
                 }
 
 
@@ -103,7 +106,13 @@ namespace WebBackend
             var key = Tuple.Create(experimentId, taskId);
             SolutionLog log;
             if (!_taskToSolution.TryGetValue(key, out log))
-                _taskToSolution[key] = log = new SolutionLog(this, Experiments.Get(experimentId), taskId);
+            {
+                var experiment = Experiments.Get(experimentId);
+                if (experiment == null)
+                    return null;
+
+                _taskToSolution[key] = log = new SolutionLog(this, experiment, taskId);
+            }
 
 
             return log;

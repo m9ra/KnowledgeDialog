@@ -21,7 +21,8 @@ namespace KnowledgeDialog.DataCollection.MachineActs
         /// <inheritdoc/>
         protected override string initializeMessage()
         {
-            return string.Format("I can't see a connection to {0}. Please try to answer with a full sentence.", _entity.BestAliasMatch);
+            var label = _entity.BestAliasMatch == null ? _entity.Label : _entity.BestAliasMatch;
+            return string.Format("I can't see a connection to {0}. Please try to answer with a full sentence.", label);
         }
 
         /// <inheritdoc/>

@@ -13,6 +13,10 @@ namespace KnowledgeDialog.Knowledge
 
         private int _positiveVotes;
 
+        public int Positive => _positiveVotes;
+
+        public int Total => _totalVotes;
+
         public void AddPositiveVotes(int votes)
         {
             _positiveVotes += votes;

@@ -11,6 +11,8 @@ namespace KnowledgeDialog.Knowledge
     {
         private readonly Dictionary<T, Votes> _itemsVotes = new Dictionary<T, Votes>();
 
+        public IEnumerable<KeyValuePair<T, Votes>> ItemsVotes { get { return _itemsVotes.ToArray(); } }
+
         internal void Vote(T item)
         {
             if (!_itemsVotes.TryGetValue(item, out var votes))

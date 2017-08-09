@@ -8,6 +8,18 @@ namespace KnowledgeDialog.Dialog.Acts
 {
     public class NegateAct : DialogActBase
     {
+        readonly string _expression;
+
+        internal NegateAct()
+        {
+
+        }
+
+        internal NegateAct(string expression)
+        {
+            _expression = expression;
+        }
+
         internal override void Visit(IActVisitor visitor)
         {
             visitor.Visit(this);
@@ -15,13 +27,20 @@ namespace KnowledgeDialog.Dialog.Acts
 
         public override string ToString()
         {
-            return "Negate()";
+            if (_expression == null)
+                return "Negate()";
+
+            return string.Format("Negate({0})", _expression);
         }
 
         /// <inheritdoc/>
         public override ActRepresentation GetDialogAct()
         {
-            return new ActRepresentation("Negate");
+            var act = new ActRepresentation("Negate");
+            if (_expression != null)
+                act.AddParameter("expression", _expression);
+
+            return act;
         }
     }
 }

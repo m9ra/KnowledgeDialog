@@ -64,7 +64,7 @@ namespace PerceptiveDialogBasedAgent.Knowledge
                 //there is no constraint on the entity
                 return true;
 
-            if (constraint.NameConstraint != null && entity != constraint.NameConstraint)
+            if (constraint.PhraseConstraint != null && entity != constraint.PhraseConstraint)
                 return false;
 
             foreach (var questionConstraint in constraint.SubjectConstraints)

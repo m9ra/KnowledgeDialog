@@ -9,6 +9,12 @@ namespace PerceptiveDialogBasedAgent
 {
     static class Experiments
     {
+        internal static void RestaurantAgentTests()
+        {
+            var agent = new RestaurantAgent();
+            agent.Input("hello");
+        }
+
         internal static void DbTests()
         {
             var mind = new MindSet();

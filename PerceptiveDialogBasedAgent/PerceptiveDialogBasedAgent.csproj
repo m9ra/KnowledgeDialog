@@ -52,6 +52,7 @@
     <Compile Include="Knowledge\DbResult.cs" />
     <Compile Include="Knowledge\DbEntry.cs" />
     <Compile Include="MindSet.cs" />
+    <Compile Include="RestaurantAgent.cs" />
     <Compile Include="SemanticRepresentation\DbConstraint.cs" />
     <Compile Include="SemanticRepresentation\EntityBox.cs" />
     <Compile Include="SemanticRepresentation\Match.cs" />

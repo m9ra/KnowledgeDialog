@@ -18,6 +18,12 @@ namespace PerceptiveDialogBasedAgent.SemanticRepresentation
             _patterns.Insert(0, pattern);
         }
 
+        internal Match BestMatch(string expression)
+        {
+            var matches = Match(expression);
+            return matches.LastOrDefault();
+        }
+
         internal IEnumerable<Match> Match(string expression)
         {
             var tokens = tokenize(expression);

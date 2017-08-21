@@ -28,7 +28,7 @@ namespace PerceptiveDialogBasedAgent.Interpretation
             _parentContext = parentContext;
         }
 
-        public DbConstraint this[string variableName]
+        internal DbConstraint this[string variableName]
         {
             get
             {
@@ -38,6 +38,11 @@ namespace PerceptiveDialogBasedAgent.Interpretation
 
                 return result.Constraint;
             }
+        }
+
+        internal bool IsTrue(DbConstraint constraint)
+        {
+            return _evaluator.IsTrue(constraint);
         }
 
         internal DbConstraint AnswerWhere(DbConstraint subject, string question)

@@ -9,15 +9,23 @@ namespace PerceptiveDialogBasedAgent.Interpretation
 {
     delegate DbConstraint NativePhraseEvaluator(EvaluationContext context);
 
+    delegate DbConstraint NativeActionExecutor(EvaluationContext context);
+
     class Evaluator
     {
         private readonly Dictionary<string, NativePhraseEvaluator> _evaluators = new Dictionary<string, NativePhraseEvaluator>();
+
+        private readonly Dictionary<string, NativeActionExecutor> _executors = new Dictionary<string, NativeActionExecutor>();
 
         internal readonly MindSet Mind;
 
         internal static readonly string HowToEvaluateQ = "How to evaluate @?";
 
+        internal static readonly string HowToDoQ = "How to do @?";
+
         internal static readonly string NativeEvaluatorPrefix = "%native_evaluator-";
+
+        internal static readonly string NativeExecutorPrefix = "%native_executor-";
 
         internal Evaluator(MindSet mind)
         {
@@ -32,6 +40,12 @@ namespace PerceptiveDialogBasedAgent.Interpretation
             _evaluators.Add(evaluatorRepresentation, evaluator);
         }
 
+        public bool IsTrue(DbConstraint constraint)
+        {
+            //TODO recursive evaluation should be here
+            return Mind.Database.Query(constraint).Any();
+        }
+
         public EvaluationResult Evaluate(string phrase, EvaluationContext parentContext = null)
         {
             var nativeEvaluator = getNativeEvaluator(phrase);
@@ -41,11 +55,7 @@ namespace PerceptiveDialogBasedAgent.Interpretation
                 return new EvaluationResult(constraint);
             }
 
-            var matches = Mind.Matcher.Match(phrase).ToArray();
-            if (matches.Length != 1)
-                throw new NotImplementedException("How to deal with multiple matches?");
-
-            var match = matches[0];
+            var match = Mind.Matcher.BestMatch(phrase);
             var element = match.RootElement;
 
             return Evaluate(element, new EvaluationContext(this, element, parentContext));

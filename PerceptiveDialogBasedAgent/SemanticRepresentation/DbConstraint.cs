@@ -14,17 +14,27 @@ namespace PerceptiveDialogBasedAgent.SemanticRepresentation
 
         private readonly ConstraintEntry[] _entries;
 
-        internal readonly string NameConstraint;
+        internal readonly string PhraseConstraint;
 
         internal DbConstraint(params ConstraintEntry[] entries)
+            : this(null, entries)
+        { }
+
+        internal DbConstraint(string phraseConstraint, params ConstraintEntry[] entries)
         {
+            PhraseConstraint = phraseConstraint;
             _entries = entries.ToArray();
         }
 
-        private DbConstraint(string nameConstraint)
+        private DbConstraint(string phraseConstraint)
         {
-            NameConstraint = nameConstraint;
+            PhraseConstraint = phraseConstraint;
             _entries = new ConstraintEntry[0];
+        }
+
+        internal DbConstraint GetSubjectConstraint(string question)
+        {
+            return SubjectConstraints.Where(c => c.Question == question).Select(c => c.Answer).FirstOrDefault();
         }
 
         internal DbConstraint Join(DbConstraint dbConstraint)
@@ -32,21 +42,21 @@ namespace PerceptiveDialogBasedAgent.SemanticRepresentation
             throw new NotImplementedException();
         }
 
-        internal static DbConstraint Entity(string name)
+        internal static DbConstraint Entity(string phrase)
         {
-            return new DbConstraint(name);
+            return new DbConstraint(phrase);
         }
 
         internal DbConstraint ExtendByAnswer(string question, DbConstraint answer)
         {
             var newEntry = new ConstraintEntry(null, question, answer);
-            return new DbConstraint(_entries.Concat(new[] { newEntry }).ToArray());
+            return new DbConstraint(PhraseConstraint, _entries.Concat(new[] { newEntry }).ToArray());
         }
 
         public override string ToString()
         {
-            if (NameConstraint != null)
-                return "[DbConstraint]" + NameConstraint + " " + string.Join(",", _entries.Select(e => e.ToString()));
+            if (PhraseConstraint != null)
+                return "[DbConstraint]" + PhraseConstraint + " " + string.Join(",", _entries.Select(e => e.ToString()));
 
             return "[DbConstraint]" + string.Join(",", _entries.Select(e => e.ToString()));
         }

@@ -53,6 +53,5 @@ namespace PerceptiveDialogBasedAgent
             Evaluator.AddNativeEvaluator(_lastPattern, nativeEvaluator);
             return this;
         }
-
     }
 }

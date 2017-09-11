@@ -46,8 +46,8 @@ namespace WebBackend
 
             //InitializeExperiments();
 
-            //AnswerExtraction.Omegle_Batch.ObserveDialogCollection();
-            AnswerExtraction.GraphNavigationExperiments_Batch.PrintEdgeVotesInfo();
+            AnswerExtraction.Omegle_Batch.ObserveDialogCollection();
+            //AnswerExtraction.GraphNavigationExperiments_Batch.PrintEdgeVotesInfo();
             //AnswerExtraction.GraphNavigationExperiments_Batch.EvaluateLabelRequestInfo();
             //AnswerExtraction.ExtractionEvaluation_Batch.RunLinkingExperiment();
             //AnswerExtraction.ExtractionEvaluation_Batch.ExportAnswerExtractionData();
@@ -68,7 +68,7 @@ namespace WebBackend
             //AnswerExtraction.DumpCreation_Batch.DumpQuestions();
             //GeneralizationQA.GoldenAnswer_Batch.RunAnswerGeneralizationDev();
             //GeneralizationQA.GoldenAnswer_Batch.RunGraphMIExperiment();
-            //RunWebInterface();
+            RunWebInterface();
             //Console.ReadLine();
         }
 

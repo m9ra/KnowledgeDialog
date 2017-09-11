@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Agent.cs" />
+    <Compile Include="EmptyAgent.cs" />
     <Compile Include="Experiments.cs" />
     <Compile Include="Interpretation\CommandContext.cs" />
     <Compile Include="Interpretation\EvaluationContext.cs" />

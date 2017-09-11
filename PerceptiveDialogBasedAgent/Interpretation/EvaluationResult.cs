@@ -11,9 +11,12 @@ namespace PerceptiveDialogBasedAgent.Interpretation
     {
         public readonly DbConstraint Constraint;
 
-        internal EvaluationResult(DbConstraint constraint)
+        public readonly IEnumerable<DbConstraint> UnknownConstraints;
+
+        internal EvaluationResult(DbConstraint constraint, params DbConstraint[] unknownConstraint)
         {
             Constraint = constraint;
+            UnknownConstraints = unknownConstraint;
         }
 
         public override string ToString()

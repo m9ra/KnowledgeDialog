@@ -48,10 +48,35 @@ namespace PerceptiveDialogBasedAgent
             return this;
         }
 
-        internal MindSet Semantic(NativePhraseEvaluator nativeEvaluator)
+        internal MindSet HowToEvaluate(NativePhraseEvaluator nativeEvaluator)
         {
-            Evaluator.AddNativeEvaluator(_lastPattern, nativeEvaluator);
+            Evaluator.AddNativeEvaluator(_lastPattern, Evaluator.HowToEvaluateQ, nativeEvaluator);
             return this;
         }
+
+        internal MindSet IsTrue(NativePhraseEvaluator nativeEvaluator)
+        {
+            Evaluator.AddNativeEvaluator(_lastPattern, Evaluator.IsItTrueQ, nativeEvaluator);
+            return this;
+        }
+
+        internal MindSet HowToDo(NativePhraseEvaluator nativeEvaluator)
+        {
+            Evaluator.AddNativeEvaluator(_lastPattern, Evaluator.HowToDoQ, nativeEvaluator);
+            return this;
+        }
+
+        internal MindSet IsTrue(string evaluationDescription)
+        {
+            Database.AddFact(_lastPattern.Representation, Evaluator.IsItTrueQ, evaluationDescription);
+            return this;
+        }
+
+        internal MindSet Semantic(string semanticDescription)
+        {
+            Database.AddFact(_lastPattern.Representation, Evaluator.HowToEvaluateQ, semanticDescription);
+            return this;
+        }
+
     }
 }

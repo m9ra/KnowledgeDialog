@@ -42,8 +42,6 @@ namespace PerceptiveDialogBasedAgent.SemanticRepresentation
         internal MatchElement(SemanticPattern pattern, Dictionary<string, MatchElement> substitutions)
         {
             Pattern = pattern;
-            Token = Pattern.Representation;
-
             foreach (var substitution in substitutions)
             {
                 var child = substitution.Value;
@@ -51,8 +49,23 @@ namespace PerceptiveDialogBasedAgent.SemanticRepresentation
 
                 registerChild(child);
                 _substitutions.Add(variable, child);
-                Token = Token.Replace(variable, child.Token);
             }
+
+            Token = Substitute(Pattern.Representation);
+        }
+
+        internal string Substitute(string phrase)
+        {
+            var phraseTmp = " " + phrase + " ";
+
+            foreach (var substitution in _substitutions)
+            {
+                var child = substitution.Value;
+                var variable = substitution.Key;
+
+                phraseTmp = phraseTmp.Replace(" " + variable + " ", " " + child.Token + " ");
+            }
+            return phraseTmp.Trim();
         }
 
         private void registerChild(MatchElement child)

@@ -58,6 +58,16 @@ namespace PerceptiveDialogBasedAgent.Knowledge
             _data.Add(new DbEntry(subject, question, answer));
         }
 
+        internal void RemoveFact(string subject, string question, string answer)
+        {
+            for (var i = _data.Count - 1; i >= 0; --i)
+            {
+                var entry = _data[i];
+                if (entry.Subject == subject && entry.Question == question && entry.Answer == answer)
+                    _data.RemoveAt(i);
+            }
+        }
+
         private bool meetsConstraints(string entity, DbConstraint constraint)
         {
             if (constraint == null)

@@ -28,13 +28,18 @@ namespace PerceptiveDialogBasedAgent.Interpretation
             _parentContext = parentContext;
         }
 
+        internal string Substitute(string phrase)
+        {
+            return _evaluatedElement.Substitute(phrase);
+        }
+
         internal DbConstraint this[string variableName]
         {
             get
             {
                 var variable = "$" + variableName;
                 var variableSubstitution = _evaluatedElement.GetSubstitution(variable);
-                var result = _evaluator.Evaluate(variableSubstitution, this);
+                var result = _evaluator.Evaluate(variableSubstitution, Evaluator.HowToEvaluateQ, this);
 
                 return result.Constraint;
             }

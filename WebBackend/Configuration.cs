@@ -33,7 +33,7 @@ namespace WebBackend
         /// <summary>
         /// Path to omegle experiments
         /// </summary>
-        public static string OmegleExperimentsRootPath { get { return Path.Combine(ExperimentsRootPath, "omegle"); } }
+        public static string OmegleExperimentsRootPath { get { return Path.Combine(ExperimentsRootPath, "omegle2"); } }
 
         internal static string SimpleQuestionFB2M_Path { get; private set; }
 

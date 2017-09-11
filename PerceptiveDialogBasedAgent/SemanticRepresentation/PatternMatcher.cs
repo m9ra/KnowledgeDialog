@@ -15,13 +15,13 @@ namespace PerceptiveDialogBasedAgent.SemanticRepresentation
 
         internal void AddPattern(SemanticPattern pattern)
         {
-            _patterns.Insert(0, pattern);
+            _patterns.Add(pattern);
         }
 
         internal Match BestMatch(string expression)
         {
             var matches = Match(expression);
-            return matches.LastOrDefault();
+            return matches.FirstOrDefault();
         }
 
         internal IEnumerable<Match> Match(string expression)
@@ -41,6 +41,9 @@ namespace PerceptiveDialogBasedAgent.SemanticRepresentation
                 //TODO  more root elements will be also possible
                 result.Add(new Match(element));
             }
+
+            if (result.Count == 0)
+                result.Add(new Match(new MatchElement(expression)));
 
             return result;
         }
@@ -87,7 +90,7 @@ namespace PerceptiveDialogBasedAgent.SemanticRepresentation
     {
         internal readonly SemanticPattern Pattern;
 
-        internal bool CanBeFinished => _currentPatternPart + 1 == Pattern.PartCount;
+        internal bool CanBeFinished => _currentPatternPart == Pattern.PartCount && _varBuffers.All(b => b == null || b.Length > 0);
 
         private readonly int _currentPatternPart = 0;
 

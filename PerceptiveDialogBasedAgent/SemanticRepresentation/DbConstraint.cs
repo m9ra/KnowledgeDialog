@@ -53,6 +53,12 @@ namespace PerceptiveDialogBasedAgent.SemanticRepresentation
             return new DbConstraint(PhraseConstraint, _entries.Concat(new[] { newEntry }).ToArray());
         }
 
+        internal DbConstraint ExtendBySubject(DbConstraint subject, string question)
+        {
+            var newEntry = new ConstraintEntry(subject, question, null);
+            return new DbConstraint(PhraseConstraint, _entries.Concat(new[] { newEntry }).ToArray());
+        }
+
         public override string ToString()
         {
             if (PhraseConstraint != null)

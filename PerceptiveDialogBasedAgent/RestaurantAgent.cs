@@ -10,80 +10,103 @@ namespace PerceptiveDialogBasedAgent
 {
     internal delegate DbConstraint NativeCallWrapper(DbConstraint input);
 
-    class RestaurantAgent
+    class RestaurantAgent : EmptyAgent
     {
-        private readonly MindSet _mind = new MindSet();
-
-        private readonly Dictionary<string, NativeCallWrapper> _nativeCallWrappers = new Dictionary<string, NativeCallWrapper>();
-
-        private readonly DbConstraint _agentAction = DbConstraint.Entity("agent action");
-
-        internal readonly string WhatToDoQ = "What @ should do?";
-
         internal RestaurantAgent()
         {
-            _mind
+            Mind
+                .AddPattern("a", "$something")
+                    .HowToEvaluate(c => c["something"])
+
+                .AddPattern("an", "$something")
+                    .HowToEvaluate(c => c["something"])
+
                 .AddPattern("if", "$something", "then", "$something2")
-                    .Semantic(c =>
+                    .HowToDo(c =>
                     {
                         var isConditionTrue = c.IsTrue(c["something"]);
                         if (isConditionTrue)
                         {
                             return c["something2"];
                         }
-                        throw new NotImplementedException("represent non-satisfied condition");
+
+                        return DbConstraint.Entity("nothing");
                     })
 
                 .AddPattern("$someone", "said", "$something")
-                    .Semantic(c => c["someone"].ExtendByAnswer("What @ said?", c["something"]))
+                    .HowToEvaluate(c => c["someone"].ExtendByAnswer("What @ said?", c["something"]))
 
-                .AddPattern("say", "$what")
-                    .Semantic(createActionSemantic(Print, "Print", "what"))
+                .AddPattern("user", "specified", "$something")
+                    .IsTrue("criterions on $something exists")
+
+                .AddPattern("$something", "exists")
+                    .IsTrue(c => IfDbContains(c["something"]))
+
+                .AddPattern("criterions", "on", "$something")
+                    .HowToEvaluate(c => findUserCriterions(c["something"]))
+
+                .AddPattern("you", "know", "$something")
+                    .IsTrue(c => IfDbContains(c["something"]))
+
+                .AddPattern("which", "$something")
+                    .HowToEvaluate(c =>
+                        new DbConstraint().ExtendByAnswer("What is @?", c["something"])
+                    )
+
+                .AddPattern("$something", "user", "wants")
+                    .HowToEvaluate(c =>
+                        c["something"].ExtendBySubject(DbConstraint.Entity("user"), "What @ wants?")
+                    )
+
+
+                .AddPattern("remember", "$something")
+                    .HowToDo(c =>
+                    {
+                        var fact = c["something"];
+                        if (fact.PhraseConstraint != "nothing")
+                        {
+                            var answerEntry = fact.SubjectConstraints.First();
+                            Mind.Database.AddFact(fact.PhraseConstraint, answerEntry.Question, answerEntry.Answer.PhraseConstraint);
+                        }
+
+                        return DbConstraint.Entity("nothing");
+                    })
+
+                .AddPattern("I", "want", "$something")
+                    .HowToEvaluate(c =>
+                    DbConstraint.Entity("user").ExtendByAnswer("What @ wants?", c["something"]))
+
+                .AddPattern("fact", "from", "$someone")
+                    .HowToEvaluate(c =>
+                    {
+                        var input = Mind.Database.GetAnswers("user", "What @ said?").First();
+                        var evaluation = Mind.Evaluator.Evaluate(input, Evaluator.HowToEvaluateQ, c);
+                        var factConstraint = evaluation.Constraint;
+                        if (factConstraint.PhraseConstraint != null && (factConstraint.SubjectConstraints.Any() || factConstraint.AnswerConstraints.Any()))
+                            return evaluation.Constraint;
+                        else
+                            return DbConstraint.Entity("nothing");
+                    })
 
                 ;
 
-            _mind.AddFact(_agentAction.PhraseConstraint, WhatToDoQ, "if user said hello then say hi");
+            AddPolicyFact("remember fact from user");
+            AddPolicyFact("if user said hello then say hi");
+            AddPolicyFact("if you know which restaurant user wants then offer it");
         }
 
-        internal void Input(string data)
+        private DbConstraint findUserCriterions(DbConstraint constraint)
         {
-            _mind.Database.AddFact("user", "What @ said?", data);
+            var answers = Mind.Database.GetAnswers("user", "What @ wants?").ToArray();
 
-            foreach (var answer in _mind.Database.Query(new DbConstraint(new ConstraintEntry(_agentAction, WhatToDoQ, null))))
+            var result = new DbConstraint();
+            foreach (var answer in answers)
             {
-                var result = _mind.Evaluator.Evaluate(answer.Substitution);
-                executeCall(result.Constraint);
+                result = result.ExtendByAnswer("What @ wants?", DbConstraint.Entity(answer));
             }
+
+            return result;
         }
 
-        private void executeCall(DbConstraint callEntity)
-        {
-            var call = _nativeCallWrappers[callEntity.PhraseConstraint];
-            call(callEntity);
-        }
-
-        private NativePhraseEvaluator createActionSemantic(Action<string> action, string actionName, string parameterName)
-        {
-            var nativeCallWrapperId = ".native_executor-" + actionName;
-            NativeCallWrapper nativeCallWrapper = i =>
-             {
-                 var argumentEntity = i.GetSubjectConstraint(parameterName);
-                 action(argumentEntity.PhraseConstraint);
-                 return null;
-             };
-
-            _nativeCallWrappers.Add(nativeCallWrapperId, nativeCallWrapper);
-
-            return c =>
-            {
-                var callEntity = DbConstraint.Entity(nativeCallWrapperId);
-                return callEntity.ExtendByAnswer(parameterName, c[parameterName]);
-            };
-        }
-
-        private void Print(string what)
-        {
-            Console.WriteLine(what);
-        }
     }
 }

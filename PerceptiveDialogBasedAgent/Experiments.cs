@@ -1,4 +1,5 @@
-﻿using PerceptiveDialogBasedAgent.SemanticRepresentation;
+﻿using PerceptiveDialogBasedAgent.Interpretation;
+using PerceptiveDialogBasedAgent.SemanticRepresentation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +10,18 @@ namespace PerceptiveDialogBasedAgent
 {
     static class Experiments
     {
+        internal static void EmptyAgentTests()
+        {
+            var agent = new EmptyAgent();
+            makeTurn(agent, "hello");
+        }
+
+
         internal static void RestaurantAgentTests()
         {
             var agent = new RestaurantAgent();
             agent.Input("hello");
+            agent.Input("I want a cheap restaurant ");
         }
 
         internal static void DbTests()
@@ -37,13 +46,13 @@ namespace PerceptiveDialogBasedAgent
             var mind = new MindSet();
             mind
              .AddPattern("a", "$something")
-                 .Semantic(c => c["something"])
+                 .HowToEvaluate(c => c["something"])
 
              .AddPattern("what", "is", "$what")
-                 .Semantic(c => c.AnswerWhere(c["something"], "how @ is defined?"))
+                 .HowToEvaluate(c => c.AnswerWhere(c["something"], "how @ is defined?"))
 
              .AddPattern("$something1", "and", "$something2")
-                 .Semantic(c => c["something1"].Join(c["something2"]))
+                 .HowToEvaluate(c => c["something1"].Join(c["something2"]))
              ;
 
             var matches = mind.Matcher.Match("what is a pilot");
@@ -58,12 +67,12 @@ namespace PerceptiveDialogBasedAgent
             var mind = new MindSet();
             mind
                 .AddPattern("$something", "can", "have", "$something2")
-                    .Semantic(c =>
+                    .HowToEvaluate(c =>
                         c["something"].ExtendByAnswer("what does @ have?", c["something2"])
                     )
 
                 .AddPattern("every", "$something")
-                    .Semantic(c =>
+                    .HowToEvaluate(c =>
                         DbConstraint.Entity(null).ExtendByAnswer("what @ is?", c["something"])
                     )
 
@@ -77,7 +86,7 @@ namespace PerceptiveDialogBasedAgent
             mind.AddFact("dog", "what @ is?", "mammal");
             mind.AddFact("whale", "what @ is?", "mammal");
 
-            var evaluation = mind.Evaluator.Evaluate("every blue mammal");
+            var evaluation = mind.Evaluator.Evaluate("every blue mammal", Evaluator.HowToEvaluateQ);
             wl(evaluation.ToString());
 
             foreach (var value in mind.Database.Query(evaluation.Constraint))
@@ -128,6 +137,13 @@ namespace PerceptiveDialogBasedAgent
         private static void wl(string text)
         {
             Console.WriteLine(text);
+        }
+
+        private static void makeTurn(EmptyAgent agent, string input)
+        {
+            wl("U: " + input);
+            var output = agent.Input(input);
+            wl("S: " + output);
         }
     }
 }

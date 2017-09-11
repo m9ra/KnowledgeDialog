@@ -9,13 +9,9 @@ namespace PerceptiveDialogBasedAgent.Interpretation
 {
     delegate DbConstraint NativePhraseEvaluator(EvaluationContext context);
 
-    delegate DbConstraint NativeActionExecutor(EvaluationContext context);
-
     class Evaluator
     {
         private readonly Dictionary<string, NativePhraseEvaluator> _evaluators = new Dictionary<string, NativePhraseEvaluator>();
-
-        private readonly Dictionary<string, NativeActionExecutor> _executors = new Dictionary<string, NativeActionExecutor>();
 
         internal readonly MindSet Mind;
 
@@ -23,77 +19,92 @@ namespace PerceptiveDialogBasedAgent.Interpretation
 
         internal static readonly string HowToDoQ = "How to do @?";
 
-        internal static readonly string NativeEvaluatorPrefix = "%native_evaluator-";
-
-        internal static readonly string NativeExecutorPrefix = "%native_executor-";
+        internal static readonly string IsItTrueQ = "Is @ true?";
 
         internal Evaluator(MindSet mind)
         {
             Mind = mind;
         }
 
-        internal void AddNativeEvaluator(SemanticPattern pattern, NativePhraseEvaluator evaluator)
+        internal void AddNativeEvaluator(SemanticPattern pattern, string evaluatedQuestion, NativePhraseEvaluator evaluator)
         {
             var patternRepresentation = pattern.Representation;
-            var evaluatorRepresentation = NativeEvaluatorPrefix + patternRepresentation;
-            Mind.AddFact(patternRepresentation, HowToEvaluateQ, NativeEvaluatorPrefix + patternRepresentation);
+            var evaluatorRepresentation = getNativeEvaluatorId(patternRepresentation, evaluatedQuestion);
+
+            Mind.AddFact(patternRepresentation, evaluatedQuestion, evaluatorRepresentation);
             _evaluators.Add(evaluatorRepresentation, evaluator);
         }
 
         public bool IsTrue(DbConstraint constraint)
         {
-            //TODO recursive evaluation should be here
-            return Mind.Database.Query(constraint).Any();
+            var isKnownFact = Mind.Database.Query(constraint).Any();
+            if (isKnownFact)
+                return true;
+
+            if (constraint.AnswerConstraints.Any() || constraint.SubjectConstraints.Any())
+                return false;
+
+            var result = Evaluate(constraint.PhraseConstraint, IsItTrueQ);
+
+            return result.Constraint.PhraseConstraint == "true";
         }
 
-        public EvaluationResult Evaluate(string phrase, EvaluationContext parentContext = null)
+        public EvaluationResult Evaluate(string phrase, string question, EvaluationContext parentContext = null)
         {
-            var nativeEvaluator = getNativeEvaluator(phrase);
+            var nativeEvaluator = getNativeEvaluator(phrase, question);
             if (nativeEvaluator != null)
             {
                 var constraint = nativeEvaluator(parentContext);
-                return new EvaluationResult(constraint);
+                return new EvaluationResult(constraint, new DbConstraint[0]);
             }
 
             var match = Mind.Matcher.BestMatch(phrase);
             var element = match.RootElement;
 
-            return Evaluate(element, new EvaluationContext(this, element, parentContext));
+            return Evaluate(element, question, new EvaluationContext(this, element, parentContext));
         }
 
-        internal EvaluationResult Evaluate(MatchElement element, EvaluationContext parentContext)
+        internal EvaluationResult Evaluate(MatchElement element, string question, EvaluationContext parentContext)
         {
             var context = new EvaluationContext(this, element, parentContext);
 
             var elementRepresentation = element.Pattern.Representation;
-            var evaluationDescription = getEvaluationDescription(elementRepresentation, context);
+            var evaluationDescription = getEvaluationDescription(elementRepresentation, question, context);
             if (evaluationDescription == null)
             {
                 //we can't do better than create explicit entity constraint and generate HowToEvaluateQ.
-
-                //TODO generate Q
-                return new EvaluationResult(DbConstraint.Entity(element.Token));
+                return new EvaluationResult(DbConstraint.Entity(element.Token), new DbConstraint(new ConstraintEntry(DbConstraint.Entity(element.Token), question, null)));
             }
 
-            return Evaluate(evaluationDescription, context);
+            return Evaluate(evaluationDescription, question, context);
         }
 
-        private string getEvaluationDescription(string representation, EvaluationContext context)
+        private string getEvaluationDescription(string representation, string question, EvaluationContext context)
         {
-            var answers = Mind.Database.GetAnswers(representation, HowToEvaluateQ).ToArray();
+            var answers = Mind.Database.GetAnswers(representation, question).ToArray();
             if (answers.Length == 0)
                 return null;
 
             if (answers.Length != 1)
                 throw new NotImplementedException("What to do when there are multiple evaluations?");
 
-            return answers.FirstOrDefault();
+            var answer = answers.FirstOrDefault();
+            if (!_evaluators.ContainsKey(answer))
+                // dont change evaluator ids
+                answer = context.Substitute(answer);
+
+            return answer;
         }
 
-        private NativePhraseEvaluator getNativeEvaluator(string phrase)
+        private NativePhraseEvaluator getNativeEvaluator(string phrase, string question)
         {
             _evaluators.TryGetValue(phrase, out var result);
             return result;
+        }
+
+        private string getNativeEvaluatorId(string phrase, string question)
+        {
+            return phrase + "_" + question;
         }
     }
 }

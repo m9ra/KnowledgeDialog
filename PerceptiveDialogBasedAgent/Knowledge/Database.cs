@@ -15,9 +15,19 @@ namespace PerceptiveDialogBasedAgent.Knowledge
         internal readonly DbConstraint Fetch = new DbConstraint();
 
         /// <summary>
+        /// Constraints that could not be verified by DB.
+        /// </summary>
+        internal IEnumerable<DbConstraint> FailingConstraints => _failingConstraints;
+
+        /// <summary>
         /// Data contained in the database.
         /// </summary>
         private readonly List<DbEntry> _data = new List<DbEntry>();
+
+        /// <summary>
+        /// Constraints that could not be verified by DB.
+        /// </summary>
+        private readonly List<DbConstraint> _failingConstraints = new List<DbConstraint>();
 
         /// <summary>
         /// Index of entities contained in _data.
@@ -31,23 +41,43 @@ namespace PerceptiveDialogBasedAgent.Knowledge
         internal IEnumerable<DbResult> Query(DbConstraint constraint)
         {
             var result = new List<DbResult>();
+            var hasSuccess = false;
             foreach (var entity in _entities)
             {
                 //TODO allow variables
                 if (meetsConstraints(entity, constraint))
+                {
+                    hasSuccess = true;
                     result.Add(new DbResult(Fetch, entity));
+                }
             }
+
+            //TODO implement negative edges support
+            if (!hasSuccess)
+                 _failingConstraints.Add(constraint);
 
             return result;
         }
 
         internal IEnumerable<string> GetAnswers(string subject, string question)
         {
+            var isSuccess = false;
             foreach (var entry in _data)
             {
                 if (entry.Subject == subject && entry.Question == question)
+                {
+                    isSuccess = true;
                     yield return entry.Answer;
+                }
             }
+
+            if (!isSuccess)
+                _failingConstraints.Add(new DbConstraint(new ConstraintEntry(DbConstraint.Entity(subject), question, null)));
+        }
+
+        internal void ClearFailingConstraints()
+        {
+            _failingConstraints.Clear();
         }
 
         internal void AddFact(string subject, string question, string answer)

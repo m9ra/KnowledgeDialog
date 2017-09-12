@@ -14,6 +14,7 @@ namespace PerceptiveDialogBasedAgent
         {
             var agent = new EmptyAgent();
             makeTurn(agent, "hello");
+            makeTurn(agent, "say hi");
         }
 
 

@@ -15,61 +15,115 @@ namespace PerceptiveDialogBasedAgent
 
         private readonly Dictionary<string, NativeCallWrapper> _nativeCallWrappers = new Dictionary<string, NativeCallWrapper>();
 
-        private readonly DbConstraint _agent = DbConstraint.Entity("agent");
+        private readonly string _agent = "agent";
 
-        private readonly List<DbConstraint> _inputActionsDone = new List<DbConstraint>();
+        private string _currentGoal = null;
 
-        internal readonly string WhatToDoQ = "What @ should do?";
+        private string _lastQuestionSubject = null;
 
-        internal readonly string WhatToCheckQ = "What @ should check?";
+        private string _lastQuestion = null;
 
-        internal readonly string WhatToOutputQ = "What @ should output?";
+        internal readonly string WhatToDoNowQ = "What should @ do now?";
+
+        internal readonly string IsItFinishedQ = "Is @ finished?";
+
+        internal readonly string WhatToDoNextQ = "What should @ do next?";
+
+        internal readonly string WhatToCheckQ = "What should @ check?";
+
+        internal readonly string WhatToOutputQ = "What should @ output?";
 
         internal EmptyAgent()
         {
             Mind
+                .AddFact(_agent, WhatToCheckQ, "nothing") //by default there is nothing check (to prevent DB from failing constraints here)
+
                 .AddPattern("say", "$what")
-                    .HowToEvaluate(CreateActionSemantic(Print, "Print", "what"));
+                    .HowToDo(CreateActionSemantic(Print, "Print", "what"));
+
         }
 
         internal string Input(string data)
         {
+            Mind.Database.ClearFailingConstraints();
             Mind.Database.AddFact("user", "What @ said?", data);
 
-            foreach (var sensor in Query(new ConstraintEntry(_agent, WhatToCheckQ, null)))
+            //run sensoring logic of the agent
+            foreach (var sensor in AnswerWithMany(_agent, WhatToCheckQ))
             {
                 //TODO evaluate sensors
             }
 
-            var whatToDo = Query(new ConstraintEntry(_agent, WhatToDoQ, null)).ToArray();
-            foreach (var answer in whatToDo)
+            if (_lastQuestion != null)
             {
-                var result = Mind.Evaluator.Evaluate(answer.Substitution, Evaluator.HowToDoQ);
-                if (!executeCall(result.Constraint))
-                    throw new NotImplementedException("How to do");
-
-                break;
+                //TODO we should care about conditions
+                Mind.AddFact(_lastQuestionSubject, _lastQuestion, data);
+                _lastQuestion = null;
+                _lastQuestionSubject = null;
             }
 
-            if (whatToDo.Length == 0)
+            //determine what agent should do
+            var whatToDo = Answer(_agent, WhatToDoNowQ);
+            if (whatToDo == null)
             {
-                outputQuestion(WhatToDoQ);
+                if (_currentGoal != null)
+                {
+                    var isCurrentGoalFinished = IsTrue(Answer(_currentGoal, IsItFinishedQ));
+                    if (isCurrentGoalFinished)
+                        _currentGoal = whatToDo = Answer(_currentGoal, WhatToDoNextQ);
+                    else
+                        whatToDo = _currentGoal;
+                }
             }
 
+            //do requested action
+            var command = Evaluate(whatToDo, Evaluator.HowToDoQ);
+            if (!executeCall(command))
+                outputQuestion();
+
+            //collect output
+            var output = Answer(_agent, WhatToOutputQ);
+
+            //TODO make more systematic cleanup
             Mind.Database.RemoveFact("user", "What @ said?", data);
+            Mind.Database.RemoveFact(_agent, WhatToOutputQ, output);
 
-            var whatToOutput = Mind.Database.GetAnswers(_agent.PhraseConstraint, WhatToOutputQ);
-            return whatToOutput.Last();
+            return output;
         }
 
-        private void outputQuestion(string question)
+        protected string Answer(string subject, string question)
         {
-            Mind.Database.AddFact(_agent.PhraseConstraint, WhatToOutputQ, question);
+            return AnswerWithMany(subject, question).FirstOrDefault();
         }
 
-        protected IEnumerable<DbResult> Query(params ConstraintEntry[] entries)
+        protected string[] AnswerWithMany(string subject, string question)
         {
-            return Mind.Database.Query(new DbConstraint(entries));
+            var result = new List<string>();
+            foreach (var row in Query(new ConstraintEntry(DbConstraint.Entity(subject), question, null)))
+            {
+                result.Add(row.Substitution);
+            }
+
+            return result.ToArray();
+        }
+
+        protected bool IsTrue(string subject)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected DbConstraint Evaluate(string subject, string evaluationQuestion)
+        {
+            if (subject == null)
+                return null;
+
+            var result = Mind.Evaluator.Evaluate(subject, evaluationQuestion);
+            return result.Constraint;
+        }
+
+        protected DbResult[] Query(params ConstraintEntry[] entries)
+        {
+            return Mind.Database.Query(new DbConstraint(entries)).ToArray();
         }
 
         protected DbConstraint IfDbContains(DbConstraint constraint)
@@ -80,11 +134,49 @@ namespace PerceptiveDialogBasedAgent
 
         internal void AddPolicyFact(string act)
         {
-            Mind.AddFact(_agent.PhraseConstraint, WhatToDoQ, act);
+            throw new NotImplementedException();
+        }
+
+        private void outputQuestion()
+        {
+            var failingConstraints = Mind.Database.FailingConstraints.ToArray();
+            if (failingConstraints.Length == 0)
+                throw new NotImplementedException();
+
+            foreach (var constraint in failingConstraints.Reverse())
+            {
+                var questionEntry = createQuestionEntry(constraint);
+                if (questionEntry == null)
+                    continue;
+
+                _lastQuestionSubject = questionEntry.Subject.PhraseConstraint;
+                _lastQuestion = questionEntry.Question;
+                var question = string.Format(_lastQuestion.Replace("@", "{0}"), _lastQuestionSubject);
+
+                Mind.AddFact(_agent, WhatToOutputQ, question);
+                return;
+            }
+
+            throw new NotImplementedException("Cannot create a question");
+        }
+
+        private ConstraintEntry createQuestionEntry(DbConstraint constraint)
+        {
+            if (constraint.SubjectConstraints.Any())
+                throw new NotImplementedException();
+
+            var answerConstraints = constraint.AnswerConstraints.ToArray();
+            if (answerConstraints.Length != 1)
+                throw new NotImplementedException();
+
+            return answerConstraints[0];
         }
 
         private bool executeCall(DbConstraint callEntity)
         {
+            if (callEntity == null)
+                return false;
+
             var callName = callEntity.PhraseConstraint;
             if (callName == "nothing")
                 return false;
@@ -119,7 +211,7 @@ namespace PerceptiveDialogBasedAgent
 
         protected void Print(string what)
         {
-            Console.WriteLine(what);
+            Mind.AddFact(_agent, WhatToOutputQ, what);
         }
     }
 }

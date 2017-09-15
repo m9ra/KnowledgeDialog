@@ -42,9 +42,9 @@ namespace PerceptiveDialogBasedAgent
             return this;
         }
 
-        internal MindSet AddFact(string subject, string question, string answer)
+        internal MindSet AddFact(string subject, string question, string answer, string durability = null)
         {
-            Database.AddFact(subject, question, answer);
+            Database.AddFact(subject, question, answer, durability);
             return this;
         }
 

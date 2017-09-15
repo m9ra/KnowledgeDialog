@@ -54,7 +54,7 @@ namespace PerceptiveDialogBasedAgent.Knowledge
 
             //TODO implement negative edges support
             if (!hasSuccess)
-                 _failingConstraints.Add(constraint);
+                _failingConstraints.Add(constraint);
 
             return result;
         }
@@ -80,12 +80,12 @@ namespace PerceptiveDialogBasedAgent.Knowledge
             _failingConstraints.Clear();
         }
 
-        internal void AddFact(string subject, string question, string answer)
+        internal void AddFact(string subject, string question, string answer, string durability = null)
         {
             _entities.Add(subject);
             _entities.Add(answer);
 
-            _data.Add(new DbEntry(subject, question, answer));
+            _data.Add(new DbEntry(subject, question, answer, durability));
         }
 
         internal void RemoveFact(string subject, string question, string answer)
@@ -95,6 +95,30 @@ namespace PerceptiveDialogBasedAgent.Knowledge
                 var entry = _data[i];
                 if (entry.Subject == subject && entry.Question == question && entry.Answer == answer)
                     _data.RemoveAt(i);
+            }
+
+            refreshEntityIndex();
+        }
+
+        internal void ClearEntriesWith(string durability)
+        {
+            for (var i = _data.Count - 1; i >= 0; --i)
+            {
+                var entry = _data[i];
+                if (entry.Durability == durability)
+                    _data.RemoveAt(i);
+            }
+
+            refreshEntityIndex();
+        }
+
+        private void refreshEntityIndex()
+        {
+            _entities.Clear();
+            foreach (var entry in _data)
+            {
+                _entities.Add(entry.Answer);
+                _entities.Add(entry.Subject);
             }
         }
 

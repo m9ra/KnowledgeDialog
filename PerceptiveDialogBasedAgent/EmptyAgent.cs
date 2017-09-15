@@ -13,6 +13,8 @@ namespace PerceptiveDialogBasedAgent
     {
         protected readonly MindSet Mind = new MindSet();
 
+        protected readonly Body Body;
+
         private readonly Dictionary<string, NativeCallWrapper> _nativeCallWrappers = new Dictionary<string, NativeCallWrapper>();
 
         private readonly string _agent = "agent";
@@ -33,8 +35,14 @@ namespace PerceptiveDialogBasedAgent
 
         internal readonly string WhatToOutputQ = "What should @ output?";
 
+        internal readonly string TurnEndDurability = "until turn end";
+
+        internal readonly string QuestionProcessedDurability = "until question processed";
+
         internal EmptyAgent()
         {
+            Body = new Body(Mind);
+
             Mind
                 .AddFact(_agent, WhatToCheckQ, "nothing") //by default there is nothing check (to prevent DB from failing constraints here)
 
@@ -45,8 +53,9 @@ namespace PerceptiveDialogBasedAgent
 
         internal string Input(string data)
         {
+            //return Body.Input(data);
             Mind.Database.ClearFailingConstraints();
-            Mind.Database.AddFact("user", "What @ said?", data);
+            Mind.AddFact("user", "What @ said?", data, TurnEndDurability);
 
             //run sensoring logic of the agent
             foreach (var sensor in AnswerWithMany(_agent, WhatToCheckQ))
@@ -60,6 +69,7 @@ namespace PerceptiveDialogBasedAgent
                 Mind.AddFact(_lastQuestionSubject, _lastQuestion, data);
                 _lastQuestion = null;
                 _lastQuestionSubject = null;
+                clearDatabase(QuestionProcessedDurability);
             }
 
             //determine what agent should do
@@ -84,9 +94,7 @@ namespace PerceptiveDialogBasedAgent
             //collect output
             var output = Answer(_agent, WhatToOutputQ);
 
-            //TODO make more systematic cleanup
-            Mind.Database.RemoveFact("user", "What @ said?", data);
-            Mind.Database.RemoveFact(_agent, WhatToOutputQ, output);
+            clearDatabase(TurnEndDurability);
 
             return output;
         }
@@ -135,6 +143,11 @@ namespace PerceptiveDialogBasedAgent
         internal void AddPolicyFact(string act)
         {
             throw new NotImplementedException();
+        }
+
+        private void clearDatabase(string durability)
+        {
+            Mind.Database.ClearEntriesWith(durability);
         }
 
         private void outputQuestion()

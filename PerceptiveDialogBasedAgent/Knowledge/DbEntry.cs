@@ -23,11 +23,17 @@ namespace PerceptiveDialogBasedAgent.Knowledge
         /// </summary>
         internal readonly string Answer;
 
-        internal DbEntry(string subject, string question, string answer)
+        /// <summary>
+        /// When the entry gets sweeped out from DB.
+        /// </summary>
+        internal readonly string Durability;
+
+        internal DbEntry(string subject, string question, string answer, string durability)
         {
             Subject = subject;
             Question = question;
             Answer = answer;
+            Durability = durability;
         }
     }
 }

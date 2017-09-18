@@ -3,6 +3,8 @@
 @question string
 @current_experiment_file string
 @experiment_files +string
+@current_omegle_suffix string
+@omegle_suffixes +string
 
 .container
 	%nav{class: "navbar navbar-inverse navbar-fixed-top"}
@@ -17,8 +19,19 @@
 			%a{class: "navbar-brand", href: "/"} Mgr. Vodolán Miroslav
 .jumbotron#preface
 	.container
-		%h1 Omegle
-		%h2 Available questions
+		%h1 Omegle collection
+		%h2 Available experiments
+		%p
+			- @omegle_suffixes.each do |omegle_suffix|
+				.experiment_row
+					- if omegle_suffix == @current_omegle_suffix
+						%b
+							= "omegle" + omegle_suffix
+					- else
+						%a{href: "/omegle" + omegle_suffix}
+							= "omegle" + omegle_suffix
+			
+		%h3 Experiment questions
 		%p
 			- @experiment_files.each do |experiment_file|
 				.experiment_row
@@ -26,7 +39,7 @@
 						%b
 							= experiment_file
 					- else
-						%a{href: "/omegle?experimentFile="+experiment_file}
+						%a{href: "/omegle"+@current_omegle_suffix+"?experimentFile="+experiment_file}
 							= experiment_file
 	
 .container	

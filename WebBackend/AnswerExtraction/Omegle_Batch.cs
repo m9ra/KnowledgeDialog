@@ -56,23 +56,19 @@ namespace WebBackend.AnswerExtraction
         {
             var questionPool = new string[]
             {
-                "A meaning between 'nasty' and 'ugly'.",
-                "A meaning between 'pretty' and 'beautiful'.",
-                "A halfway between 'nasty' and 'ugly'.",
-                "A halfway between 'pretty' and 'beautiful'.",
-                "A halfway between a 'house' and a 'shed'?",
-                "A halfway between 'walking' and 'running'?",
-                "Are 'pretty' and 'beautiful' totally same, or is there something in between?",
-                "Is there anything between a 'house' and a 'shed'?",
-                "Is Trump ugly or nasty or something in between?",
-                "What can be ugly but not nasty?",
-                "If a girl is neither walking nor running but something in between, how would you call it?",
-                "If a construction is something between a house and a shed, how would you call it?"
+                "_2nd_strategy|What are synonyms of nasty and ugly?",
+                "_2nd_strategy|What are synonyms of pretty and beautiful?",
+                "_2nd_strategy|What are synonyms of house and a shed?",
+                "_2nd_strategy|What are synonyms of walking and running?",
+                "_synonyms|What are synonyms of ugly?",
+                "_synonyms|What are synonyms of nasty?",
+                "_what_is_stronger|What is stronger, ugly or nasty?",
+                "_what_is_stronger|What is stronger, ugly or gross?",
+                "_what_is_stronger|What is stronger, gross or nasty?",
+                "_natural_order|Are these in natural order: a shed -- a house -- a garage?",
+                "_natural_order|Are these in natural order: a house -- a shed -- a garage?",
+                "_natural_order|Are these in natural order: a house -- a garage -- a shed?",
             };
-
-
-            if (!Directory.Exists(Configuration.OmegleExperimentsRootPath))
-                Directory.CreateDirectory(Configuration.OmegleExperimentsRootPath);
 
             foreach (var question in questionPool)
             {
@@ -89,7 +85,7 @@ namespace WebBackend.AnswerExtraction
                           var questionIndex = rnd.Next(questionPool.Length);
                           var question = questionPool[questionIndex];
 
-                          var manager = new OmegleManager(5);
+                          var manager = new OmegleManager(7);
                           var utterances = manager.ObserveQuestion(question, 6);
                           writeQuestionLog(question, utterances);
                       }
@@ -104,11 +100,18 @@ namespace WebBackend.AnswerExtraction
             th.Start();
         }
 
-        private static void writeQuestionLog(string question, IEnumerable<string> utterances)
+        private static void writeQuestionLog(string questionDescriptor, IEnumerable<string> utterances)
         {
             var rgx = new Regex("[^a-zA-Z0-9 -]");
-            var logFile = Path.Combine(Configuration.OmegleExperimentsRootPath, rgx.Replace(question, "") + ".omegle_log");
+            var questionParts = questionDescriptor.Split(new[] { '|' }, 2);
+            var experimentSuffix = questionParts[0];
+            var question = questionParts[1];
 
+            var experimentRoot = Configuration.OmegleExperimentsRootPath + experimentSuffix;
+            if (!Directory.Exists(experimentRoot))
+                Directory.CreateDirectory(experimentRoot);
+
+            var logFile = Path.Combine(experimentRoot, rgx.Replace(question, "") + ".omegle_log");
             if (!File.Exists(logFile))
                 File.AppendAllLines(logFile, new[] { question });
 

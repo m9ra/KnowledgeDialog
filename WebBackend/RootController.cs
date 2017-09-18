@@ -48,16 +48,49 @@ namespace WebBackend
             Render("database.haml");
         }
 
+        private readonly string[] _omegle_suffixes = { "", "_2nd_strategy", "_synonyms", "_what_is_stronger", "_natural_order" };
+
         public void omegle()
         {
+            omegle_experiment("");
+        }
+
+        public void omegle_2nd_strategy()
+        {
+            omegle_experiment("_2nd_strategy");
+        }
+
+        public void omegle_synonyms()
+        {
+            omegle_experiment("_synonyms");
+        }
+
+        public void omegle_what_is_stronger()
+        {
+            omegle_experiment("_what_is_stronger");
+        }
+
+        public void omegle_natural_order()
+        {
+            omegle_experiment("_natural_order");
+        }
+
+        private void omegle_experiment(string omegle_suffix)
+        {
+            if (omegle_suffix == "")
+                //TODO TODO TODO THIS is super ugly - just for back compatibility - remove asap
+                omegle_suffix = "2";
+
             var useTfIdf = GET("noTfIdf") == null;
             var experimentFile = GET("experimentFile");
-            var experimentFiles = Directory.EnumerateFiles(Configuration.OmegleExperimentsRootPath, "*.omegle_log").Select(f => Path.GetFileName(f)).ToArray();
+
+            var experimentRoot = Configuration.OmegleExperimentsRootPath + omegle_suffix;
+            var experimentFiles = Directory.EnumerateFiles(experimentRoot, "*.omegle_log").Select(f => Path.GetFileName(f)).ToArray();
 
             if (!experimentFiles.Contains(experimentFile))
                 experimentFile = experimentFiles.First();
 
-            var lines = File.ReadAllLines(Path.Combine(Configuration.OmegleExperimentsRootPath, experimentFile));
+            var lines = File.ReadAllLines(Path.Combine(experimentRoot, experimentFile));
             var question = lines.First();
             var utterances = lines.Skip(1).Where(u => u.Trim() != "").ToArray();
 
@@ -67,7 +100,7 @@ namespace WebBackend
                 var allFileUtterances = new List<IEnumerable<string>>();
                 foreach (var file in experimentFiles)
                 {
-                    allFileUtterances.Add(File.ReadAllLines(Path.Combine(Configuration.OmegleExperimentsRootPath, file)));
+                    allFileUtterances.Add(File.ReadAllLines(Path.Combine(experimentRoot, file)));
                 }
 
                 stats = new WordStats(utterances, allFileUtterances);
@@ -77,6 +110,12 @@ namespace WebBackend
                 stats = new WordStats(utterances);
             }
 
+            if (omegle_suffix == "2")
+                //TODO TODO TODO THIS is super ugly - just for back compatibility - remove asap
+                omegle_suffix = "";
+
+            SetParam("omegle_suffixes", _omegle_suffixes);
+            SetParam("current_omegle_suffix", omegle_suffix);
             SetParam("experiment_files", experimentFiles);
             SetParam("current_experiment_file", experimentFile);
             SetParam("utterance_count", utterances.Length);

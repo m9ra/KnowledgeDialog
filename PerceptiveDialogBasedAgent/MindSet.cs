@@ -78,5 +78,10 @@ namespace PerceptiveDialogBasedAgent
             return this;
         }
 
+        internal MindSet HowToDo(string howToDoDescription)
+        {
+            Database.AddFact(_lastPattern.Representation, Evaluator.HowToDoQ, howToDoDescription);
+            return this;
+        }
     }
 }

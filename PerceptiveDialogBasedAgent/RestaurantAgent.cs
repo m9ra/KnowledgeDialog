@@ -40,13 +40,13 @@ namespace PerceptiveDialogBasedAgent
                     .IsTrue("criterions on $something exists")
 
                 .AddPattern("$something", "exists")
-                    .IsTrue(c => IfDbContains(c["something"]))
+                    .IsTrue(c => Body.IfDbContains(c["something"]))
 
                 .AddPattern("criterions", "on", "$something")
                     .HowToEvaluate(c => findUserCriterions(c["something"]))
 
                 .AddPattern("you", "know", "$something")
-                    .IsTrue(c => IfDbContains(c["something"]))
+                    .IsTrue(c => Body.IfDbContains(c["something"]))
 
                 .AddPattern("which", "$something")
                     .HowToEvaluate(c =>
@@ -90,9 +90,9 @@ namespace PerceptiveDialogBasedAgent
 
                 ;
 
-            AddPolicyFact("remember fact from user");
+            /*AddPolicyFact("remember fact from user");
             AddPolicyFact("if user said hello then say hi");
-            AddPolicyFact("if you know which restaurant user wants then offer it");
+            AddPolicyFact("if you know which restaurant user wants then offer it");*/
         }
 
         private DbConstraint findUserCriterions(DbConstraint constraint)

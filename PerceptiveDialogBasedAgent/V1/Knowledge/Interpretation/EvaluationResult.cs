@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using PerceptiveDialogBasedAgent.SemanticRepresentation;
+using PerceptiveDialogBasedAgent.V1.SemanticRepresentation;
 
-namespace PerceptiveDialogBasedAgent.Interpretation
+namespace PerceptiveDialogBasedAgent.V1.Interpretation
 {
     class EvaluationResult
     {

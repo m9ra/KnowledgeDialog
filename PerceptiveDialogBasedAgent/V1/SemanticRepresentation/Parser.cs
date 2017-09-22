@@ -1,11 +1,11 @@
-﻿using PerceptiveDialogBasedAgent.Knowledge;
+﻿using PerceptiveDialogBasedAgent.V1.Knowledge;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PerceptiveDialogBasedAgent.SemanticRepresentation
+namespace PerceptiveDialogBasedAgent.V1.SemanticRepresentation
 {
     class Parser
     {

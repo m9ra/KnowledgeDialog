@@ -1,12 +1,12 @@
-﻿using PerceptiveDialogBasedAgent.Interpretation;
-using PerceptiveDialogBasedAgent.SemanticRepresentation;
+﻿using PerceptiveDialogBasedAgent.V1.Interpretation;
+using PerceptiveDialogBasedAgent.V1.SemanticRepresentation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PerceptiveDialogBasedAgent
+namespace PerceptiveDialogBasedAgent.V1
 {
     internal delegate DbConstraint NativeCallWrapper(DbConstraint input);
 

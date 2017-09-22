@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PerceptiveDialogBasedAgent.SemanticRepresentation
+namespace PerceptiveDialogBasedAgent.V2
 {
-    class RelationBox
+    class Mind
     {
+        
     }
 }

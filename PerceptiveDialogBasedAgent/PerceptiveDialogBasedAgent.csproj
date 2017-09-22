@@ -68,7 +68,9 @@
     <Compile Include="V1\SemanticRepresentation\PatternMatcher.cs" />
     <Compile Include="V1\SemanticRepresentation\SemanticPattern.cs" />
     <Compile Include="V2\Body.cs" />
+    <Compile Include="V2\Database.cs" />
     <Compile Include="V2\EmptyAgent.cs" />
+    <Compile Include="V2\EvaluatedDatabase.cs" />
     <Compile Include="V2\Experiments.cs" />
     <Compile Include="V2\Log.cs" />
     <Compile Include="V2\Mind.cs" />

@@ -53,7 +53,7 @@ namespace PerceptiveDialogBasedAgent
             Evaluator.AddNativeEvaluator(_lastPattern, Evaluator.HowToEvaluateQ, nativeEvaluator);
             return this;
         }
-
+        
         internal MindSet IsTrue(NativePhraseEvaluator nativeEvaluator)
         {
             Evaluator.AddNativeEvaluator(_lastPattern, Evaluator.IsItTrueQ, nativeEvaluator);
@@ -72,7 +72,7 @@ namespace PerceptiveDialogBasedAgent
             return this;
         }
 
-        internal MindSet Semantic(string semanticDescription)
+        internal MindSet HowToEvaluate(string semanticDescription)
         {
             Database.AddFact(_lastPattern.Representation, Evaluator.HowToEvaluateQ, semanticDescription);
             return this;

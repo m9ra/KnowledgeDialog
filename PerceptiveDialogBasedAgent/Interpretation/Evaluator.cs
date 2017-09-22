@@ -35,18 +35,10 @@ namespace PerceptiveDialogBasedAgent.Interpretation
             _evaluators.Add(evaluatorRepresentation, evaluator);
         }
 
-        public bool IsTrue(DbConstraint constraint)
+        public bool IsTrue(string phrase)
         {
-            var isKnownFact = Mind.Database.Query(constraint).Any();
-            if (isKnownFact)
-                return true;
-
-            if (constraint.AnswerConstraints.Any() || constraint.SubjectConstraints.Any())
-                return false;
-
-            var result = Evaluate(constraint.PhraseConstraint, IsItTrueQ);
-
-            return result.Constraint.PhraseConstraint == "true";
+            var result = Evaluate(phrase, IsItTrueQ);
+            return result.Constraint.PhraseConstraint == "yes";
         }
 
         public EvaluationResult Evaluate(string phrase, string question, EvaluationContext parentContext = null)

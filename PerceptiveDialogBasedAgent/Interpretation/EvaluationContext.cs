@@ -37,18 +37,39 @@ namespace PerceptiveDialogBasedAgent.Interpretation
         {
             get
             {
-                var variable = "$" + variableName;
-                var variableSubstitution = _evaluatedElement.GetSubstitution(variable);
-                var result = _evaluator.Evaluate(variableSubstitution, Evaluator.HowToEvaluateQ, this);
-
-                return result.Constraint;
+                return Evaluate(variableName, Evaluator.HowToEvaluateQ);
             }
         }
 
-        internal bool IsTrue(DbConstraint constraint)
+        internal bool IsTrue(string variableName)
         {
-            return _evaluator.IsTrue(constraint);
+            var variableSubstitution = getVariableSubstitution(variableName);
+            return _evaluator.IsTrue(variableSubstitution.Token);
         }
+
+        internal DbConstraint Evaluate(string variableName, string question)
+        {
+            var variableSubstitution = getVariableSubstitution(variableName);
+            var result = _evaluator.Evaluate(variableSubstitution, question, this);
+
+            return result.Constraint;
+        }
+
+        private MatchElement getVariableSubstitution(string variableName)
+        {
+            var variable = "$" + variableName;
+            var variableSubstitution = _evaluatedElement.GetSubstitution(variable);
+            return variableSubstitution;
+        }
+
+        internal DbConstraint Raw(string variableName)
+        {
+            var variable = "$" + variableName;
+            var variableSubstitution = _evaluatedElement.GetSubstitution(variable);
+            var result = DbConstraint.Entity(variableSubstitution.Token);
+            return result;
+        }
+
 
         internal DbConstraint AnswerWhere(DbConstraint subject, string question)
         {

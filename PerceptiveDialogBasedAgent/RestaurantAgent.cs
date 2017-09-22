@@ -24,7 +24,7 @@ namespace PerceptiveDialogBasedAgent
                 .AddPattern("if", "$something", "then", "$something2")
                     .HowToDo(c =>
                     {
-                        var isConditionTrue = c.IsTrue(c["something"]);
+                        var isConditionTrue = c.IsTrue("something");
                         if (isConditionTrue)
                         {
                             return c["something2"];

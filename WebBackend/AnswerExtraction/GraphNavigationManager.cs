@@ -306,12 +306,12 @@ namespace WebBackend.AnswerExtraction
             // now we are just collecting simple data without any negotiation
             return new UsefulContinuationAct(startNewFrame());
 
-            var linkedUtterance = _linker.LinkUtterance(utterance.OriginalSentence);
+            /*var linkedUtterance = _linker.LinkUtterance(utterance.OriginalSentence);
             if (linkedUtterance.Entities.Count() != 0)
                 throw new NotImplementedException("maybe noise, relevant entities, etc");
 
 
-            throw new NotImplementedException("parse entities");
+            throw new NotImplementedException("parse entities");*/
         }
 
         private ResponseBase startNewFrame()

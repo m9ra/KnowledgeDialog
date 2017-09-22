@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent
 {
-
+    delegate DbConstraint ParameterEvaluator(string parameter, EvaluationContext context);
 
     class Body
     {
@@ -25,13 +25,15 @@ namespace PerceptiveDialogBasedAgent
 
         private List<string> _outputCandidates = new List<string>();
 
+        private List<DbConstraint> _topicHistory = new List<DbConstraint>();
+
+        private List<DbConstraint> _searchResult = new List<DbConstraint>();
+
         private readonly Dictionary<string, NativeCallWrapper> _nativeCallWrappers = new Dictionary<string, NativeCallWrapper>();
 
-        private string _currentGoal = null;
+        private DbConstraint _currentTopic;
 
-        private string _lastQuestionSubject = null;
-
-        private string _lastQuestion = null;
+        private ConstraintEntry _currentTopicPointer = null;
 
         #region Body control constants
 
@@ -47,54 +49,147 @@ namespace PerceptiveDialogBasedAgent
 
         internal readonly string QuestionProcessedDurability = "until question processed";
 
+        internal readonly string NativeMutliCallHandler = "%multi_call";
+
         #endregion
 
         internal Body(MindSet mind)
         {
             Mind = mind;
 
+            //common abilities
             AddNativeAction(Print, "say", "$what");
-            AddNativeAction(AskForAdvice, "ask", "for", "advice");
-            AddNativeAction(AddSensorAction, "add", "$action", "to", "$sensor");
+            AddNativeAction(FormulateTopicQuestion, "formulate", "a", "topic", "question");
+            AddNativeAction(AddSensorAction, RawEvaluator, ValueEvaluator, "add", "$action", "to", "$sensor");
+
+            //topic handling
+            AddNativeAction(WriteTopic, "write", "topic", "$topic");
+            AddNativeAction(SetPointerToEmptyEntity, "set", "topic", "pointer", "to", "a", "missing", "entity");
+
+            //search handling
+            AddNativeAction(Search, "search", "$something");
 
             mind
                 .AddPattern("input", "from", "user")
                     .HowToEvaluate(c => DbConstraint.Entity(_inputHistory.Last()))
 
+                .AddPattern("topic")
+                    .HowToEvaluate(c => _currentTopic)
 
+                .AddPattern("a", "database", "question")
+                    .HowToEvaluate(c => databaseQuestion())
+
+                .AddPattern("yes")
+                    .IsTrue(c => DbConstraint.Entity("yes"))
+
+                .AddPattern("no")
+                    .IsTrue(c => DbConstraint.Entity("no"))
+
+                .AddPattern("first", "$action1", "second", "$action2", "third", "$action3")
+                    .HowToDo(c =>
+                    {
+                        var action1 = c.Evaluate("action1", Evaluator.HowToDoQ);
+                        var action2 = c.Evaluate("action2", Evaluator.HowToDoQ);
+                        var action3 = c.Evaluate("action3", Evaluator.HowToDoQ);
+
+                        return DbConstraint.Entity(NativeMutliCallHandler).ExtendByAnswer("1?", action1).ExtendByAnswer("2?", action2).ExtendByAnswer("3?", action3);
+                    })
+
+                .AddPattern("first", "$action1", "second", "$action2")
+                    .HowToDo(c =>
+                    {
+                        var action1 = c.Evaluate("action1", Evaluator.HowToDoQ);
+                        var action2 = c.Evaluate("action2", Evaluator.HowToDoQ);
+
+                        return DbConstraint.Entity(NativeMutliCallHandler).ExtendByAnswer("1?", action1).ExtendByAnswer("2?", action2);
+                    })
                 ;
+
+            _nativeCallWrappers.Add(NativeMutliCallHandler, MultiCall);
         }
 
         internal string Input(string utterance)
         {
+            Log.DialogUtterance("U: " + utterance);
+
+            //prepare agent for input
             Mind.Database.ClearFailingConstraints();
             _outputCandidates.Clear();
 
+            //handle input processing
             _inputHistory.Add(utterance);
-            if (_inputHistory.Count == 0)
-                runSensor("dialog begins");
+            if (_inputHistory.Count == 1)
+                trigger("dialog begins");
 
-            runSensor("before input processing");
+            //run generated commands
+            trigger("before input processing");
             runPolicy();
-            runSensor("after input processing");
+            trigger("after input processing");
 
-            runSensor("before output printing");
+            //handle output processing
+            if (_outputCandidates.Count == 0)
+                trigger("missing output");
+
+            trigger("before output printing");
             var output = _outputCandidates.LastOrDefault();
+
+            logDatabaseQuestions();
+
+            // finish the turn 
             _outputHistory.Add(output);
+            clearDatabase(TurnEndDurability);
+            
+            //TODO!!!!!!!!Clear What agent should do
+
+            Log.DialogUtterance("S: " + output);
             return output;
+        }
+
+        internal Body Policy(string policyCommand)
+        {
+            //for policy adding, no history is considered
+            Log.Policy(policyCommand);
+
+            _inputHistory.Clear();
+            _inputHistory.Add(policyCommand);
+
+            trigger("before policy input processing");
+
+            //run generated commands
+            trigger("before input processing");
+            runPolicy();
+            trigger("after input processing");
+
+            //cleanup
+            clearDatabase(TurnEndDurability);
+            _inputHistory.Clear();
+
+            return this;
+        }
+
+        internal Body SensorAction(string sensor, string action)
+        {
+            AddSensorAction(action, sensor);
+            return this;
         }
 
         #region Processing utilities
 
-        private void runSensor(string trigger)
+        private void trigger(string trigger)
         {
-            if (!_sensors.TryGetValue(trigger, out var sensor))
-                _sensors[trigger] = sensor = new Sensor(trigger);
+            var sensor = getSensor(trigger);
 
             foreach (var action in sensor.Actions)
             {
                 Execute(action);
             }
+        }
+
+        private Sensor getSensor(string trigger)
+        {
+            if (!_sensors.TryGetValue(trigger, out var sensor))
+                _sensors[trigger] = sensor = new Sensor(trigger);
+            return sensor;
         }
 
         private void runPolicy()
@@ -103,42 +198,75 @@ namespace PerceptiveDialogBasedAgent
             var whatToDo = Answer(Agent, WhatToDoNowQ);
             if (whatToDo == null)
             {
-                if (_currentGoal != null)
-                {
-                    var isCurrentGoalFinished = IsTrue(Answer(_currentGoal, IsItFinishedQ));
-                    if (isCurrentGoalFinished)
-                        _currentGoal = whatToDo = Answer(_currentGoal, WhatToDoNextQ);
-                    else
-                        whatToDo = _currentGoal;
-                }
+                //we have no action yet
+                trigger("missing policy action");
+                whatToDo = Answer(Agent, WhatToDoNowQ);
             }
-
-            throw new NotImplementedException("Handle question asking");
 
             //do requested action
             if (!Execute(whatToDo))
-                outputQuestion();
-
-            clearDatabase(TurnEndDurability);
+                return;
         }
 
         #endregion
 
         #region Native body API
 
+        protected DbConstraint MultiCall(DbConstraint call)
+        {
+            var arguments = call.SubjectConstraints.OrderBy(c => c.Question.Length).OrderBy(c => c.Question).ToArray();
+            foreach (var argument in arguments)
+            {
+                var callResult = executeCall(argument.Answer);
+                if (!callResult)
+                    return DbConstraint.Entity("fail");
+            }
+
+            return DbConstraint.Entity("success");
+        }
+
+        protected void WriteTopic(DbConstraint topic)
+        {
+            _currentTopic = topic;
+        }
+
+        protected void SetPointerToEmptyEntity()
+        {
+            foreach (var entry in _currentTopic.Entries)
+            {
+                if (entry.Answer == null)
+                {
+                    _currentTopicPointer = entry;
+                    break;
+                }
+            }
+        }
+
+        protected void Search(DbConstraint constraint)
+        {
+            throw new NotImplementedException();
+        }
+
         protected void Print(string what)
         {
             _outputCandidates.Add(what);
         }
 
-        protected void AskForAdvice()
+        protected void FormulateTopicQuestion()
         {
-            throw new NotImplementedException();
+            if (_currentTopicPointer == null)
+                throw new NotImplementedException();
+
+            var question = formulateQuestion(new DbConstraint(_currentTopicPointer));
+            _outputCandidates.Add(question);
         }
 
-        protected void AddSensorAction(string action, string sensor)
+        protected void AddSensorAction(string action, string sensorTrigger)
         {
-            throw new NotImplementedException();
+            Log.AddingSensorAction(sensorTrigger, action);
+
+            var sensor = getSensor(sensorTrigger);
+            sensor.Actions.Add(action);
         }
 
         #endregion
@@ -147,7 +275,13 @@ namespace PerceptiveDialogBasedAgent
 
         protected bool Execute(string command)
         {
+            if (command == null)
+                return false;
+
+
             var evaluatedCommand = Evaluate(command, Evaluator.HowToDoQ);
+            Log.Execution(command, evaluatedCommand);
+
             return executeCall(evaluatedCommand);
         }
 
@@ -165,11 +299,6 @@ namespace PerceptiveDialogBasedAgent
             }
 
             return result.ToArray();
-        }
-
-        protected bool IsTrue(string subject)
-        {
-            throw new NotImplementedException();
         }
 
         protected DbConstraint Evaluate(string subject, string evaluationQuestion)
@@ -192,9 +321,11 @@ namespace PerceptiveDialogBasedAgent
 
         }
 
-        internal void AddPolicyFact(string act)
+        private void logDatabaseQuestions()
         {
-            throw new NotImplementedException();
+            var questions = Mind.Database.FailingConstraints.Select(q => formulateQuestion(q)).ToArray();
+
+            Log.List("DATABASE QUESTIONS", questions);
         }
 
         private void clearDatabase(string durability)
@@ -202,25 +333,26 @@ namespace PerceptiveDialogBasedAgent
             Mind.Database.ClearEntriesWith(durability);
         }
 
-        private void outputQuestion()
+        private DbConstraint databaseQuestion()
         {
             var failingConstraints = Mind.Database.FailingConstraints.ToArray();
             if (failingConstraints.Length == 0)
                 throw new NotImplementedException();
 
-            foreach (var constraint in failingConstraints.Reverse())
-            {
-                var questionEntry = createQuestionEntry(constraint);
-                if (questionEntry == null)
-                    continue;
+            return failingConstraints.Reverse().First();
+        }
 
-                _lastQuestionSubject = questionEntry.Subject.PhraseConstraint;
-                _lastQuestion = questionEntry.Question;
-                var question = string.Format(_lastQuestion.Replace("@", "{0}"), _lastQuestionSubject);
+        private string formulateQuestion(DbConstraint constraint)
+        {
+            var questionEntry = createQuestionEntry(constraint);
+            if (questionEntry == null)
+                throw new NotImplementedException();
 
-                Print(question);
-                return;
-            }
+            var questionSubject = questionEntry.Subject.PhraseConstraint;
+            var questionStr = questionEntry.Question;
+            var readableQuestion = string.Format(questionStr.Replace("@", "{0}"), questionSubject);
+
+            return readableQuestion;
 
             throw new NotImplementedException("Cannot create a question");
         }
@@ -247,7 +379,10 @@ namespace PerceptiveDialogBasedAgent
                 return false;
 
             if (!_nativeCallWrappers.ContainsKey(callName))
+            {
+                trigger("missing call handler");
                 return false;
+            }
 
             var call = _nativeCallWrappers[callName];
             call(callEntity);
@@ -255,9 +390,9 @@ namespace PerceptiveDialogBasedAgent
             return true;
         }
 
-        private NativePhraseEvaluator CreateActionSemantic(Action<string, string> action, string actionName, string parameterName1, string parameterName2)
+        private NativePhraseEvaluator CreateActionSemantic(Action<string, string> action, ParameterEvaluator param1, ParameterEvaluator param2, string actionName, string parameterName1, string parameterName2)
         {
-            var nativeCallWrapperId = ".native_executor-" + actionName;
+            var nativeCallWrapperId = "%" + actionName;
             NativeCallWrapper nativeCallWrapper = i =>
             {
                 var argumentEntity1 = i.GetSubjectConstraint(parameterName1);
@@ -272,15 +407,16 @@ namespace PerceptiveDialogBasedAgent
             {
                 var callEntity = DbConstraint.Entity(nativeCallWrapperId);
                 return callEntity
-                    .ExtendByAnswer(parameterName1, c[parameterName1])
-                    .ExtendByAnswer(parameterName2, c[parameterName2])
+                    .ExtendByAnswer(parameterName1, param1(parameterName1, c))
+                    .ExtendByAnswer(parameterName2, param2(parameterName2, c))
                     ;
             };
         }
 
+
         private NativePhraseEvaluator CreateActionSemantic(Action<string> action, string actionName, string parameterName1)
         {
-            var nativeCallWrapperId = ".native_executor-" + actionName;
+            var nativeCallWrapperId = "%" + actionName;
             NativeCallWrapper nativeCallWrapper = i =>
             {
                 var argumentEntity1 = i.GetSubjectConstraint(parameterName1);
@@ -299,9 +435,30 @@ namespace PerceptiveDialogBasedAgent
             };
         }
 
+        private NativePhraseEvaluator CreateActionSemantic(Action<DbConstraint> action, string actionName, string parameterName1)
+        {
+            var nativeCallWrapperId = "%" + actionName;
+            NativeCallWrapper nativeCallWrapper = i =>
+            {
+                var argumentEntity1 = i.GetSubjectConstraint(parameterName1);
+                action(argumentEntity1);
+                return null;
+            };
+
+            _nativeCallWrappers.Add(nativeCallWrapperId, nativeCallWrapper);
+
+            return c =>
+            {
+                var callEntity = DbConstraint.Entity(nativeCallWrapperId);
+                return callEntity
+                    .ExtendByAnswer(parameterName1, c[parameterName1])
+                    ;
+            };
+        }
+
         private NativePhraseEvaluator CreateActionSemantic(Action action, string actionName)
         {
-            var nativeCallWrapperId = ".native_executor-" + actionName;
+            var nativeCallWrapperId = "%" + actionName;
             NativeCallWrapper nativeCallWrapper = i =>
             {
                 action();
@@ -317,7 +474,7 @@ namespace PerceptiveDialogBasedAgent
             };
         }
 
-        internal void AddNativeAction(Action<string, string> action, params string[] pattern)
+        internal void AddNativeAction(Action<string, string> action, ParameterEvaluator param1, ParameterEvaluator param2, params string[] pattern)
         {
             var variables = pattern.Where(w => w.StartsWith("$")).ToArray();
             if (variables.Length != 2)
@@ -326,10 +483,21 @@ namespace PerceptiveDialogBasedAgent
             var variable2 = variables[1].Substring(1);
             Mind
                .AddPattern(pattern)
-                   .HowToDo(CreateActionSemantic(action, string.Join("_", pattern), variable1, variable2));
+                   .HowToDo(CreateActionSemantic(action, param1, param2, string.Join("_", pattern), variable1, variable2));
         }
 
         internal void AddNativeAction(Action<string> action, params string[] pattern)
+        {
+            var variables = pattern.Where(w => w.StartsWith("$")).ToArray();
+            if (variables.Length != 1)
+                throw new NotImplementedException();
+            var variable = variables[0].Substring(1);
+            Mind
+               .AddPattern(pattern)
+                   .HowToDo(CreateActionSemantic(action, string.Join("_", pattern), variable));
+        }
+
+        internal void AddNativeAction(Action<DbConstraint> action, params string[] pattern)
         {
             var variables = pattern.Where(w => w.StartsWith("$")).ToArray();
             if (variables.Length != 1)
@@ -349,6 +517,21 @@ namespace PerceptiveDialogBasedAgent
             Mind
                .AddPattern(pattern)
                    .HowToDo(CreateActionSemantic(action, string.Join("_", pattern)));
+        }
+
+        internal DbConstraint ValueEvaluator(string parameter, EvaluationContext context)
+        {
+            return context.Evaluate(parameter, Evaluator.HowToEvaluateQ);
+        }
+
+        internal DbConstraint RawEvaluator(string parameter, EvaluationContext context)
+        {
+            return context.Raw(parameter);
+        }
+
+        internal DbConstraint ActionEvaluator(string parameter, EvaluationContext context)
+        {
+            return context.Evaluate(parameter, Evaluator.HowToDoQ);
         }
 
         #endregion

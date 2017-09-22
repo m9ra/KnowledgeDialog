@@ -104,11 +104,11 @@ namespace WebBackend.AnswerExtraction
                 //Console.WriteLine("\t{0}/{1}", retrievedCount, totalCount);
             }
 
-            return;
-            foreach (var pair in edgeWordCounts.OrderBy(p => p.Value))
-            {
-                Console.WriteLine("{0}: {1}", pair.Key, pair.Value);
-            }
+            /* return;
+             foreach (var pair in edgeWordCounts.OrderBy(p => p.Value))
+             {
+                 Console.WriteLine("{0}: {1}", pair.Key, pair.Value);
+             }*/
         }
 
         private static void countHintNgrams(string hint, Tuple<FreebaseEntry, Edge, FreebaseEntry> target, Dictionary<string, int> counts)

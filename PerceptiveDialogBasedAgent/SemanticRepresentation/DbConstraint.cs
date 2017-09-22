@@ -16,6 +16,8 @@ namespace PerceptiveDialogBasedAgent.SemanticRepresentation
 
         internal readonly string PhraseConstraint;
 
+        internal IEnumerable<ConstraintEntry> Entries => _entries;
+
         internal DbConstraint(params ConstraintEntry[] entries)
             : this(null, entries)
         { }
@@ -62,9 +64,9 @@ namespace PerceptiveDialogBasedAgent.SemanticRepresentation
         public override string ToString()
         {
             if (PhraseConstraint != null)
-                return "[DbConstraint]" + PhraseConstraint + " " + string.Join(",", _entries.Select(e => e.ToString()));
+                return "[C]" + PhraseConstraint + " " + string.Join(",", _entries.Select(e => e.ToString()));
 
-            return "[DbConstraint]" + string.Join(",", _entries.Select(e => e.ToString()));
+            return "[C]" + string.Join(",", _entries.Select(e => e.ToString()));
         }
     }
 
@@ -90,7 +92,15 @@ namespace PerceptiveDialogBasedAgent.SemanticRepresentation
 
         public override string ToString()
         {
-            return string.Format("({0}|{1}|{2})", Subject, Question, Answer);
+            return string.Format("({0}|{1}|{2})", format(Subject), Question, format(Answer));
+        }
+
+        private string format(DbConstraint entity)
+        {
+            if (entity == null)
+                return "*";
+
+            return entity.ToString();
         }
     }
 }

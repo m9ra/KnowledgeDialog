@@ -17,12 +17,12 @@ namespace WebBackend.Experiment
         /// <summary>
         /// Factories indexed by task id.
         /// </summary>
-        private readonly List<TaskFactoryBase> _factories = new List<TaskFactoryBase>();
+        new private readonly List<TaskFactoryBase> _factories = new List<TaskFactoryBase>();
 
         /// <summary>
         /// Task indexes relative to factory according to task id.
         /// </summary>
-        private readonly List<int> _taskIndexes = new List<int>();
+        new private readonly List<int> _taskIndexes = new List<int>();
 
         /// <summary>
         /// Codes that are given for successful task completition.

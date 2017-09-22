@@ -142,9 +142,7 @@ namespace PerceptiveDialogBasedAgent
 
         private static void makeTurn(EmptyAgent agent, string input)
         {
-            wl("U: " + input);
             var output = agent.Input(input);
-            wl("S: " + output);
         }
     }
 }

@@ -54,6 +54,7 @@
     <Compile Include="Knowledge\Database.cs" />
     <Compile Include="Knowledge\DbResult.cs" />
     <Compile Include="Knowledge\DbEntry.cs" />
+    <Compile Include="Log.cs" />
     <Compile Include="MindSet.cs" />
     <Compile Include="RestaurantAgent.cs" />
     <Compile Include="SemanticRepresentation\DbConstraint.cs" />

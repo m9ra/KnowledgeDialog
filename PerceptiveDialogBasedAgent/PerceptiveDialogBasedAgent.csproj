@@ -74,6 +74,7 @@
     <Compile Include="V2\Experiments.cs" />
     <Compile Include="V2\Log.cs" />
     <Compile Include="V2\Mind.cs" />
+    <Compile Include="V2\QueryLog.cs" />
     <Compile Include="V2\SemanticItem.cs" />
   </ItemGroup>
   <ItemGroup>

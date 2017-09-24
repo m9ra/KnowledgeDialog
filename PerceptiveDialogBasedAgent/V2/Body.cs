@@ -8,7 +8,13 @@ namespace PerceptiveDialogBasedAgent.V2
 {
     class Body
     {
-        internal readonly static string WhatShouldAgentDoNowQ = "What should agent do now?";
+        internal readonly static string WhatShouldAgentDoNowQ = "what should agent do now ?";
+
+        internal readonly static string HowToDoQ = "how to do $@ ?";
+
+        internal readonly static string IsItTrueQ = "is $@ true ?";
+
+        internal readonly static string HowToEvaluateQ = "how to evaluate $@ ?";
 
         internal readonly static string UserInputVar = "$user_input";
 
@@ -20,9 +26,12 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private readonly Stack<string> _scopes = new Stack<string>();
 
+        private string _currentPattern;
+
         public string Input(string utterance)
         {
             Log.DialogUtterance("U: " + utterance);
+            Db.StartQueryLog();
 
             _outputCandidates.Clear();
 
@@ -44,8 +53,53 @@ namespace PerceptiveDialogBasedAgent.V2
             popScope("output printing");
             popScope("turn");
 
+            var log = Db.FinishLog();
+
             Log.DialogUtterance("S: " + output);
             return output;
+        }
+
+        public void PolicyInput(string utterance)
+        {
+            Log.Policy(utterance);
+
+            Db.StartQueryLog();
+            _outputCandidates.Clear();
+
+            //handle input processing
+            _inputHistory.Add(utterance);
+            pushScope("policy");
+
+            pushScope("input processing");
+            runPolicy();
+            popScope("input processing");
+
+            popScope("policy");
+
+            var log = Db.FinishLog();
+            // policy wont keep any history
+            _inputHistory.Clear();
+            _outputCandidates.Clear();
+        }
+
+
+        public Body Pattern(string pattern)
+        {
+            _currentPattern = pattern;
+
+            return this;
+        }
+
+        public Body HowToDo(string description)
+        {
+            Db.Add(SemanticItem.Pattern(_currentPattern, HowToDoQ, description));
+            return this;
+        }
+
+        public Body IsTrue(string description)
+        {
+            Db.Add(SemanticItem.Pattern(_currentPattern, IsItTrueQ, description));
+            return this;
         }
 
         private void runPolicy()

@@ -41,6 +41,12 @@ namespace PerceptiveDialogBasedAgent.V2
         {
             return new SemanticItem(question, null, constraints);
         }
+
+        internal static SemanticItem Pattern(string patternValue, string question, string answer)
+        {
+            var constraints = new Constraints().AddInput(patternValue);
+            return new SemanticItem(question, answer, constraints);
+        }
     }
 
     class Constraints
@@ -57,6 +63,11 @@ namespace PerceptiveDialogBasedAgent.V2
         private Constraints(Dictionary<string, SemanticItem> values)
         {
             _values = new Dictionary<string, SemanticItem>(values);
+        }
+
+        public Constraints AddInput(string value)
+        {
+            return this.AddValue("$@", value);
         }
 
         public Constraints AddValue(string variable, string value)

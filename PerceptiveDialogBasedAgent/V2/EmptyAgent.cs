@@ -16,6 +16,12 @@ namespace PerceptiveDialogBasedAgent.V2
         internal EmptyAgent()
         {            
             Body
+                .Pattern("when $condition $action")
+                    .HowToDo("add $action to the $condition sensor")
+
+                .Pattern("execute $something")
+                    .HowToDo("not implemented")
+
                 .Pattern("$action1 and $action2")
                     .HowToDo("not implemented")
 

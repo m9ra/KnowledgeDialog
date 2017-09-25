@@ -71,7 +71,7 @@ namespace PerceptiveDialogBasedAgent.V2
             pushScope("policy");
 
             pushScope("input processing");
-            runPolicy();
+            executeCommand(utterance);
             popScope("input processing");
 
             popScope("policy");
@@ -100,6 +100,13 @@ namespace PerceptiveDialogBasedAgent.V2
         {
             Db.Add(SemanticItem.Pattern(_currentPattern, IsItTrueQ, description));
             return this;
+        }
+
+        private void executeCommand(string utterance)
+        {
+            var answers = getInputAnswers(utterance, HowToDoQ).ToArray();
+            if (answers.Length != 1)
+                throw new NotImplementedException();
         }
 
         private void runPolicy()
@@ -131,6 +138,16 @@ namespace PerceptiveDialogBasedAgent.V2
         private IEnumerable<SemanticItem> getAnswers(string question)
         {
             var currentConstraints = createConstraintValues();
+            var queryItem = SemanticItem.AnswerQuery(question, currentConstraints);
+
+            var result = Db.Query(queryItem).ToArray();
+            return result;
+        }
+
+        private IEnumerable<SemanticItem> getInputAnswers(string input, string question)
+        {
+            var currentConstraints = createConstraintValues();
+            currentConstraints = currentConstraints.AddInput(input);
             var queryItem = SemanticItem.AnswerQuery(question, currentConstraints);
 
             var result = Db.Query(queryItem).ToArray();

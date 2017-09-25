@@ -47,13 +47,32 @@ namespace PerceptiveDialogBasedAgent.V2
             var constraints = new Constraints().AddInput(patternValue);
             return new SemanticItem(question, answer, constraints);
         }
+
+        internal SemanticItem WithConstraints(Constraints constraints)
+        {
+            return new SemanticItem(Question, Answer, constraints);
+        }
     }
 
     class Constraints
     {
         private readonly Dictionary<string, SemanticItem> _values = new Dictionary<string, SemanticItem>();
 
-        public readonly IEnumerable<string> Conditions;
+        private readonly List<string> _conditions = new List<string>();
+
+        public IEnumerable<string> Conditions => _conditions;
+
+        public string Input
+        {
+            get
+            {
+                _values.TryGetValue("$@", out SemanticItem input);
+                if (input == null)
+                    return null;
+
+                return input.Answer;
+            }
+        }
 
         public Constraints()
         {

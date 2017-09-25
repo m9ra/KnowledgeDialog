@@ -28,8 +28,23 @@ namespace PerceptiveDialogBasedAgent.V2
                 if (item.Question != queryItem.Question)
                     continue;
 
-                //TODO resolve constraints
-                result.Add(item);
+                if (item.Constraints.Input != null)
+                {
+                    var matcher = new InputMatcher();
+                    var itemMatches = matcher.Match(item, queryItem).ToArray();
+
+                    foreach (var match in itemMatches)
+                    {
+                        if (meetConditions(match))
+                            result.Add(match);
+                    }
+                }
+                else
+                {
+                    if (meetConditions(item))
+                        result.Add(item);
+
+                }
             }
 
             logPop(result);
@@ -52,15 +67,23 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal QueryLog FinishLog()
         {
-            if (_queryLog.Count!=1)
+            if (_queryLog.Count != 1)
                 throw new InvalidOperationException("Invalid finish state for log");
 
             return _queryLog.Pop();
         }
 
+        private bool meetConditions(SemanticItem item)
+        {
+            foreach (var condition in item.Constraints.Conditions)
+                throw new NotImplementedException();
+
+            return true;
+        }
+
         private void logPush(SemanticItem item)
         {
-            if (_queryLog.Count==0)
+            if (_queryLog.Count == 0)
                 //logging is not enabled
                 return;
 

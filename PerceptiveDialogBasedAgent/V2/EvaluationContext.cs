@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V2
 {
-    class EvaluatedDatabase : Database
+    internal delegate SemanticItem NativeEvaluator(EvaluationContext context);
+
+    class EvaluationContext
     {
+
     }
 }

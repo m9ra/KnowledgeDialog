@@ -71,12 +71,14 @@
     <Compile Include="V2\ConstraintContext.cs" />
     <Compile Include="V2\Database.cs" />
     <Compile Include="V2\EmptyAgent.cs" />
-    <Compile Include="V2\EvaluatedDatabase.cs" />
+    <Compile Include="V2\EvaluatedSpanDatabase.cs" />
+    <Compile Include="V2\EvaluationContext.cs" />
     <Compile Include="V2\Experiments.cs" />
     <Compile Include="V2\InputMatcher.cs" />
     <Compile Include="V2\Log.cs" />
     <Compile Include="V2\MatchFactory.cs" />
     <Compile Include="V2\Mind.cs" />
+    <Compile Include="V2\SpanDatabase.cs" />
     <Compile Include="V2\QueryLog.cs" />
     <Compile Include="V2\SemanticItem.cs" />
   </ItemGroup>

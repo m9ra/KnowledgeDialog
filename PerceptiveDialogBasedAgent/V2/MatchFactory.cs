@@ -21,11 +21,14 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal IEnumerable<SemanticItem> Generate(SemanticItem input)
         {
-            initializeParts(input.Constraints.Input);
+            var inputText = input.Constraints.Input;
+            inputText = input.Constraints.Instantiate(inputText);
+
+            initializeParts(inputText);
 
             while (true)
             {
-                var item = generateCurrentState();
+                var item = generateCurrentState(input.Constraints);
                 if (item != null)
                     yield return item;
 
@@ -41,13 +44,13 @@ namespace PerceptiveDialogBasedAgent.V2
             }
         }
 
-        private SemanticItem generateCurrentState()
+        private SemanticItem generateCurrentState(Constraints inputConstraints)
         {
             var isValid = _parts.All(p => p.TryToValidate());
             if (!isValid)
                 return null;
 
-            var constraints = new Constraints();
+            var constraints = inputConstraints;
             for (var i = 0; i < _parts.Length; ++i)
             {
                 constraints = _parts[i].Substitute(constraints);

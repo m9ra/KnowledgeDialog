@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V2
 {
+    internal delegate bool NativeAction(SemanticItem input);
+
     class Body
     {
         internal readonly static string WhatShouldAgentDoNowQ = "what should agent do now ?";
@@ -18,7 +20,7 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal readonly static string UserInputVar = "$user_input";
 
-        internal readonly Database Db = new EvaluatedDatabase();
+        internal readonly EvaluatedSpanDatabase Db = new EvaluatedSpanDatabase();
 
         private readonly List<string> _outputCandidates = new List<string>();
 
@@ -26,7 +28,22 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private readonly Stack<string> _scopes = new Stack<string>();
 
+        private readonly Dictionary<string, NativeAction> _nativeActions = new Dictionary<string, NativeAction>();
+
         private string _currentPattern;
+
+        internal Body()
+        {
+            this
+                .Pattern("add $action to sensor $sensor")
+                    .HowToDo("SensorAdd", _sensorAdd)
+
+                .Pattern("user input")
+                    .HowToDo("UserInput", _userInput)
+
+
+            ;
+        }
 
         public string Input(string utterance)
         {
@@ -96,17 +113,46 @@ namespace PerceptiveDialogBasedAgent.V2
             return this;
         }
 
+        public Body HowToDo(string evaluatorName, NativeEvaluator evaluator)
+        {
+            var evaluatorId = "%" + evaluatorName;
+            HowToDo(evaluatorId);
+
+            Db.AddEvaluator(evaluatorId, evaluator);
+
+            return this;
+        }
+
+        public Body HowToDo(string actionName, NativeAction action)
+        {
+            var evaluatorId = "#" + actionName;
+            HowToDo(evaluatorId);
+
+            _nativeActions.Add(evaluatorId, action);
+            Db.AddSpanElement(evaluatorId);
+
+            return this;
+        }
+
         public Body IsTrue(string description)
         {
             Db.Add(SemanticItem.Pattern(_currentPattern, IsItTrueQ, description));
             return this;
         }
 
-        private void executeCommand(string utterance)
+        private bool executeCommand(string utterance)
         {
             var answers = getInputAnswers(utterance, HowToDoQ).ToArray();
-            if (answers.Length != 1)
-                throw new NotImplementedException();
+            foreach (var answer in answers)
+            {
+                if (executeCall(answer))
+                {
+                    //we found a way how to execute the command
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void runPolicy()
@@ -132,7 +178,11 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private bool executeCall(SemanticItem command)
         {
-            throw new NotImplementedException();
+            if (!_nativeActions.ContainsKey(command.Answer))
+                return false;
+
+            var action = _nativeActions[command.Answer];
+            return action(command);
         }
 
         private IEnumerable<SemanticItem> getAnswers(string question)
@@ -157,7 +207,7 @@ namespace PerceptiveDialogBasedAgent.V2
         private Constraints createConstraintValues()
         {
             return new Constraints()
-                .AddValue(UserInputVar, _inputHistory[0])
+                .AddInput(_inputHistory[0])
                 ;
         }
 
@@ -171,6 +221,26 @@ namespace PerceptiveDialogBasedAgent.V2
             var poppedScope = _scopes.Pop();
             if (poppedScope != scope)
                 throw new InvalidOperationException("Cannot pop givens cope");
+        }
+
+        private SemanticItem _userInput(EvaluationContext context)
+        {
+            return SemanticItem.Entity(_inputHistory[0]);
+        }
+
+        private bool _sensorAdd(SemanticItem item)
+        {
+            var action = item.GetSubstitutionValue("$action");
+            var sensor = item.GetSubstitutionValue("$sensor");
+
+            var constraints = new Constraints()
+                .AddCondition(sensor);
+
+            var actionItem = SemanticItem.From(WhatShouldAgentDoNowQ, action, constraints);
+            Db.Add(actionItem);
+
+            Log.SensorAdd(sensor, action);
+            return true;
         }
     }
 }

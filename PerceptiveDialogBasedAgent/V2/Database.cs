@@ -10,9 +10,17 @@ namespace PerceptiveDialogBasedAgent.V2
     {
         private readonly List<SemanticItem> _data = new List<SemanticItem>();
 
+        private readonly HashSet<string> _phraseIndex = new HashSet<string>();
+
+        internal static readonly string YesA = "yes";
+
+        internal static readonly string NoA = "no";
+
+        internal static readonly string IsItTrueQ = "is $@ true?";
+
         private Stack<QueryLog> _queryLog = new Stack<QueryLog>();
 
-        internal IEnumerable<SemanticItem> Query(SemanticItem queryItem)
+        internal virtual IEnumerable<SemanticItem> Query(SemanticItem queryItem)
         {
             if (queryItem.Question == null)
                 throw new NotImplementedException();
@@ -33,17 +41,19 @@ namespace PerceptiveDialogBasedAgent.V2
                     var matcher = new InputMatcher();
                     var itemMatches = matcher.Match(item, queryItem).ToArray();
 
+                    var matchedItems = new List<SemanticItem>();
                     foreach (var match in itemMatches)
                     {
                         if (meetConditions(match))
-                            result.Add(match);
+                            matchedItems.Add(match);
                     }
+
+                    result.AddRange(matchedItems.OrderByDescending(i => rank(i)));
                 }
                 else
                 {
                     if (meetConditions(item))
                         result.Add(item);
-
                 }
             }
 
@@ -54,6 +64,10 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal void Add(SemanticItem item)
         {
+            foreach (var phrase in item.Phrases)
+            {
+                _phraseIndex.Add(phrase);
+            }
             _data.Add(item);
         }
 
@@ -73,10 +87,34 @@ namespace PerceptiveDialogBasedAgent.V2
             return _queryLog.Pop();
         }
 
+        private int rank(SemanticItem item)
+        {
+            var result = 0;
+            foreach (var phrase in item.Phrases)
+            {
+                if (_phraseIndex.Contains(phrase))
+                    result += 1;
+            }
+
+            return result;
+        }
+
         private bool meetConditions(SemanticItem item)
         {
             foreach (var condition in item.Constraints.Conditions)
-                throw new NotImplementedException();
+            {
+                var constraints = new Constraints().AddInput(condition);
+                var queryItem = SemanticItem.AnswerQuery(Database.IsItTrueQ, constraints);
+
+                var result = Query(queryItem).ToArray();
+                if (result.Length > 1)
+                    throw new NotImplementedException();
+
+                var isTrue = result.FirstOrDefault()?.Answer == YesA;
+                if (!isTrue)
+                    return false;
+            }
+
 
             return true;
         }

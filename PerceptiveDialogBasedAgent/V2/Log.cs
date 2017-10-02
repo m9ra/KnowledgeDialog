@@ -39,6 +39,11 @@ namespace PerceptiveDialogBasedAgent.V2
             forceWrite(utterance + "\n", UtteranceColor);
         }
 
+        internal static void SensorAdd(string condition, string action)
+        {
+            writeln("\tSENSOR: {0}", SensorColor, condition);
+            writeln("\t\t{0}", ActionColor, action);
+        }
 
         private static void writeln(string format, ConsoleColor color, params object[] formatArgs)
         {

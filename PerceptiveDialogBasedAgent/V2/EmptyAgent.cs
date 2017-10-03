@@ -16,8 +16,8 @@ namespace PerceptiveDialogBasedAgent.V2
         internal EmptyAgent()
         {            
             Body
-                .Pattern("when $sensor $action")
-                    .HowToDo("add $action to sensor $sensor")
+                .Pattern("when $condition then $action")
+                    .HowToDo("add $action to trigger $condition")
 
                 .Pattern("execute $something")
                     .HowToDo("not implemented")
@@ -33,10 +33,10 @@ namespace PerceptiveDialogBasedAgent.V2
             ;
 
 
-            AddPolicy("when user input is a command execute it");
-            AddPolicy("when no output is available ask for help");
-            AddPolicy("when answer is provided write it into answer slot");
-            AddPolicy("when advice is complete save it");            
+            AddPolicy("when user input is a command then execute it");
+            AddPolicy("when no output is available then ask for help");
+            AddPolicy("when answer is provided then write it into answer slot");
+            AddPolicy("when advice is complete then save it");            
         }
 
         public string Input(string utternace)

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V2
 {
-    class SemanticItem
+    public class SemanticItem
     {
         public readonly static string EntityQ = "What is it?";
 
@@ -100,7 +100,7 @@ namespace PerceptiveDialogBasedAgent.V2
         }
     }
 
-    class Constraints
+    public class Constraints
     {
         private readonly Dictionary<string, SemanticItem> _values = new Dictionary<string, SemanticItem>();
 

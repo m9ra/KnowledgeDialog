@@ -35,8 +35,8 @@ namespace PerceptiveDialogBasedAgent.V2
         internal Body()
         {
             this
-                .Pattern("add $action to sensor $sensor")
-                    .HowToDo("SensorAdd", _sensorAdd)
+                .Pattern("add $action to trigger $trigger")
+                    .HowToDo("TriggerAdd", _triggerAdd)
 
                 .Pattern("user input")
                     .HowToDo("UserInput", _userInput)
@@ -64,13 +64,16 @@ namespace PerceptiveDialogBasedAgent.V2
             runPolicy();
             popScope("input processing");
 
+            var log = Db.FinishLog();
+            var questions = log.GetQuestions();
+
             //handle output processing
             pushScope("output printing");
             var output = _outputCandidates.LastOrDefault();
             popScope("output printing");
             popScope("turn");
 
-            var log = Db.FinishLog();
+            Log.Questions(questions);            
 
             Log.DialogUtterance("S: " + output);
             return output;
@@ -94,6 +97,9 @@ namespace PerceptiveDialogBasedAgent.V2
             popScope("policy");
 
             var log = Db.FinishLog();
+            var questions = log.GetQuestions();
+            Log.Questions(questions);
+
             // policy wont keep any history
             _inputHistory.Clear();
             _outputCandidates.Clear();
@@ -228,18 +234,18 @@ namespace PerceptiveDialogBasedAgent.V2
             return SemanticItem.Entity(_inputHistory[0]);
         }
 
-        private bool _sensorAdd(SemanticItem item)
+        private bool _triggerAdd(SemanticItem item)
         {
             var action = item.GetSubstitutionValue("$action");
-            var sensor = item.GetSubstitutionValue("$sensor");
+            var trigger = item.GetSubstitutionValue("$trigger");
 
             var constraints = new Constraints()
-                .AddCondition(sensor);
+                .AddCondition(trigger);
 
             var actionItem = SemanticItem.From(WhatShouldAgentDoNowQ, action, constraints);
             Db.Add(actionItem);
 
-            Log.SensorAdd(sensor, action);
+            Log.SensorAdd(trigger, action);
             return true;
         }
     }

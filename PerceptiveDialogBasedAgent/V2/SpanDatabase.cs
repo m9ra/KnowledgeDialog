@@ -10,7 +10,7 @@ namespace PerceptiveDialogBasedAgent.V2
     {
         internal readonly int MaxResolvingDepth = 5;
 
-        private HashSet<string> _span = new HashSet<string>() { YesA, NoA };
+        protected HashSet<string> _span = new HashSet<string>() { YesA, NoA };
 
         internal override IEnumerable<SemanticItem> Query(SemanticItem queryItem)
         {
@@ -19,6 +19,8 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private IEnumerable<SemanticItem> query(SemanticItem queryItem, int resolvingDepth)
         {
+            logPush(queryItem);
+
             var result = new List<SemanticItem>();
             foreach (var resultItem in base.Query(queryItem))
             {
@@ -37,7 +39,7 @@ namespace PerceptiveDialogBasedAgent.V2
                     result.AddRange(query(newQuery, resolvingDepth - 1));
                 }
             }
-
+            logPop(result);
             return result;
         }
 

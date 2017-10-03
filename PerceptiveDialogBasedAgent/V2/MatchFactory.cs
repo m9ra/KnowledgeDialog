@@ -24,11 +24,12 @@ namespace PerceptiveDialogBasedAgent.V2
             var inputText = input.Constraints.Input;
             inputText = input.Constraints.Instantiate(inputText);
 
+            var inputTokens = tokenize(inputText);
             initializeParts(inputText);
 
             while (true)
             {
-                var item = generateCurrentState(input.Constraints);
+                var item = generateCurrentState(inputTokens, input.Constraints);
                 if (item != null)
                     yield return item;
 
@@ -44,10 +45,11 @@ namespace PerceptiveDialogBasedAgent.V2
             }
         }
 
-        private SemanticItem generateCurrentState(Constraints inputConstraints)
+        private SemanticItem generateCurrentState(string[] inputTokens, Constraints inputConstraints)
         {
             var isValid = _parts.All(p => p.TryToValidate());
-            if (!isValid)
+            var totalLength = _parts.Select(p => p.CurrentLength).Sum();
+            if (!isValid || totalLength != inputTokens.Length)
                 return null;
 
             var constraints = inputConstraints;
@@ -125,6 +127,8 @@ namespace PerceptiveDialogBasedAgent.V2
         private int[] _variableLenghts;
 
         MatchPart _previous, _following;
+
+        internal int CurrentLength => _currentMatchEnd - _currentMatchStart;
 
         internal bool TryToValidate()
         {

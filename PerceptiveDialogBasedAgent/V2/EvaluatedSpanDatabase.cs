@@ -12,6 +12,8 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal override IEnumerable<SemanticItem> Query(SemanticItem queryItem)
         {
+            logPush(queryItem);
+
             var result = new List<SemanticItem>();
 
             var originalResult = base.Query(queryItem);
@@ -29,6 +31,8 @@ namespace PerceptiveDialogBasedAgent.V2
                     result.Add(item);
                 }
             }
+
+            logPop(result);
 
             return result;
         }

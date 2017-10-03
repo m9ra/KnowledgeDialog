@@ -16,11 +16,11 @@ namespace PerceptiveDialogBasedAgent.V2
         /// <summary>
         /// Queries done when current log was active.
         /// </summary>
-        public readonly IEnumerable<QueryLog> Subqueries;
+        public IEnumerable<QueryLog> Subqueries => _subqueries;
 
         private readonly List<QueryLog> _subqueries = new List<QueryLog>();
 
-        private SemanticItem[] _result = null;
+        private List<SemanticItem> _result = new List<SemanticItem>();
 
         internal QueryLog()
         {
@@ -32,14 +32,40 @@ namespace PerceptiveDialogBasedAgent.V2
             Query = query;
         }
 
-        internal void SetResult(IEnumerable<SemanticItem> result)
+        internal void ExtendResult(IEnumerable<SemanticItem> result)
         {
-            _result = result.ToArray();
+            _result.AddRange(result);
         }
 
         internal void AddSubquery(QueryLog subquery)
         {
             _subqueries.Add(subquery);
+        }
+
+        internal IEnumerable<SemanticItem> GetQuestions()
+        {
+            var result = new List<SemanticItem>();
+            foreach (var subquery in _subqueries)
+            {
+                if (subquery._result.Count == 0 && subquery._subqueries.Count == 0)
+                {
+                    result.Add(subquery.Query);
+                }
+                else
+                {
+                    result.AddRange(subquery.GetQuestions());
+                }
+            }
+
+            return result;
+        }
+
+        public override string ToString()
+        {
+            if (Query == null)
+                return "root";
+
+            return "Q: " + Query.ToString();
         }
     }
 }

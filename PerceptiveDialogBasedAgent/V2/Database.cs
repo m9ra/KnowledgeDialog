@@ -101,39 +101,54 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private bool meetConditions(SemanticItem item)
         {
+            var hasConditions = item.Constraints.Conditions.Any();
+            if (!hasConditions)
+                return true;
+
+            logPush(item);
+
+            var conditionsResult = true;
             foreach (var condition in item.Constraints.Conditions)
             {
                 var constraints = new Constraints().AddInput(condition);
-                var queryItem = SemanticItem.AnswerQuery(Database.IsItTrueQ, constraints);
+                var queryItem = SemanticItem.AnswerQuery(IsItTrueQ, constraints);
 
                 var result = Query(queryItem).ToArray();
                 if (result.Length > 1)
                     throw new NotImplementedException();
 
-                var isTrue = result.FirstOrDefault()?.Answer == YesA;
-                if (!isTrue)
-                    return false;
+                conditionsResult &= result.FirstOrDefault()?.Answer == YesA;
+                if (!conditionsResult)
+                    break;
             }
+            logPop(new SemanticItem[0]);
 
-
-            return true;
+            return conditionsResult;
         }
 
-        private void logPush(SemanticItem item)
+        protected void logPush(SemanticItem item)
         {
             if (_queryLog.Count == 0)
                 //logging is not enabled
                 return;
 
-            var log = new QueryLog(item);
-            _queryLog.Peek().AddSubquery(log);
-            _queryLog.Push(log);
+            var peek = _queryLog.Peek();
+            if (peek.Query == item)
+            {
+                _queryLog.Push(peek);
+            }
+            else
+            {
+                var log = new QueryLog(item);
+                peek.AddSubquery(log);
+                _queryLog.Push(log);
+            }
         }
 
-        private void logPop(IEnumerable<SemanticItem> result)
+        protected void logPop(IEnumerable<SemanticItem> result)
         {
             var log = _queryLog.Pop();
-            log.SetResult(result);
+            log.ExtendResult(result);
         }
     }
 }

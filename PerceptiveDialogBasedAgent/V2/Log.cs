@@ -28,15 +28,27 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal static readonly ConsoleColor ActionColor = ConsoleColor.DarkYellow;
 
-        static internal void Policy(string policyCommand)
+        internal static void Policy(string policyCommand)
         {
             writeln("POLICY: " + policyCommand, PolicyColor);
         }
 
-        static internal void DialogUtterance(string utterance)
+        internal static void DialogUtterance(string utterance)
         {
             writeln("", InfoColor);
             forceWrite(utterance + "\n", UtteranceColor);
+        }
+
+        internal static void Questions(IEnumerable<SemanticItem> questions)
+        {
+            if (!questions.Any())
+                return;
+
+            writeln("\tDATABASE QUESTIONS", HeadlineColor);
+            foreach (var question in questions)
+            {
+                writeln("\t\t{0}", ItemColor, question);
+            }
         }
 
         internal static void SensorAdd(string condition, string action)
@@ -65,5 +77,6 @@ namespace PerceptiveDialogBasedAgent.V2
             Console.Write(format, formatArgs);
             Console.ForegroundColor = previousColor;
         }
+
     }
 }

@@ -12,7 +12,7 @@ namespace PerceptiveDialogBasedAgent.V2
         {
             var agent = new EmptyAgent();
 
-            agent.Input("hello");
+            //agent.Input("hello");
             agent.Input("say hi");
         }
     }

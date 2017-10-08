@@ -16,9 +16,11 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal static readonly string NoA = "no";
 
-        internal static readonly string IsItTrueQ = "is $@ true?";
+        internal static readonly string IsItTrueQ = "is $@ true ?";
 
         private Stack<QueryLog> _queryLog = new Stack<QueryLog>();
+
+        internal QueryLog CurrentLogPeek => _queryLog.Peek();
 
         internal virtual IEnumerable<SemanticItem> Query(SemanticItem queryItem)
         {

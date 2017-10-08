@@ -26,6 +26,20 @@ namespace PerceptiveDialogBasedAgent.V2
             }
         }
 
+        internal string InstantiateInputWithEntityVariables()
+        {
+            var result = " " + Constraints.Input + " ";
+            foreach (var variablePair in Constraints.VariableValues)
+            {
+                if (!variablePair.Value.IsEntity)
+                    continue;
+
+                result = result.Replace(" " + variablePair.Key + " ", " " + variablePair.Value.Answer + " ");
+            }
+
+            return result.Trim();
+        }
+
         internal IEnumerable<string> Phrases
         {
             get
@@ -102,15 +116,17 @@ namespace PerceptiveDialogBasedAgent.V2
 
     public class Constraints
     {
-        private readonly Dictionary<string, SemanticItem> _values = new Dictionary<string, SemanticItem>();
+        private readonly Dictionary<string, SemanticItem> _variableValues = new Dictionary<string, SemanticItem>();
 
         public readonly IEnumerable<string> Conditions = new string[0];
+
+        public IEnumerable<KeyValuePair<string, SemanticItem>> VariableValues { get { return _variableValues; } }
 
         public string Input
         {
             get
             {
-                _values.TryGetValue("$@", out SemanticItem input);
+                _variableValues.TryGetValue("$@", out SemanticItem input);
                 if (input == null)
                     return null;
 
@@ -122,7 +138,7 @@ namespace PerceptiveDialogBasedAgent.V2
         {
             get
             {
-                foreach (var variablePair in _values)
+                foreach (var variablePair in _variableValues)
                 {
                     yield return variablePair.Value.Answer;
                     yield return variablePair.Value.Question;
@@ -137,11 +153,16 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private Constraints(Dictionary<string, SemanticItem> values, IEnumerable<string> conditions)
         {
-            _values = new Dictionary<string, SemanticItem>(values);
+            _variableValues = new Dictionary<string, SemanticItem>(values);
             Conditions = conditions.ToArray();
         }
 
         public Constraints AddInput(string value)
+        {
+            return this.AddValue("$@", value);
+        }
+
+        public Constraints AddInput(SemanticItem value)
         {
             return this.AddValue("$@", value);
         }
@@ -156,7 +177,7 @@ namespace PerceptiveDialogBasedAgent.V2
 
         public Constraints AddValue(string variable, SemanticItem item)
         {
-            var values = new Dictionary<string, SemanticItem>(_values);
+            var values = new Dictionary<string, SemanticItem>(_variableValues);
             values[variable] = item;
 
             return new Constraints(values, Conditions);
@@ -164,32 +185,18 @@ namespace PerceptiveDialogBasedAgent.V2
 
         public SemanticItem GetSubstitution(string variable)
         {
-            return _values[variable];
+            return _variableValues[variable];
         }
 
         internal Constraints AddCondition(string condition)
         {
-            return new Constraints(_values, Conditions.Concat(new[] { condition }));
-        }
-
-        internal string Instantiate(string inputText)
-        {
-            var result = " " + inputText + " ";
-            foreach (var variablePair in _values)
-            {
-                if (!variablePair.Value.IsEntity)
-                    throw new NotImplementedException();
-
-                result = result.Replace(" " + variablePair.Key + " ", " " + variablePair.Value.Answer + " ");
-            }
-
-            return result.Trim();
+            return new Constraints(_variableValues, Conditions.Concat(new[] { condition }));
         }
 
         internal string ShallowToString()
         {
             var variables = new List<string>();
-            foreach (var variablePair in _values.OrderBy(v => v.Key))
+            foreach (var variablePair in _variableValues.OrderBy(v => v.Key))
             {
                 if (variablePair.Key == "$@")
                     continue;
@@ -208,6 +215,16 @@ namespace PerceptiveDialogBasedAgent.V2
                 variablesStr = "VARS " + variablesStr + ";";
 
             return string.Format("INPUT {0};{1}", Input, variablesStr);
+        }
+
+        internal static Constraints WithInput(string input)
+        {
+            return new Constraints().AddInput(input);
+        }
+
+        internal static Constraints WithInput(SemanticItem input)
+        {
+            return new Constraints().AddInput(input);
         }
     }
 }

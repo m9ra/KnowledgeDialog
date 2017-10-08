@@ -21,8 +21,8 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal IEnumerable<SemanticItem> Generate(SemanticItem input)
         {
-            var inputText = input.Constraints.Input;
-            inputText = input.Constraints.Instantiate(inputText);
+            var inputText = input.InstantiateInputWithEntityVariables();
+            
 
             var inputTokens = tokenize(inputText);
             initializeParts(inputText);

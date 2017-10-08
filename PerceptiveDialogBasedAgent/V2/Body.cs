@@ -32,16 +32,19 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private string _currentPattern;
 
+        internal IEnumerable<string> InputHistory => _inputHistory;
+
         internal Body()
         {
             this
                 .Pattern("add $action to trigger $trigger")
                     .HowToDo("TriggerAdd", _triggerAdd)
 
+                .Pattern("print $something")
+                    .HowToDo("Print", _print)
+
                 .Pattern("user input")
-                    .HowToDo("UserInput", _userInput)
-
-
+                    .HowToEvaluate("UserInput", _userInput)
             ;
         }
 
@@ -73,7 +76,7 @@ namespace PerceptiveDialogBasedAgent.V2
             popScope("output printing");
             popScope("turn");
 
-            Log.Questions(questions);            
+            Log.Questions(questions);
 
             Log.DialogUtterance("S: " + output);
             return output;
@@ -119,9 +122,16 @@ namespace PerceptiveDialogBasedAgent.V2
             return this;
         }
 
+
+        public Body HowToEvaluate(string description)
+        {
+            Db.Add(SemanticItem.Pattern(_currentPattern, HowToEvaluateQ, description));
+            return this;
+        }
+
         public Body HowToDo(string evaluatorName, NativeEvaluator evaluator)
         {
-            var evaluatorId = "%" + evaluatorName;
+            var evaluatorId = $"%{evaluatorName}-how_to_do";
             HowToDo(evaluatorId);
 
             Db.AddEvaluator(evaluatorId, evaluator);
@@ -140,18 +150,47 @@ namespace PerceptiveDialogBasedAgent.V2
             return this;
         }
 
+        public Body HowToEvaluate(string evaluatorName, NativeEvaluator evaluator)
+        {
+            var evaluatorId = $"%{evaluatorName}-how_to_evaluate";
+            HowToEvaluate(evaluatorId);
+
+            Db.AddEvaluator(evaluatorId, evaluator);
+
+            return this;
+        }
+
+
         public Body IsTrue(string description)
         {
-            Db.Add(SemanticItem.Pattern(_currentPattern, IsItTrueQ, description));
+            Db.Add(SemanticItem.Pattern(_currentPattern, Database.IsItTrueQ, description));
+            return this;
+        }
+
+
+        public Body IsTrue(string evaluatorName, NativeEvaluator evaluator)
+        {
+            var evaluatorId = $"%{evaluatorName}-is_true";
+            IsTrue(evaluatorId);
+
+            Db.AddEvaluator(evaluatorId, evaluator);
+
             return this;
         }
 
         private bool executeCommand(string utterance)
         {
-            var answers = getInputAnswers(utterance, HowToDoQ).ToArray();
-            foreach (var answer in answers)
+            return executeCommand(SemanticItem.Entity(utterance));
+        }
+
+        private bool executeCommand(SemanticItem command)
+        {
+            var commandQuery = SemanticItem.AnswerQuery(Body.HowToDoQ, Constraints.WithInput(command));
+            var commandInterpretations = Db.Query(commandQuery).ToArray();
+
+            foreach (var interpretation in commandInterpretations)
             {
-                if (executeCall(answer))
+                if (executeCall(interpretation))
                 {
                     //we found a way how to execute the command
                     return true;
@@ -167,9 +206,10 @@ namespace PerceptiveDialogBasedAgent.V2
 
             foreach (var command in commands)
             {
-                if (!executeCall(command))
+                if (!executeCommand(command))
                     //something went wrong, the evaluation will be stopped
-                    throw new NotImplementedException();
+                    //TODO handle the failure somehow
+                    break;
             }
 
             handleMissingOutput();
@@ -177,6 +217,9 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private void handleMissingOutput()
         {
+            if (_outputCandidates.Count > 0)
+                return;
+
             pushScope("missing output");
             //TODO how to react?
             popScope("missing output");
@@ -231,7 +274,13 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private SemanticItem _userInput(EvaluationContext context)
         {
-            return SemanticItem.Entity(_inputHistory[0]);
+            return SemanticItem.Entity(_inputHistory.Last());
+        }
+
+        private bool _print(SemanticItem item)
+        {
+            _outputCandidates.Add(item.GetSubstitutionValue("$something"));
+            return true;
         }
 
         private bool _triggerAdd(SemanticItem item)

@@ -18,6 +18,8 @@ namespace PerceptiveDialogBasedAgent.V2
         /// </summary>
         public IEnumerable<QueryLog> Subqueries => _subqueries;
 
+        internal QueryLog Parent { get; private set; }
+
         private readonly List<QueryLog> _subqueries = new List<QueryLog>();
 
         private List<SemanticItem> _result = new List<SemanticItem>();
@@ -39,6 +41,7 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal void AddSubquery(QueryLog subquery)
         {
+            subquery.Parent = this;
             _subqueries.Add(subquery);
         }
 

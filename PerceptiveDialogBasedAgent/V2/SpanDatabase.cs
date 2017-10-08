@@ -22,7 +22,8 @@ namespace PerceptiveDialogBasedAgent.V2
             logPush(queryItem);
 
             var result = new List<SemanticItem>();
-            foreach (var resultItem in base.Query(queryItem))
+            var resultItems = base.Query(queryItem).ToArray();
+            foreach (var resultItem in resultItems)
             {
                 var isInSpan = _span.Contains(resultItem.Answer);
 

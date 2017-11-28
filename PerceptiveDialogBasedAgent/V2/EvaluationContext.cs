@@ -16,23 +16,44 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private readonly Database _db;
 
-        public EvaluationContext(EvaluationContext parent ,Database db, SemanticItem item)
+        public EvaluationContext(EvaluationContext parent, Database db, SemanticItem item)
         {
             Parent = parent;
             Item = item;
             _db = db;
         }
 
-        internal string GetSubstitution(string variable)
+        internal string GetSubstitutionValue(string variable)
         {
             return Item.GetSubstitutionValue(variable);
         }
 
+
+        internal SemanticItem GetSubstitution(string variable)
+        {
+            return Item.GetSubstitution(variable);
+        }
+
+        internal IEnumerable<SemanticItem> IsTrueRaw(string variable)
+        {
+            var substiution = GetSubstitutionValue(variable);
+            var queryItem = SemanticItem.AnswerQuery(Body.IsItTrueQ, new Constraints().AddInput(substiution));
+            return _db.SpanQuery(queryItem);
+        }
+
+        internal IEnumerable<SemanticItem> Query(string variable, string question)
+        {
+            var substiution = GetSubstitutionValue(variable);
+            var queryItem = SemanticItem.AnswerQuery(question, new Constraints().AddInput(substiution));
+            var result = _db.SpanQuery(queryItem);
+            return result;
+        }
+
         internal IEnumerable<SemanticItem> Evaluate(string variable)
         {
-            var substiution = GetSubstitution(variable);
+            var substiution = GetSubstitutionValue(variable);
             var queryItem = SemanticItem.AnswerQuery(Body.HowToEvaluateQ, new Constraints().AddInput(substiution));
-            var result = _db.Query(queryItem);
+            var result = _db.SpanQuery(queryItem);
             return result;
         }
 
@@ -42,7 +63,8 @@ namespace PerceptiveDialogBasedAgent.V2
             if (many.Count() > 1)
                 throw new NotImplementedException();
 
-            return many.FirstOrDefault();
+            return many.FirstOrDefault() ?? SemanticItem.Entity(GetSubstitutionValue(variable));
         }
+
     }
 }

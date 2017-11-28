@@ -8,7 +8,8 @@ namespace PerceptiveDialogBasedAgent.V2
 {
     class Log
     {
-        private static readonly bool _enableLogging = true;
+
+        internal static readonly bool PrintDatabaseInfo = true;
 
         internal static readonly ConsoleColor PolicyColor = ConsoleColor.Cyan;
 
@@ -27,16 +28,43 @@ namespace PerceptiveDialogBasedAgent.V2
         internal static readonly ConsoleColor SensorColor = ConsoleColor.Yellow;
 
         internal static readonly ConsoleColor ActionColor = ConsoleColor.DarkYellow;
+        
+        private static int _currentIndentation = 0;
+
+        private static readonly bool _enableLogging = true;
 
         internal static void Policy(string policyCommand)
         {
             writeln("POLICY: " + policyCommand, PolicyColor);
         }
 
+        internal static void QueryPush(SemanticItem item)
+        {
+            if (!PrintDatabaseInfo)
+                return;
+
+            writeln("QUERY: " + item.ToString(), HeadlineColor);
+            _currentIndentation += 1;
+        }
+
+        internal static void QueryPop(IEnumerable<SemanticItem> result)
+        {
+            if (!PrintDatabaseInfo)
+                return;
+
+            foreach (var item in result)
+            {
+                writeln(item.ToString(), ItemColor);
+            }
+
+            _currentIndentation -= 1;
+            writeln("RESULT: " + result.Count(), HeadlineColor);
+        }
+
         internal static void DialogUtterance(string utterance)
         {
             writeln("", InfoColor);
-            forceWrite(utterance + "\n", UtteranceColor);
+            rawWrite(utterance + "\n", UtteranceColor);
         }
 
         internal static void Questions(IEnumerable<SemanticItem> questions)
@@ -45,9 +73,26 @@ namespace PerceptiveDialogBasedAgent.V2
                 return;
 
             writeln("\tDATABASE QUESTIONS", HeadlineColor);
+
+            var questionCounts = new Dictionary<string, int>();
             foreach (var question in questions)
             {
-                writeln("\t\t{0}", ItemColor, question);
+                var questionStr = question.ReadableRepresentation();
+                questionCounts.TryGetValue(questionStr, out var count);
+                questionCounts[questionStr] = count + 1;
+            }
+
+            //ensure each question is printed only once with count information
+            foreach (var question in questions)
+            {
+                var questionStr = question.ReadableRepresentation();
+                if (!questionCounts.ContainsKey(questionStr))
+                    continue;
+
+                var count = questionCounts[questionStr];
+                questionCounts.Remove(questionStr);
+
+                writeln("\t\t{0} x{1}", ItemColor, questionStr, count);
             }
         }
 
@@ -67,16 +112,17 @@ namespace PerceptiveDialogBasedAgent.V2
             if (!_enableLogging)
                 return;
 
-            forceWrite(format, color, formatArgs);
+            var prefix = "".PadLeft(_currentIndentation * 4, ' ');
+
+            rawWrite(prefix + format, color, formatArgs);
         }
 
-        private static void forceWrite(string format, ConsoleColor color, params object[] formatArgs)
+        private static void rawWrite(string format, ConsoleColor color, params object[] formatArgs)
         {
             var previousColor = Console.ForegroundColor;
             Console.ForegroundColor = color;
             Console.Write(format, formatArgs);
             Console.ForegroundColor = previousColor;
         }
-
     }
 }

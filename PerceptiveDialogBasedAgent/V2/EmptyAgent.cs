@@ -19,20 +19,23 @@ namespace PerceptiveDialogBasedAgent.V2
                 .Pattern("when $condition then $action")
                     .HowToDo("add $action to trigger $condition")
 
-                .Pattern("$action1 and $action2")
-                    .HowToDo("not implemented")
-
                 .Pattern("no output is available")
                     .IsTrue("output is missing")
 
                 .Pattern("say $something")
                     .HowToDo("print $something")
 
+                .Pattern("user said $something")
+                    .IsTrue("history contains $something")
+
                 .Pattern("ask for help")
                     .HowToDo("write database question into question slot and print the question")
 
                 .Pattern("$something is a command")
                     .IsTrue("$something has how to do question specified")
+                
+                .Pattern("you know $something")
+                    .IsTrue("user said $something or $something is defined")
 
                  .Pattern("it")
                     .HowToEvaluate("It", e =>
@@ -52,14 +55,17 @@ namespace PerceptiveDialogBasedAgent.V2
                     .IsTrue("IsQuestionSpecified", e =>
                     {
                         var something = e.EvaluateOne("$something");
-                        var question = e.GetSubstitution("$question");
+                        var question = e.GetSubstitutionValue("$question");
                         var normalizedQuestion = question + " $@ ?";
                         var queryItem = SemanticItem.AnswerQuery(normalizedQuestion, Constraints.WithInput(something.Answer));
                         var result = Body.Db.Query(queryItem);
-                        var answer = result.Any() ? Database.YesA : Database.NoA;
+                        var answer = result.Any() ? Database.YesAnswer : Database.NoAnswer;
 
                         return SemanticItem.Entity(answer);
                     })
+
+                .Pattern("say $something instead of $something2")
+                    .HowToDo("use $something instead of $something2 in output")
             ;
 
 
@@ -67,6 +73,7 @@ namespace PerceptiveDialogBasedAgent.V2
             AddPolicy("when no output is available then ask for help");
             AddPolicy("when answer is provided then write it into answer slot");
             AddPolicy("when advice is complete then save it");
+
         }
 
         public string Input(string utternace)

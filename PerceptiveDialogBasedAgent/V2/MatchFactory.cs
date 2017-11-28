@@ -29,7 +29,7 @@ namespace PerceptiveDialogBasedAgent.V2
 
             while (true)
             {
-                var item = generateCurrentState(inputTokens, input.Constraints);
+                var item = generateCurrentState(inputTokens, _pattern.Constraints);
                 if (item != null)
                     yield return item;
 

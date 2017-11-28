@@ -8,7 +8,7 @@ namespace PerceptiveDialogBasedAgent.V2
 {
     public class SemanticItem
     {
-        public readonly static string EntityQ = "What is it?";
+        public readonly static string EntityQ = "what is it?";
 
         public readonly static string InputVar = "$@";
 
@@ -17,6 +17,10 @@ namespace PerceptiveDialogBasedAgent.V2
         public readonly string Answer;
 
         public readonly Constraints Constraints;
+
+        public readonly int Id = ++_nextId;
+
+        private static int _nextId;
 
         public bool IsEntity
         {
@@ -28,7 +32,15 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal string InstantiateInputWithEntityVariables()
         {
-            var result = " " + Constraints.Input + " ";
+            return InstantiateWithEntityVariables(Constraints.Input);
+        }
+
+        internal string InstantiateWithEntityVariables(string phrase)
+        {
+            if (phrase == null)
+                return null;
+
+            var result = " " + phrase + " ";
             foreach (var variablePair in Constraints.VariableValues)
             {
                 if (!variablePair.Value.IsEntity)
@@ -92,14 +104,24 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal string GetSubstitutionValue(string variable)
         {
+            var substitutionItem = GetSubstitution(variable);
+
+            if (!substitutionItem.IsEntity)
+                throw new NotImplementedException();
+
+            return substitutionItem?.Answer;
+        }
+
+        internal SemanticItem GetSubstitution(string variable)
+        {
+            if (Constraints == null)
+                return null;
+
             if (Constraints == null)
                 return null;
 
             var substitutionItem = Constraints.GetSubstitution(variable);
-            if (!substitutionItem.IsEntity)
-                throw new NotImplementedException();
-
-            return substitutionItem.Answer;
+            return substitutionItem;
         }
 
         internal static SemanticItem From(string question, string answer, Constraints constraints)
@@ -109,8 +131,17 @@ namespace PerceptiveDialogBasedAgent.V2
 
         public override string ToString()
         {
+            return string.Format("[{3}]{0} {1} | {2}", Question ?? "*", Answer ?? "*", Constraints.ShallowToString(), Id);
+        }
 
-            return string.Format("{0} {1} | {2}", Question ?? "*", Answer ?? "*", Constraints.ShallowToString());
+        internal string ReadableRepresentation()
+        {
+            var question = InstantiateWithEntityVariables(Question);
+            var answer = InstantiateWithEntityVariables(Answer);
+            if (answer == null)
+                return question;
+
+            return question + " " + answer;
         }
     }
 
@@ -119,6 +150,18 @@ namespace PerceptiveDialogBasedAgent.V2
         private readonly Dictionary<string, SemanticItem> _variableValues = new Dictionary<string, SemanticItem>();
 
         public readonly IEnumerable<string> Conditions = new string[0];
+
+        internal static string Negate(string condition)
+        {
+            if (condition.StartsWith("~"))
+            {
+                return condition.Substring(1).Trim();
+            }
+            else
+            {
+                return "~ " + condition;
+            }
+        }
 
         public IEnumerable<KeyValuePair<string, SemanticItem>> VariableValues { get { return _variableValues; } }
 
@@ -154,7 +197,7 @@ namespace PerceptiveDialogBasedAgent.V2
         private Constraints(Dictionary<string, SemanticItem> values, IEnumerable<string> conditions)
         {
             _variableValues = new Dictionary<string, SemanticItem>(values);
-            Conditions = conditions.ToArray();
+            Conditions = conditions.Distinct().ToArray();
         }
 
         public Constraints AddInput(string value)
@@ -177,6 +220,8 @@ namespace PerceptiveDialogBasedAgent.V2
 
         public Constraints AddValue(string variable, SemanticItem item)
         {
+            item = item ?? throw new ArgumentNullException(nameof(item));
+
             var values = new Dictionary<string, SemanticItem>(_variableValues);
             values[variable] = item;
 
@@ -225,6 +270,23 @@ namespace PerceptiveDialogBasedAgent.V2
         internal static Constraints WithInput(SemanticItem input)
         {
             return new Constraints().AddInput(input);
+        }
+
+        internal Constraints AddConditions(IEnumerable<string> conditions)
+        {
+            return new Constraints(_variableValues, Conditions.Concat(conditions));
+        }
+
+        internal Constraints MergeWith(Constraints constraints)
+        {
+            var result = this;
+            result = result.AddConditions(constraints.Conditions);
+
+            foreach (var variable in constraints.VariableValues)
+            {
+                result = result.AddValue(variable.Key, variable.Value);
+            }
+            return result;
         }
     }
 }

@@ -18,18 +18,39 @@ namespace PerceptiveDialogBasedAgent.V2
         /// </summary>
         public IEnumerable<QueryLog> Subqueries => _subqueries;
 
+        public IEnumerable<QueryLog> DependencyQueries => _dependencyQueries;
+
+        public IEnumerable<string> Dependencies => _dependencyQueries.Concat(_subqueries).SelectMany(d => d.Dependencies).Concat(_dependencies).Distinct().ToArray();
+
+        private readonly HashSet<string> _dependencies = new HashSet<string>();
+
+        internal readonly int Id;
+
+        private static int _currentId;
+
+        private bool _hasConditionFailed;
+
         internal QueryLog Parent { get; private set; }
+
+        internal bool HasConditionFailed => _hasConditionFailed || _dependencyQueries.Any(d => d.HasConditionFailed);
+
+        internal bool ForceHasResult;
 
         private readonly List<QueryLog> _subqueries = new List<QueryLog>();
 
+        private readonly List<QueryLog> _dependencyQueries = new List<QueryLog>();
+
         private List<SemanticItem> _result = new List<SemanticItem>();
+
+        internal bool IsDependency;
 
         internal QueryLog()
         {
-
+            Id = ++_currentId;
         }
 
         internal QueryLog(SemanticItem query)
+            : this()
         {
             Query = query;
         }
@@ -39,24 +60,57 @@ namespace PerceptiveDialogBasedAgent.V2
             _result.AddRange(result);
         }
 
+        internal void ReportConditionFail()
+        {
+            _hasConditionFailed = true;
+        }
+
         internal void AddSubquery(QueryLog subquery)
         {
+            if (subquery.Parent != null)
+                throw new InvalidOperationException("Cannot reset parent.");
+
+            if (subquery == this)
+                throw new InvalidOperationException("Cannot set self as a parent.");
+
             subquery.Parent = this;
-            _subqueries.Add(subquery);
+
+            if (subquery.IsDependency)
+            {
+                _dependencyQueries.Add(subquery);
+            }
+            else
+            {
+                _subqueries.Add(subquery);
+            }
+        }
+
+        internal void AddDependency(string condition)
+        {
+            _dependencies.Add(condition);
+        }
+
+        internal void RemoveFromParent()
+        {
+            Parent._subqueries.Remove(this);
+            Parent._dependencyQueries.Remove(this);
         }
 
         internal IEnumerable<SemanticItem> GetQuestions()
         {
             var result = new List<SemanticItem>();
-            foreach (var subquery in _subqueries)
+
+            if (!ForceHasResult && !HasConditionFailed)
             {
-                if (subquery._result.Count == 0 && subquery._subqueries.Count == 0)
+                if (_result.Count == 0 && _subqueries.Count == 0)
+                    result.Add(Query);
+            }
+
+            foreach (var subquery in _subqueries.Concat(_dependencyQueries))
+            {
+                foreach (var question in subquery.GetQuestions())
                 {
-                    result.Add(subquery.Query);
-                }
-                else
-                {
-                    result.AddRange(subquery.GetQuestions());
+                    result.Add(question);
                 }
             }
 
@@ -70,5 +124,14 @@ namespace PerceptiveDialogBasedAgent.V2
 
             return "Q: " + Query.ToString();
         }
+
+        internal IEnumerable<SemanticItem> ResultWithDependency(string name)
+        {
+            if (Dependencies.Contains(name))
+                return _result;
+
+            return new SemanticItem[0];
+        }
+
     }
 }

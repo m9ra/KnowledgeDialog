@@ -12,6 +12,10 @@ namespace PerceptiveDialogBasedAgent.V2
 
         public readonly static string InputVar = "$@";
 
+        public readonly static SemanticItem Yes = SemanticItem.Entity(Database.YesAnswer);
+
+        public readonly static SemanticItem No = SemanticItem.Entity(Database.NoAnswer);
+
         public readonly string Question;
 
         public readonly string Answer;

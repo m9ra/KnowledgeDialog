@@ -14,6 +14,8 @@ namespace PerceptiveDialogBasedAgent.V2
     {
         internal readonly static string WhatShouldAgentDoNowQ = "what should agent do now ?";
 
+        internal readonly static string HowToConvertToNumberQ = "how to convert $@ to number ?";
+
         internal readonly static string HowToDoQ = "how to do $@ ?";
 
         internal readonly static string IsItTrueQ = "is $@ true ?";
@@ -96,6 +98,9 @@ namespace PerceptiveDialogBasedAgent.V2
                 .Pattern("the $something")
                     .HowToEvaluate("The", _the)
 
+                .Pattern("one")
+                    .HowToConvertToNumber("1")
+
                 .Pattern("user input")
                     .HowToEvaluate("UserInput", _userInput)
 
@@ -126,9 +131,7 @@ namespace PerceptiveDialogBasedAgent.V2
                         )
 
                 .Pattern("$database database has $count result")
-                    .IsTrue("ResultCount",
-                            EvaluateCallArgs("ResultCount", _resultCount)
-                        )
+                    .IsTrue("ResultCount", _resultCountCondition)
 
             ;
         }
@@ -209,6 +212,12 @@ namespace PerceptiveDialogBasedAgent.V2
         {
             return dbAdd(_currentPattern, HowToDoQ, description);
         }
+
+        public Body HowToConvertToNumber(string description)
+        {
+            return dbAdd(_currentPattern, HowToConvertToNumberQ, description);
+        }
+
 
         public Body HowToEvaluate(string description)
         {
@@ -521,6 +530,22 @@ namespace PerceptiveDialogBasedAgent.V2
             throw new NotImplementedException();
         }
 
+
+        private SemanticItem _resultCountCondition(EvaluationContext context)
+        {
+            var numberValue = context.Query("$count", HowToConvertToNumberQ).FirstOrDefault()?.Answer;
+            if (numberValue == null)
+                return null;
+
+            if (!int.TryParse(numberValue, out var number))
+                return null;
+
+            var database = context.GetSubstitutionValue("$database");
+            var count = _databases[database].ResultCount;
+
+            return  count == number ? SemanticItem.Yes: SemanticItem.No;
+        }
+
         private bool _print(SemanticItem item)
         {
             var something = item.GetSubstitutionValue("$something");
@@ -565,15 +590,6 @@ namespace PerceptiveDialogBasedAgent.V2
             _databases[database].SetCriterion(specifierCategory, specifierValue);
 
             print($"{specifierValue} was set for {specifierCategory}");
-            return true;
-        }
-
-        private bool _resultCount(SemanticItem call)
-        {
-            var database = call.GetSubstitutionValue("$database");
-            var specifierValue = call.GetSubstitutionValue("$count");
-            var count = _databases[database].ResultCount;
-
             return true;
         }
 

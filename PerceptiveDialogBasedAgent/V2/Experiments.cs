@@ -10,7 +10,7 @@ namespace PerceptiveDialogBasedAgent.V2
     {
         internal static void EmptyAgentTest()
         {
-           // Database.DebugTrigger(32);
+            // Database.DebugTrigger(32);
 
             var agent = new EmptyAgent();
 
@@ -31,7 +31,9 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal static void RestaurantSearchTest()
         {
+            //Database.DebugTrigger(461);
             var agent = new RestaurantAgent();
+
             agent.Input("i want a cheap restaurant");
         }
 

@@ -16,6 +16,11 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private readonly Dictionary<string, string> _criterions = new Dictionary<string, string>();
 
+        internal DatabaseHandler()
+        {
+            refreshResult();
+        }
+
         internal void SetCriterion(string category, string value)
         {
             _criterions[category] = value;

@@ -26,9 +26,9 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal IEnumerable<EvaluationLogEntry> EvaluationHistory => _evaluationHistory;
 
-        internal static readonly string YesAnswer = "yes";
+        internal const string YesAnswer = "yes";
 
-        internal static readonly string NoAnswer = "no";
+        internal const string NoAnswer = "no";
 
         internal static readonly string IsItTrueQ = "is $@ true ?";
 

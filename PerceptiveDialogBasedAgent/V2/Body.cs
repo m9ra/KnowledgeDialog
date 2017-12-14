@@ -130,6 +130,9 @@ namespace PerceptiveDialogBasedAgent.V2
                             EvaluateCallArgs("SetSpecifier", _setSpecifier, new[] { "$database", "$specifier", "$specifierClass" }, new[] { EvaluateOne, Identity, ParamQuery(RestaurantExtensions.WhatItSpecifiesQ, "$specifier") })
                         )
 
+                .Pattern("value of $slot from $database database")
+                    .HowToEvaluate("SlotValue", _slotValue)
+
                 .Pattern("$database database has $count result")
                     .IsTrue("ResultCount", _resultCountCondition)
 
@@ -364,7 +367,7 @@ namespace PerceptiveDialogBasedAgent.V2
 
             foreach (var command in commands)
             {
-                if (!executeCommand(command))
+                if (!executeCommand(command.Answer))
                     //something went wrong, the evaluation will be stopped
                     //TODO handle the failure somehow
                     break;
@@ -436,7 +439,7 @@ namespace PerceptiveDialogBasedAgent.V2
 
             foreach (var command in commands)
             {
-                if (!executeCommand(command))
+                if (!executeCommand(command.Answer))
                     //something went wrong, the evaluation will be stopped
                     //TODO handle the failure somehow
                     break;
@@ -543,7 +546,15 @@ namespace PerceptiveDialogBasedAgent.V2
             var database = context.GetSubstitutionValue("$database");
             var count = _databases[database].ResultCount;
 
-            return  count == number ? SemanticItem.Yes: SemanticItem.No;
+            return count == number ? SemanticItem.Yes : SemanticItem.No;
+        }
+
+        private SemanticItem _slotValue(EvaluationContext context)
+        {
+            var database = context.GetSubstitutionValue("$database");
+            var slot = context.GetSubstitutionValue("$slot");
+
+            return SemanticItem.Entity(_databases[database].Read(slot));
         }
 
         private bool _print(SemanticItem item)

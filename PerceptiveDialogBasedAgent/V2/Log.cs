@@ -28,7 +28,7 @@ namespace PerceptiveDialogBasedAgent.V2
         internal static readonly ConsoleColor SensorColor = ConsoleColor.Yellow;
 
         internal static readonly ConsoleColor ActionColor = ConsoleColor.DarkYellow;
-        
+
         private static int _currentIndentation = 0;
 
         private static readonly bool _enableLogging = true;
@@ -92,7 +92,7 @@ namespace PerceptiveDialogBasedAgent.V2
                 var count = questionCounts[questionStr];
                 questionCounts.Remove(questionStr);
 
-                writeln("\t\t{0} x{1}", ItemColor, questionStr, count);
+                writeln("\t\t{0} x{1} Id: {2}", ItemColor, questionStr, count, question.Id);
             }
         }
 

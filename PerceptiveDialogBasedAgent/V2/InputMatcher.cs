@@ -10,6 +10,7 @@ namespace PerceptiveDialogBasedAgent.V2
     {
         internal IEnumerable<SemanticItem> Match(SemanticItem pattern, SemanticItem input)
         {
+            pattern = pattern.WithConstraints(pattern.Constraints.AddConditions(input.Constraints.Conditions));
             var matchFactory = getMatchFactory(pattern);
 
             if (matchFactory == null)

@@ -10,6 +10,8 @@ namespace PerceptiveDialogBasedAgent.V2
     {
         internal int ResultCount => _result.Count;
 
+        internal bool IsUpdated;
+
         private readonly List<Dictionary<string, string>> _data = new List<Dictionary<string, string>>();
 
         private readonly List<Dictionary<string, string>> _result = new List<Dictionary<string, string>>();
@@ -25,6 +27,7 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal void SetCriterion(string category, string value)
         {
+            IsUpdated = true;
             _criterions[category] = value;
 
             refreshResult();

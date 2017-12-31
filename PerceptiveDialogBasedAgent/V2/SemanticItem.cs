@@ -276,6 +276,12 @@ namespace PerceptiveDialogBasedAgent.V2
             return new Constraints().AddInput(input);
         }
 
+        internal static Constraints WithCondition(string condition)
+        {
+            return new Constraints().AddCondition(condition);
+        }
+
+
         internal Constraints AddConditions(IEnumerable<string> conditions)
         {
             return new Constraints(_variableValues, Conditions.Concat(conditions));

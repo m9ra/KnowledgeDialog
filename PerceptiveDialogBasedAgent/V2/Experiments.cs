@@ -31,11 +31,10 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal static void RestaurantSearchTest()
         {
-            //Database.DebugTrigger(746);
+            //Database.DebugTrigger(229);
             var agent = new RestaurantAgent();
 
-            agent.Input("i want a luxury restaurant");
-            agent.Input("x");
+            agent.Input("i want a luxury restaurant");            
         }
 
         internal static void RestaurantSearchLearningTest()

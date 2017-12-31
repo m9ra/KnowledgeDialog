@@ -44,6 +44,8 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private readonly Dictionary<string, string> _outputReplacements = new Dictionary<string, string>();
 
+        private readonly Queue<string> _eventQueue = new Queue<string>();
+
         private string _currentPattern;
 
         private static readonly List<Sensor> _sensors = new List<Sensor>();
@@ -89,11 +91,11 @@ namespace PerceptiveDialogBasedAgent.V2
         internal Body()
         {
             this
-                .Pattern("add $action to trigger $trigger")
-                    .HowToDo("TriggerAdd", _triggerAdd)
-
                 .Pattern("print $something")
                     .HowToDo("Print", EvaluateCallArgs("Print", _print, "$something"))
+
+                .Pattern("$something is a command")
+                    .IsTrue("$something has how to do question specified")
 
                 .Pattern("the $something")
                     .HowToEvaluate("The", _the)
@@ -109,15 +111,9 @@ namespace PerceptiveDialogBasedAgent.V2
 
                 .Pattern("history contains $something")
                     .IsTrue("HistoryContains", _historyContains)
-
-                .Pattern("~ $something")
-                    .IsTrue("Not", _not)
-
-                .Pattern("$value1 or $value2")
-                    .IsTrue("Or", _or)
-
-                .Pattern("$action1 and $action2")
-                    .HowToDo("And", _and)
+                    
+                .Pattern("$database database has $count result")
+                    .IsTrue("ResultCount", _resultCountCondition)
 
                 .Pattern("write $value into $slot slot")
                     .HowToDo("WriteSlot", EvaluateCallArgs("WriteSlot", _writeSlot, "$value", "$slot"))
@@ -133,8 +129,40 @@ namespace PerceptiveDialogBasedAgent.V2
                 .Pattern("value of $slot from $database database")
                     .HowToEvaluate("SlotValue", _slotValue)
 
-                .Pattern("$database database has $count result")
-                    .IsTrue("ResultCount", _resultCountCondition)
+                .Pattern("execute $something")
+                    .HowToDo("Execute", e =>
+                    {
+                        var something = e.EvaluateOne("$something");
+                        return something;
+                    })
+
+                .Pattern("~ $something")
+                    .IsTrue("Not", _notCond)
+
+                .Pattern("$value1 or $value2")
+                    .IsTrue("Or", _orCond)
+
+                .Pattern("$action1 and $action2")
+                    .HowToDo("And", _and)
+
+                .Pattern("$value1 and $value2")
+                    .IsTrue("And", _andCond)
+
+                .Pattern("$something has $question question specified")
+                    .IsTrue("IsQuestionSpecified", e =>
+                    {
+                        var something = e.EvaluateOne("$something");
+                        var question = e.GetSubstitutionValue("$question");
+                        var normalizedQuestion = question + " $@ ?";
+                        var queryItem = SemanticItem.AnswerQuery(normalizedQuestion, Constraints.WithInput(something.Answer));
+                        var result = Db.Query(queryItem);
+                        var answer = result.Any() ? Database.YesAnswer : Database.NoAnswer;
+
+                        return SemanticItem.Entity(answer);
+                    })
+
+                .Pattern("add $action to trigger $trigger")
+                    .HowToDo("TriggerAdd", _triggerAdd)
 
             ;
         }
@@ -150,24 +178,19 @@ namespace PerceptiveDialogBasedAgent.V2
             _inputHistory.Add(utterance);
 
             if (_inputHistory.Count == 1)
-                pushScope(_dialogSensor);
+                FireEvent("dialog started");
 
-            pushScope(_turnSensor);
+            FireEvent("user input is received");
+            HandleAllEvents();
 
-            pushScope(_inputProcessingSensor);
-            runPolicy();
-            popScope(_inputProcessingSensor);
-
-            var log = Db.FinishLog();
-            var questions = log.GetQuestions();
+            finishInputProcessing();
+            HandleAllEvents();
 
             //handle output processing
-            pushScope(_outputPrintingSensor);
             var output = _outputCandidates.LastOrDefault();
-            popScope(_outputPrintingSensor);
-            popScope(_turnSensor);
 
-            Log.Questions(questions);
+            var log = Db.FinishLog();
+            Log.Questions(log.GetQuestions());
 
             Log.DialogUtterance("S: " + output);
             return output;
@@ -182,13 +205,7 @@ namespace PerceptiveDialogBasedAgent.V2
 
             //handle input processing
             _inputHistory.Add(utterance);
-            pushScope(_policySensor);
-
-            pushScope(_inputProcessingSensor);
             executeCommand(utterance);
-            popScope(_inputProcessingSensor);
-
-            popScope(_policySensor);
 
             var log = Db.FinishLog();
             var questions = log.GetQuestions();
@@ -198,6 +215,49 @@ namespace PerceptiveDialogBasedAgent.V2
             _inputHistory.Clear();
             _outputCandidates.Clear();
         }
+
+        #region Event handling 
+
+        internal void FireEvent(string eventDescription)
+        {
+            _eventQueue.Enqueue(eventDescription);
+        }
+
+        internal void HandleEvent(string eventDescription)
+        {
+            Log.EventHandler(eventDescription);
+            var commands = Db.Query(SemanticItem.AnswerQuery(WhatShouldAgentDoNowQ, Constraints.WithCondition(eventDescription))).ToArray();
+            foreach (var command in commands)
+            {
+                var result = executeCommand(command.Answer);
+                /*if (!result)
+                    throw new NotImplementedException("Handle failed command");*/
+            }
+        }
+
+        internal void HandleAllEvents()
+        {
+            foreach (var database in _databases)
+            {
+                if (database.Value.IsUpdated)
+                    FireEvent(database.Key + " database was updated");
+
+                database.Value.IsUpdated = false;
+            }
+
+            if (_eventQueue.Count == 0)
+                return;
+
+            while (_eventQueue.Count > 0)
+            {
+                var eventDescription = _eventQueue.Dequeue();
+                HandleEvent(eventDescription);
+            }
+
+            HandleAllEvents();
+        }
+
+        #endregion  
 
         internal Body AddDatabase(string databaseName, DatabaseHandler database)
         {
@@ -324,6 +384,12 @@ namespace PerceptiveDialogBasedAgent.V2
             return this;
         }
 
+        private void finishInputProcessing()
+        {
+            if (_outputCandidates.Count == 0)
+                FireEvent("output is missing");
+        }
+
 
         private Body dbAdd(string pattern, string question, string answer)
         {
@@ -359,30 +425,6 @@ namespace PerceptiveDialogBasedAgent.V2
             }
 
             return false;
-        }
-
-        private void runPolicy()
-        {
-            var commands = getAnswers(WhatShouldAgentDoNowQ);
-
-            foreach (var command in commands)
-            {
-                if (!executeCommand(command.Answer))
-                    //something went wrong, the evaluation will be stopped
-                    //TODO handle the failure somehow
-                    break;
-            }
-
-            handleMissingOutput();
-        }
-
-        private void handleMissingOutput()
-        {
-            if (_outputCandidates.Count > 0)
-                return;
-
-            pushScope(_missingOutputSensor);
-            popScope(_missingOutputSensor);
         }
 
         private bool executeCall(SemanticItem command)
@@ -426,47 +468,30 @@ namespace PerceptiveDialogBasedAgent.V2
             ;
         }
 
-        private void pushScope(Sensor sensor)
+        private SemanticItem _notCond(EvaluationContext context)
         {
-            sensor.Enable();
-            _scopes.Push(sensor.Name);
-
-
-            getAnswers(WhatShouldAgentDoNowQ);
-
-            var commands = Db.LastQueryLog.ResultWithDependency(sensor.Name);
-            //find only commands with dependency on sensor
-
-            foreach (var command in commands)
-            {
-                if (!executeCommand(command.Answer))
-                    //something went wrong, the evaluation will be stopped
-                    //TODO handle the failure somehow
-                    break;
-            }
-        }
-
-        private void popScope(Sensor sensor)
-        {
-            sensor.Disable();
-            var poppedScope = _scopes.Pop();
-            if (poppedScope != sensor.Name)
-                throw new InvalidOperationException("Cannot pop givens cope");
-        }
-
-        private SemanticItem _not(EvaluationContext context)
-        {
-            var result = context.IsTrueRaw("$something");
+            var result = context.IsTrue("$something");
 
             throw new NotImplementedException();
         }
 
-        private SemanticItem _or(EvaluationContext context)
+        private SemanticItem _orCond(EvaluationContext context)
         {
-            var value1 = context.IsTrueRaw("$value1");
-            var value2 = context.IsTrueRaw("$value2");
+            var value1 = context.IsTrue("$value1");
+            var value2 = context.IsTrue("$value2");
 
             throw new NotImplementedException();
+        }
+
+        private SemanticItem _andCond(EvaluationContext context)
+        {
+            var value1 = context.IsTrue("$value1");
+            if (!value1)
+                return SemanticItem.No;
+
+            var value2 = context.IsTrue("$value2");
+
+            return value2 ? SemanticItem.Yes : SemanticItem.No;
         }
 
         private bool _and(SemanticItem item)
@@ -517,9 +542,28 @@ namespace PerceptiveDialogBasedAgent.V2
         private SemanticItem _databaseQuestion(EvaluationContext context)
         {
             var questions = Db.CurrentLogRoot.GetQuestions();
-            var question = questions.First();
+            var orderedQuestions = questions.OrderByDescending(rankQuestion).ToArray();
+            var question = orderedQuestions.First();
             var questionStr = question.ReadableRepresentation();
             return SemanticItem.Entity(questionStr);
+        }
+
+        private double rankQuestion(SemanticItem question)
+        {
+            var q = question.Question;
+            if (q == IsItTrueQ)
+                return 0.1;
+
+            if (q == SemanticItem.EntityQ)
+                return 0.0;
+
+            if (q == Body.HowToEvaluateQ)
+                return 0.1;
+
+            if (q == Body.WhatShouldAgentDoNowQ)
+                return 0.1;
+
+            return 1.0;
         }
 
         private SemanticItem _userInput(EvaluationContext context)

@@ -26,7 +26,7 @@ namespace PerceptiveDialogBasedAgent.V2
                     .WhatItSpecifies("pricerange")
             ;
 
-            AddPolicy("when restaurant database has one result then offer restaurant");
+            AddPolicy("when restaurant database was updated and restaurant database has one result then offer restaurant");
         }
 
         private DatabaseHandler createRestaurantDatabase()
@@ -43,7 +43,7 @@ namespace PerceptiveDialogBasedAgent.V2
 
     static class RestaurantExtensions
     {
-        public static readonly string WhatItSpecifiesQ = "what $@ specifies ?";
+        public static readonly string WhatItSpecifiesQ = "what does $@ specify ?";
 
         public static Body WhatItSpecifies(this Body body, string answerDescription)
         {

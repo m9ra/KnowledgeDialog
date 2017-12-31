@@ -34,11 +34,16 @@ namespace PerceptiveDialogBasedAgent.V2
             return Item.GetSubstitution(variable);
         }
 
-        internal IEnumerable<SemanticItem> IsTrueRaw(string variable)
+        internal bool IsTrue(string variable)
         {
             var substiution = GetSubstitutionValue(variable);
-            var queryItem = SemanticItem.AnswerQuery(Body.IsItTrueQ, new Constraints().AddInput(substiution));
-            return _db.SpanQuery(queryItem);
+            var queryItem = SemanticItem.AnswerQuery(Body.IsItTrueQ, Item.Constraints.AddInput(substiution));
+            var rawResult = _db.SpanQuery(queryItem);
+
+            if (!rawResult.Any())
+                return false;
+
+            return rawResult.Last().Answer == SemanticItem.Yes.Answer;
         }
 
         internal IEnumerable<SemanticItem> Query(string variable, string question)

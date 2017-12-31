@@ -196,6 +196,9 @@ namespace PerceptiveDialogBasedAgent.V2
                     if (meetConditions(queryItem, item))
                         result.Add(item);
                 }
+
+                if (result.Count > 0)
+                    break;
             }
 
             return result;
@@ -255,10 +258,8 @@ namespace PerceptiveDialogBasedAgent.V2
 
                 expectDependencyQuery();
                 var result = SpanQuery(conditionQueryItem).ToArray();
-                if (result.Length > 1)
-                    throw new NotImplementedException();
 
-                conditionsResult &= result.FirstOrDefault()?.Answer == YesAnswer;
+                conditionsResult &= result.LastOrDefault()?.Answer == YesAnswer;
                 if (!conditionsResult)
                 {
                     if (result.FirstOrDefault()?.Answer == NoAnswer)

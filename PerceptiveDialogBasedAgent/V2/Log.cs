@@ -9,7 +9,7 @@ namespace PerceptiveDialogBasedAgent.V2
     class Log
     {
 
-        internal static readonly bool PrintDatabaseInfo = true;
+        internal static readonly bool PrintDatabaseInfo = false;
 
         internal static readonly ConsoleColor PolicyColor = ConsoleColor.Cyan;
 
@@ -65,6 +65,11 @@ namespace PerceptiveDialogBasedAgent.V2
         {
             writeln("", InfoColor);
             rawWrite(utterance + "\n", UtteranceColor);
+        }
+
+        internal static void EventHandler(string eventDescription)
+        {
+            writeln("\tEVENT: " + eventDescription, SensorColor);
         }
 
         internal static void Questions(IEnumerable<SemanticItem> questions)

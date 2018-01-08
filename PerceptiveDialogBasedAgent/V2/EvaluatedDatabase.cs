@@ -8,14 +8,13 @@ namespace PerceptiveDialogBasedAgent.V2
 {
     class EvaluatedDatabase : Database
     {
-        private readonly Dictionary<string, NativeEvaluator> _evaluators = new Dictionary<string, NativeEvaluator>();
-
         private readonly Stack<EvaluationContext> _contextStack = new Stack<EvaluationContext>();
 
         protected override SemanticItem transformItem(SemanticItem queryItem, SemanticItem resultItem)
         {
             var transformedItem = base.transformItem(queryItem, resultItem);
-            if (!_evaluators.ContainsKey(transformedItem.Answer))
+            var evalutor = getEvaluator(transformedItem.Answer);
+            if (evalutor == null)
                 //keep the item without changes
                 return transformedItem;
 
@@ -29,7 +28,7 @@ namespace PerceptiveDialogBasedAgent.V2
             _contextStack.Push(evaluationContext);
             try
             {
-                var evaluationResult = _evaluators[transformedItem.Answer](evaluationContext);
+                var evaluationResult = evalutor(evaluationContext);
                 return evaluationResult;
             }
             finally
@@ -41,10 +40,28 @@ namespace PerceptiveDialogBasedAgent.V2
             }
         }
 
-        internal void AddEvaluator(string evaluatorId, NativeEvaluator evaluator)
+        internal NativeAction GetNativeAction(string nativeActionId)
         {
-            _evaluators.Add(evaluatorId, evaluator);
-            AddSpanElement(evaluatorId);
+            foreach (var container in Containers.Reverse())
+            {
+                var nativeAction = container.GetNativeAction(nativeActionId);
+                if (nativeAction != null)
+                    return nativeAction;
+            }
+
+            return null;
         }
+        private NativeEvaluator getEvaluator(string evaluatorName)
+        {
+            foreach (var container in Containers.Reverse())
+            {
+                var evalutor = container.GetEvalutor(evaluatorName);
+                if (evalutor != null)
+                    return evalutor;
+            }
+
+            return null;
+        }
+
     }
 }

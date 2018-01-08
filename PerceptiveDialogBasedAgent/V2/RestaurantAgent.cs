@@ -13,9 +13,9 @@ namespace PerceptiveDialogBasedAgent.V2
         public RestaurantAgent()
             : base()
         {
-            Body
-                .AddDatabase("restaurant", createRestaurantDatabase())
+            Body.AddDatabase("restaurant", CreateRestaurantDatabase());
 
+            Body.Db.Container
                 .Pattern("i want a $specifier restaurant")
                     .HowToDo("set restaurant specifier $specifier")
 
@@ -29,10 +29,10 @@ namespace PerceptiveDialogBasedAgent.V2
             AddPolicy("when restaurant database was updated and restaurant database has one result then offer restaurant");
         }
 
-        private DatabaseHandler createRestaurantDatabase()
+        internal static DatabaseHandler CreateRestaurantDatabase()
         {
             var restaurants = new DatabaseHandler();
-            restaurants.Columns("pricerange", "name")
+            restaurants.SetColumns("pricerange", "name")
                 .Row("cheap", "Chinese bistro")
                 .Row("expensive", "Ceasar palace")
                 ;
@@ -43,11 +43,9 @@ namespace PerceptiveDialogBasedAgent.V2
 
     static class RestaurantExtensions
     {
-        public static readonly string WhatItSpecifiesQ = "what does $@ specify ?";
-
-        public static Body WhatItSpecifies(this Body body, string answerDescription)
+        public static DataContainer WhatItSpecifies(this DataContainer container, string answerDescription)
         {
-            return body.AddPatternFact(WhatItSpecifiesQ, answerDescription);
+            return container.AddPatternFact(Question.WhatItSpecifies, answerDescription);
         }
     }
 }

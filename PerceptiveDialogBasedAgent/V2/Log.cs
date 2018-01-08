@@ -33,6 +33,8 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private static readonly bool _enableLogging = true;
 
+
+
         internal static void Policy(string policyCommand)
         {
             writeln("POLICY: " + policyCommand, PolicyColor);
@@ -72,6 +74,11 @@ namespace PerceptiveDialogBasedAgent.V2
             writeln("\tEVENT: " + eventDescription, SensorColor);
         }
 
+        internal static void NewFact(SemanticItem newFact)
+        {
+            writeln("\tNEW FACT: " + newFact, SensorColor);
+        }
+
         internal static void Questions(IEnumerable<SemanticItem> questions)
         {
             if (!questions.Any())
@@ -98,6 +105,29 @@ namespace PerceptiveDialogBasedAgent.V2
                 questionCounts.Remove(questionStr);
 
                 writeln("\t\t{0} x{1} Id: {2}", ItemColor, questionStr, count, question.Id);
+            }
+        }
+
+        internal static void Result(IEnumerable<SemanticItem> result)
+        {
+            writeln("\nRESULT", HeadlineColor);
+            foreach (var fact in result)
+            {
+                var factStr = fact.ReadableRepresentation();
+                writeln("\t{0} Id: {1}", ItemColor, factStr, fact.Id);
+            }
+        }
+
+        internal static void Dump(Database database)
+        {
+            writeln("\nDATABASE DUMP", HeadlineColor);
+            writeln("\tFACTS", HeadlineColor);
+
+            var facts = database.GetData();
+            foreach (var fact in facts)
+            {
+                var factStr = fact.ReadableRepresentation();
+                writeln("\t\t{0} Id: {1}", ItemColor, factStr, fact.Id);
             }
         }
 

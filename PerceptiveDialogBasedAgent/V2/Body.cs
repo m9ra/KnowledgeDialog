@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PerceptiveDialogBasedAgent.V2.Modules;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,27 +7,12 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V2
 {
-    internal delegate bool NativeAction(SemanticItem input);
+    public delegate bool NativeAction(SemanticItem input);
 
     internal delegate SemanticItem ParameterEvaluator(EvaluationContext context, string parameterName);
 
     class Body
     {
-        internal readonly static string WhatShouldAgentDoNowQ = "what should agent do now ?";
-
-        internal readonly static string HowToConvertToNumberQ = "how to convert $@ to number ?";
-
-        internal readonly static string HowToDoQ = "how to do $@ ?";
-
-        internal readonly static string IsItTrueQ = "is $@ true ?";
-
-        internal readonly static string HowToEvaluateQ = "what does $@ mean ?";
-
-        internal readonly static string UserInputVar = "$user_input";
-
-        internal readonly static string NativeActionPrefix = "#";
-
-        internal readonly static string NativeEvaluatorPrefix = "$";
 
         internal readonly EvaluatedDatabase Db = new EvaluatedDatabase();
 
@@ -34,19 +20,17 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private readonly List<string> _inputHistory = new List<string>();
 
+        private readonly List<BodyModuleBase> _modules = new List<BodyModuleBase>();
+
         private readonly Stack<string> _scopes = new Stack<string>();
 
         private readonly Dictionary<string, SemanticItem> _slots = new Dictionary<string, SemanticItem>();
-
-        private readonly Dictionary<string, DatabaseHandler> _databases = new Dictionary<string, DatabaseHandler>();
-
-        private readonly Dictionary<string, NativeAction> _nativeActions = new Dictionary<string, NativeAction>();
 
         private readonly Dictionary<string, string> _outputReplacements = new Dictionary<string, string>();
 
         private readonly Queue<string> _eventQueue = new Queue<string>();
 
-        private string _currentPattern;
+        private readonly HashSet<string> _firedEvents = new HashSet<string>();
 
         private static readonly List<Sensor> _sensors = new List<Sensor>();
 
@@ -90,9 +74,9 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal Body()
         {
-            this
+            Db.Container
                 .Pattern("print $something")
-                    .HowToDo("Print", EvaluateCallArgs("Print", _print, "$something"))
+                    .HowToDo("Print", Db.Container.EvaluateCallArgsSpan("Print", _print, "$something"))
 
                 .Pattern("$something is a command")
                     .IsTrue("$something has how to do question specified")
@@ -111,23 +95,25 @@ namespace PerceptiveDialogBasedAgent.V2
 
                 .Pattern("history contains $something")
                     .IsTrue("HistoryContains", _historyContains)
-                    
-                .Pattern("$database database has $count result")
-                    .IsTrue("ResultCount", _resultCountCondition)
 
                 .Pattern("write $value into $slot slot")
-                    .HowToDo("WriteSlot", EvaluateCallArgs("WriteSlot", _writeSlot, "$value", "$slot"))
+                    .HowToDo("WriteSlot", Db.Container.EvaluateCallArgsSpan("WriteSlot", _writeSlot, "$value", "$slot"))
+
+                .Pattern("$slot slot is filled")
+                    .IsTrue("IsSlotFilled", _isSlotFilled)
 
                 .Pattern("use $replacement instead of $pattern in output")
                     .HowToDo("OutputChanger", _outputChanger)
 
-                .Pattern("set $database specifier $specifier")
-                    .HowToDo("SetSpecifier",
-                            EvaluateCallArgs("SetSpecifier", _setSpecifier, new[] { "$database", "$specifier", "$specifierClass" }, new[] { EvaluateOne, Identity, ParamQuery(RestaurantExtensions.WhatItSpecifiesQ, "$specifier") })
-                        )
+                .Pattern("$something can be an answer")
+                    .IsTrue("CanBeAnswer", e =>
+                    {
+                        var result = e.Query("$something", Question.CanBeAnswer).FirstOrDefault();
 
-                .Pattern("value of $slot from $database database")
-                    .HowToEvaluate("SlotValue", _slotValue)
+                        var canBeAnswer = result == null || result.Answer == Database.YesAnswer;
+                        return canBeAnswer ? SemanticItem.Yes : SemanticItem.No;
+                    })
+
 
                 .Pattern("execute $something")
                     .HowToDo("Execute", e =>
@@ -164,6 +150,11 @@ namespace PerceptiveDialogBasedAgent.V2
                 .Pattern("add $action to trigger $trigger")
                     .HowToDo("TriggerAdd", _triggerAdd)
 
+                .Pattern("fire event $event")
+                    .HowToDo("FireEvent", _fireEvent)
+
+                .Pattern("take the advice for $slot slot")
+                    .HowToDo("TakeAdvice", _takeAdvice)
             ;
         }
 
@@ -220,13 +211,17 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal void FireEvent(string eventDescription)
         {
+            if (!_firedEvents.Add(eventDescription))
+                //event was already fired
+                return;
+
             _eventQueue.Enqueue(eventDescription);
         }
 
         internal void HandleEvent(string eventDescription)
         {
             Log.EventHandler(eventDescription);
-            var commands = Db.Query(SemanticItem.AnswerQuery(WhatShouldAgentDoNowQ, Constraints.WithCondition(eventDescription))).ToArray();
+            var commands = Db.Query(SemanticItem.AnswerQuery(Question.WhatShouldAgentDoNow, Constraints.WithCondition(eventDescription))).ToArray();
             foreach (var command in commands)
             {
                 var result = executeCommand(command.Answer);
@@ -237,15 +232,14 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal void HandleAllEvents()
         {
-            foreach (var database in _databases)
+            foreach (var module in _modules)
             {
-                if (database.Value.IsUpdated)
-                    FireEvent(database.Key + " database was updated");
-
-                database.Value.IsUpdated = false;
+                foreach (var moduleEvent in module.ReadEvents())
+                    FireEvent(moduleEvent);
             }
 
             if (_eventQueue.Count == 0)
+                //there are no events to process
                 return;
 
             while (_eventQueue.Count > 0)
@@ -255,146 +249,30 @@ namespace PerceptiveDialogBasedAgent.V2
             }
 
             HandleAllEvents();
+
+            _firedEvents.Clear();
         }
 
         #endregion  
 
         internal Body AddDatabase(string databaseName, DatabaseHandler database)
         {
-            _databases.Add(databaseName, database);
+            AddModule(new ExternalDatabaseProviderModule(databaseName, database));
             return this;
         }
 
-        public Body Pattern(string pattern)
+        internal Body AddModule(BodyModuleBase module)
         {
-            _currentPattern = pattern;
+            _modules.Add(module);
+            module.AttachTo(Db);
             return this;
         }
 
-        public Body HowToDo(string description)
-        {
-            return dbAdd(_currentPattern, HowToDoQ, description);
-        }
-
-        public Body HowToConvertToNumber(string description)
-        {
-            return dbAdd(_currentPattern, HowToConvertToNumberQ, description);
-        }
-
-
-        public Body HowToEvaluate(string description)
-        {
-            return dbAdd(_currentPattern, HowToEvaluateQ, description);
-        }
-
-        public Body HowToDo(string evaluatorName, NativeEvaluator evaluator)
-        {
-            var evaluatorId = NativeEvaluatorPrefix + $"{evaluatorName}-how_to_do";
-            HowToDo(evaluatorId);
-
-            Db.AddEvaluator(evaluatorId, evaluator);
-
-            return this;
-        }
-
-        public Body HowToDo(string actionName, NativeAction action)
-        {
-            var evaluatorId = NativeActionPrefix + actionName;
-            HowToDo(evaluatorId);
-
-            _nativeActions.Add(evaluatorId, action);
-            Db.AddSpanElement(evaluatorId);
-
-            return this;
-        }
-
-        public Body HowToEvaluate(string evaluatorName, NativeEvaluator evaluator)
-        {
-            var evaluatorId = NativeEvaluatorPrefix + $"{evaluatorName}-how_to_evaluate";
-            HowToEvaluate(evaluatorId);
-
-            Db.AddEvaluator(evaluatorId, evaluator);
-
-            return this;
-        }
-
-        public Body IsTrue(string description)
-        {
-            Db.Add(SemanticItem.Pattern(_currentPattern, Database.IsItTrueQ, description));
-            return this;
-        }
-
-        public Body IsTrue(string evaluatorName, NativeEvaluator evaluator)
-        {
-            var evaluatorId = NativeEvaluatorPrefix + $"{evaluatorName}-is_true";
-            IsTrue(evaluatorId);
-
-            Db.AddEvaluator(evaluatorId, evaluator);
-
-            return this;
-        }
-
-        internal ParameterEvaluator ParamQuery(string question, string forcedParameterName = null)
-        {
-            return (context, parameterName) =>
-            {
-                var realParamterName = forcedParameterName ?? parameterName;
-                return context.Query(realParamterName, question).FirstOrDefault();
-            };
-        }
-
-        internal NativeEvaluator EvaluateCallArgs(string actionName, NativeAction action, params string[] parameters)
-        {
-            var evaluators = new List<ParameterEvaluator>();
-            foreach (var parameter in parameters)
-            {
-                ParameterEvaluator evaluator = (e, p) => e.EvaluateOne(p);
-                evaluators.Add(evaluator);
-            }
-
-            return EvaluateCallArgs(actionName, action, parameters, evaluators);
-        }
-
-        internal NativeEvaluator EvaluateCallArgs(string actionName, NativeAction action, IEnumerable<string> parameters, IEnumerable<ParameterEvaluator> evaluators)
-        {
-            var actionId = NativeActionPrefix + actionName;
-            _nativeActions.Add(actionId, action);
-
-            Db.AddSpanElement(actionId);
-
-            return e =>
-            {
-                var evaluatedConstraints = new Constraints();
-                foreach (var parameter in parameters.Zip(evaluators, Tuple.Create))
-                {
-                    var evaluatedParameter = parameter.Item2(e, parameter.Item1);
-                    if (evaluatedParameter == null)
-                        return null;
-
-                    evaluatedConstraints = evaluatedConstraints.AddValue(parameter.Item1, evaluatedParameter);
-                }
-
-                return SemanticItem.From(e.Item.Question, actionId, evaluatedConstraints);
-            };
-        }
-
-        internal Body AddPatternFact(string question, string answer)
-        {
-            dbAdd(_currentPattern, question, answer);
-            return this;
-        }
 
         private void finishInputProcessing()
         {
             if (_outputCandidates.Count == 0)
                 FireEvent("output is missing");
-        }
-
-
-        private Body dbAdd(string pattern, string question, string answer)
-        {
-            Db.Add(SemanticItem.Pattern(pattern, question, answer));
-            return this;
         }
 
         private static Sensor createSensor(string name)
@@ -412,7 +290,7 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private bool executeCommand(SemanticItem command)
         {
-            var commandQuery = SemanticItem.AnswerQuery(Body.HowToDoQ, Constraints.WithInput(command));
+            var commandQuery = SemanticItem.AnswerQuery(Question.HowToDo, Constraints.WithInput(command));
             var commandInterpretations = Db.SpanQuery(commandQuery).ToArray();
 
             foreach (var interpretation in commandInterpretations)
@@ -429,11 +307,11 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private bool executeCall(SemanticItem command)
         {
-            if (!_nativeActions.ContainsKey(command.Answer))
+            var nativeAction = Db.GetNativeAction(command.Answer);
+            if (nativeAction == null)
                 return false;
 
-            var action = _nativeActions[command.Answer];
-            return action(command);
+            return nativeAction(command);
         }
 
         private IEnumerable<SemanticItem> getAnswers(string question)
@@ -514,6 +392,28 @@ namespace PerceptiveDialogBasedAgent.V2
             return true;
         }
 
+        private SemanticItem _isSlotFilled(EvaluationContext context)
+        {
+            var slot = context.GetSubstitutionValue("$slot");
+            var isFilled = _slots.ContainsKey(slot) && _slots[slot] != null;
+            return isFilled ? SemanticItem.Yes : SemanticItem.No;
+        }
+
+        private bool _takeAdvice(SemanticItem item)
+        {
+            var slot = item.GetSubstitutionValue("$slot");
+            var answer = _inputHistory.Last();
+            var query = _slots[slot];
+            _slots.Remove(slot);
+
+            var newFact = SemanticItem.From(query.Question, answer, query.Constraints);
+            Db.Container.Add(newFact);
+
+            Log.NewFact(newFact);
+
+            print("ok");
+            return true;
+        }
 
         private SemanticItem _the(EvaluationContext item)
         {
@@ -527,7 +427,7 @@ namespace PerceptiveDialogBasedAgent.V2
                 if (!evaluation.Result.Any())
                     continue;
 
-                if (evaluation.Question != HowToEvaluateQ)
+                if (evaluation.Question != Question.HowToEvaluate)
                     continue;
 
                 if (evaluation.Input.Contains(something))
@@ -544,23 +444,22 @@ namespace PerceptiveDialogBasedAgent.V2
             var questions = Db.CurrentLogRoot.GetQuestions();
             var orderedQuestions = questions.OrderByDescending(rankQuestion).ToArray();
             var question = orderedQuestions.First();
-            var questionStr = question.ReadableRepresentation();
-            return SemanticItem.Entity(questionStr);
+            return question;
         }
 
         private double rankQuestion(SemanticItem question)
         {
             var q = question.Question;
-            if (q == IsItTrueQ)
+            if (q == Question.IsItTrue)
                 return 0.1;
 
-            if (q == SemanticItem.EntityQ)
+            if (q == Question.Entity)
                 return 0.0;
 
-            if (q == Body.HowToEvaluateQ)
+            if (q == Question.HowToEvaluate)
                 return 0.1;
 
-            if (q == Body.WhatShouldAgentDoNowQ)
+            if (q == Question.WhatShouldAgentDoNow)
                 return 0.1;
 
             return 1.0;
@@ -577,34 +476,19 @@ namespace PerceptiveDialogBasedAgent.V2
             throw new NotImplementedException();
         }
 
-
-        private SemanticItem _resultCountCondition(EvaluationContext context)
-        {
-            var numberValue = context.Query("$count", HowToConvertToNumberQ).FirstOrDefault()?.Answer;
-            if (numberValue == null)
-                return null;
-
-            if (!int.TryParse(numberValue, out var number))
-                return null;
-
-            var database = context.GetSubstitutionValue("$database");
-            var count = _databases[database].ResultCount;
-
-            return count == number ? SemanticItem.Yes : SemanticItem.No;
-        }
-
-        private SemanticItem _slotValue(EvaluationContext context)
-        {
-            var database = context.GetSubstitutionValue("$database");
-            var slot = context.GetSubstitutionValue("$slot");
-
-            return SemanticItem.Entity(_databases[database].Read(slot));
-        }
-
         private bool _print(SemanticItem item)
         {
-            var something = item.GetSubstitutionValue("$something");
-            print(something);
+            var something = item.GetSubstitution("$something");
+
+            print(something.ReadableRepresentation());
+
+            return true;
+        }
+
+        private bool _fireEvent(SemanticItem item)
+        {
+            var evt = item.GetSubstitutionValue("$event");
+            FireEvent(evt);
 
             return true;
         }
@@ -617,8 +501,8 @@ namespace PerceptiveDialogBasedAgent.V2
             var constraints = new Constraints()
                 .AddCondition(trigger);
 
-            var actionItem = SemanticItem.From(WhatShouldAgentDoNowQ, action, constraints);
-            Db.Add(actionItem);
+            var actionItem = SemanticItem.From(Question.WhatShouldAgentDoNow, action, constraints);
+            Db.Container.Add(actionItem);
 
             Log.SensorAdd(trigger, action);
             return true;
@@ -632,19 +516,6 @@ namespace PerceptiveDialogBasedAgent.V2
             _outputReplacements.Add(pattern, replacement);
 
             print("ok");
-            return true;
-        }
-
-        private bool _setSpecifier(SemanticItem call)
-        {
-            var database = call.GetSubstitutionValue("$database");
-
-            var specifierValue = call.GetSubstitutionValue("$specifier");
-            var specifierCategory = call.GetSubstitution("$specifierClass").Answer;
-
-            _databases[database].SetCriterion(specifierCategory, specifierValue);
-
-            print($"{specifierValue} was set for {specifierCategory}");
             return true;
         }
 

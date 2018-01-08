@@ -12,11 +12,15 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal bool IsUpdated;
 
+        internal IEnumerable<string> Columns => _allColumns;
+
         private readonly List<Dictionary<string, string>> _data = new List<Dictionary<string, string>>();
 
         private readonly List<Dictionary<string, string>> _result = new List<Dictionary<string, string>>();
 
         private readonly Dictionary<string, string> _criterions = new Dictionary<string, string>();
+
+        private HashSet<string> _allColumns = new HashSet<string>();
 
         private string[] _currentColumns;
 
@@ -25,17 +29,18 @@ namespace PerceptiveDialogBasedAgent.V2
             refreshResult();
         }
 
-        internal void SetCriterion(string category, string value)
+        internal void SetCriterion(string column, string value)
         {
             IsUpdated = true;
-            _criterions[category] = value;
+            _criterions[column] = value;
 
             refreshResult();
         }
 
-        internal DatabaseHandler Columns(params string[] columns)
+        internal DatabaseHandler SetColumns(params string[] columns)
         {
             _currentColumns = columns.ToArray();
+            _allColumns.UnionWith(_currentColumns);
             return this;
         }
 
@@ -58,6 +63,17 @@ namespace PerceptiveDialogBasedAgent.V2
 
             _data.Add(rowValue);
             return this;
+        }
+
+        internal IEnumerable<string> GetColumnValues(string column)
+        {
+            var domain = new HashSet<string>();
+            foreach (var row in _data)
+            {
+                domain.Add(row[column]);
+            }
+
+            return domain;
         }
 
         private void refreshResult()

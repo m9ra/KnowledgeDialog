@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PerceptiveDialogBasedAgent.V2.Modules;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -34,7 +35,7 @@ namespace PerceptiveDialogBasedAgent.V2
             //Database.DebugTrigger(229);
             var agent = new RestaurantAgent();
 
-            agent.Input("i want a luxury restaurant");            
+            agent.Input("i want a luxury restaurant");
         }
 
         internal static void RestaurantSearchLearningTest()
@@ -44,9 +45,44 @@ namespace PerceptiveDialogBasedAgent.V2
             agent.Input("i want a luxury restaurant");
             //what does luxury specify?
             agent.Input("pricerange");
+
+            //DEBUG ONLY
+            agent.Input("i want a luxury restaurant");
+
+            return;
             //it means cheap?
             agent.Input("it means expensive");
             //ok, so i can offer Ceasar Palace Restaurant to you
+        }
+
+        internal static void ModuleTesting()
+        {
+            var externalDatabase = RestaurantAgent.CreateRestaurantDatabase();
+            var module = new ExternalDatabaseProviderModule("restaurant", externalDatabase);
+
+            var database = new EvaluatedDatabase();
+            database.Container
+                .Pattern("luxury")
+                    .WhatItSpecifies("pricerange")
+                    .HowToEvaluate("expensive")
+            ;
+
+            database.StartQueryLog();
+            module.AttachTo(database);
+
+            var result = database.Query(SemanticItem.AnswerQuery(Question.HowToDo, Constraints.WithInput("set restaurant specifier luxury")));
+            //var result = database.Query(SemanticItem.AnswerQuery(Question.IsItTrue, Constraints.WithInput("restaurant database has 1 result")));
+
+            var actionId = result.FirstOrDefault().Answer;
+            var action = database.GetNativeAction(actionId);
+
+            action(result.FirstOrDefault());
+
+            var log = database.FinishLog();
+            Log.Questions(log.GetQuestions());
+            Log.Result(result);
+
+            Log.Dump(database);
         }
     }
 }

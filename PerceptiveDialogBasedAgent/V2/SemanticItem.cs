@@ -8,8 +8,6 @@ namespace PerceptiveDialogBasedAgent.V2
 {
     public class SemanticItem
     {
-        public readonly static string EntityQ = "what is it?";
-
         public readonly static string InputVar = "$@";
 
         public readonly static SemanticItem Yes = SemanticItem.Entity(Database.YesAnswer);
@@ -30,7 +28,7 @@ namespace PerceptiveDialogBasedAgent.V2
         {
             get
             {
-                return Question == EntityQ && Constraints.Input == Answer;
+                return Question == V2.Question.Entity && Constraints.Input == Answer;
             }
         }
 
@@ -80,7 +78,7 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private SemanticItem(string entity)
         {
-            Question = EntityQ;
+            Question = V2.Question.Entity;
             Answer = entity;
             Constraints = new Constraints().AddValue(InputVar, this);
         }
@@ -104,6 +102,11 @@ namespace PerceptiveDialogBasedAgent.V2
         internal SemanticItem WithConstraints(Constraints constraints)
         {
             return new SemanticItem(Question, Answer, constraints);
+        }
+
+        internal SemanticItem AnsweredBy(string answer)
+        {
+            return new SemanticItem(Question, answer, Constraints);
         }
 
         internal string GetSubstitutionValue(string variable)

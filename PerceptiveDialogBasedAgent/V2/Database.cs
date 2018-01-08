@@ -10,17 +10,15 @@ namespace PerceptiveDialogBasedAgent.V2
     {
         private static HashSet<int> _debugTriggers = new HashSet<int>();
 
-        private readonly List<SemanticItem> _data = new List<SemanticItem>();
-
         private readonly HashSet<string> _phraseIndex = new HashSet<string>();
 
         private bool _expectDependencyQuery = false;
 
         private readonly List<EvaluationLogEntry> _evaluationHistory = new List<EvaluationLogEntry>();
 
-        internal const int MaxResolvingDepth = 5;
+        private readonly List<DataContainer> _containers = new List<DataContainer>();
 
-        private HashSet<string> _span = new HashSet<string>() { YesAnswer, NoAnswer };
+        internal const int MaxResolvingDepth = 5;
 
         private Stack<QueryLog> _queryLog = new Stack<QueryLog>();
 
@@ -38,9 +36,26 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal QueryLog CurrentLogRoot => _queryLog.Last();
 
+        internal DataContainer Container = new DataContainer();
+
+        protected IEnumerable<DataContainer> Containers { get { return _containers; } }
+
+        internal Database()
+        {
+            RegisterContainer(Container);
+
+            Container.AddSpanElement(YesAnswer);
+            Container.AddSpanElement(NoAnswer);
+        }
+
         internal static void DebugTrigger(int id)
         {
             _debugTriggers.Add(id);
+        }
+
+        internal void RegisterContainer(DataContainer container)
+        {
+            _containers.Add(container);
         }
 
         protected virtual SemanticItem transformItem(SemanticItem queryItem, SemanticItem item)
@@ -74,7 +89,7 @@ namespace PerceptiveDialogBasedAgent.V2
                     continue;
                 }
 
-                if (_span.Contains(item.Answer))
+                if (isInSpan(item.Answer))
                 {
                     result.Add(item);
                 }
@@ -131,9 +146,27 @@ namespace PerceptiveDialogBasedAgent.V2
             return result;
         }
 
-        internal void AddSpanElement(string spanAnswer)
+        internal IEnumerable<SemanticItem> GetData()
         {
-            _span.Add(spanAnswer);
+            var result = new List<SemanticItem>();
+
+            foreach (var container in Containers.Reverse())
+            {
+                result.AddRange(container.GetData().Reverse());
+            }
+
+            return result;
+        }
+
+        private bool isInSpan(string spanAnswer)
+        {
+            foreach (var container in Containers)
+            {
+                if (container.IsInSpan(spanAnswer))
+                    return true;
+            }
+
+            return false;
         }
 
         private IEnumerable<SemanticItem> fetchMatchingEntries(SemanticItem queryItem)
@@ -168,7 +201,7 @@ namespace PerceptiveDialogBasedAgent.V2
             if (result.Count > 0)
                 return result;
 
-            foreach (var item in _data.Reverse<SemanticItem>())
+            foreach (var item in GetData())
             {
                 if (item.Question != queryItem.Question)
                     continue;
@@ -202,15 +235,6 @@ namespace PerceptiveDialogBasedAgent.V2
             }
 
             return result;
-        }
-
-        internal void Add(SemanticItem item)
-        {
-            foreach (var phrase in item.Phrases)
-            {
-                _phraseIndex.Add(phrase);
-            }
-            _data.Add(item);
         }
 
         internal void StartQueryLog()

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V2
 {
-    internal delegate SemanticItem NativeEvaluator(EvaluationContext context);
+    public delegate SemanticItem NativeEvaluator(EvaluationContext context);
 
-    class EvaluationContext
+    public class EvaluationContext
     {
         internal readonly SemanticItem Item;
 
@@ -37,7 +37,7 @@ namespace PerceptiveDialogBasedAgent.V2
         internal bool IsTrue(string variable)
         {
             var substiution = GetSubstitutionValue(variable);
-            var queryItem = SemanticItem.AnswerQuery(Body.IsItTrueQ, Item.Constraints.AddInput(substiution));
+            var queryItem = SemanticItem.AnswerQuery(Question.IsItTrue, Item.Constraints.AddInput(substiution));
             var rawResult = _db.SpanQuery(queryItem);
 
             if (!rawResult.Any())
@@ -50,14 +50,23 @@ namespace PerceptiveDialogBasedAgent.V2
         {
             var substiution = GetSubstitutionValue(variable);
             var queryItem = SemanticItem.AnswerQuery(question, new Constraints().AddInput(substiution));
-            var result = _db.SpanQuery(queryItem);
+
+            return Query(queryItem);            
+        }
+
+        internal IEnumerable<SemanticItem> Query(SemanticItem query)
+        {
+            var result = _db.SpanQuery(query);
             return result;
         }
 
         internal IEnumerable<SemanticItem> Evaluate(string variable)
         {
-            var substiution = GetSubstitutionValue(variable);
-            var queryItem = SemanticItem.AnswerQuery(Body.HowToEvaluateQ, new Constraints().AddInput(substiution));
+            var substiution = GetSubstitution(variable);
+            if (!substiution.IsEntity)
+                return new[] { substiution };
+
+            var queryItem = SemanticItem.AnswerQuery(Question.HowToEvaluate, new Constraints().AddInput(substiution));
             var result = _db.SpanQuery(queryItem);
             return result;
         }

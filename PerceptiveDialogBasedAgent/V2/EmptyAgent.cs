@@ -25,6 +25,9 @@ namespace PerceptiveDialogBasedAgent.V2
                 .Pattern("say $something")
                     .HowToDo("print $something")
 
+                .Pattern("say $something and $something2")
+                    .HowToDo("print $something joined with $something2")
+
                 .Pattern("user said $something")
                     .IsTrue("history contains $something")
 

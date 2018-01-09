@@ -148,6 +148,9 @@ namespace PerceptiveDialogBasedAgent.V2
             if (answer == null)
                 return question;
 
+            if (IsEntity)
+                return answer;
+
             return question + " " + answer;
         }
     }

@@ -117,6 +117,21 @@ namespace PerceptiveDialogBasedAgent.V2
             return result;
         }
 
+        internal IEnumerable<SemanticItem> GetQuestionsShallow()
+        {
+            var result = new List<SemanticItem>();
+
+            foreach (var s in _subqueries)
+            {
+                foreach (var subquery in s._subqueries)
+                    if (!subquery.ForceHasResult && !subquery.HasConditionFailed)
+                        if (subquery._result.Count == 0 && subquery._subqueries.Count == 0)
+                            result.Add(subquery.Query);
+            }
+
+            return result;
+        }
+
         public override string ToString()
         {
             if (Query == null)
@@ -132,6 +147,5 @@ namespace PerceptiveDialogBasedAgent.V2
 
             return new SemanticItem[0];
         }
-
     }
 }

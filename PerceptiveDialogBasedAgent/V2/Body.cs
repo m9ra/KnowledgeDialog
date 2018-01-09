@@ -155,6 +155,9 @@ namespace PerceptiveDialogBasedAgent.V2
 
                 .Pattern("take the advice for $slot slot")
                     .HowToDo("TakeAdvice", _takeAdvice)
+
+                .Pattern("$something joined with $something2")
+                    .HowToEvaluate("JoinPhrases", _joinPhrases)
             ;
         }
 
@@ -441,7 +444,7 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private SemanticItem _databaseQuestion(EvaluationContext context)
         {
-            var questions = Db.CurrentLogRoot.GetQuestions();
+            var questions = Db.CurrentLogRoot.GetQuestionsShallow();
             var orderedQuestions = questions.OrderByDescending(rankQuestion).ToArray();
             var question = orderedQuestions.First();
             return question;
@@ -450,19 +453,21 @@ namespace PerceptiveDialogBasedAgent.V2
         private double rankQuestion(SemanticItem question)
         {
             var q = question.Question;
+            var score = 0.0;
             if (q == Question.IsItTrue)
-                return 0.1;
+                score += 0.1;
+            else if (q == Question.Entity)
+                score += 0.0;
+            else if (q == Question.HowToEvaluate)
+                score += 0.2;
+            else if (q == Question.WhatShouldAgentDoNow)
+                score += 0.1;
+            else score += 1;
 
-            if (q == Question.Entity)
-                return 0.0;
-
-            if (q == Question.HowToEvaluate)
-                return 0.1;
-
-            if (q == Question.WhatShouldAgentDoNow)
-                return 0.1;
-
-            return 1.0;
+            var inputWords = new HashSet<string>(_inputHistory.Last().Split(' '));
+            var commonWordCount = question.ReadableRepresentation().Split(' ').Sum(qw => _inputHistory.Contains(qw) ? 1 : 0);
+            score += commonWordCount;
+            return score;
         }
 
         private SemanticItem _userInput(EvaluationContext context)
@@ -474,6 +479,15 @@ namespace PerceptiveDialogBasedAgent.V2
         {
             var something = context.GetSubstitutionValue("$something");
             throw new NotImplementedException();
+        }
+
+        private SemanticItem _joinPhrases(EvaluationContext context)
+        {
+            var something1 = context.EvaluateOne("$something").Answer;
+            var something2 = context.EvaluateOne("$something2").Answer;
+
+            var joinedPhrase = something1 + " " + something2;
+            return SemanticItem.Entity(joinedPhrase);
         }
 
         private bool _print(SemanticItem item)

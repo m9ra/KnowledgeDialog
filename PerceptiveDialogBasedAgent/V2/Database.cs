@@ -18,7 +18,7 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private readonly List<DataContainer> _containers = new List<DataContainer>();
 
-        internal const int MaxResolvingDepth = 5;
+        internal const int MaxResolvingDepth = 10;
 
         private Stack<QueryLog> _queryLog = new Stack<QueryLog>();
 

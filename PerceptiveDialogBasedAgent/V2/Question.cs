@@ -23,5 +23,7 @@ namespace PerceptiveDialogBasedAgent.V2
         public readonly static string CanBeAnswer = "can $@ be answer ?";
 
         public readonly static string HowToEvaluate = "what does $@ mean ?";
+
+        public readonly static string HowToParaphrase= "how to paraphrase $@ ?";
     }
 }

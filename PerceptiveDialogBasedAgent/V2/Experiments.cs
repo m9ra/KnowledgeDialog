@@ -40,19 +40,19 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal static void RestaurantSearchLearningTest()
         {
+            //Database.DebugTrigger(693);
             var agent = new RestaurantAgent();
 
             agent.Input("i want a luxury restaurant");
             //what does luxury specify?
             agent.Input("pricerange");
 
-            //DEBUG ONLY
-            agent.Input("i want a luxury restaurant");
+            
+            agent.Input("i want a luxury restaurant"); //DEBUG ONLY
+            //how to paraphrase luxury ?
+            agent.Input("expensive");
 
-            return;
-            //it means cheap?
-            agent.Input("it means expensive");
-            //ok, so i can offer Ceasar Palace Restaurant to you
+            agent.Input("i want a luxury restaurant"); //DEBUG ONLY
         }
 
         internal static void ModuleTesting()

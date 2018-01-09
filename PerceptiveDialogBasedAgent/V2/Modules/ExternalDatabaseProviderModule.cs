@@ -60,7 +60,22 @@ namespace PerceptiveDialogBasedAgent.V2.Modules
                 return null;
 
             var values = _externalDatabase.GetColumnValues(slot);
-            return context.ChooseOption(Question.HowToEvaluate, values);
+            return context.ChooseOption(Question.HowToParaphrase, values);
+        }
+
+        private SemanticItem _specifiedSlot(ModuleContext context)
+        {
+            return context.ChooseOption(Question.WhatItSpecifies, _externalDatabase.Columns);
+        }
+
+        private void _ability_setSpecifier(string slot, string value)
+        {
+            _externalDatabase.SetCriterion(slot, value);
+            if (_externalDatabase.IsUpdated)
+            {
+                _externalDatabase.IsUpdated = false;
+                FireEvent(_databaseName + " database was updated");
+            }
         }
 
         private SemanticItem _countValue(ModuleContext context)
@@ -78,21 +93,6 @@ namespace PerceptiveDialogBasedAgent.V2.Modules
 
 
             return SemanticItem.Entity(number.ToString());
-        }
-
-        private SemanticItem _specifiedSlot(ModuleContext context)
-        {
-            return context.ChooseOption(Question.WhatItSpecifies, _externalDatabase.Columns);
-        }
-
-        private void _ability_setSpecifier(string slot, string value)
-        {
-            _externalDatabase.SetCriterion(slot, value);
-            if (_externalDatabase.IsUpdated)
-            {
-                _externalDatabase.IsUpdated = false;
-                FireEvent(_databaseName + " database was updated");
-            }
         }
 
         private SemanticItem _value_resultCountCondition(int number)

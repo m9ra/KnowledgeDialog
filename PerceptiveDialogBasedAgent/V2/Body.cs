@@ -145,6 +145,14 @@ namespace PerceptiveDialogBasedAgent.V2
 
                 .Pattern("$something joined with $something2")
                     .HowToEvaluate("JoinPhrases", _joinPhrases)
+
+                .Pattern("dump database")
+                    .HowToDo("DumpDatabase", c =>
+                    {
+                        Log.Dump(Db);
+                        print("ok");
+                        return true;
+                    })
             ;
 
             _commandControl = new CommandControlModule(this);
@@ -292,7 +300,7 @@ namespace PerceptiveDialogBasedAgent.V2
                 {
                     //we found a way how to execute the command
                     return true;
-                }                
+                }
             }
 
             return false;

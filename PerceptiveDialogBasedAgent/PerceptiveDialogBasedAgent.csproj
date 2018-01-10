@@ -82,6 +82,7 @@
     <Compile Include="V2\Log.cs" />
     <Compile Include="V2\MatchFactory.cs" />
     <Compile Include="V2\Mind.cs" />
+    <Compile Include="V2\Modules\CommandControlModule.cs" />
     <Compile Include="V2\Question.cs" />
     <Compile Include="V2\RestaurantAgent.cs" />
     <Compile Include="V2\Sensor.cs" />

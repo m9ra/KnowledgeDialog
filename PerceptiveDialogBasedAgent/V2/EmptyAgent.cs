@@ -56,8 +56,7 @@ namespace PerceptiveDialogBasedAgent.V2
             AddPolicy("when output is missing then ask for help");
             AddPolicy("when question was asked and user input can be an answer then fire event answer is provided");
             AddPolicy("when answer is provided then take the advice for question slot");
-            //AddPolicy("when answer is provided then write it into answer slot");
-            //AddPolicy("when advice is complete then save it");
+            AddPolicy("when the last command failed and advice was received then repeat the last command");
         }
 
         public string Input(string utternace)

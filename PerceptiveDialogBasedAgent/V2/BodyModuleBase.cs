@@ -84,6 +84,16 @@ namespace PerceptiveDialogBasedAgent.V2
             return Call(call.Method);
         }
 
+        internal BodyModuleBase Call(Action call)
+        {
+            return Call(call.Method);
+        }
+
+        internal BodyModuleBase Call(Func<SemanticItem> call)
+        {
+            return Call(call.Method);
+        }
+
         internal BodyModuleBase Call(Func<string, SemanticItem> call)
         {
             return Call(call.Method);

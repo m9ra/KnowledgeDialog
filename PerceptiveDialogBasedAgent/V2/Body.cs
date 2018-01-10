@@ -32,23 +32,11 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private readonly HashSet<string> _firedEvents = new HashSet<string>();
 
-        private static readonly List<Sensor> _sensors = new List<Sensor>();
-
-        private readonly Sensor _dialogSensor = createSensor("dialog");
-
-        private readonly Sensor _policySensor = createSensor("policy");
-
-        private readonly Sensor _missingOutputSensor = createSensor("output is missing");
-
-        private readonly Sensor _turnSensor = createSensor("turn");
-
-        private readonly Sensor _inputProcessingSensor = createSensor("input processing");
-
-        private readonly Sensor _outputPrintingSensor = createSensor("output printing");
-
         private readonly List<EvaluationLogEntry> _evaluationHistory = new List<EvaluationLogEntry>();
 
         internal IEnumerable<string> InputHistory => _inputHistory;
+
+        internal readonly CommandControlModule _commandControl;
 
         internal ParameterEvaluator EvaluateOne
         {
@@ -114,7 +102,6 @@ namespace PerceptiveDialogBasedAgent.V2
                         return canBeAnswer ? SemanticItem.Yes : SemanticItem.No;
                     })
 
-
                 .Pattern("execute $something")
                     .HowToDo("Execute", e =>
                     {
@@ -159,6 +146,9 @@ namespace PerceptiveDialogBasedAgent.V2
                 .Pattern("$something joined with $something2")
                     .HowToEvaluate("JoinPhrases", _joinPhrases)
             ;
+
+            _commandControl = new CommandControlModule(this);
+            AddModule(_commandControl);
         }
 
         public string Input(string utterance)
@@ -199,7 +189,7 @@ namespace PerceptiveDialogBasedAgent.V2
 
             //handle input processing
             _inputHistory.Add(utterance);
-            executeCommand(utterance);
+            ExecuteCommand(utterance);
 
             var log = Db.FinishLog();
             var questions = log.GetQuestions();
@@ -227,7 +217,7 @@ namespace PerceptiveDialogBasedAgent.V2
             var commands = Db.Query(SemanticItem.AnswerQuery(Question.WhatShouldAgentDoNow, Constraints.WithCondition(eventDescription))).ToArray();
             foreach (var command in commands)
             {
-                var result = executeCommand(command.Answer);
+                var result = ExecuteCommand(command.Answer);
                 /*if (!result)
                     throw new NotImplementedException("Handle failed command");*/
             }
@@ -271,22 +261,22 @@ namespace PerceptiveDialogBasedAgent.V2
             return this;
         }
 
+        internal void ClearOutput()
+        {
+            _outputCandidates.Clear();
+        }
+
 
         private void finishInputProcessing()
         {
             if (_outputCandidates.Count == 0)
+            {
+                _commandControl.ReportCurrentCommandFail();
                 FireEvent("output is missing");
+            }
         }
 
-        private static Sensor createSensor(string name)
-        {
-            var sensor = new Sensor(name);
-
-            _sensors.Add(sensor);
-            return sensor;
-        }
-
-        private bool executeCommand(string utterance)
+        internal bool ExecuteCommand(string utterance)
         {
             return executeCommand(SemanticItem.Entity(utterance));
         }
@@ -302,7 +292,7 @@ namespace PerceptiveDialogBasedAgent.V2
                 {
                     //we found a way how to execute the command
                     return true;
-                }
+                }                
             }
 
             return false;
@@ -315,38 +305,6 @@ namespace PerceptiveDialogBasedAgent.V2
                 return false;
 
             return nativeAction(command);
-        }
-
-        private IEnumerable<SemanticItem> getAnswers(string question)
-        {
-            var currentConstraints = createConstraintValues();
-            var queryItem = SemanticItem.AnswerQuery(question, currentConstraints);
-
-            var result = Db.Query(queryItem).ToArray();
-            return result;
-        }
-
-        private IEnumerable<SemanticItem> getInputAnswers(string input, string question)
-        {
-            var currentConstraints = createConstraintValues();
-            currentConstraints = currentConstraints.AddInput(input);
-            var queryItem = SemanticItem.AnswerQuery(question, currentConstraints);
-
-            var result = Db.Query(queryItem).ToArray();
-            return result;
-        }
-
-        private Constraints createConstraintValues()
-        {
-            var constraints = new Constraints();
-            foreach (var sensor in _sensors)
-            {
-                constraints = sensor.FillContext(constraints);
-            }
-
-            return constraints
-                .AddInput(_inputHistory[_inputHistory.Count - 1])
-            ;
         }
 
         private SemanticItem _notCond(EvaluationContext context)
@@ -380,8 +338,8 @@ namespace PerceptiveDialogBasedAgent.V2
             var action1 = item.GetSubstitutionValue("$action1");
             var action2 = item.GetSubstitutionValue("$action2");
 
-            var action1Result = executeCommand(action1);
-            var action2Result = action1Result && executeCommand(action2);
+            var action1Result = ExecuteCommand(action1);
+            var action2Result = action1Result && ExecuteCommand(action2);
             return action1Result && action2Result;
         }
 
@@ -413,8 +371,9 @@ namespace PerceptiveDialogBasedAgent.V2
             Db.Container.Add(newFact);
 
             Log.NewFact(newFact);
-
             print("ok");
+
+            FireEvent("advice was received");
             return true;
         }
 

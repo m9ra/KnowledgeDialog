@@ -46,13 +46,9 @@ namespace PerceptiveDialogBasedAgent.V2
             agent.Input("i want a luxury restaurant");
             //what does luxury specify?
             agent.Input("pricerange");
-
             
-            agent.Input("i want a luxury restaurant"); //DEBUG ONLY
             //how to paraphrase luxury ?
             agent.Input("expensive");
-
-            agent.Input("i want a luxury restaurant"); //DEBUG ONLY
         }
 
         internal static void ModuleTesting()

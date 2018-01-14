@@ -502,6 +502,11 @@ namespace WebBackend
             experimentHandler("edge_requests");
         }
 
+        public void phrase_restaurant()
+        {
+            experimentHandler("phrase_restaurant");
+        }
+
         /// <summary>
         /// Render experiment console. Also handle feedback and tracing of given experiment.
         /// </summary>

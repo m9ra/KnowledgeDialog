@@ -44,9 +44,9 @@ namespace WebBackend
             System.Threading.Thread.CurrentThread.CurrentCulture = customCulture;
 
 
-            //InitializeExperiments();
+            InitializeExperiments();
 
-            AnswerExtraction.Omegle_Batch.ObserveDialogCollection();
+            //AnswerExtraction.Omegle_Batch.ObserveDialogCollection();
             //AnswerExtraction.GraphNavigationExperiments_Batch.PrintEdgeVotesInfo();
             //AnswerExtraction.GraphNavigationExperiments_Batch.EvaluateLabelRequestInfo();
             //AnswerExtraction.ExtractionEvaluation_Batch.RunLinkingExperiment();
@@ -82,7 +82,7 @@ namespace WebBackend
 
             Experiments = new ExperimentCollection(experimentsRootPath,
 
-                //question collection experiment 
+           /*     //question collection experiment 
                 new QuestionCollectionExperiment(experimentsRootPath, "question_collection", 15, simpleQuestions1),
 
                 //question collection experiment 
@@ -117,7 +117,8 @@ namespace WebBackend
                 new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_5", 100, extensionQuestions),
                 new AnswerExtractionExperiment(experimentsRootPath, "answer_extraction", 100, simpleQuestionsTrain, Configuration.AnswerExtractor),
                 new GraphNavigationExperiment(experimentsRootPath, "graph_navigation", 100, Configuration.GetQuestionDialogsTrain()),
-                new GraphNavigationExperiment(experimentsRootPath, "edge_requests", 100, Configuration.GetQuestionDialogsTrain())
+                new GraphNavigationExperiment(experimentsRootPath, "edge_requests", 100, Configuration.GetQuestionDialogsTrain()),*/
+                new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant", 100)
                 );
 
             QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "qdd_extension_r_");

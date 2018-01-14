@@ -8,9 +8,10 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>PerceptiveDialogBasedAgent</RootNamespace>
     <AssemblyName>PerceptiveDialogBasedAgent</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -34,6 +35,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -42,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PhraseAgentManager.cs" />
     <Compile Include="V1\Agent.cs" />
     <Compile Include="V1\Body.cs" />
     <Compile Include="V1\BodyPart.cs" />
@@ -92,6 +96,11 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\KnowledgeDialog\KnowledgeDialog.csproj">
+      <Project>{3E2334C1-A0E1-4FB4-AEEB-0FD743050BD8}</Project>
+      <Name>KnowledgeDialog</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

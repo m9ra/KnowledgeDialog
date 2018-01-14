@@ -123,10 +123,12 @@
     <Compile Include="DataSources\OmegleManager.cs" />
     <Compile Include="DialogProvider\GraphNavigationWebConsole.cs" />
     <Compile Include="DialogProvider\AnswerExtractionWebConsole.cs" />
+    <Compile Include="DialogProvider\PhraseAgentWebConsole.cs" />
     <Compile Include="DialogProvider\QuestionCollectionWebConsole.cs" />
     <Compile Include="Experiment\AnnotatedActionEntry.cs" />
     <Compile Include="Experiment\GraphNavigationExperiment.cs" />
     <Compile Include="Experiment\AnswerExtractionExperiment.cs" />
+    <Compile Include="Experiment\PhraseRestaurantExperiment.cs" />
     <Compile Include="Experiment\QuestionCollectionExperiment.cs" />
     <Compile Include="Experiment\AnnotatedLogFile.cs" />
     <Compile Include="Experiment\SolutionLog.cs" />
@@ -154,6 +156,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResponseManager.cs" />
     <Compile Include="RootController.cs" />
+    <Compile Include="Task\RestaurantTaskInstance.cs" />
     <Compile Include="Task\TaskInstance.cs" />
     <Compile Include="Task\TaskPatternBase.cs" />
     <Compile Include="Task\TaskFactoryBase.cs" />
@@ -167,6 +170,7 @@
     <None Include="www\action_log.haml" />
     <None Include="www\annotate.haml" />
     <None Include="www\annotate2.haml" />
+    <None Include="www\restaurant_phrase.haml" />
     <None Include="www\graph_navigation.haml" />
     <None Include="www\answer_extraction.haml" />
     <None Include="www\database.haml" />
@@ -194,6 +198,10 @@
     <ProjectReference Include="..\KnowledgeDialog\KnowledgeDialog.csproj">
       <Project>{3e2334c1-a0e1-4fb4-aeeb-0fd743050bd8}</Project>
       <Name>KnowledgeDialog</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PerceptiveDialogBasedAgent\PerceptiveDialogBasedAgent.csproj">
+      <Project>{fc72d7d8-f6a9-449e-8baf-c37c35828f01}</Project>
+      <Name>PerceptiveDialogBasedAgent</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

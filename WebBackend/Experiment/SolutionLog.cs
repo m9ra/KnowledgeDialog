@@ -79,8 +79,8 @@ namespace WebBackend.Experiment
                     _task.Register(utterance, _console.LastResponse);
 
                     var informativeTask = _task as InformativeTaskInstance;
-
-                    informativeTask.Register(_console.Manager as IInformativeFeedbackProvider);
+                    if (informativeTask != null)
+                        informativeTask.Register(_console.Manager as IInformativeFeedbackProvider);
                 }
 
 

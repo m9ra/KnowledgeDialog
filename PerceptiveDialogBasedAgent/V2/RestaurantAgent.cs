@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,11 +9,10 @@ namespace PerceptiveDialogBasedAgent.V2
 {
     class RestaurantAgent : EmptyAgent
     {
-        private readonly Dictionary<string, string> _specifiers = new Dictionary<string, string>();
-
         public RestaurantAgent()
             : base()
         {
+
             Body.AddDatabase("restaurant", CreateRestaurantDatabase());
             Body.Db.Container
                 .Pattern("i want a $specifier restaurant")
@@ -24,12 +24,15 @@ namespace PerceptiveDialogBasedAgent.V2
                 .Pattern("cheap")
                     .WhatItSpecifies("pricerange")
             ;
-                        
+
             AddPolicy("when restaurant database was updated and restaurant database has one result then offer the restaurant");
         }
 
         internal static DatabaseHandler CreateRestaurantDatabase()
         {
+            /*var restaurants = LoadDstcRestaurants("restaurants.db.json");
+            return restaurants;*/
+
             var restaurants = new DatabaseHandler();
             restaurants.SetColumns("pricerange", "name")
                 .Row("cheap", "Chinese bistro")
@@ -38,6 +41,48 @@ namespace PerceptiveDialogBasedAgent.V2
 
             return restaurants;
         }
+
+        internal static DatabaseHandler LoadDstcRestaurants(string dbFile)
+        {
+            var restaurants = new DatabaseHandler();
+            var json = File.ReadAllText(dbFile);
+            var entries = new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<RestaurantEntry[]>(json);
+
+            restaurants.SetColumns("pricerange", "name");
+            foreach (var entry in entries)
+            {
+                restaurants.Row(entry.pricerange, entry.name);
+            }
+            return restaurants;
+        }
+    }
+
+    [Serializable]
+    class RestaurantEntry
+    {
+        /*{
+        "phone": "01223 461661",
+        "pricerange": "expensive",
+        "addr": "31 newnham road newnham",
+        "area": "west",
+        "food": "indian",
+        "postcode": "not available",
+        "name": "india house"
+        */
+
+        public readonly string phone;
+
+        public readonly string pricerange;
+
+        public readonly string addr;
+
+        public readonly string area;
+
+        public readonly string food;
+
+        public readonly string postcode;
+
+        public readonly string name;
     }
 
     static class RestaurantExtensions

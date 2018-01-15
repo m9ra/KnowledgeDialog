@@ -44,6 +44,11 @@ namespace PerceptiveDialogBasedAgent.V2
             return this;
         }
 
+        internal string GetSpecifier(string slotName)
+        {
+            _criterions.TryGetValue(slotName, out var value);
+            return value;
+        }
 
         internal string Read(string slot)
         {

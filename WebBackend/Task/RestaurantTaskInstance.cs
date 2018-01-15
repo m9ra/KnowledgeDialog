@@ -8,25 +8,11 @@ using System.Threading.Tasks;
 
 namespace WebBackend.Task
 {
-    class RestaurantTaskInstance : TaskInstance
+    class RestaurantTaskInstance : InformativeTaskInstance
     {
-
-        /// <summary>
-        /// Determine whether task has been completed.
-        /// </summary>
-        private bool _isComplete = false;
-
-        /// <inheritdoc/>
-        public override bool IsComplete { get { return _isComplete; } }
-
         internal RestaurantTaskInstance(int id, string taskFormat, string key, int validationCodeKey, string experimentHAML = "experiment.haml")
-            : base(id, taskFormat, new NodeReference[0], new NodeReference[0], key, validationCodeKey, experimentHAML)
+            : base(id, taskFormat, new NodeReference[0], new NodeReference[0], key, validationCodeKey, 1, experimentHAML)
         {
-        }
-
-        internal void Register(IInformativeFeedbackProvider provider)
-        {
-            throw new NotImplementedException();
         }
     }
 }

@@ -9,23 +9,33 @@ namespace PerceptiveDialogBasedAgent.V2
 {
     class RestaurantAgent : EmptyAgent
     {
+        private readonly DatabaseHandler _db;
+
         public RestaurantAgent()
             : base()
         {
-
-            Body.AddDatabase("restaurant", CreateRestaurantDatabase());
+            Body.AddDatabase("restaurant", _db = CreateRestaurantDatabase());
             Body.Db.Container
-                .Pattern("i want a $specifier restaurant")
+                .Pattern("i want $specifier restaurant")
                     .HowToDo("set restaurant specifier $specifier")
 
+                .Pattern("i want a $specifier restaurant")
+                    .HowToDo("i want $specifier restaurant")
+
                 .Pattern("offer the restaurant")
-                    .HowToDo("say there is a restaurant joined with value of name from restaurant database")
+                    .HowToDo("say I know a restaurant joined with value of name from restaurant database")
 
                 .Pattern("cheap")
                     .WhatItSpecifies("pricerange")
             ;
 
             AddPolicy("when restaurant database was updated and restaurant database has one result then offer the restaurant");
+        }
+
+        internal string RestaurantSpecifier(string slotName)
+        {
+            var value = _db.GetSpecifier(slotName);
+            return value;
         }
 
         internal static DatabaseHandler CreateRestaurantDatabase()

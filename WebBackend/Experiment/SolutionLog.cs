@@ -83,8 +83,6 @@ namespace WebBackend.Experiment
                         informativeTask.Register(_console.Manager as IInformativeFeedbackProvider);
                 }
 
-
-
                 if (HasTask && _task.IsComplete)
                 {
                     //task has been completed

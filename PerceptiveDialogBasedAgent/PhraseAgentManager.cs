@@ -13,9 +13,11 @@ namespace PerceptiveDialogBasedAgent
 {
     public class PhraseAgentManager : CollectionManagerBase, IInformativeFeedbackProvider
     {
-        public bool HadInformativeInput => throw new NotImplementedException();
+        private bool _hadInformativeInput = false;
 
-        public bool CanBeCompleted => throw new NotImplementedException();
+        public bool HadInformativeInput => _hadInformativeInput;
+
+        public bool CanBeCompleted => true;
 
         private readonly RestaurantAgent _agent = new RestaurantAgent();
 
@@ -27,6 +29,10 @@ namespace PerceptiveDialogBasedAgent
         public override ResponseBase Input(ParsedUtterance utterance)
         {
             var response = _agent.Input(utterance.OriginalSentence);
+            var pricerangeSpecifier = _agent.RestaurantSpecifier("pricerange");
+            if (pricerangeSpecifier == "expensive")
+                _hadInformativeInput = true;
+
             return new SimpleResponse(response);
         }
     }

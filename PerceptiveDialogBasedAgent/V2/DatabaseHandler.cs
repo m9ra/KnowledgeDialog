@@ -75,7 +75,8 @@ namespace PerceptiveDialogBasedAgent.V2
             var domain = new HashSet<string>();
             foreach (var row in _data)
             {
-                domain.Add(row[column]);
+                if (row.ContainsKey(column))
+                    domain.Add(row[column]);
             }
 
             return domain;

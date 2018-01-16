@@ -28,6 +28,7 @@ namespace PerceptiveDialogBasedAgent
 
         public override ResponseBase Input(ParsedUtterance utterance)
         {
+            //Database.DebugTrigger(849);
             var response = _agent.Input(utterance.OriginalSentence);
             var pricerangeSpecifier = _agent.RestaurantSpecifier("pricerange");
             if (pricerangeSpecifier == "expensive")

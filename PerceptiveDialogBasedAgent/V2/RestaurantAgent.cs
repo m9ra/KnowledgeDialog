@@ -16,20 +16,23 @@ namespace PerceptiveDialogBasedAgent.V2
         {
             Body.AddDatabase("restaurant", _db = CreateRestaurantDatabase());
             Body.Db.Container
-                .Pattern("i want $specifier restaurant")
-                    .HowToDo("set restaurant specifier $specifier")
+                .Pattern("hello", "hi")
+                    .HowToEvaluate("greeting")
 
-                .Pattern("i want a $specifier restaurant")
-                    .HowToDo("i want $specifier restaurant")
+                .Pattern(
+                    "give me $specifier restaurant",
+                    "i want $specifier restaurant",
+                    "i want a $specifier restaurant",
+                    "i want an $specifier restaurant"
+                    )
+                    .HowToDo("set restaurant specifier $specifier")
 
                 .Pattern("offer the restaurant")
                     .HowToDo("say I know a restaurant joined with value of name from restaurant database")
-
-                .Pattern("cheap")
-                    .WhatItSpecifies("pricerange")
             ;
 
             AddPolicy("when restaurant database was updated and restaurant database has one result then offer the restaurant");
+            AddPolicy("when user said greeting then say how can i help you");
         }
 
         internal string RestaurantSpecifier(string slotName)

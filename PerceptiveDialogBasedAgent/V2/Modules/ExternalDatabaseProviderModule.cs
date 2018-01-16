@@ -31,7 +31,7 @@ namespace PerceptiveDialogBasedAgent.V2.Modules
             CountValue = newField<int>("countValue", _countValue);
 
             this
-            .AddAbility("set " + _databaseName + " specifier $specifier").Call(_ability_setSpecifier)
+            .AddAbility("set " + _databaseName + " specifier $specifier").CallAction(_ability_setSpecifier)
                 .Param(SpecifiedSlot, "$specifier")
                 .Param(SpecifiedValue, "$specifier")
 
@@ -49,6 +49,7 @@ namespace PerceptiveDialogBasedAgent.V2.Modules
                 foreach (var value in _externalDatabase.GetColumnValues(column))
                 {
                     Container.AddSpanElement(value);
+                    Container.Add(SemanticItem.From(Question.WhatItSpecifies, column, Constraints.WithInput(value)));
                 }
             }
         }

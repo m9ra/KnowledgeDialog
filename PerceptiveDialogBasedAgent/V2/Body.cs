@@ -13,8 +13,9 @@ namespace PerceptiveDialogBasedAgent.V2
 
     class Body
     {
-
         internal readonly EvaluatedDatabase Db = new EvaluatedDatabase();
+
+        internal IEnumerable<SemanticItem> ExecutionQuestions => _executionQuestions;
 
         private readonly List<string> _outputCandidates = new List<string>();
 
@@ -28,6 +29,8 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private readonly Dictionary<string, string> _outputReplacements = new Dictionary<string, string>();
 
+        private readonly List<SemanticItem> _executionQuestions = new List<SemanticItem>();
+
         private readonly Queue<string> _eventQueue = new Queue<string>();
 
         private readonly HashSet<string> _firedEvents = new HashSet<string>();
@@ -36,7 +39,9 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal IEnumerable<string> InputHistory => _inputHistory;
 
-        internal readonly CommandControlModule _commandControl;
+        private readonly CommandControlModule _commandControl;
+
+        private readonly AdviceModule _adviceModule;
 
         internal ParameterEvaluator EvaluateOne
         {
@@ -77,9 +82,6 @@ namespace PerceptiveDialogBasedAgent.V2
 
                 .Pattern("user input")
                     .HowToEvaluate("UserInput", _userInput)
-
-                .Pattern("database question")
-                    .HowToEvaluate("DatabaseQuestion", _databaseQuestion)
 
                 .Pattern("history contains $something")
                     .IsTrue("HistoryContains", _historyContains)
@@ -140,9 +142,6 @@ namespace PerceptiveDialogBasedAgent.V2
                 .Pattern("fire event $event")
                     .HowToDo("FireEvent", _fireEvent)
 
-                .Pattern("take the advice for $slot slot")
-                    .HowToDo("TakeAdvice", _takeAdvice)
-
                 .Pattern("$something joined with $something2")
                     .HowToEvaluate("JoinPhrases", _joinPhrases)
 
@@ -150,13 +149,16 @@ namespace PerceptiveDialogBasedAgent.V2
                     .HowToDo("DumpDatabase", c =>
                     {
                         Log.Dump(Db);
-                        print("ok");
+                        Print("ok");
                         return true;
                     })
             ;
 
             _commandControl = new CommandControlModule(this);
+            _adviceModule = new AdviceModule(this);
+
             AddModule(_commandControl);
+            AddModule(_adviceModule);
         }
 
         public string Input(string utterance)
@@ -177,6 +179,8 @@ namespace PerceptiveDialogBasedAgent.V2
 
             finishInputProcessing();
             HandleAllEvents();
+
+            _executionQuestions.Clear();
 
             //handle output processing
             var output = _outputCandidates.LastOrDefault();
@@ -274,7 +278,6 @@ namespace PerceptiveDialogBasedAgent.V2
             _outputCandidates.Clear();
         }
 
-
         private void finishInputProcessing()
         {
             if (_outputCandidates.Count == 0)
@@ -291,8 +294,11 @@ namespace PerceptiveDialogBasedAgent.V2
 
         private bool executeCommand(SemanticItem command)
         {
+            var priorQuestions = Db.CurrentLogRoot.GetQuestions();
+
             var commandQuery = SemanticItem.AnswerQuery(Question.HowToDo, Constraints.WithInput(command));
             var commandInterpretations = Db.SpanQuery(commandQuery).ToArray();
+
 
             foreach (var interpretation in commandInterpretations)
             {
@@ -302,6 +308,10 @@ namespace PerceptiveDialogBasedAgent.V2
                     return true;
                 }
             }
+
+            var postQuestions = Db.CurrentLogRoot.GetQuestions();
+            var executionQuestions = postQuestions.Except(priorQuestions).ToArray();
+            _executionQuestions.AddRange(executionQuestions);
 
             return false;
         }
@@ -368,23 +378,6 @@ namespace PerceptiveDialogBasedAgent.V2
             return isFilled ? SemanticItem.Yes : SemanticItem.No;
         }
 
-        private bool _takeAdvice(SemanticItem item)
-        {
-            var slot = item.GetSubstitutionValue("$slot");
-            var answer = _inputHistory.Last();
-            var query = _slots[slot];
-            _slots.Remove(slot);
-
-            var newFact = SemanticItem.From(query.Question, answer, query.Constraints);
-            Db.Container.Add(newFact);
-
-            Log.NewFact(newFact);
-            print("ok");
-
-            FireEvent("advice was received");
-            return true;
-        }
-
         private SemanticItem _the(EvaluationContext item)
         {
             var evaluations = Db.EvaluationHistory.Reverse().Take(10).ToArray();
@@ -407,34 +400,6 @@ namespace PerceptiveDialogBasedAgent.V2
             }
 
             return referencedValue;
-        }
-
-        private SemanticItem _databaseQuestion(EvaluationContext context)
-        {
-            var questions = Db.CurrentLogRoot.GetQuestionsShallow();
-            var orderedQuestions = questions.OrderByDescending(rankQuestion).ToArray();
-            var question = orderedQuestions.First();
-            return question;
-        }
-
-        private double rankQuestion(SemanticItem question)
-        {
-            var q = question.Question;
-            var score = 0.0;
-            if (q == Question.IsItTrue)
-                score += 0.1;
-            else if (q == Question.Entity)
-                score += 0.0;
-            else if (q == Question.HowToEvaluate)
-                score += 0.2;
-            else if (q == Question.WhatShouldAgentDoNow)
-                score += 0.1;
-            else score += 1;
-
-            var inputWords = new HashSet<string>(_inputHistory.Last().Split(' '));
-            var commonWordCount = question.ReadableRepresentation().Split(' ').Sum(qw => _inputHistory.Contains(qw) ? 1 : 0);
-            score += commonWordCount;
-            return score;
         }
 
         private SemanticItem _userInput(EvaluationContext context)
@@ -461,7 +426,7 @@ namespace PerceptiveDialogBasedAgent.V2
         {
             var something = item.GetSubstitution("$something");
 
-            print(something.ReadableRepresentation());
+            Print(something.ReadableRepresentation());
 
             return true;
         }
@@ -496,13 +461,13 @@ namespace PerceptiveDialogBasedAgent.V2
 
             _outputReplacements.Add(pattern, replacement);
 
-            print("ok");
+            Print("ok");
             return true;
         }
 
         #region Body utilities
 
-        private void print(string phrase)
+        internal void Print(string phrase)
         {
             var currentPhrase = " " + phrase + " ";
             foreach (var pattern in _outputReplacements)

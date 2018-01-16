@@ -31,12 +31,6 @@ namespace PerceptiveDialogBasedAgent.V2
                 .Pattern("user said $something")
                     .IsTrue("history contains $something")
 
-                .Pattern("question was asked")
-                    .IsTrue("question slot is filled")
-
-                .Pattern("ask for help")
-                    .HowToDo("write database question into question slot and print the question")
-
                 .Pattern("you know $something")
                     .IsTrue("user said $something or $something is defined")
                     
@@ -55,7 +49,7 @@ namespace PerceptiveDialogBasedAgent.V2
             AddPolicy("when user input is received and it is a command then execute it");
             AddPolicy("when output is missing then ask for help");
             AddPolicy("when question was asked and user input can be an answer then fire event answer is provided");
-            AddPolicy("when answer is provided then take the advice for question slot");
+            AddPolicy("when answer is provided then accept the advice");
             AddPolicy("when the last command failed and advice was received then repeat the last command");
         }
 

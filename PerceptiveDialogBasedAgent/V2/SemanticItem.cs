@@ -32,6 +32,11 @@ namespace PerceptiveDialogBasedAgent.V2
             }
         }
 
+        internal static SemanticItem Convert(bool value)
+        {
+            return value ? SemanticItem.Yes : SemanticItem.No;
+        }
+
         internal string InstantiateInputWithEntityVariables()
         {
             return InstantiateWithEntityVariables(Constraints.Input);

@@ -14,7 +14,7 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal readonly static string NativeEvaluatorPrefix = "$";
 
-        private string _currentPattern;
+        private string[] _currentPattern;
 
         private readonly List<SemanticItem> _data = new List<SemanticItem>();
 
@@ -50,9 +50,12 @@ namespace PerceptiveDialogBasedAgent.V2
             _data.Add(item);
         }
 
-        internal DataContainer Add(string pattern, string question, string answer)
+        internal DataContainer Add(string[] patterns, string question, string answer)
         {
-            Add(SemanticItem.From(question, answer, Constraints.WithInput(pattern)));
+            foreach (var pattern in patterns)
+            {
+                Add(SemanticItem.From(question, answer, Constraints.WithInput(pattern)));
+            }
             return this;
         }
 
@@ -88,7 +91,7 @@ namespace PerceptiveDialogBasedAgent.V2
             return evalutor;
         }
 
-        public DataContainer Pattern(string pattern)
+        public DataContainer Pattern(params string[] pattern)
         {
             _currentPattern = pattern;
             return this;
@@ -143,7 +146,7 @@ namespace PerceptiveDialogBasedAgent.V2
 
         public DataContainer IsTrue(string description)
         {
-            Add(SemanticItem.Pattern(_currentPattern, Database.IsItTrueQ, description));
+            Add(_currentPattern, Database.IsItTrueQ, description);
             return this;
         }
 

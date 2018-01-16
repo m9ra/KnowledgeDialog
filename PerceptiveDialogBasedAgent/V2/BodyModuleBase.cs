@@ -9,6 +9,8 @@ namespace PerceptiveDialogBasedAgent.V2
 {
     delegate SemanticItem FieldEvaluator(ModuleContext context);
 
+    delegate bool PreconditionEvaluator(ModuleContext context);
+
     abstract class BodyModuleBase
     {
         protected abstract void initializeAbilities();
@@ -20,6 +22,8 @@ namespace PerceptiveDialogBasedAgent.V2
         private string _currentPattern = null;
 
         private string _currentQuestion = null;
+
+        private PreconditionEvaluator _currentPrecondition = null;
 
         private bool _isInitialized = false;
 
@@ -79,12 +83,18 @@ namespace PerceptiveDialogBasedAgent.V2
             return this;
         }
 
-        internal BodyModuleBase Call(Action<string, string> call)
+        internal BodyModuleBase Precondition(PreconditionEvaluator evaluator)
+        {
+            _currentPrecondition = evaluator;
+            return this;
+        }
+
+        internal BodyModuleBase CallAction(Action<string, string> call)
         {
             return Call(call.Method);
         }
 
-        internal BodyModuleBase Call(Action call)
+        internal BodyModuleBase CallAction(Action call)
         {
             return Call(call.Method);
         }
@@ -95,6 +105,11 @@ namespace PerceptiveDialogBasedAgent.V2
         }
 
         internal BodyModuleBase Call(Func<string, SemanticItem> call)
+        {
+            return Call(call.Method);
+        }
+
+        internal BodyModuleBase Call(Func<string, string, SemanticItem> call)
         {
             return Call(call.Method);
         }
@@ -157,6 +172,7 @@ namespace PerceptiveDialogBasedAgent.V2
         {
             var parametersCopy = _parameters.ToArray();
             var methodCopy = _method;
+            var preconditionCopy = _currentPrecondition;
             var methodName = _method.Name;
 
             NativeEvaluator evaluator = c =>
@@ -175,6 +191,13 @@ namespace PerceptiveDialogBasedAgent.V2
                 var prerequisitiesSatisfied = semanticArguments.All(a => a != null);
                 if (!prerequisitiesSatisfied)
                     return null;
+
+                if (preconditionCopy != null)
+                {
+                    var preconditionResult = preconditionCopy(context);
+                    if (!preconditionResult)
+                        return null;
+                }
 
                 var convertedParameters = getArguments(parametersCopy.Select(t => t.Item1).ToArray(), semanticArguments.ToArray());
                 var evaluatorResult = methodCopy.Invoke(this, convertedParameters) as SemanticItem;
@@ -286,11 +309,16 @@ namespace PerceptiveDialogBasedAgent.V2
             return (T)_fields[index];
         }
 
-        internal SemanticItem GetAnswer(string question)
+        internal SemanticItem GetAnswer(string question, string input)
         {
-            var query = SemanticItem.AnswerQuery(question, Constraints.WithInput(_inputValue));
+            var query = SemanticItem.AnswerQuery(question, Constraints.WithInput(input));
 
             return EvaluationContext.Query(query).LastOrDefault();
+        }
+
+        internal SemanticItem GetAnswer(string question)
+        {
+            return GetAnswer(question, _inputValue);
         }
 
         internal void SetInput(string input)

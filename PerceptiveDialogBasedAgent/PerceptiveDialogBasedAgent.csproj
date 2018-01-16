@@ -73,6 +73,7 @@
     <Compile Include="V1\SemanticRepresentation\SemanticPattern.cs" />
     <Compile Include="V2\Body.cs" />
     <Compile Include="V2\BodyModuleBase.cs" />
+    <Compile Include="V2\Modules\AdviceModule.cs" />
     <Compile Include="V2\Modules\ExternalDatabaseProviderModule.cs" />
     <Compile Include="V2\Database.cs" />
     <Compile Include="V2\DatabaseHandler.cs" />

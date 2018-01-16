@@ -43,6 +43,8 @@ namespace PerceptiveDialogBasedAgent.V2
             //Database.DebugTrigger(693);
             var agent = new RestaurantAgent();
 
+            agent.Input("hello");
+
             agent.Input("i want a luxury restaurant");
             //what does luxury specify?
             agent.Input("pricerange");

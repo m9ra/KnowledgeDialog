@@ -146,8 +146,12 @@ namespace PerceptiveDialogBasedAgent.V2
 
         public DataContainer IsTrue(string description)
         {
-            Add(_currentPattern, Database.IsItTrueQ, description);
-            return this;
+            return Add(_currentPattern, Question.IsItTrue, description);
+        }
+
+        public DataContainer HowToSimplify(string description)
+        {
+            return Add(_currentPattern, Question.HowToSimplify, description);
         }
 
         public DataContainer IsTrue(string evaluatorName, NativeEvaluator evaluator)

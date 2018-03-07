@@ -93,6 +93,20 @@
     <Compile Include="V2\Sensor.cs" />
     <Compile Include="V2\QueryLog.cs" />
     <Compile Include="V2\SemanticItem.cs" />
+    <Compile Include="V3\Body.cs" />
+    <Compile Include="V3\BodyContext.cs" />
+    <Compile Include="V3\BodyState.cs" />
+    <Compile Include="V3\Concept.cs" />
+    <Compile Include="V3\ConceptRequirement.cs" />
+    <Compile Include="V3\ContextBeam.cs" />
+    <Compile Include="V3\Experiments.cs" />
+    <Compile Include="V3\InputPhrase.cs" />
+    <Compile Include="V3\Models\HandcraftedStrategy.cs" />
+    <Compile Include="V3\Models\ScoreModelBase.cs" />
+    <Compile Include="V3\Models\SimpleMatchModel.cs" />
+    <Compile Include="V3\Models\StrategyModelBase.cs" />
+    <Compile Include="V3\PointingAgent.cs" />
+    <Compile Include="V3\RankedConcept.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -53,7 +53,7 @@ namespace KnowledgeDialog.Knowledge
         /// </summary>
         /// <param name="data">Data to be referenced.</param>
         /// <returns>The created <see cref="NodeReference"/>.</returns>
-        public NodeReference CreateReference(string data)
+        public new NodeReference CreateReference(string data)
         {
             NodeReference node;
             if (!_cachedNodes.TryGetValue(data, out node))

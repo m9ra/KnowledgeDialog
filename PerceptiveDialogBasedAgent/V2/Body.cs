@@ -98,7 +98,7 @@ namespace PerceptiveDialogBasedAgent.V2
                 .Pattern("$something can be an answer")
                     .IsTrue("CanBeAnswer", e =>
                     {
-                        var result = e.Query("$something", Question.CanBeAnswer).FirstOrDefault();
+                        var result = e.Query("$something", Question.CanItBeAnswer).FirstOrDefault();
 
                         var canBeAnswer = result == null || result.Answer == Database.YesAnswer;
                         return canBeAnswer ? SemanticItem.Yes : SemanticItem.No;
@@ -163,13 +163,15 @@ namespace PerceptiveDialogBasedAgent.V2
 
         public string Input(string utterance)
         {
-            Log.DialogUtterance("U: " + utterance);
+            var normalizedUtterance = normalizeInput(utterance);
+
+            Log.DialogUtterance("U: " + normalizedUtterance);
             Db.StartQueryLog();
 
             _outputCandidates.Clear();
 
             //handle input processing
-            _inputHistory.Add(utterance);
+            _inputHistory.Add(normalizedUtterance);
 
             if (_inputHistory.Count == 1)
                 FireEvent("dialog started");
@@ -188,8 +190,9 @@ namespace PerceptiveDialogBasedAgent.V2
             var log = Db.FinishLog();
             Log.Questions(log.GetQuestions());
 
-            Log.DialogUtterance("S: " + output);
-            return output;
+            var normalizedOutput = prettyPrintOutput(output);
+            Log.DialogUtterance("S: " + normalizedOutput);
+            return normalizedOutput;
         }
 
         public void PolicyInput(string utterance)
@@ -276,6 +279,38 @@ namespace PerceptiveDialogBasedAgent.V2
         internal void ClearOutput()
         {
             _outputCandidates.Clear();
+        }
+
+        private string normalizeInput(string input)
+        {
+            var normalized = input.ToLowerInvariant().Replace("?", " ").Replace(".", " ").Replace(",", " ");
+
+            string current;
+            do
+            {
+                current = normalized;
+                normalized = current.Replace("  ", " ");
+            } while (current != normalized);
+
+            return normalized.Trim();
+        }
+
+        private string prettyPrintOutput(string output)
+        {
+            if (output == null)
+                return null;
+
+            var o = " " + output + " ";
+            o = o.Replace(" i ", " I ");
+            o = o.Trim();
+            o = char.ToUpper(o[0]) + o.Substring(1);
+
+            if (!new[] { '.', '?', '!' }.Contains(o.Last()))
+                return o + ".";
+
+            o = o.Replace(" ?", "?").Replace(" .", ".").Replace(" !", "!");
+
+            return o;
         }
 
         private void finishInputProcessing()

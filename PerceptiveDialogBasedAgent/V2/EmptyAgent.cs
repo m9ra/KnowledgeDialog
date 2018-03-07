@@ -25,6 +25,9 @@ namespace PerceptiveDialogBasedAgent.V2
                 .Pattern("say $something")
                     .HowToDo("print $something")
 
+                .Pattern("ask $something")
+                    .HowToDo("print $something joined with ?")
+
                 .Pattern("say $something and $something2")
                     .HowToDo("print $something joined with $something2")
 
@@ -33,7 +36,17 @@ namespace PerceptiveDialogBasedAgent.V2
 
                 .Pattern("you know $something")
                     .IsTrue("user said $something or $something is defined")
-                    
+
+                .Pattern(
+                    "i think $something",
+                    "a $something",
+                    "an $something",
+                    "maybe $something",
+                    "probably $something",
+                    "it is $something"
+                    )
+                    .HowToSimplify("$something")
+
                 .Pattern("it")
                     .HowToEvaluate("It", e =>
                     {
@@ -43,7 +56,6 @@ namespace PerceptiveDialogBasedAgent.V2
 
                 .Pattern("say $something instead of $something2")
                     .HowToDo("use $something instead of $something2 in output")
-
             ;
 
             AddPolicy("when user input is received and it is a command then execute it");

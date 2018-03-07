@@ -94,6 +94,11 @@ namespace PerceptiveDialogBasedAgent.V2
             return Call(call.Method);
         }
 
+        internal BodyModuleBase CallAction(Action<string> call)
+        {
+            return Call(call.Method);
+        }
+
         internal BodyModuleBase CallAction(Action call)
         {
             return Call(call.Method);
@@ -128,7 +133,7 @@ namespace PerceptiveDialogBasedAgent.V2
             return this;
         }
 
-        internal BodyModuleBase Param(ModuleField field, string source)
+        internal BodyModuleBase Param(ModuleField field, string source = null)
         {
             _parameters.Add(Tuple.Create(field, source));
 
@@ -315,7 +320,7 @@ namespace PerceptiveDialogBasedAgent.V2
 
             return EvaluationContext.Query(query).LastOrDefault();
         }
-
+        
         internal SemanticItem GetAnswer(string question)
         {
             return GetAnswer(question, _inputValue);
@@ -332,7 +337,11 @@ namespace PerceptiveDialogBasedAgent.V2
 
             try
             {
-                _inputValue = EvaluationContext.GetSubstitutionValue(source);
+                if (source == null)
+                    _inputValue = null;
+                else
+                    _inputValue = EvaluationContext.GetSubstitutionValue(source);
+
                 var value = parameter.Evaluate(this);
                 var interpretation = parameter.GetInterpretation(value);
                 _fields[parameter] = interpretation;

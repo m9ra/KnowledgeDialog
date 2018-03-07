@@ -32,7 +32,8 @@ namespace PerceptiveDialogBasedAgent.V2
             ;
 
             AddPolicy("when restaurant database was updated and restaurant database has one result then offer the restaurant");
-            AddPolicy("when user said greeting then say how can i help you");
+            AddPolicy("when user said greeting then ask how can i help you");
+            AddPolicy("when user said i want a restaurant then ask which one");
         }
 
         internal string RestaurantSpecifier(string slotName)

@@ -28,8 +28,6 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal const string NoAnswer = "no";
 
-        internal static readonly string IsItTrueQ = "is $@ true ?";
-
         internal QueryLog LastQueryLog { get; private set; }
 
         internal QueryLog CurrentLogPeek => _queryLog.Peek();
@@ -178,7 +176,7 @@ namespace PerceptiveDialogBasedAgent.V2
                 throw new NotImplementedException();
 
             var result = new List<SemanticItem>();
-            if (queryItem.Question == IsItTrueQ)
+            if (queryItem.Question == Question.IsItTrue)
             {
                 //TODO conditions should be more general thing
                 var inputConditions = new HashSet<string>(queryItem.Constraints.Conditions);
@@ -278,7 +276,7 @@ namespace PerceptiveDialogBasedAgent.V2
             {
                 logDependency(condition);
                 var constraints = queryItem.Constraints.AddInput(condition);
-                var conditionQueryItem = SemanticItem.AnswerQuery(IsItTrueQ, constraints);
+                var conditionQueryItem = SemanticItem.AnswerQuery(Question.IsItTrue, constraints);
 
                 expectDependencyQuery();
                 var result = SpanQuery(conditionQueryItem).ToArray();

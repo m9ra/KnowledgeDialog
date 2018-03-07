@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using PerceptiveDialogBasedAgent.V2;
 using KnowledgeDialog.Dialog.Responses;
+using System.IO;
 
 namespace PerceptiveDialogBasedAgent
 {
@@ -29,10 +30,21 @@ namespace PerceptiveDialogBasedAgent
         public override ResponseBase Input(ParsedUtterance utterance)
         {
             //Database.DebugTrigger(849);
-            var response = _agent.Input(utterance.OriginalSentence);
-            var pricerangeSpecifier = _agent.RestaurantSpecifier("pricerange");
-            if (pricerangeSpecifier == "expensive")
-                _hadInformativeInput = true;
+            string response;
+            try
+            {
+                response = _agent.Input(utterance.OriginalSentence);
+                var pricerangeSpecifier = _agent.RestaurantSpecifier("pricerange");
+                if (pricerangeSpecifier == "expensive")
+                    _hadInformativeInput = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                File.AppendAllText("phrase_agent_manager.exceptions", DateTime.Now + "\n" + ex.ToString() + "\n\n\n\n");
+
+                response = "[ERROR] The bot encountered an unexpected error - type reset and try to do the dialog differently.";
+            }
 
             return new SimpleResponse(response);
         }

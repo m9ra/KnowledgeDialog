@@ -55,6 +55,18 @@ namespace PerceptiveDialogBasedAgent.V2
             agent.Input("dump database");
         }
 
+        internal static void RestaurantSearchLearningTest2()
+        {
+            var agent = new RestaurantAgent();
+
+            agent.Input("hello");
+            agent.Input("i want a luxury restaurant");
+            //what does luxury specify?
+            agent.Input("it is a pricerange");
+            //how to paraphrase luxury ?
+            agent.Input("I think expensive");
+        }
+
         internal static void ModuleTesting()
         {
             var externalDatabase = RestaurantAgent.CreateRestaurantDatabase();

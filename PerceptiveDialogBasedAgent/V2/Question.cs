@@ -18,9 +18,11 @@ namespace PerceptiveDialogBasedAgent.V2
 
         public readonly static string HowToDo = "how to do $@ ?";
 
+        public readonly static string HowToSimplify = "how to simplify $@ ?";
+
         public readonly static string IsItTrue = "is $@ true ?";
 
-        public readonly static string CanBeAnswer = "can $@ be answer ?";
+        public readonly static string CanItBeAnswer = "can $@ be answer ?";
 
         public readonly static string HowToEvaluate = "what does $@ mean ?";
 

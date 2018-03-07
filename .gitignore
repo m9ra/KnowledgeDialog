@@ -4,3 +4,11 @@ packages
 TestResults
 *.json
 *.csv
+*.omegle_log
+*.knw
+*.smpq
+*.dialog
+*.ant
+*.nvd
+*.dll
+/.vs

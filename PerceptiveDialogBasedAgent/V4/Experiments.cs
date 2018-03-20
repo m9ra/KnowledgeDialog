@@ -11,7 +11,7 @@ namespace PerceptiveDialogBasedAgent.V4
         public static void Explanation()
         {
             var body = new Body();
-            body.Input("say current time");
+            body.Input("say bla bla");
             //what does current time mean?
             //body.Input("it means time on the clock right now");
         }

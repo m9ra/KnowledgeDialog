@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V4
 {
-    abstract class PointableBase
+    abstract class ParameterRequirement
     {
+        internal abstract bool IsSatisfiedBy(ConceptInstance instance, BodyState2 state);
     }
 }

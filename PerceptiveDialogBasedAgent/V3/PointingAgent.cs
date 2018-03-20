@@ -55,9 +55,7 @@ namespace PerceptiveDialogBasedAgent.V3
 
             var outputValue = state.GetValue("output");
 
-
             V2.Log.DialogUtterance("S: " + outputValue);
-
 
             state = _strategy.AfterReadout(state);
             Body.SetState(state);
@@ -77,7 +75,6 @@ namespace PerceptiveDialogBasedAgent.V3
         {
             if (!context.RequireParameter("Which database should I search in?", out var database, context.Databases))
                 return;
-
 
             var allCriterions = context.GetCriterions(database);
             if (!context.RequireMultiParameter("Which criterions should be used for the database search?", out var selectedCriterions, allCriterions))

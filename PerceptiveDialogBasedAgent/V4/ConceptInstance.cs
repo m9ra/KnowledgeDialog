@@ -9,9 +9,9 @@ namespace PerceptiveDialogBasedAgent.V4
 {
     class ConceptInstance : PointableBase
     {
-        internal readonly Concept Concept;
+        internal readonly Concept2 Concept;
 
-        internal ConceptInstance(Concept concept)
+        internal ConceptInstance(Concept2 concept)
         {
             Concept = concept;
         }

@@ -107,11 +107,16 @@
     <Compile Include="V3\Models\StrategyModelBase.cs" />
     <Compile Include="V3\PointingAgent.cs" />
     <Compile Include="V3\RankedConcept.cs" />
+    <Compile Include="V4\AllowedConceptConstraint.cs" />
     <Compile Include="V4\Body.cs" />
+    <Compile Include="V4\BodyContext2.cs" />
     <Compile Include="V4\BodyState2.cs" />
+    <Compile Include="V4\Concept2.cs" />
     <Compile Include="V4\ConceptInstance.cs" />
+    <Compile Include="V4\ConceptParameter.cs" />
     <Compile Include="V4\Experiments.cs" />
-    <Compile Include="V4\Models\HandcraftedGenerator.cs" />
+    <Compile Include="V4\Models\HandcraftedModel.cs" />
+    <Compile Include="V4\ParameterRequirement.cs" />
     <Compile Include="V4\PointableBase.cs" />
     <Compile Include="V4\PointingGeneratorBase.cs" />
     <Compile Include="V4\RankedPointing.cs" />

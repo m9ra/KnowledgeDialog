@@ -13,10 +13,21 @@ namespace PerceptiveDialogBasedAgent.V4
 
         private readonly PointingGeneratorBase _generator;
 
-        internal StateBeam(PointingGeneratorBase generator)
+        private readonly Body _body;
+
+        internal BodyState2 BestState => _currentStates.OrderByDescending(s => s.Score).FirstOrDefault();
+
+        internal StateBeam(PointingGeneratorBase generator, Body body)
         {
             _generator = generator;
+            _body = body;
             _currentStates.Add(BodyState2.Empty());
+        }
+
+        internal void ShrinkTo(BodyState2 state)
+        {
+            _currentStates.Clear();
+            _currentStates.Add(state);
         }
 
         internal void ExpandBy(string word)
@@ -26,9 +37,12 @@ namespace PerceptiveDialogBasedAgent.V4
             {
                 foreach (var expandedState in expandState(state, word))
                 {
-                    foreach (var processedState in processState(expandedState))
+                    foreach (var stateWithPointings in findPointings(expandedState))
                     {
-                        newStates.Add(processedState);
+                        foreach (var stateWithParameters in substituteParameters(stateWithPointings))
+                        {
+                            newStates.Add(stateWithParameters);
+                        }
                     }
                 }
             }
@@ -45,7 +59,7 @@ namespace PerceptiveDialogBasedAgent.V4
             yield return state.AddPhrase(word);
         }
 
-        private IEnumerable<BodyState2> processState(BodyState2 state)
+        private IEnumerable<BodyState2> findPointings(BodyState2 state)
         {
             var pointings = _generator.GenerateMappings(state).ToArray();
             var pointingCovers = generateCovers(pointings);
@@ -53,15 +67,58 @@ namespace PerceptiveDialogBasedAgent.V4
             yield return state;
             foreach (var subset in pointingCovers)
             {
-                var processedState = state.Add(subset);
+                var stateWithPointings = state.Add(subset);
+                var processedState = stateWithPointings;
+                foreach (var pointing in subset)
+                {
+                    processedState = evaluateParameterChange(pointing.Target, processedState);
+                }
+
                 yield return processedState;
             }
         }
 
+        private IEnumerable<BodyState2> substituteParameters(BodyState2 state)
+        {
+            yield return state; //no substitution
+            foreach (var availableParameter in state.AvailableParameters)
+            {
+                foreach (var activeConcept in state.ActiveConcepts)
+                {
+                    if (activeConcept == availableParameter.Owner)
+                        //Parameteric self references are not allowed
+                        continue;
+
+                    if (availableParameter.IsAllowedForSubstitution(activeConcept, state))
+                    {
+                        //todo think about setting multiple substitutions for a single parameter
+                        var substitutedState = _generator.AddSubstitution(state, availableParameter, activeConcept);
+                        yield return evaluateParameterChange(availableParameter.Owner, substitutedState);
+                    }
+                }
+            }
+        }
+
+        private BodyState2 evaluateParameterChange(PointableBase pointableInstance, BodyState2 state)
+        {
+            var instance = pointableInstance as ConceptInstance;
+            if (instance == null || instance.Concept.Action == null)
+                return state;
+
+            var context = new BodyContext2(instance, _body, state);
+            instance.Concept.Action(context);
+
+            return context.CurrentState;
+        }
+
         private IEnumerable<IEnumerable<RankedPointing>> generateCovers(RankedPointing[] pointings)
         {
+            if (pointings.Length == 0)
+                yield break;
+
             var pointingAssignments = getAssignments(pointings);
             var indexes = new int[pointingAssignments.Length];
+            indexes[0] -= 1;
 
             while (true)
             {

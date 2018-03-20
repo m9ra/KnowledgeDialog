@@ -7,13 +7,21 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V4.Models
 {
-    class HandcraftedGenerator : PointingGeneratorBase
+    class HandcraftedModel : PointingGeneratorBase
     {
         private readonly Body _body;
 
-        internal HandcraftedGenerator(Body body)
+        internal HandcraftedModel(Body body)
         {
             _body = body;
+        }
+
+        internal override BodyState2 AddSubstitution(BodyState2 state, ConceptParameter parameter, ConceptInstance value)
+        {
+            if (value == null)
+                throw new NullReferenceException();
+
+            return state.AddSubstitution(parameter, value, 0.1);
         }
 
         internal override IEnumerable<RankedPointing> GenerateMappings(BodyState2 state)
@@ -36,7 +44,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             }
         }
 
-        private double getSimilarity(string input, Concept concept)
+        private double getSimilarity(string input, Concept2 concept)
         {
             if (input == concept.Name)
                 return 1.0;

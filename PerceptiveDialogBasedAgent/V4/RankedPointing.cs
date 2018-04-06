@@ -21,5 +21,10 @@ namespace PerceptiveDialogBasedAgent.V4
             Rank = rank;
             InputPhrase = inputPhrase;
         }
+
+        public override string ToString()
+        {
+            return $"{Target} {Rank:0.00}";
+        }
     }
 }

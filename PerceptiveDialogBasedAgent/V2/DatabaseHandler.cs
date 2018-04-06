@@ -52,6 +52,9 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal string Read(string slot)
         {
+            if (!_result.Any())
+                return null;
+
             return _result[0][slot];
         }
 

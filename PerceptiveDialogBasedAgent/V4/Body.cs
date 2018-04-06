@@ -15,49 +15,101 @@ namespace PerceptiveDialogBasedAgent.V4
 
         private readonly List<Concept2> _concepts = new List<Concept2>();
 
-        private ConceptInstance _currentAgentInstance;
+        internal ConceptInstance CurrentAgentInstance { get; private set; }
 
-        private readonly ConceptInstance _outputProperty;
+        internal readonly ConceptInstance OutputProperty;
 
         internal IEnumerable<Concept2> Concepts => _concepts;
 
         private Concept2 _currentConcept = null;
 
+        internal string CurrentInput { get; private set; }
+
+        internal BodyState2 LastFinishedState { get; private set; }
+
+        internal readonly DatabaseHandler RestaurantDb;
+
+        internal readonly PointingModelBase Model;
+
         internal Body()
         {
-            var model = new HandcraftedModel(this);
-            _beam = new StateBeam(model, this);
+            RestaurantDb = V2.RestaurantAgent.CreateRestaurantDatabase();
+            Model = new HandcraftedModel(this);
+            _beam = new StateBeam(this);
 
             this
-            .Concept("yes", _nativeValue)
+            .Concept("yes")
                 .Description("positive answer to a question")
 
-            .Concept("no", _nativeValue)
+            .Concept("no")
                 .Description("negative answer to a question")
 
-            .Concept("current time", _nativeValue)
+            .Concept("current time")
                 .Description("time on the system's clock")
+
+            .Concept("expensive")
+                .Description("pricerange property of a restaurant")
+
+            .Concept("cheap")
+                .Description("pricerange property of a restaurant")
+
+            .Concept("find a restaurant", _findRestaurant)
+                .Description("it is an action")
+                .Description("operation for looking up restaurant")
+                .Description("restaurant search")
+
+            .Concept("restaurant")
+                .Description("venue to eat")
+                .Description("a place where food is served")
 
             .Concept("print", _print)
                 .Description("it is an action")
                 .Description("alias to say")
 
-            .Concept("agent", _nativeValue)
+            .Concept("agent")
                 .Description("the bot")
 
-            .Concept("output", _nativeValue)
+            .Concept("a")
+                .Description("a")
+                .Description("an")
+                .Description("the")
+
+            .Concept("output")
                 .Description("output property")
+            
+            .Concept("it")
+                .Description("reference to a previous object")
+
+            .Concept("unknown")
+                .Description("not known concept")
             ;
 
-            _outputProperty = new ConceptInstance(GetConcept("output"));
+            OutputProperty = new ConceptInstance(GetConcept("output"));
+
+            LastFinishedState = BodyState2.Empty();
+
+            Register(RestaurantDb);
         }
 
         internal void Input(string phrase)
         {
+            _beam.SetBeam(BodyState2.Empty()); //TODO to preserve context this has to be removed. 
+            CurrentInput = phrase;
+            CurrentAgentInstance = new ConceptInstance(GetConcept("agent"));
+
             Log.DialogUtterance("U: " + phrase);
+            var bestState = InputTransition(_beam.BodyStates, phrase);
+            var finalState = Model.StateReaction(bestState);
 
-            _currentAgentInstance = new ConceptInstance(GetConcept("agent"));
+            _beam.SetBeam(finalState);
 
+            LastFinishedState = finalState;
+            CurrentInput = null;
+        }
+
+        internal BodyState2 InputTransition(IEnumerable<BodyState2> initialStates, string phrase)
+        {
+            _beam.SetBeam(initialStates);
             var words = phrase.Split(' ');
             foreach (var word in words)
             {
@@ -65,19 +117,23 @@ namespace PerceptiveDialogBasedAgent.V4
             }
 
             var bestState = _beam.BestState;
-            var finalState = stateReaction(bestState);
-
-            _beam.ShrinkTo(finalState);
+            return bestState;
         }
 
-        private BodyState2 stateReaction(BodyState2 state)
+        internal void Register(DatabaseHandler database)
         {
-            var outputValue = state.GetIndexValue(_currentAgentInstance, _outputProperty);
-            if (outputValue == null)
-                throw new NotImplementedException("What should agent do?");
+            foreach (var column in database.Columns)
+            {
+                foreach (var value in database.GetColumnValues(column))
+                {
+                    var relevantConcepts = _concepts.Where(c => c.Name == value).ToArray();
+                    if (relevantConcepts.Any())
+                        continue;
 
-            Log.DialogUtterance("S: " + outputValue.Concept.Name);
-            return state;
+                    Concept(value)
+                        .Description("property of " + column);
+                }
+            }
         }
 
         internal Concept2 GetConcept(string conceptName)
@@ -89,10 +145,11 @@ namespace PerceptiveDialogBasedAgent.V4
             return result.First();
         }
 
-        internal Body Concept(string conceptName, BodyAction2 action)
+        internal Body Concept(string conceptName, BodyAction2 action = null, bool isNative = true)
         {
-            _currentConcept = new Concept2(conceptName, action);
+            _currentConcept = new Concept2(conceptName, action, isNative);
             _concepts.Add(_currentConcept);
+            Model.OnConceptChange();
             return this;
         }
 
@@ -107,19 +164,39 @@ namespace PerceptiveDialogBasedAgent.V4
             if (!context.RequireParameter("What should be printed?", out var subject))
                 return;
 
-            context.SetValue(_currentAgentInstance, _outputProperty, subject);
+            context.SetValue(CurrentAgentInstance, OutputProperty, subject);
         }
 
-        private void _databaseSearch(BodyContext2 context)
+        private void _findRestaurant(BodyContext2 context)
         {
-            if (!context.RequireParameter("Which database should I search in?", out var database, context.Databases))
-                return;
-
+            var database = this.RestaurantDb;
             var allCriterions = context.GetCriterions(database);
-            if (!context.RequireMultiParameter("Which criterions should be used for the database search?", out var selectedCriterions, allCriterions))
+            if (!context.RequireParameter("Which restaurant do you want ?", out var selectedCriterion, allCriterions))
                 return;
 
-            throw new NotImplementedException("Add the real search as a callback to context");
+            var columns = getCriterionColumns(selectedCriterion, database);
+            if (columns.Count() != 1)
+                throw new NotImplementedException("Disambiguate columns");
+
+            database.SetCriterion(columns.First(), selectedCriterion.Concept.Name);
+            var name = database.Read("name");
+            var result = new ConceptInstance(new Concept2("I know restaurant called " + name, null, true)); //TODO this is superugly
+            context.SetValue(CurrentAgentInstance, OutputProperty, result);
+        }
+
+        private IEnumerable<string> getCriterionColumns(ConceptInstance criterion, DatabaseHandler database)
+        {
+            var result = new HashSet<string>();
+            foreach (var column in database.Columns)
+            {
+                foreach (var value in database.GetColumnValues(column))
+                {
+                    if (value == criterion.Concept.Name)
+                        result.Add(column);
+                }
+            }
+
+            return result;
         }
 
         private void _nativeValue(BodyContext2 context)

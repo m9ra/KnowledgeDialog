@@ -15,5 +15,10 @@ namespace PerceptiveDialogBasedAgent.V4
         {
             Concept = concept;
         }
+
+        public override string ToString()
+        {
+            return $"[{Concept}]";
+        }
     }
 }

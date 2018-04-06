@@ -10,16 +10,19 @@ namespace PerceptiveDialogBasedAgent.V4
     {
         public readonly string Name;
 
+        public readonly bool IsNative;
+
         internal readonly BodyAction2 Action;
 
         private readonly List<string> _descriptions = new List<string>();
 
         internal IEnumerable<string> Descriptions => _descriptions;
 
-        public Concept2(string name, BodyAction2 action)
+        public Concept2(string name, BodyAction2 action, bool isNative)
         {
             Name = name;
             Action = action;
+            IsNative = isNative;
         }
 
         public void AddDescription(string description)

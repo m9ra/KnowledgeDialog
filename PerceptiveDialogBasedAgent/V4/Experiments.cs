@@ -12,8 +12,21 @@ namespace PerceptiveDialogBasedAgent.V4
         {
             var body = new Body();
             body.Input("say bla bla");
-            //what does current time mean?
-            //body.Input("it means time on the clock right now");
+            body.Input("just a saying");
+        }
+
+        public static void SimpleRestaurantSearch()
+        {
+            var body = new Body();
+            body.Input("find an expensive restaurant");
+        }
+
+        public static void LuxuryRestaurantSearch()
+        {
+            var body = new Body();
+            body.Input("find a luxury restaurant");
+            //what is luxury?
+            body.Input("it means nice and expensive");
         }
     }
 }

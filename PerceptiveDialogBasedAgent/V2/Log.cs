@@ -37,7 +37,7 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal static void Policy(string policyCommand)
         {
-            writeln("POLICY: " + policyCommand, PolicyColor);
+            Writeln("POLICY: " + policyCommand, PolicyColor);
         }
 
         internal static void QueryPush(SemanticItem item)
@@ -45,7 +45,7 @@ namespace PerceptiveDialogBasedAgent.V2
             if (!PrintDatabaseInfo)
                 return;
 
-            writeln("QUERY: " + item.ToString(), HeadlineColor);
+            Writeln("QUERY: " + item.ToString(), HeadlineColor);
             _currentIndentation += 1;
         }
 
@@ -56,27 +56,37 @@ namespace PerceptiveDialogBasedAgent.V2
 
             foreach (var item in result)
             {
-                writeln(item.ToString(), ItemColor);
+                Writeln(item.ToString(), ItemColor);
             }
 
             _currentIndentation -= 1;
-            writeln("RESULT: " + result.Count(), HeadlineColor);
+            Writeln("RESULT: " + result.Count(), HeadlineColor);
+        }
+
+        internal static void Indent()
+        {
+            _currentIndentation += 1;
+        }
+
+        internal static void Dedent()
+        {
+            _currentIndentation -= 1;
         }
 
         internal static void DialogUtterance(string utterance)
         {
-            writeln("", InfoColor);
+            Writeln("", InfoColor);
             rawWrite(utterance + "\n", UtteranceColor);
         }
 
         internal static void EventHandler(string eventDescription)
         {
-            writeln("\tEVENT: " + eventDescription, SensorColor);
+            Writeln("\tEVENT: " + eventDescription, SensorColor);
         }
 
         internal static void NewFact(SemanticItem newFact)
         {
-            writeln("\tNEW FACT: " + newFact, SensorColor);
+            Writeln("\tNEW FACT: " + newFact, SensorColor);
         }
 
         internal static void Questions(IEnumerable<SemanticItem> questions)
@@ -84,7 +94,7 @@ namespace PerceptiveDialogBasedAgent.V2
             if (!questions.Any())
                 return;
 
-            writeln("\tDATABASE QUESTIONS", HeadlineColor);
+            Writeln("\tDATABASE QUESTIONS", HeadlineColor);
 
             var questionCounts = new Dictionary<string, int>();
             foreach (var question in questions)
@@ -104,45 +114,45 @@ namespace PerceptiveDialogBasedAgent.V2
                 var count = questionCounts[questionStr];
                 questionCounts.Remove(questionStr);
 
-                writeln("\t\t{0} x{1} Id: {2}", ItemColor, questionStr, count, question.Id);
+                Writeln("\t\t{0} x{1} Id: {2}", ItemColor, questionStr, count, question.Id);
             }
         }
 
         internal static void Result(IEnumerable<SemanticItem> result)
         {
-            writeln("\nRESULT", HeadlineColor);
+            Writeln("\nRESULT", HeadlineColor);
             foreach (var fact in result)
             {
                 var factStr = fact.ReadableRepresentation();
-                writeln("\t{0} Id: {1}", ItemColor, factStr, fact.Id);
+                Writeln("\t{0} Id: {1}", ItemColor, factStr, fact.Id);
             }
         }
 
         internal static void Dump(Database database)
         {
-            writeln("\nDATABASE DUMP", HeadlineColor);
-            writeln("\tFACTS", HeadlineColor);
+            Writeln("\nDATABASE DUMP", HeadlineColor);
+            Writeln("\tFACTS", HeadlineColor);
 
             var facts = database.GetData();
             foreach (var fact in facts)
             {
                 var factStr = fact.ReadableRepresentation();
-                writeln("\t\t{0} Id: {1}", ItemColor, factStr, fact.Id);
+                Writeln("\t\t{0} Id: {1}", ItemColor, factStr, fact.Id);
             }
         }
 
         internal static void SensorAdd(string condition, string action)
         {
-            writeln("\tSENSOR: {0}", SensorColor, condition);
-            writeln("\t\t{0}", ActionColor, action);
+            Writeln("\tSENSOR: {0}", SensorColor, condition);
+            Writeln("\t\t{0}", ActionColor, action);
         }
 
-        private static void writeln(string format, ConsoleColor color, params object[] formatArgs)
+        internal static void Writeln(string format = "", ConsoleColor color = ConsoleColor.Gray, params object[] formatArgs)
         {
-            write(format + "\n", color, formatArgs);
+            Write(format + "\n", color, formatArgs);
         }
 
-        private static void write(string format, ConsoleColor color, params object[] formatArgs)
+        internal static void Write(string format, ConsoleColor color = ConsoleColor.Gray, params object[] formatArgs)
         {
             if (!_enableLogging)
                 return;

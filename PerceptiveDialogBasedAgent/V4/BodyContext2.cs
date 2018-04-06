@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PerceptiveDialogBasedAgent.V2;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -52,9 +53,19 @@ namespace PerceptiveDialogBasedAgent.V4
             _currentState = _currentState.SetIndexValue(target, index, value);
         }
 
-        internal IEnumerable<Concept2> GetCriterions(ConceptInstance database)
+        internal IEnumerable<Concept2> GetCriterions(DatabaseHandler database)
         {
-            throw new NotImplementedException();
+            var result = new List<Concept2>();
+
+            foreach (var column in database.Columns)
+            {
+                foreach (var value in database.GetColumnValues(column))
+                {
+                    result.Add(_body.GetConcept(value));
+                }
+            }
+
+            return result;
         }
     }
 }

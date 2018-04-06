@@ -47,7 +47,7 @@ namespace PerceptiveDialogBasedAgent.V4
             var accumulator = Owner.GetHashCode();
             accumulator += AllowMultipleSubtitutions.GetHashCode();
             accumulator += _requirements.Select(r => r.GetHashCode()).Sum();
-            return accumulator; 
+            return accumulator;
         }
 
         public override bool Equals(object obj)
@@ -60,6 +60,11 @@ namespace PerceptiveDialogBasedAgent.V4
                 Owner == o.Owner &&
                 AllowMultipleSubtitutions == o.AllowMultipleSubtitutions &&
                 Enumerable.SequenceEqual(_requirements, o._requirements);
+        }
+
+        public override string ToString()
+        {
+            return "Param: " + Request;
         }
     }
 }

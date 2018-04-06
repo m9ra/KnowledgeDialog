@@ -11,23 +11,28 @@ namespace PerceptiveDialogBasedAgent.V4
     {
         private List<BodyState2> _currentStates = new List<BodyState2>();
 
-        private readonly PointingGeneratorBase _generator;
-
         private readonly Body _body;
+
+        internal IEnumerable<BodyState2> BodyStates => _currentStates;
 
         internal BodyState2 BestState => _currentStates.OrderByDescending(s => s.Score).FirstOrDefault();
 
-        internal StateBeam(PointingGeneratorBase generator, Body body)
+        internal StateBeam(Body body)
         {
-            _generator = generator;
             _body = body;
             _currentStates.Add(BodyState2.Empty());
         }
 
-        internal void ShrinkTo(BodyState2 state)
+        internal void SetBeam(BodyState2 state)
         {
+            SetBeam(new[] { state });
+        }
+
+        internal void SetBeam(IEnumerable<BodyState2> states)
+        {
+            var statesCopy = states.ToArray();
             _currentStates.Clear();
-            _currentStates.Add(state);
+            _currentStates.AddRange(statesCopy);
         }
 
         internal void ExpandBy(string word)
@@ -61,8 +66,18 @@ namespace PerceptiveDialogBasedAgent.V4
 
         private IEnumerable<BodyState2> findPointings(BodyState2 state)
         {
-            var pointings = _generator.GenerateMappings(state).ToArray();
-            var pointingCovers = generateCovers(pointings);
+            var pointings = _body.Model.GenerateMappings(state).ToArray();
+            var forwardedPointings = new List<RankedPointing>();
+            for (var i = 0; i < pointings.Length; ++i)
+            {
+                //TODO this should be handled in a better way
+                foreach (var forwardedPointing in getForwarding(pointings[i], state))
+                {
+                    forwardedPointings.Add(forwardedPointing);
+                }
+            }
+
+            var pointingCovers = generateCovers(forwardedPointings.ToArray());
 
             yield return state;
             foreach (var subset in pointingCovers)
@@ -75,6 +90,21 @@ namespace PerceptiveDialogBasedAgent.V4
                 }
 
                 yield return processedState;
+            }
+        }
+
+        private IEnumerable<RankedPointing> getForwarding(RankedPointing pointing, BodyState2 state)
+        {
+            yield return pointing;
+
+            var instance = pointing.Target as ConceptInstance;
+            if (instance == null || instance.Concept.IsNative)
+                yield break;
+            
+            foreach(var newPointing in _body.Model.GetForwardings(instance, state))
+            {
+                var forwardedPointing = new RankedPointing(pointing.InputPhrase, newPointing.Target, pointing.Rank + newPointing.Rank);
+                yield return forwardedPointing;
             }
         }
 
@@ -92,7 +122,7 @@ namespace PerceptiveDialogBasedAgent.V4
                     if (availableParameter.IsAllowedForSubstitution(activeConcept, state))
                     {
                         //todo think about setting multiple substitutions for a single parameter
-                        var substitutedState = _generator.AddSubstitution(state, availableParameter, activeConcept);
+                        var substitutedState = _body.Model.AddSubstitution(state, availableParameter, activeConcept);
                         yield return evaluateParameterChange(availableParameter.Owner, substitutedState);
                     }
                 }
@@ -130,7 +160,7 @@ namespace PerceptiveDialogBasedAgent.V4
                         yield break;
 
                     indexes[currentIndex] += 1;
-                    if (indexes[currentIndex] >= pointingAssignments.Length)
+                    if (indexes[currentIndex] >= pointingAssignments[currentIndex].Length)
                     {
                         carryBit = 1;
                         indexes[currentIndex] = 0;

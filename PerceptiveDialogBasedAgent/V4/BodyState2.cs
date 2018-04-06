@@ -20,6 +20,8 @@ namespace PerceptiveDialogBasedAgent.V4
 
         internal InputPhrase LastInputPhrase => _input.LastOrDefault();
 
+        internal IEnumerable<InputPhrase> InputPhrases => _input;
+
         internal readonly double Score;
 
         internal IEnumerable<ConceptParameter> AvailableParameters => _parameters.Where(p => p.Key.AllowMultipleSubtitutions || p.Value == null).Select(p => p.Key);
@@ -38,6 +40,13 @@ namespace PerceptiveDialogBasedAgent.V4
             _parameters = parameters ?? previousState._parameters;
             _indexValues = indexValues ?? previousState._indexValues;
             Score = (previousState == null ? 0 : previousState.Score) + extraScore;
+        }
+
+        internal RankedPointing GetRankedPointing(InputPhrase phrase)
+        {
+            _pointings.TryGetValue(phrase, out var rankedPointing);
+
+            return rankedPointing;
         }
 
         internal bool ContainsSubstitutionFor(ConceptParameter parameter)
@@ -69,6 +78,10 @@ namespace PerceptiveDialogBasedAgent.V4
         internal BodyState2 ExpandLastPhrase(string word)
         {
             if (_input.Length == 0)
+                return null;
+
+            if (_pointings.ContainsKey(LastInputPhrase))
+                //phrase that was used for pointing cannot be expanded
                 return null;
 
             var newPhrase = _input.Last().ExpandBy(word);

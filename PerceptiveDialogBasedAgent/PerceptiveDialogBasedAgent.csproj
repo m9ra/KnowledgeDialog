@@ -118,7 +118,7 @@
     <Compile Include="V4\Models\HandcraftedModel.cs" />
     <Compile Include="V4\ParameterRequirement.cs" />
     <Compile Include="V4\PointableBase.cs" />
-    <Compile Include="V4\PointingGeneratorBase.cs" />
+    <Compile Include="V4\PointingModelBase.cs" />
     <Compile Include="V4\RankedPointing.cs" />
     <Compile Include="V4\StateBeam.cs" />
   </ItemGroup>

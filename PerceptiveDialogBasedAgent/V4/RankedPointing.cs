@@ -13,18 +13,18 @@ namespace PerceptiveDialogBasedAgent.V4
 
         internal readonly double Rank;
 
-        internal readonly InputPhrase InputPhrase;
+        internal readonly PointableBase Source;
 
-        internal RankedPointing(InputPhrase inputPhrase, PointableBase target, double rank)
+        internal RankedPointing(PointableBase source, PointableBase target, double rank)
         {
             Target = target;
             Rank = rank;
-            InputPhrase = inputPhrase;
+            Source = source;
         }
 
         public override string ToString()
         {
-            return $"{Target} {Rank:0.00}";
+            return $"{Source}-->{Target} {Rank:0.00}";
         }
     }
 }

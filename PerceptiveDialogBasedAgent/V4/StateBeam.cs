@@ -77,7 +77,7 @@ namespace PerceptiveDialogBasedAgent.V4
                 }
             }
 
-            var pointingCovers = generateCovers(forwardedPointings.ToArray());
+            var pointingCovers = generateCovers(forwardedPointings.ToArray()).ToArray();
 
             yield return state;
             foreach (var subset in pointingCovers)
@@ -100,11 +100,10 @@ namespace PerceptiveDialogBasedAgent.V4
             var instance = pointing.Target as ConceptInstance;
             if (instance == null || instance.Concept.IsNative)
                 yield break;
-            
-            foreach(var newPointing in _body.Model.GetForwardings(instance, state))
+
+            foreach (var newPointing in _body.Model.GetForwardings(instance, state))
             {
-                var forwardedPointing = new RankedPointing(pointing.InputPhrase, newPointing.Target, pointing.Rank + newPointing.Rank);
-                yield return forwardedPointing;
+                yield return newPointing;
             }
         }
 
@@ -176,7 +175,7 @@ namespace PerceptiveDialogBasedAgent.V4
                 var cover = new RankedPointing[indexes.Length];
                 for (var i = 0; i < indexes.Length; ++i)
                 {
-                    cover[i] = pointings[indexes[i]];
+                    cover[i] = pointingAssignments[i][indexes[i]];
                 }
 
                 yield return cover;
@@ -185,11 +184,11 @@ namespace PerceptiveDialogBasedAgent.V4
 
         private RankedPointing[][] getAssignments(RankedPointing[] pointings)
         {
-            var assignments = new Dictionary<InputPhrase, List<RankedPointing>>();
+            var assignments = new Dictionary<PointableBase, List<RankedPointing>>();
             foreach (var pointing in pointings)
             {
-                if (!assignments.TryGetValue(pointing.InputPhrase, out var inputIndex))
-                    assignments[pointing.InputPhrase] = inputIndex = new List<RankedPointing>();
+                if (!assignments.TryGetValue(pointing.Source, out var inputIndex))
+                    assignments[pointing.Source] = inputIndex = new List<RankedPointing>();
 
                 inputIndex.Add(pointing);
             }

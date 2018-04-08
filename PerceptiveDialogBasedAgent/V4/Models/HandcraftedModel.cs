@@ -58,13 +58,27 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             {
                 Log.Writeln(input.ToString(), Log.SensorColor);
                 Log.Indent();
-                var rankedPointing = state.GetRankedPointing(input);
-                var strRepresentation = rankedPointing?.ToString() ?? "unknown";
-                Log.Writeln(strRepresentation, Log.ItemColor);
+                var inputTarget = getTargetRepresentation(input, state);
+
+                Log.Writeln(inputTarget, Log.ItemColor);
                 Log.Dedent();
             }
             Log.Dedent();
             Log.Writeln();
+        }
+
+        private string getTargetRepresentation(PointableBase source, BodyState2 state)
+        {
+            var rankedPointing = state.GetRankedPointing(source);
+            if (rankedPointing == null)
+                return "unknown";
+
+            var strRepresentation = rankedPointing.Target.ToString() + $"~{rankedPointing.Rank:0.00}";
+            var forwardedPointing = state.GetRankedPointing(rankedPointing.Target);
+            if (forwardedPointing != null)
+                strRepresentation += " --> " + getTargetRepresentation(rankedPointing.Target, state);
+
+            return strRepresentation;
         }
 
 
@@ -131,7 +145,8 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
                 var forwardingSimilarity = similarities.Max();
                 if (forwardingSimilarity > 0.05)
-                    yield return new RankedPointing(null, new ConceptInstance(concept), forwardingSimilarity);
+                    //todo should new concept be created here?
+                    yield return new RankedPointing(forwardedConcept, new ConceptInstance(concept), forwardingSimilarity);
             }
         }
 

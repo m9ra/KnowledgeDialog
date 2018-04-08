@@ -12,7 +12,7 @@ namespace PerceptiveDialogBasedAgent.V4
     {
         private readonly InputPhrase[] _input;
 
-        private readonly Dictionary<InputPhrase, RankedPointing> _pointings = new Dictionary<InputPhrase, RankedPointing>();
+        private readonly Dictionary<PointableBase, RankedPointing> _pointings = new Dictionary<PointableBase, RankedPointing>();
 
         private readonly Dictionary<ConceptParameter, IEnumerable<ConceptInstance>> _parameters = new Dictionary<ConceptParameter, IEnumerable<ConceptInstance>>();
 
@@ -30,10 +30,10 @@ namespace PerceptiveDialogBasedAgent.V4
 
         internal static BodyState2 Empty()
         {
-            return new BodyState2(null, 0.0, new InputPhrase[0], new Dictionary<InputPhrase, RankedPointing>(), new Dictionary<ConceptParameter, IEnumerable<ConceptInstance>>(), new Dictionary<Tuple<ConceptInstance, ConceptInstance>, ConceptInstance>());
+            return new BodyState2(null, 0.0, new InputPhrase[0], new Dictionary<PointableBase, RankedPointing>(), new Dictionary<ConceptParameter, IEnumerable<ConceptInstance>>(), new Dictionary<Tuple<ConceptInstance, ConceptInstance>, ConceptInstance>());
         }
 
-        private BodyState2(BodyState2 previousState, double extraScore = 0.0, InputPhrase[] input = null, Dictionary<InputPhrase, RankedPointing> pointings = null, Dictionary<ConceptParameter, IEnumerable<ConceptInstance>> parameters = null, Dictionary<Tuple<ConceptInstance, ConceptInstance>, ConceptInstance> indexValues = null)
+        private BodyState2(BodyState2 previousState, double extraScore = 0.0, InputPhrase[] input = null, Dictionary<PointableBase, RankedPointing> pointings = null, Dictionary<ConceptParameter, IEnumerable<ConceptInstance>> parameters = null, Dictionary<Tuple<ConceptInstance, ConceptInstance>, ConceptInstance> indexValues = null)
         {
             _input = input ?? previousState._input;
             _pointings = pointings ?? previousState._pointings;
@@ -42,7 +42,7 @@ namespace PerceptiveDialogBasedAgent.V4
             Score = (previousState == null ? 0 : previousState.Score) + extraScore;
         }
 
-        internal RankedPointing GetRankedPointing(InputPhrase phrase)
+        internal RankedPointing GetRankedPointing(PointableBase phrase)
         {
             _pointings.TryGetValue(phrase, out var rankedPointing);
 
@@ -124,12 +124,12 @@ namespace PerceptiveDialogBasedAgent.V4
 
         internal BodyState2 Add(IEnumerable<RankedPointing> pointings)
         {
-            var newPointings = new Dictionary<InputPhrase, RankedPointing>(_pointings);
+            var newPointings = new Dictionary<PointableBase, RankedPointing>(_pointings);
             var extraScore = 0.0;
             foreach (var pointing in pointings)
             {
                 extraScore += pointing.Rank;
-                newPointings.Add(pointing.InputPhrase, pointing);
+                newPointings.Add(pointing.Source, pointing);
             }
 
             return new BodyState2(this, pointings: newPointings, extraScore: extraScore);

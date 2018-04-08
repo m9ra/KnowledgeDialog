@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PerceptiveDialogBasedAgent.V3
+namespace PerceptiveDialogBasedAgent.V4
 {
-    class InputPhrase
+    class InputPhrase : PointableBase
     {
         private readonly string[] _words;
 

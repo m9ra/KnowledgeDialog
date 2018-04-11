@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PerceptiveDialogBasedAgent.V2;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,6 +18,35 @@ namespace PerceptiveDialogBasedAgent.V4
         internal abstract BodyState2 StateReaction(BodyState2 state);
 
         internal abstract void OnConceptChange();
-    
+
+        protected void LogState(BodyState2 state)
+        {
+            Log.Indent();
+            foreach (var input in state.InputPhrases)
+            {
+                Log.Writeln(input.ToString(), Log.SensorColor);
+                Log.Indent();
+                var inputTarget = GetTargetRepresentation(input, state);
+
+                Log.Writeln(inputTarget, Log.ItemColor);
+                Log.Dedent();
+            }
+            Log.Dedent();
+            Log.Writeln();
+        }
+
+        protected string GetTargetRepresentation(PointableBase source, BodyState2 state)
+        {
+            var rankedPointing = state.GetRankedPointing(source);
+            if (rankedPointing == null)
+                return "unknown";
+
+            var strRepresentation = rankedPointing.Target.ToString() + $"~{rankedPointing.Rank:0.00}";
+            var forwardedPointing = state.GetRankedPointing(rankedPointing.Target);
+            if (forwardedPointing != null)
+                strRepresentation += " --> " + GetTargetRepresentation(rankedPointing.Target, state);
+
+            return strRepresentation;
+        }
     }
 }

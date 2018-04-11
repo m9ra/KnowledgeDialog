@@ -25,6 +25,11 @@ namespace PerceptiveDialogBasedAgent.V4
             return new InputPhrase(new[] { word });
         }
 
+        internal override string ToPrintable()
+        {
+            return string.Join(" ", _words);
+        }
+
         /// </inheritdoc>
         public override string ToString()
         {

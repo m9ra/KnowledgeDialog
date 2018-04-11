@@ -8,5 +8,6 @@ namespace PerceptiveDialogBasedAgent.V4
 {
     abstract class PointableBase
     {
+        internal abstract string ToPrintable();
     }
 }

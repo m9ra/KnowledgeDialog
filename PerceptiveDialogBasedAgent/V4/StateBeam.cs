@@ -52,7 +52,16 @@ namespace PerceptiveDialogBasedAgent.V4
                 }
             }
 
-            _currentStates = newStates;
+            newStates = newStates.OrderByDescending(s => s.Score).ToList();
+
+            var limit = 300;
+            if (newStates.Count > limit)
+            {
+                _currentStates = newStates.Take(limit).ToList();
+            }
+            else {
+                _currentStates = newStates;
+            }
         }
 
         private IEnumerable<BodyState2> expandState(BodyState2 state, string word)

@@ -42,6 +42,11 @@ namespace PerceptiveDialogBasedAgent.V4
             return true;
         }
 
+        internal override string ToPrintable()
+        {
+            throw new NotImplementedException();
+        }
+
         public override int GetHashCode()
         {
             var accumulator = Owner.GetHashCode();

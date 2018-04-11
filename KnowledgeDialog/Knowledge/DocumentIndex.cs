@@ -8,9 +8,9 @@ namespace KnowledgeDialog.Knowledge
 {
     public class DocumentIndex
     {
-        private readonly Dictionary<string, int> _documentOccurences = new Dictionary<string, int>();
+        private readonly Dictionary<string, int> _documentOccurences = new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
 
-        private readonly Dictionary<string, int> _totalOccurences = new Dictionary<string, int>();
+        private readonly Dictionary<string, int> _totalOccurences = new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
 
         public void RegisterDocument(IEnumerable<string[]> document)
         {

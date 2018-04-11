@@ -43,6 +43,10 @@ namespace PerceptiveDialogBasedAgent.V4
 
             .Concept("no")
                 .Description("negative answer to a question")
+            
+            .Concept("dont know")
+                .Description("I have no idea")
+                .Description("Im not sure")
 
             .Concept("current time")
                 .Description("time on the system's clock")
@@ -54,29 +58,49 @@ namespace PerceptiveDialogBasedAgent.V4
                 .Description("pricerange property of a restaurant")
 
             .Concept("find a restaurant", _findRestaurant)
-                .Description("it is an action")
+                .Description("an action")
                 .Description("operation for looking up restaurant")
                 .Description("restaurant search")
+                .Description("name some restaurants")
 
             .Concept("restaurant")
                 .Description("venue to eat")
                 .Description("a place where food is served")
 
+            .Concept("address")
+                .Description("location")
+
             .Concept("print", _print)
-                .Description("it is an action")
+                .Description("an action")
                 .Description("alias to say")
 
             .Concept("agent")
                 .Description("the bot")
 
-            .Concept("a")
+            .Concept("want")
+                .Description("I want to")
+                .Description("I would like to have")
+                .Description("desire to have something")
+
+            .Concept("I")
+                .Description("myself")
+                .Description("me")    
+                
+            .Concept("It")
+                .Description("the thing")
+
+            .Concept("hello")
+                .Description("same as hi")
+                .Description("greeting")
+
+            .Concept("determinant")
                 .Description("a")
                 .Description("an")
                 .Description("the")
 
             .Concept("output")
                 .Description("output property")
-            
+
             .Concept("it")
                 .Description("reference to a previous object")
 
@@ -93,7 +117,8 @@ namespace PerceptiveDialogBasedAgent.V4
 
         internal void Input(string phrase)
         {
-            _beam.SetBeam(BodyState2.Empty()); //TODO to preserve context this has to be removed. 
+            phrase = phrase.Replace(",", " ").Replace(".", " ").Replace("?", " ").Replace("!", " ").Replace("  ", " ").Replace("  ", " ");
+
             CurrentInput = phrase;
             CurrentAgentInstance = new ConceptInstance(GetConcept("agent"));
 
@@ -178,20 +203,20 @@ namespace PerceptiveDialogBasedAgent.V4
             if (columns.Count() != 1)
                 throw new NotImplementedException("Disambiguate columns");
 
-            database.SetCriterion(columns.First(), selectedCriterion.Concept.Name);
+            database.SetCriterion(columns.First(), selectedCriterion.ToPrintable());
             var name = database.Read("name");
             var result = new ConceptInstance(new Concept2("I know restaurant called " + name, null, true)); //TODO this is superugly
             context.SetValue(CurrentAgentInstance, OutputProperty, result);
         }
 
-        private IEnumerable<string> getCriterionColumns(ConceptInstance criterion, DatabaseHandler database)
+        private IEnumerable<string> getCriterionColumns(PointableBase criterion, DatabaseHandler database)
         {
             var result = new HashSet<string>();
             foreach (var column in database.Columns)
             {
                 foreach (var value in database.GetColumnValues(column))
                 {
-                    if (value == criterion.Concept.Name)
+                    if (value == criterion.ToPrintable())
                         result.Add(column);
                 }
             }

@@ -28,7 +28,7 @@ namespace PerceptiveDialogBasedAgent.V4
             EvaluatedConcept = evaluatedConcept;
         }
 
-        internal bool RequireParameter(string request, out ConceptInstance parameter, IEnumerable<Concept2> domain = null)
+        internal bool RequireParameter(string request, out PointableBase parameter, IEnumerable<Concept2> domain = null)
         {
             var parameterConstraint = new AllowedConceptConstraint(domain);
             var parameterDefinition = new ConceptParameter(EvaluatedConcept, request, parameterConstraint);
@@ -48,7 +48,7 @@ namespace PerceptiveDialogBasedAgent.V4
             throw new NotImplementedException();
         }
 
-        internal void SetValue(ConceptInstance target, ConceptInstance index, ConceptInstance value)
+        internal void SetValue(PointableBase target, PointableBase index, PointableBase value)
         {
             _currentState = _currentState.SetIndexValue(target, index, value);
         }

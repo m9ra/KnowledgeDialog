@@ -16,6 +16,11 @@ namespace PerceptiveDialogBasedAgent.V4
             Concept = concept;
         }
 
+        internal override string ToPrintable()
+        {
+            return Concept.Name;
+        }
+
         public override string ToString()
         {
             return $"[{Concept}]";

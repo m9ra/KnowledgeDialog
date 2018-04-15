@@ -24,7 +24,7 @@ namespace PerceptiveDialogBasedAgent.V4
 
         public override int GetHashCode()
         {
-            return _allowedConcepts == null ? 0 : _allowedConcepts.Select(c => c.GetHashCode()).Sum();
+            return _allowedConcepts == null ? 0 : _allowedConcepts.Select(c => c.GetHashCode()).Aggregate((x, y) => x + 1);
         }
 
         public override bool Equals(object obj)

@@ -69,7 +69,7 @@ namespace PerceptiveDialogBasedAgent.V3
             }
         }
 
-        private IEnumerable<BodyState> setPointer(BodyState inputState, InputPhrase phrase, Concept concept, double pointingProbability)
+        private IEnumerable<BodyState> setPointer(BodyState inputState, Phrase phrase, Concept concept, double pointingProbability)
         {
             if (pointingProbability <= 0)
                 yield break;

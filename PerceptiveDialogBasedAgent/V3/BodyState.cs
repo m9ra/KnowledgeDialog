@@ -12,7 +12,7 @@ namespace PerceptiveDialogBasedAgent.V3
         /// <summary>
         /// Input that lead to this state.
         /// </summary>
-        private readonly InputPhrase[] _input;
+        private readonly Phrase[] _input;
 
         /// <summary>
         /// Values that can be stored within the state.
@@ -22,7 +22,7 @@ namespace PerceptiveDialogBasedAgent.V3
         /// <summary>
         /// Mapping of input phrases to concepts.
         /// </summary>
-        private readonly Dictionary<InputPhrase, RankedConcept> _pointings = new Dictionary<InputPhrase, RankedConcept>();
+        private readonly Dictionary<Phrase, RankedConcept> _pointings = new Dictionary<Phrase, RankedConcept>();
 
         private readonly Dictionary<ConceptRequirement, IEnumerable<Concept>> _multiParameterRequirements = new Dictionary<ConceptRequirement, IEnumerable<Concept>>();
 
@@ -36,7 +36,7 @@ namespace PerceptiveDialogBasedAgent.V3
         /// <summary>
         /// Phrase added as last.
         /// </summary>
-        public InputPhrase LastInputPhrase => _input.LastOrDefault();
+        public Phrase LastInputPhrase => _input.LastOrDefault();
 
         /// <summary>
         /// Requirements that are not fully assigned yet. (Contains also all not commited multiparameters).
@@ -50,12 +50,12 @@ namespace PerceptiveDialogBasedAgent.V3
 
         public IEnumerable<RankedConcept> RankedConcepts => _pointings.Values;
 
-        public IEnumerable<InputPhrase> Input => _input;
+        public IEnumerable<Phrase> Input => _input;
 
         /// <summary>
         /// Copy constructor - VALUES PROVIDED AS PARAMETERS CANNOT CHANGE.
         /// </summary>
-        private BodyState(double score, InputPhrase[] input, Dictionary<string, string> values, Dictionary<InputPhrase, RankedConcept> pointings, Dictionary<ConceptRequirement, Concept> parameterRequirements, Dictionary<ConceptRequirement, IEnumerable<Concept>> multiParameterRequirements)
+        private BodyState(double score, Phrase[] input, Dictionary<string, string> values, Dictionary<Phrase, RankedConcept> pointings, Dictionary<ConceptRequirement, Concept> parameterRequirements, Dictionary<ConceptRequirement, IEnumerable<Concept>> multiParameterRequirements)
         {
             _input = input;
             _values = values;
@@ -67,12 +67,12 @@ namespace PerceptiveDialogBasedAgent.V3
 
         internal BodyState()
         {
-            _input = new InputPhrase[0];
+            _input = new Phrase[0];
             Score = 0;
         }
 
 
-        internal RankedConcept GetConcept(InputPhrase phrase)
+        internal RankedConcept GetConcept(Phrase phrase)
         {
             _pointings.TryGetValue(phrase, out var result);
             return result;
@@ -141,7 +141,7 @@ namespace PerceptiveDialogBasedAgent.V3
 
         internal BodyState ExpandLastPhrase(string word)
         {
-            var newInput = new List<InputPhrase>();
+            var newInput = new List<Phrase>();
             newInput.AddRange(_input);
 
             newInput[newInput.Count - 1] = LastInputPhrase.ExpandBy(word);
@@ -150,16 +150,16 @@ namespace PerceptiveDialogBasedAgent.V3
 
         internal BodyState AddNewPhrase(string word)
         {
-            var newInput = new List<InputPhrase>();
+            var newInput = new List<Phrase>();
             newInput.AddRange(_input);
-            newInput.Add(InputPhrase.FromWord(word));
+            newInput.Add(Phrase.FromWord(word));
 
             return new BodyState(Score, newInput.ToArray(), _values, _pointings, _parameterRequirements, _multiParameterRequirements);
         }
 
-        internal BodyState SetPointer(InputPhrase phrase, RankedConcept concept)
+        internal BodyState SetPointer(Phrase phrase, RankedConcept concept)
         {
-            var newPointings = new Dictionary<InputPhrase, RankedConcept>(_pointings);
+            var newPointings = new Dictionary<Phrase, RankedConcept>(_pointings);
             newPointings.Add(phrase, concept);
 
             return new BodyState(Score + concept.Rank, _input, _values, newPointings, _parameterRequirements, _multiParameterRequirements);

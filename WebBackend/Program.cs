@@ -74,9 +74,9 @@ namespace WebBackend
 
         private static void InitializeExperiments()
         {
-            var simpleQuestions1 = Configuration.LoadSimpleQuestions("questions1.smpq");
-            var simpleQuestionsTrain = Configuration.SimpleQuestionsTrain;
-            var extensionQuestions = loadExtensionQuestions(Configuration.SimpleQuestionsTrain_Path);
+            //var simpleQuestions1 = Configuration.LoadSimpleQuestions("questions1.smpq");
+            //var simpleQuestionsTrain = Configuration.SimpleQuestionsTrain;
+            //var extensionQuestions = loadExtensionQuestions(Configuration.SimpleQuestionsTrain_Path);
 
             var experimentsRootPath = Configuration.ExperimentsRootPath;
 
@@ -118,10 +118,11 @@ namespace WebBackend
                 new AnswerExtractionExperiment(experimentsRootPath, "answer_extraction", 100, simpleQuestionsTrain, Configuration.AnswerExtractor),
                 new GraphNavigationExperiment(experimentsRootPath, "graph_navigation", 100, Configuration.GetQuestionDialogsTrain()),
                 new GraphNavigationExperiment(experimentsRootPath, "edge_requests", 100, Configuration.GetQuestionDialogsTrain()),*/
-                new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant", 10)
+                new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant", 10),
+                new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant2", 10)
                 );
 
-            QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "qdd_extension_r_");
+            //QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "qdd_extension_r_");
         }
 
         private static void RunWebInterface()

@@ -10,7 +10,7 @@ namespace PerceptiveDialogBasedAgent.V4
 {
     class BodyState2
     {
-        private readonly InputPhrase[] _input;
+        private readonly Phrase[] _input;
 
         private readonly Dictionary<PointableBase, RankedPointing> _pointings = new Dictionary<PointableBase, RankedPointing>();
 
@@ -18,22 +18,22 @@ namespace PerceptiveDialogBasedAgent.V4
 
         private readonly Dictionary<Tuple<PointableBase, PointableBase>, PointableBase> _indexValues = new Dictionary<Tuple<PointableBase, PointableBase>, PointableBase>();
 
-        internal InputPhrase LastInputPhrase => _input.LastOrDefault();
+        internal Phrase LastInputPhrase => _input.LastOrDefault();
 
-        internal IEnumerable<InputPhrase> InputPhrases => _input;
+        internal IEnumerable<Phrase> InputPhrases => _input;
 
         internal readonly double Score;
 
         internal IEnumerable<ConceptParameter> AvailableParameters => _parameters.Where(p => p.Key.AllowMultipleSubtitutions || p.Value == null).Select(p => p.Key);
 
-        internal IEnumerable<ConceptInstance> ActiveConcepts => _pointings.Values.Select(r => r.Target as ConceptInstance).Where(i => i != null).ToArray();
+        internal IEnumerable<ConceptInstance> ActiveConcepts => _pointings.Values.Where(r=>!_pointings.ContainsKey(r.Target)).Select(r => r.Target as ConceptInstance).Where(i => i != null).ToArray();
 
         internal static BodyState2 Empty()
         {
-            return new BodyState2(null, 0.0, new InputPhrase[0], new Dictionary<PointableBase, RankedPointing>(), new Dictionary<ConceptParameter, IEnumerable<PointableBase>>(), new Dictionary<Tuple<PointableBase, PointableBase>, PointableBase>());
+            return new BodyState2(null, 0.0, new Phrase[0], new Dictionary<PointableBase, RankedPointing>(), new Dictionary<ConceptParameter, IEnumerable<PointableBase>>(), new Dictionary<Tuple<PointableBase, PointableBase>, PointableBase>());
         }
 
-        private BodyState2(BodyState2 previousState, double extraScore = 0.0, InputPhrase[] input = null, Dictionary<PointableBase, RankedPointing> pointings = null, Dictionary<ConceptParameter, IEnumerable<PointableBase>> parameters = null, Dictionary<Tuple<PointableBase, PointableBase>, PointableBase> indexValues = null)
+        private BodyState2(BodyState2 previousState, double extraScore = 0.0, Phrase[] input = null, Dictionary<PointableBase, RankedPointing> pointings = null, Dictionary<ConceptParameter, IEnumerable<PointableBase>> parameters = null, Dictionary<Tuple<PointableBase, PointableBase>, PointableBase> indexValues = null)
         {
             _input = input ?? previousState._input;
             _pointings = pointings ?? previousState._pointings;
@@ -92,7 +92,7 @@ namespace PerceptiveDialogBasedAgent.V4
 
         internal BodyState2 AddPhrase(string word)
         {
-            return new BodyState2(this, input: _input.Concat(new[] { InputPhrase.FromWord(word) }).ToArray());
+            return new BodyState2(this, input: _input.Concat(new[] { Phrase.FromWord(word) }).ToArray());
         }
 
         internal BodyState2 DefineParameter(ConceptParameter parameter)

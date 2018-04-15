@@ -22,7 +22,7 @@ namespace PerceptiveDialogBasedAgent.V3.Models
             return 1.0;
         }
 
-        internal override double PointingScore(BodyState state, InputPhrase phrase, Concept concept)
+        internal override double PointingScore(BodyState state, Phrase phrase, Concept concept)
         {
             var phraseStr = phrase.ToString();
             if (phraseStr == concept.Name)

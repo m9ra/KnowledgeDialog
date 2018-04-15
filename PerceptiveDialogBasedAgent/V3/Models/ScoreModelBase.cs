@@ -13,6 +13,6 @@ namespace PerceptiveDialogBasedAgent.V3.Models
 
         internal abstract double ParameterAssignScore(BodyState state, ConceptRequirement parameter, Concept concept);
 
-        internal abstract double PointingScore(BodyState state, InputPhrase phrase, Concept concept);
+        internal abstract double PointingScore(BodyState state, Phrase phrase, Concept concept);
     }
 }

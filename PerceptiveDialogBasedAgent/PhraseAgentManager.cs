@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using PerceptiveDialogBasedAgent.V2;
+using PerceptiveDialogBasedAgent.V4;
 using KnowledgeDialog.Dialog.Responses;
 using System.IO;
 
@@ -20,7 +20,7 @@ namespace PerceptiveDialogBasedAgent
 
         public bool CanBeCompleted => true;
 
-        private readonly RestaurantAgent _agent = new RestaurantAgent();
+        private readonly Body _body = new Body();
 
         public override ResponseBase Initialize()
         {
@@ -33,9 +33,9 @@ namespace PerceptiveDialogBasedAgent
             string response;
             try
             {
-                response = _agent.Input(utterance.OriginalSentence);
-                var pricerangeSpecifier = _agent.RestaurantSpecifier("pricerange");
-                if (pricerangeSpecifier == "expensive")
+                response = _body.Input(utterance.OriginalSentence);
+                var pricerangeSpecifier = _body.RestaurantDb.GetSpecifier("pricerange");
+                if (response.ToLowerInvariant().Contains("ceasar"))
                     _hadInformativeInput = true;
             }
             catch (Exception ex)

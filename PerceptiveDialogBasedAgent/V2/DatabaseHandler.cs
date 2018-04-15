@@ -14,6 +14,11 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal IEnumerable<string> Columns => _allColumns;
 
+        /// <summary>
+        /// How many times current criterions were used to read.
+        /// </summary>
+        internal int ReadCount { get; private set; }
+
         private readonly List<Dictionary<string, string>> _data = new List<Dictionary<string, string>>();
 
         private readonly List<Dictionary<string, string>> _result = new List<Dictionary<string, string>>();
@@ -31,9 +36,18 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal void SetCriterion(string column, string value)
         {
+            ReadCount = 0;
             IsUpdated = true;
             _criterions[column] = value;
 
+            refreshResult();
+        }
+
+        internal void ResetCriterions()
+        {
+            ReadCount = 0;
+            IsUpdated = true;
+            _criterions.Clear();
             refreshResult();
         }
 
@@ -52,6 +66,7 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal string Read(string slot)
         {
+            ReadCount += 1;
             if (!_result.Any())
                 return null;
 

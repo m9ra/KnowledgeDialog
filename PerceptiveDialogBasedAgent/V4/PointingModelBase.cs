@@ -15,7 +15,7 @@ namespace PerceptiveDialogBasedAgent.V4
 
         internal abstract BodyState2 AddSubstitution(BodyState2 state, ConceptParameter parameter, ConceptInstance value);
 
-        internal abstract BodyState2 StateReaction(BodyState2 state);
+        internal abstract string StateReaction(BodyState2 state, out BodyState2 finalState);
 
         internal abstract void OnConceptChange();
 

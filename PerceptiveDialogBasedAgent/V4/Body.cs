@@ -33,6 +33,7 @@ namespace PerceptiveDialogBasedAgent.V4
 
         internal Body()
         {
+            Log.Writeln("================================================================");
             RestaurantDb = V2.RestaurantAgent.CreateRestaurantDatabase();
             Model = new HandcraftedModel(this);
             _beam = new StateBeam(this);
@@ -43,7 +44,7 @@ namespace PerceptiveDialogBasedAgent.V4
 
             .Concept("no")
                 .Description("negative answer to a question")
-            
+
             .Concept("dont know")
                 .Description("I have no idea")
                 .Description("Im not sure")
@@ -51,15 +52,17 @@ namespace PerceptiveDialogBasedAgent.V4
             .Concept("current time")
                 .Description("time on the system's clock")
 
+            .Concept("name")
+                .Description("property of objects")
+
             .Concept("expensive")
                 .Description("pricerange property of a restaurant")
 
             .Concept("cheap")
                 .Description("pricerange property of a restaurant")
 
-            .Concept("find a restaurant", _findRestaurant)
-                .Description("an action")
-                .Description("operation for looking up restaurant")
+            .Concept("find", _findRestaurant)
+                .Description("looking up restaurant")
                 .Description("restaurant search")
                 .Description("name some restaurants")
 
@@ -78,20 +81,36 @@ namespace PerceptiveDialogBasedAgent.V4
                 .Description("the bot")
 
             .Concept("want")
+                .Description("need")
+                .Description("must have")
                 .Description("I want to")
                 .Description("I would like to have")
                 .Description("desire to have something")
 
+            .Concept("cost")
+                .Description("how much money is something worth of")
+                .Description("related to pricerange")
+
+            .Concept("and")
+                .Description("conjunction")
+
             .Concept("I")
                 .Description("myself")
-                .Description("me")    
-                
+                .Description("me")
+
             .Concept("It")
                 .Description("the thing")
+            
+            .Concept("help")
+                .Description("help me")
+                .Description("I need help")
 
             .Concept("hello")
                 .Description("same as hi")
                 .Description("greeting")
+
+            .Concept("please")
+                .Description("a polite request")
 
             .Concept("determinant")
                 .Description("a")
@@ -115,21 +134,26 @@ namespace PerceptiveDialogBasedAgent.V4
             Register(RestaurantDb);
         }
 
-        internal void Input(string phrase)
+        internal string Input(string phrase)
         {
             phrase = phrase.Replace(",", " ").Replace(".", " ").Replace("?", " ").Replace("!", " ").Replace("  ", " ").Replace("  ", " ");
+            var wordCount = phrase.Split(' ').Length;
+            if (wordCount > 15)
+                return "I'm sorry, the sentence is too long. Try to use simpler phrases please.";
 
             CurrentInput = phrase;
             CurrentAgentInstance = new ConceptInstance(GetConcept("agent"));
 
             Log.DialogUtterance("U: " + phrase);
             var bestState = InputTransition(_beam.BodyStates, phrase);
-            var finalState = Model.StateReaction(bestState);
+            var output = Model.StateReaction(bestState, out var finalState);
 
             _beam.SetBeam(finalState);
 
             LastFinishedState = finalState;
             CurrentInput = null;
+
+            return output;
         }
 
         internal BodyState2 InputTransition(IEnumerable<BodyState2> initialStates, string phrase)
@@ -164,23 +188,33 @@ namespace PerceptiveDialogBasedAgent.V4
         internal Concept2 GetConcept(string conceptName)
         {
             var result = _concepts.Where(c => c.Name == conceptName).ToArray();
-            if (result.Length != 1)
+            if (result.Length > 1)
                 throw new NotImplementedException("Concept was not found.");
 
-            return result.First();
+            return result.FirstOrDefault();
         }
 
         internal Body Concept(string conceptName, BodyAction2 action = null, bool isNative = true)
         {
-            _currentConcept = new Concept2(conceptName, action, isNative);
-            _concepts.Add(_currentConcept);
-            Model.OnConceptChange();
+            var existingConcept = GetConcept(conceptName);
+            if (existingConcept == null)
+            {
+                _currentConcept = new Concept2(conceptName, action, isNative);
+                _concepts.Add(_currentConcept);
+                Model.OnConceptChange();
+            }
+            else
+            {
+                _currentConcept = existingConcept;
+            }
+
             return this;
         }
 
         internal Body Description(string description)
         {
             _currentConcept.AddDescription(description);
+            //Model.OnConceptChange();
             return this;
         }
 
@@ -196,16 +230,20 @@ namespace PerceptiveDialogBasedAgent.V4
         {
             var database = this.RestaurantDb;
             var allCriterions = context.GetCriterions(database);
-            if (!context.RequireParameter("Which restaurant do you want ?", out var selectedCriterion, allCriterions))
+            if (!context.RequireParameter("I know many restaurants, which criteria should be used for filtering?", out var selectedCriterion, allCriterions))
                 return;
 
             var columns = getCriterionColumns(selectedCriterion, database);
             if (columns.Count() != 1)
                 throw new NotImplementedException("Disambiguate columns");
 
+            database.ResetCriterions();
             database.SetCriterion(columns.First(), selectedCriterion.ToPrintable());
             var name = database.Read("name");
-            var result = new ConceptInstance(new Concept2("I know restaurant called " + name, null, true)); //TODO this is superugly
+            Phrase result = Phrase.FromUtterance("I know restaurant called " + name);
+            if (name == null)
+                result = Phrase.FromUtterance("I don't know such a restaurant");
+
             context.SetValue(CurrentAgentInstance, OutputProperty, result);
         }
 

@@ -56,7 +56,7 @@ namespace PerceptiveDialogBasedAgent.V3
             _beam.ExtendInput(word);
         }
 
-        internal double PointingScore(BodyState currentState, InputPhrase phrase, Concept concept)
+        internal double PointingScore(BodyState currentState, Phrase phrase, Concept concept)
         {
             return _model.PointingScore(currentState, phrase, concept);
         }

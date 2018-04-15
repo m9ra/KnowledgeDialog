@@ -6,23 +6,33 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V4
 {
-    class InputPhrase : PointableBase
+    class Phrase : PointableBase
     {
         private readonly string[] _words;
 
-        private InputPhrase(IEnumerable<string> words)
+        private Phrase(IEnumerable<string> words)
         {
             _words = words.ToArray();
         }
 
-        internal InputPhrase ExpandBy(string word)
+        internal Phrase ExpandBy(string word)
         {
-            return new InputPhrase(_words.Concat(new[] { word }));
+            return new Phrase(_words.Concat(new[] { word }));
         }
 
-        internal static InputPhrase FromWord(string word)
+        internal static Phrase FromWord(string word)
         {
-            return new InputPhrase(new[] { word });
+            return new Phrase(new[] { word });
+        }
+
+        internal static Phrase FromUtterance(string utterance)
+        {
+            return new Phrase(AsWords(utterance));
+        }
+
+        internal static string[] AsWords(string utterance)
+        {
+            return utterance.Split(' ');
         }
 
         internal override string ToPrintable()

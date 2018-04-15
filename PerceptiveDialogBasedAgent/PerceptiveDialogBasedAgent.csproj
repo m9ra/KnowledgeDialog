@@ -100,7 +100,7 @@
     <Compile Include="V3\ConceptRequirement.cs" />
     <Compile Include="V3\ContextBeam.cs" />
     <Compile Include="V3\Experiments.cs" />
-    <Compile Include="V4\InputPhrase.cs" />
+    <Compile Include="V4\Phrase.cs" />
     <Compile Include="V3\Models\HandcraftedStrategy.cs" />
     <Compile Include="V3\Models\ScoreModelBase.cs" />
     <Compile Include="V3\Models\SimpleMatchModel.cs" />

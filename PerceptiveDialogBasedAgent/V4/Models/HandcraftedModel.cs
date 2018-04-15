@@ -1,4 +1,5 @@
-﻿using KnowledgeDialog.Knowledge;
+﻿using KnowledgeDialog.Dialog;
+using KnowledgeDialog.Knowledge;
 using PerceptiveDialogBasedAgent.V2;
 using PerceptiveDialogBasedAgent.V3;
 using System;
@@ -17,7 +18,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         private DocumentIndex _index = new DocumentIndex();
 
-        private readonly HashSet<string> _auxiliaryWords = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase) { "a", "an", "the", "on", "at", "in", "of", "some", "any", "none", "such", "to", "and" };
+        private readonly HashSet<string> _auxiliaryWords = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase) { "a", "an", "the", "on", "at", "in", "of", "some", "any", "none", "such", "to", "and", "with" };
 
         private string _previousUnknownPhrase;
 
@@ -27,6 +28,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         internal HandcraftedModel(Body body)
         {
+            //_auxiliaryWords.UnionWith(UtteranceParser.NonInformativeWords);
             _body = body;
         }
 
@@ -53,7 +55,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             refreshIndex();
         }
 
-        internal override BodyState2 StateReaction(BodyState2 state)
+        internal override string StateReaction(BodyState2 state, out BodyState2 finalState)
         {
             LogState(state);
 
@@ -64,7 +66,9 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             }
 
             Log.DialogUtterance("S: " + output);
-            return state;
+
+            finalState = state;
+            return output;
         }
 
         private string limitedStateReaction(ref BodyState2 state, int depth)
@@ -72,8 +76,14 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             string output = null;
             if (hasAskedForUnknownPhrase())
             {
-                rememberNewConcept(_previousUnknownPhrase, _body.CurrentInput);
-                output = retryUnsuccessfulState(out state, depth);
+                var explanation = _body.CurrentInput;
+                if (getMeaningfulWords(explanation).Length > 5)
+                    return "The explanation is too difficult, try to explain by a simpler phrase please.";
+
+                rememberNewConcept(_previousUnknownPhrase, explanation);
+                output = retryUnsuccessfulState(out var newState, depth);
+                if (output != null)
+                    state = newState;
             }
             else if (hasOutput(state))
             {
@@ -94,19 +104,19 @@ namespace PerceptiveDialogBasedAgent.V4.Models
         private string makeUpExplorativeQuestion(ref BodyState2 state)
         {
             //ask for some unknown phrase
-            var unknownPhrases = getUnknownPhrases(state);
+            var unknownPhrases = getUnknownPhrases(state).ToArray();
             if (unknownPhrases.Any())
-                askForUnknownPhrase(unknownPhrases.First());
+                return askForUnknownPhrase(unknownPhrases.First());
 
             //ask for info about non-native concept
             var concepts = getNonNativeConcepts().ToArray();
             if (concepts.Any())
-                askForUnknownPhrase(concepts[_rnd.Next(concepts.Length)].Name);
+                return askForUnknownPhrase(concepts[_rnd.Next(concepts.Length)].Name);
 
             state = BodyState2.Empty();
-            return "Sorry, I don't understand. How can I help you?";
+            _lastUnsuccesfulState = state;
+            return "Sorry, I don't understand what I should do. How can I help you?";
         }
-
 
         #region Policy implementation
 
@@ -154,7 +164,8 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         private string retryUnsuccessfulState(out BodyState2 state, int depth)
         {
-            state = _body.InputTransition(new[] { _lastUnsuccesfulState }, _lastUnsuccesfulInput);
+            var refreshedState = _body.InputTransition(new[] { BodyState2.Empty() }, toInputUtterance(_lastUnsuccesfulState.InputPhrases));
+            state = _body.InputTransition(new[] { refreshedState }, _lastUnsuccesfulInput);
 
             var retryOutput = readOutput(state);
             if (depth < 1)
@@ -175,6 +186,11 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             Log.Dedent();
 
             return output;
+        }
+
+        private string toInputUtterance(IEnumerable<Phrase> phrases)
+        {
+            return string.Join(" ", phrases);
         }
 
         private void rememberNewConcept(string concept, string description)
@@ -212,6 +228,12 @@ namespace PerceptiveDialogBasedAgent.V4.Models
                 if (instance == null)
                     yield return sanitizedPhrase;
             }
+        }
+
+        private string[] getMeaningfulWords(string phrase)
+        {
+            var words = Phrase.AsWords(phrase);
+            return words.Where(w => !_auxiliaryWords.Contains(w)).ToArray();
         }
 
         private T choose<T>(IEnumerable<T> values)
@@ -276,7 +298,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
         {
             var sanitizedInput = input.ToLowerInvariant();
             var meaningFulInput = toMeaningfulPhrase(input);
-            var words = sanitizedInput.Split(' ');
+            var words = Phrase.AsWords(sanitizedInput);
             var name = concept.Name.ToLowerInvariant();
             var weight = 1.0 * words.Length;
             weight = 1 + words.Length / 100.0;
@@ -299,7 +321,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
                 var totalWeight = 0.0;
                 foreach (var description in concept.Descriptions.Concat(new[] { name }))
                 {
-                    var descriptionWords = description.ToLowerInvariant().Split(' ');
+                    var descriptionWords = Phrase.AsWords(description.ToLowerInvariant());
                     foreach (var descriptionWord in descriptionWords)
                     {
                         if (_auxiliaryWords.Contains(descriptionWord))
@@ -325,7 +347,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
         private string toMeaningfulPhrase(string phrase)
         {
             var input = phrase.ToLowerInvariant();
-            var inputWords = input.Split(' ').ToList();
+            var inputWords = Phrase.AsWords(input).ToList();
 
             while (inputWords.Count > 0 && _auxiliaryWords.Contains(inputWords.First()))
                 inputWords.RemoveAt(0);
@@ -339,7 +361,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
         private double getSimilarity2(string input, Concept2 concept)
         {
             var sanitizedInput = input.ToLowerInvariant();
-            var words = sanitizedInput.Split(' ');
+            var words = Phrase.AsWords(sanitizedInput);
             var name = concept.Name.ToLowerInvariant();
             var weight = 1.0 * words.Length;
             weight = 1 + words.Length / 100.0;
@@ -355,7 +377,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             var scores = new List<double>();
             foreach (var description in concept.Descriptions.Concat(new[] { name }))
             {
-                var descriptionWords = description.ToLowerInvariant().Split(' ');
+                var descriptionWords = Phrase.AsWords(description.ToLowerInvariant());
 
                 var hitCount = 0.0;
                 var totalWeight = 0.0;
@@ -401,7 +423,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
                 var conceptSentences = concept.Descriptions.ToList();
                 conceptSentences.Add(concept.Name);
 
-                var conceptWords = conceptSentences.Select(s => s.ToLowerInvariant().Split(' '));
+                var conceptWords = conceptSentences.Select(s => Phrase.AsWords(s.ToLowerInvariant()));
                 _index.RegisterDocument(conceptWords);
             }
         }

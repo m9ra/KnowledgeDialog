@@ -10,9 +10,9 @@ namespace PerceptiveDialogBasedAgent.V4
     {
         public static void Explanation()
         {
-            var body = new Body();
-            body.Input("say bla bla");
-            body.Input("just a saying");
+            var b = new Body();
+            b.Input("say bla bla");
+            b.Input("just a saying");
         }
 
         public static void SimpleRestaurantSearch()
@@ -23,18 +23,28 @@ namespace PerceptiveDialogBasedAgent.V4
 
         public static void LuxuryRestaurantSearch()
         {
-            var body = new Body();
-            body.Input("find a luxury restaurant");
+            var b = new Body();
+            b.Input("find a luxury restaurant");
             //what is luxury?
-            body.Input("it means nice and expensive");
+            b.Input("it means nice and expensive");
         }
 
         public static void DialogHandling()
         {
-            var body = new Body();
-            body.Input("find a restaurant");
-            body.Input("luxury one");
-            body.Input("nice and expensive");
+            var b = new Body();
+            b.Input("find a restaurant");
+            b.Input("luxury one");
+            b.Input("nice and expensive");
+        }
+
+
+        public static void MissingAction()
+        {
+            var b = new Body();
+            b.Input("luxury restaurant");
+            b.Input("expensive");
+            b.Input("find a restaurant");
+            b.Input("luxury");
         }
 
         public static void RealData()
@@ -103,15 +113,25 @@ namespace PerceptiveDialogBasedAgent.V4
         public static void CollectedDataDebugging4()
         {
             var b = new Body();
-            b.Input("Hi, I need to find a restaurant");
+            b.Input("The Five Fields");
+            b.Input("Contemporary British cuisine restaurant");
+            b.Input("I HAVE TO FIND A LUXURIOUS RESTAURANT");
+        }
+
+        public static void PropertyReading()
+        {
+            var b = new Body();
+            b.Input("Find an expensive restaurant");
+            b.Input("What is its name ?");
+            b.Input("and what about its pricerange ?");
         }
 
         public static void HardRealData()
         {
-            var body = new Body();
+            var b = new Body();
 
-            body = new Body();
-            body.Input("Please send me the address of an Italian restaurant in New York");
+            b = new Body();
+            b.Input("Please send me the address of an Italian restaurant in New York");
         }
     }
 }

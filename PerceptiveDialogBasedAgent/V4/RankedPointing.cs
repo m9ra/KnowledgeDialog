@@ -9,13 +9,13 @@ namespace PerceptiveDialogBasedAgent.V4
 {
     class RankedPointing
     {
-        internal readonly PointableBase Target;
+        internal readonly PointableInstance Target;
 
         internal readonly double Rank;
 
-        internal readonly PointableBase Source;
+        internal readonly PointableInstance Source;
 
-        internal RankedPointing(PointableBase source, PointableBase target, double rank)
+        internal RankedPointing(PointableInstance source, PointableInstance target, double rank)
         {
             Target = target;
             Rank = rank;

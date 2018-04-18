@@ -35,7 +35,7 @@ namespace PerceptiveDialogBasedAgent.V4
             Log.Writeln();
         }
 
-        protected string GetTargetRepresentation(PointableBase source, BodyState2 state)
+        protected string GetTargetRepresentation(PointableInstance source, BodyState2 state)
         {
             var rankedPointing = state.GetRankedPointing(source);
             if (rankedPointing == null)

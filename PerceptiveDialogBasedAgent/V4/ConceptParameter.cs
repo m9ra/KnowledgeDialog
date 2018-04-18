@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V4
 {
-    class ConceptParameter : PointableBase
+    class ConceptParameter : PointableInstance
     {
         internal readonly ConceptInstance Owner;
 
@@ -21,6 +21,7 @@ namespace PerceptiveDialogBasedAgent.V4
         { }
 
         internal ConceptParameter(ConceptInstance owner, string request, IEnumerable<ParameterRequirement> requirements)
+            : base(null)
         {
             Owner = owner;
             Request = request;
@@ -40,6 +41,11 @@ namespace PerceptiveDialogBasedAgent.V4
             }
 
             return true;
+        }
+
+        internal override IEnumerable<PointableInstance> GetPropertyValue(Concept2 property)
+        {
+            return null;
         }
 
         internal override string ToPrintable()

@@ -54,12 +54,12 @@ namespace PerceptiveDialogBasedAgent.V4
 
             newStates = newStates.OrderByDescending(s => s.Score).ToList();
 
-            var limit = 300;
-            if (newStates.Count > limit)
+            if (newStates.Count > Configuration.StateBeamLimit)
             {
-                _currentStates = newStates.Take(limit).ToList();
+                _currentStates = newStates.Take(Configuration.StateBeamLimit).ToList();
             }
-            else {
+            else
+            {
                 _currentStates = newStates;
             }
         }
@@ -67,7 +67,7 @@ namespace PerceptiveDialogBasedAgent.V4
         private IEnumerable<BodyState2> expandState(BodyState2 state, string word)
         {
             var expanded = state.ExpandLastPhrase(word);
-            if (expanded != null)
+            if (expanded != null && expanded.LastInputPhrase.WordCount <= Configuration.MaxPhraseWordCount)
                 yield return expanded;
 
             yield return state.AddPhrase(word);
@@ -89,16 +89,28 @@ namespace PerceptiveDialogBasedAgent.V4
             var pointingCovers = generateCovers(forwardedPointings.ToArray()).ToArray();
 
             yield return state;
+
             foreach (var subset in pointingCovers)
             {
                 var stateWithPointings = state.Add(subset);
-                var processedState = stateWithPointings;
+
+                var newLayer = new List<BodyState2>();
+                var currentLayer = new List<BodyState2>();
+                currentLayer.Add(stateWithPointings);
+
                 foreach (var pointing in subset)
                 {
-                    processedState = evaluateParameterChange(pointing.Target, processedState);
+                    newLayer.Clear();
+                    foreach (var processedState in currentLayer)
+                        newLayer.AddRange(evaluateParameterChange(pointing.Target, processedState));
+
+                    var tmp = currentLayer;
+                    currentLayer = newLayer;
+                    newLayer = tmp;
                 }
 
-                yield return processedState;
+                foreach (var newState in currentLayer)
+                    yield return newState;
             }
         }
 
@@ -131,22 +143,24 @@ namespace PerceptiveDialogBasedAgent.V4
                     {
                         //todo think about setting multiple substitutions for a single parameter
                         var substitutedState = _body.Model.AddSubstitution(state, availableParameter, activeConcept);
-                        yield return evaluateParameterChange(availableParameter.Owner, substitutedState);
+                        foreach (var evaluatedState in evaluateParameterChange(availableParameter.Owner, substitutedState))
+                            yield return evaluatedState;
                     }
                 }
             }
         }
 
-        private BodyState2 evaluateParameterChange(PointableBase pointableInstance, BodyState2 state)
+        private IEnumerable<BodyState2> evaluateParameterChange(PointableInstance pointableInstance, BodyState2 state)
         {
             var instance = pointableInstance as ConceptInstance;
             if (instance == null || instance.Concept.Action == null)
-                return state;
+                return new[] { state };
 
             var context = new BodyContext2(instance, _body, state);
             instance.Concept.Action(context);
 
-            return context.CurrentState;
+            var result = substituteParameters(context.CurrentState).ToArray();
+            return result;
         }
 
         private IEnumerable<IEnumerable<RankedPointing>> generateCovers(RankedPointing[] pointings)
@@ -193,7 +207,7 @@ namespace PerceptiveDialogBasedAgent.V4
 
         private RankedPointing[][] getAssignments(RankedPointing[] pointings)
         {
-            var assignments = new Dictionary<PointableBase, List<RankedPointing>>();
+            var assignments = new Dictionary<PointableInstance, List<RankedPointing>>();
             foreach (var pointing in pointings)
             {
                 if (!assignments.TryGetValue(pointing.Source, out var inputIndex))

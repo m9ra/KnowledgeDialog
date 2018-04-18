@@ -20,6 +20,10 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         private readonly HashSet<string> _auxiliaryWords = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase) { "a", "an", "the", "on", "at", "in", "of", "some", "any", "none", "such", "to", "and", "with" };
 
+        private readonly HashSet<string> _askedExplorativeQuestions = new HashSet<string>();
+
+        private readonly HashSet<string> _oldUnknownPhrases = new HashSet<string>();
+
         private string _previousUnknownPhrase;
 
         private string _lastUnsuccesfulInput;
@@ -37,7 +41,9 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             if (value == null)
                 throw new NullReferenceException();
 
-            return state.AddSubstitution(parameter, value, 0.1);
+            var proximityBonus = 0;// getProximityBonus(parameter.Owner, value, state);
+            var actualityBonus = getActualityBonus(value, state);
+            return state.AddSubstitution(parameter, value, Configuration.ParameterSubstitutionScore + proximityBonus + actualityBonus);
         }
 
         internal override IEnumerable<RankedPointing> GenerateMappings(BodyState2 state)
@@ -65,6 +71,8 @@ namespace PerceptiveDialogBasedAgent.V4.Models
                 output = makeUpExplorativeQuestion(ref state);
             }
 
+            _oldUnknownPhrases.UnionWith(getUnknownPhrases(state));
+
             Log.DialogUtterance("S: " + output);
 
             finalState = state;
@@ -81,7 +89,8 @@ namespace PerceptiveDialogBasedAgent.V4.Models
                     return "The explanation is too difficult, try to explain by a simpler phrase please.";
 
                 rememberNewConcept(_previousUnknownPhrase, explanation);
-                output = retryUnsuccessfulState(out var newState, depth);
+                state = _body.InputTransition(new[] { BodyState2.Empty() }, toInputUtterance(state.InputPhrases));
+                output = retryStateProcessing(out var newState, depth);
                 if (output != null)
                     state = newState;
             }
@@ -106,19 +115,37 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             //ask for some unknown phrase
             var unknownPhrases = getUnknownPhrases(state).ToArray();
             if (unknownPhrases.Any())
-                return askForUnknownPhrase(unknownPhrases.First());
+            {
+                var phraseToAsk = unknownPhrases.First();
+                if (canAsk(phraseToAsk))
+                    return askForUnknownPhrase(phraseToAsk);
+            }
 
             //ask for info about non-native concept
             var concepts = getNonNativeConcepts().ToArray();
             if (concepts.Any())
-                return askForUnknownPhrase(concepts[_rnd.Next(concepts.Length)].Name);
+            {
+                var conceptToAsk = concepts[_rnd.Next(concepts.Length)].Name;
+                if (canAsk(conceptToAsk))
+                    return askForUnknownPhrase(conceptToAsk);
+            }
 
-            state = BodyState2.Empty();
-            _lastUnsuccesfulState = state;
+            if (state.InputPhrases.Count() > 15)
+            {
+                _lastUnsuccesfulState = state;
+                state = BodyState2.Empty();
+                _oldUnknownPhrases.Clear();
+                return "I don't understand that. It might help to use simpler sentences.";
+            }
             return "Sorry, I don't understand what I should do. How can I help you?";
         }
 
         #region Policy implementation
+
+        private bool canAsk(string subject)
+        {
+            return _askedExplorativeQuestions.Add(subject);
+        }
 
         private bool hasOutput(BodyState2 state)
         {
@@ -127,7 +154,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         private bool hasSingleUnknownPhrase(BodyState2 state)
         {
-            return getUnknownPhrases(state).Count() == 1;
+            return getUnknownPhrases(state).Except(_oldUnknownPhrases).Count() == 1;
         }
 
         private bool needsParameter(BodyState2 state)
@@ -141,6 +168,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             if (unknownPhrase == null)
                 return null;
 
+            _askedExplorativeQuestions.Add(unknownPhrase);
             return askForUnknownPhrase(unknownPhrase);
         }
 
@@ -162,7 +190,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             return parameter.Request;
         }
 
-        private string retryUnsuccessfulState(out BodyState2 state, int depth)
+        private string retryStateProcessing(out BodyState2 state, int depth)
         {
             var refreshedState = _body.InputTransition(new[] { BodyState2.Empty() }, toInputUtterance(_lastUnsuccesfulState.InputPhrases));
             state = _body.InputTransition(new[] { refreshedState }, _lastUnsuccesfulInput);
@@ -246,6 +274,23 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         #region Probabilistic model implementation
 
+        private double getProximityBonus(PointableInstance instance1, PointableInstance instance2, BodyState2 state)
+        {
+            var activationPhrase1 = instance1.ActivationPhrase;
+            var activationPhrase2 = instance2.ActivationPhrase;
+
+            var pos1 = state.GetPhraseIndex(activationPhrase1);
+            var pos2 = state.GetPhraseIndex(activationPhrase2);
+
+            return 0.01 / Math.Abs(pos1 - pos2);
+        }
+
+        private double getActualityBonus(PointableInstance instance, BodyState2 state)
+        {
+            var pos = state.GetPhraseIndex(instance.ActivationPhrase);
+            return 0.01 / Math.Abs(state.InputPhrases.Count() - pos);
+        }
+
         private IEnumerable<RankedPointing> findLastPhraseConcepts(BodyState2 state)
         {
             if (state.LastInputPhrase == null)
@@ -277,20 +322,21 @@ namespace PerceptiveDialogBasedAgent.V4.Models
                 }
 
                 var forwardingSimilarity = similarities.Max();
-                if (forwardingSimilarity > 0.05)
+                if (forwardingSimilarity > Configuration.ForwardingActivationThreshold)
                     //todo should new concept be created here?
-                    yield return new RankedPointing(forwardedConcept, new ConceptInstance(concept), forwardingSimilarity);
+                    yield return new RankedPointing(forwardedConcept, new ConceptInstance(concept, forwardedConcept.ActivationPhrase), forwardingSimilarity);
             }
         }
 
         private IEnumerable<RankedPointing> generateConceptMatches(BodyState2 state)
         {
-            var input = state.LastInputPhrase.ToString();
+            var activationPhrase = state.LastInputPhrase;
+            var input = activationPhrase.ToString();
             foreach (var concept in _body.Concepts)
             {
                 var similarity = getSimilarity(input, concept);
-                if (similarity > 0.05)
-                    yield return new RankedPointing(state.LastInputPhrase, new ConceptInstance(concept), similarity);
+                if (similarity > Configuration.ConceptActivationThreshold)
+                    yield return new RankedPointing(state.LastInputPhrase, new ConceptInstance(concept, activationPhrase), similarity);
             }
         }
 

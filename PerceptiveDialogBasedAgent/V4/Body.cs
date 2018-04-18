@@ -52,21 +52,15 @@ namespace PerceptiveDialogBasedAgent.V4
             .Concept("current time")
                 .Description("time on the system's clock")
 
-            .Concept("name")
-                .Description("property of objects")
-
-            .Concept("expensive")
-                .Description("pricerange property of a restaurant")
-
-            .Concept("cheap")
-                .Description("pricerange property of a restaurant")
-
             .Concept("find", _findRestaurant)
                 .Description("looking up restaurant")
                 .Description("restaurant search")
+                .Description("list")
+                .Description("get")
                 .Description("name some restaurants")
 
             .Concept("restaurant")
+                .Description("restaurants")
                 .Description("venue to eat")
                 .Description("a place where food is served")
 
@@ -77,11 +71,20 @@ namespace PerceptiveDialogBasedAgent.V4
                 .Description("an action")
                 .Description("alias to say")
 
+            .Concept("what", _what)
+                .Description("what is something of something")
+
             .Concept("agent")
                 .Description("the bot")
 
+            .Concept("location")
+                .Description("the venue")
+                .Description("some area")
+                .Description("a place")
+
             .Concept("want")
                 .Description("need")
+                .Description("can")
                 .Description("must have")
                 .Description("I want to")
                 .Description("I would like to have")
@@ -98,9 +101,13 @@ namespace PerceptiveDialogBasedAgent.V4
                 .Description("myself")
                 .Description("me")
 
+            .Concept("You")
+                .Description("your")
+                .Description("yourself")
+
             .Concept("It")
                 .Description("the thing")
-            
+
             .Concept("help")
                 .Description("help me")
                 .Description("I need help")
@@ -122,6 +129,7 @@ namespace PerceptiveDialogBasedAgent.V4
 
             .Concept("it")
                 .Description("reference to a previous object")
+                .Description("its")
 
             .Concept("unknown")
                 .Description("not known concept")
@@ -136,9 +144,8 @@ namespace PerceptiveDialogBasedAgent.V4
 
         internal string Input(string phrase)
         {
-            phrase = phrase.Replace(",", " ").Replace(".", " ").Replace("?", " ").Replace("!", " ").Replace("  ", " ").Replace("  ", " ");
-            var wordCount = phrase.Split(' ').Length;
-            if (wordCount > 15)
+            var words = Phrase.AsWords(phrase);
+            if (words.Length > 10)
                 return "I'm sorry, the sentence is too long. Try to use simpler phrases please.";
 
             CurrentInput = phrase;
@@ -159,7 +166,7 @@ namespace PerceptiveDialogBasedAgent.V4
         internal BodyState2 InputTransition(IEnumerable<BodyState2> initialStates, string phrase)
         {
             _beam.SetBeam(initialStates);
-            var words = phrase.Split(' ');
+            var words = Phrase.AsWords(phrase);
             foreach (var word in words)
             {
                 _beam.ExpandBy(word);
@@ -171,8 +178,45 @@ namespace PerceptiveDialogBasedAgent.V4
 
         internal void Register(DatabaseHandler database)
         {
+            var properties = new Dictionary<string, Concept2>();
+            foreach (var row in database.GetDump())
+            {
+                Concept("the " + row["name"])
+                    .Description("row of a database");
+
+                var rowConcept = _currentConcept;
+
+                foreach (var valuePair in row)
+                {
+                    var value = valuePair.Value;
+                    var column = valuePair.Key;
+
+                    if (!properties.TryGetValue(column, out var propertyConcept))
+                    {
+                        Concept(column)
+                            .Description("column of a database")
+                            .Description("property")
+                            ;
+
+                        properties[column] = propertyConcept = _currentConcept;
+                    }
+
+                    Concept(value)
+                        .Description("value of " + column)
+                        ;
+
+                    //TODO think about instance creation
+                    rowConcept.AddPropertyValue(propertyConcept, new ConceptInstance(_currentConcept));
+                }
+            }
+
             foreach (var column in database.Columns)
             {
+                Concept(column)
+                    .Description("column of a database");
+
+                var columnInstance = new ConceptInstance(_currentConcept);
+
                 foreach (var value in database.GetColumnValues(column))
                 {
                     var relevantConcepts = _concepts.Where(c => c.Name == value).ToArray();
@@ -226,6 +270,24 @@ namespace PerceptiveDialogBasedAgent.V4
             context.SetValue(CurrentAgentInstance, OutputProperty, subject);
         }
 
+        private void _what(BodyContext2 context)
+        {
+            var allProperties = context.GetProperties();
+            if (!context.RequireParameter("What property?", out var property, allProperties))
+                return;
+
+            if (!context.RequireParameter(property.ToPrintable() + " of what ?", out var refferedInstance))
+                return;
+
+            var value = refferedInstance.GetPropertyValue(((ConceptInstance)property).Concept);
+            if (value == null)
+                return;
+
+            context.AddScore(0.1);
+            var responseInstance = Phrase.FromUtterance(property.ToPrintable() + " is " + value.First().ToPrintable());
+            context.SetValue(CurrentAgentInstance, OutputProperty, responseInstance);
+        }
+
         private void _findRestaurant(BodyContext2 context)
         {
             var database = this.RestaurantDb;
@@ -244,10 +306,14 @@ namespace PerceptiveDialogBasedAgent.V4
             if (name == null)
                 result = Phrase.FromUtterance("I don't know such a restaurant");
 
+            //TODO refactor find to search between concepts
+            var resultConcept = GetConcept("the " + name);
+            context.Activate(new ConceptInstance(resultConcept));
+
             context.SetValue(CurrentAgentInstance, OutputProperty, result);
         }
 
-        private IEnumerable<string> getCriterionColumns(PointableBase criterion, DatabaseHandler database)
+        private IEnumerable<string> getCriterionColumns(PointableInstance criterion, DatabaseHandler database)
         {
             var result = new HashSet<string>();
             foreach (var column in database.Columns)

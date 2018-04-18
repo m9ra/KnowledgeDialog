@@ -7,13 +7,19 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V4
 {
-    class ConceptInstance : PointableBase
+    class ConceptInstance : PointableInstance
     {
         internal readonly Concept2 Concept;
 
-        internal ConceptInstance(Concept2 concept)
+        internal ConceptInstance(Concept2 concept, Phrase activationPhrase = null)
+            : base(activationPhrase)
         {
             Concept = concept;
+        }
+
+        internal override IEnumerable<PointableInstance> GetPropertyValue(Concept2 property)
+        {
+            return Concept.GetPropertyValue(property);
         }
 
         internal override string ToPrintable()

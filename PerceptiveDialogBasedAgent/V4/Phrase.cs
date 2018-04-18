@@ -6,11 +6,14 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V4
 {
-    class Phrase : PointableBase
+    class Phrase : PointableInstance
     {
         private readonly string[] _words;
 
+        internal int WordCount => _words.Length;
+
         private Phrase(IEnumerable<string> words)
+            : base(null)
         {
             _words = words.ToArray();
         }
@@ -32,7 +35,12 @@ namespace PerceptiveDialogBasedAgent.V4
 
         internal static string[] AsWords(string utterance)
         {
-            return utterance.Split(' ');
+            utterance = " " + utterance + " ";
+            utterance = utterance.Replace(",", " ").Replace(".", " ").Replace("?", " ").Replace("!", " ").Replace("  ", " ").Replace("  ", " ");
+            utterance = utterance.Replace("'nt ", " not ");
+            utterance = utterance.Replace("'s ", " is ");//TODO 's can also expand to has
+            utterance = utterance.Replace("'re ", " are ");
+            return utterance.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
         }
 
         internal override string ToPrintable()
@@ -44,6 +52,11 @@ namespace PerceptiveDialogBasedAgent.V4
         public override string ToString()
         {
             return string.Join(" ", _words);
+        }
+
+        internal override IEnumerable<PointableInstance> GetPropertyValue(Concept2 property)
+        {
+            return null;
         }
     }
 }

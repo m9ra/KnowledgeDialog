@@ -28,7 +28,7 @@ namespace PerceptiveDialogBasedAgent.V4
             EvaluatedConcept = evaluatedConcept;
         }
 
-        internal bool RequireParameter(string request, out PointableBase parameter, IEnumerable<Concept2> domain = null)
+        internal bool RequireParameter(string request, out PointableInstance parameter, IEnumerable<Concept2> domain = null)
         {
             var parameterConstraint = new AllowedConceptConstraint(domain);
             var parameterDefinition = new ConceptParameter(EvaluatedConcept, request, parameterConstraint);
@@ -48,7 +48,7 @@ namespace PerceptiveDialogBasedAgent.V4
             throw new NotImplementedException();
         }
 
-        internal void SetValue(PointableBase target, PointableBase index, PointableBase value)
+        internal void SetValue(PointableInstance target, PointableInstance index, PointableInstance value)
         {
             _currentState = _currentState.SetIndexValue(target, index, value);
         }
@@ -66,6 +66,29 @@ namespace PerceptiveDialogBasedAgent.V4
             }
 
             return result;
+        }
+
+        internal IEnumerable<Concept2> GetProperties()
+        {
+            //TODO property detection should be more complex - flags, properties on instances..
+            var properties = new HashSet<Concept2>();
+            foreach (var concept in _body.Concepts)
+            {
+                properties.UnionWith(concept.Properties);
+            }
+
+            return properties;
+        }
+
+        internal void AddScore(double score)
+        {
+            _currentState = _currentState.AddScore(score);
+        }
+
+        internal void Activate(PointableInstance activatedInstance)
+        {
+            //TODO activation has to be more natural
+            _currentState = _currentState.Add(new[] { new RankedPointing(EvaluatedConcept, activatedInstance, 0.1) });
         }
     }
 }

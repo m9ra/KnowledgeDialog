@@ -43,6 +43,12 @@ namespace PerceptiveDialogBasedAgent.V2
             refreshResult();
         }
 
+
+        internal IEnumerable<Dictionary<string,string>> GetDump()
+        {
+            return _data.Select(r => new Dictionary<string, string>(r)).ToArray();
+        }
+
         internal void ResetCriterions()
         {
             ReadCount = 0;

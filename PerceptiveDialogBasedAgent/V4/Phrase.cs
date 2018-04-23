@@ -53,10 +53,5 @@ namespace PerceptiveDialogBasedAgent.V4
         {
             return string.Join(" ", _words);
         }
-
-        internal override IEnumerable<PointableInstance> GetPropertyValue(Concept2 property)
-        {
-            return null;
-        }
     }
 }

@@ -36,14 +36,14 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             _body = body;
         }
 
-        internal override BodyState2 AddSubstitution(BodyState2 state, ConceptParameter parameter, ConceptInstance value)
+        internal override BodyState2 AddSubstitution(BodyState2 state, ConceptInstance container, Concept2 parameter, ConceptInstance value)
         {
             if (value == null)
                 throw new NullReferenceException();
 
             var proximityBonus = 0;// getProximityBonus(parameter.Owner, value, state);
             var actualityBonus = getActualityBonus(value, state);
-            return state.AddSubstitution(parameter, value, Configuration.ParameterSubstitutionScore + proximityBonus + actualityBonus);
+            return state.SetSubstitution(container, parameter, value, Configuration.ParameterSubstitutionScore + proximityBonus + actualityBonus);
         }
 
         internal override IEnumerable<RankedPointing> GenerateMappings(BodyState2 state)
@@ -187,7 +187,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             if (parameter == null)
                 return null;
 
-            return parameter.Request;
+            return parameter.Item1.ToPrintable();
         }
 
         private string retryStateProcessing(out BodyState2 state, int depth)
@@ -234,7 +234,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         private string readOutput(BodyState2 state)
         {
-            var outputValue = state.GetIndexValue(_body.CurrentAgentInstance, _body.OutputProperty);
+            var outputValue = state.GetPropertyValue(_body.CurrentAgentInstance, Concept2.Output);
 
             return outputValue?.ToPrintable();
         }

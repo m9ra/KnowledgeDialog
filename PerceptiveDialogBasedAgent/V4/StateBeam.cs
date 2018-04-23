@@ -1,4 +1,5 @@
 ﻿using PerceptiveDialogBasedAgent.V3;
+using PerceptiveDialogBasedAgent.V4.Brain;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -133,19 +134,23 @@ namespace PerceptiveDialogBasedAgent.V4
             yield return state; //no substitution
             foreach (var availableParameter in state.AvailableParameters)
             {
+                var container = availableParameter.Item1 as ConceptInstance;
+                var parameter = availableParameter.Item2;
+                var pattern = container.Concept.GetPropertyValue(parameter) as ConceptInstance;
+
                 foreach (var activeConcept in state.ActiveConcepts)
                 {
-                    if (activeConcept == availableParameter.Owner)
+                    if (activeConcept == container)
                         //Parameteric self references are not allowed
                         continue;
 
-                    if (availableParameter.IsAllowedForSubstitution(activeConcept, state))
-                    {
-                        //todo think about setting multiple substitutions for a single parameter
-                        var substitutedState = _body.Model.AddSubstitution(state, availableParameter, activeConcept);
-                        foreach (var evaluatedState in evaluateParameterChange(availableParameter.Owner, substitutedState))
-                            yield return evaluatedState;
-                    }
+                    if (!state.PropertyContainer.MeetsPattern(activeConcept, pattern))
+                        continue;
+
+                    //TODO think about setting multiple substitutions for a single parameter
+                    var substitutedState = _body.Model.AddSubstitution(state, container, parameter, activeConcept);
+                    foreach (var evaluatedState in evaluateParameterChange(container, substitutedState))
+                        yield return evaluatedState;
                 }
             }
         }
@@ -157,8 +162,6 @@ namespace PerceptiveDialogBasedAgent.V4
                 return new[] { state };
 
             var context = new BodyContext2(instance, _body, state);
-            instance.Concept.Action(context);
-
             var result = substituteParameters(context.CurrentState).ToArray();
             return result;
         }

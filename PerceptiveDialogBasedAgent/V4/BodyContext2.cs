@@ -1,4 +1,5 @@
 ﻿using PerceptiveDialogBasedAgent.V2;
+using PerceptiveDialogBasedAgent.V4.Brain;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V4
 {
-    delegate void BodyAction2(BodyContext2 context);
+    delegate void MindAction(MindEvaluationContext context);
 
     class BodyContext2
     {
@@ -28,29 +29,9 @@ namespace PerceptiveDialogBasedAgent.V4
             EvaluatedConcept = evaluatedConcept;
         }
 
-        internal bool RequireParameter(string request, out PointableInstance parameter, IEnumerable<Concept2> domain = null)
+        internal void SetPropertyValue(PointableInstance target, Concept2 index, PointableInstance value)
         {
-            var parameterConstraint = new AllowedConceptConstraint(domain);
-            var parameterDefinition = new ConceptParameter(EvaluatedConcept, request, parameterConstraint);
-            var substitution = _currentState.GetSubsitution(parameterDefinition);
-            parameter = substitution?.FirstOrDefault() ?? null;
-            if (!_currentState.IsDefined(parameterDefinition))
-            {
-                _currentState = _currentState.DefineParameter(parameterDefinition);
-                return false;
-            }
-
-            return substitution != null;
-        }
-
-        internal bool RequireMultiParameter(string request, out IEnumerable<Concept2> parameter, IEnumerable<Concept2> domain = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal void SetValue(PointableInstance target, PointableInstance index, PointableInstance value)
-        {
-            _currentState = _currentState.SetIndexValue(target, index, value);
+            _currentState = _currentState.SetPropertyValue(target, index, value);
         }
 
         internal IEnumerable<Concept2> GetCriterions(DatabaseHandler database)

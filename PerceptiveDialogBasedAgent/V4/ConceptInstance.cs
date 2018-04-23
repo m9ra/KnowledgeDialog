@@ -11,15 +11,16 @@ namespace PerceptiveDialogBasedAgent.V4
     {
         internal readonly Concept2 Concept;
 
+        private ConceptInstance(ConceptInstance parentInstance)
+            : base(parentInstance.ActivationPhrase)
+        {
+            Concept = parentInstance.Concept;
+        }
+
         internal ConceptInstance(Concept2 concept, Phrase activationPhrase = null)
             : base(activationPhrase)
         {
             Concept = concept;
-        }
-
-        internal override IEnumerable<PointableInstance> GetPropertyValue(Concept2 property)
-        {
-            return Concept.GetPropertyValue(property);
         }
 
         internal override string ToPrintable()

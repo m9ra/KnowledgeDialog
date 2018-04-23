@@ -13,7 +13,7 @@ namespace PerceptiveDialogBasedAgent.V4
 
         internal abstract IEnumerable<RankedPointing> GetForwardings(ConceptInstance forwardedConcept, BodyState2 state);
 
-        internal abstract BodyState2 AddSubstitution(BodyState2 state, ConceptParameter parameter, ConceptInstance value);
+        internal abstract BodyState2 AddSubstitution(BodyState2 state, ConceptInstance container, Concept2 parameter, ConceptInstance value);
 
         internal abstract string StateReaction(BodyState2 state, out BodyState2 finalState);
 

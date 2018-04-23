@@ -101,7 +101,16 @@
     <Compile Include="V3\ContextBeam.cs" />
     <Compile Include="V3\Experiments.cs" />
     <Compile Include="V4\AllowedPointableBaseConstraint.cs" />
+    <Compile Include="V4\Brain\ActionManagerPlanProvider.cs" />
+    <Compile Include="V4\Brain\InstanceContext.cs" />
+    <Compile Include="V4\Brain\MindEvaluationContext.cs" />
     <Compile Include="V4\Configuration.cs" />
+    <Compile Include="V4\Brain\Mind.cs" />
+    <Compile Include="V4\Brain\MindState.cs" />
+    <Compile Include="V4\Brain\PlanProvider.cs" />
+    <Compile Include="V4\Brain\SubstitutionPoint.cs" />
+    <Compile Include="V4\Models\EventBasedNLG.cs" />
+    <Compile Include="V4\Models\MindBasedModel.cs" />
     <Compile Include="V4\Phrase.cs" />
     <Compile Include="V3\Models\HandcraftedStrategy.cs" />
     <Compile Include="V3\Models\ScoreModelBase.cs" />
@@ -115,12 +124,12 @@
     <Compile Include="V4\BodyState2.cs" />
     <Compile Include="V4\Concept2.cs" />
     <Compile Include="V4\ConceptInstance.cs" />
-    <Compile Include="V4\ConceptParameter.cs" />
     <Compile Include="V4\Experiments.cs" />
     <Compile Include="V4\Models\HandcraftedModel.cs" />
     <Compile Include="V4\ParameterRequirement.cs" />
     <Compile Include="V4\PointableInstance.cs" />
     <Compile Include="V4\PointingModelBase.cs" />
+    <Compile Include="V4\PropertyContainer.cs" />
     <Compile Include="V4\RankedPointing.cs" />
     <Compile Include="V4\StateBeam.cs" />
   </ItemGroup>

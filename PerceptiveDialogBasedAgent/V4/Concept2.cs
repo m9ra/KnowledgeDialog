@@ -8,11 +8,18 @@ namespace PerceptiveDialogBasedAgent.V4
 {
     class Concept2
     {
+        public readonly static Concept2 NativeAction = Concept("native action").AddDescription("Describes action that agent can do");
+        public readonly static Concept2 Something = Concept("something").AddDescription("placeholder for some concept");
+        public readonly static Concept2 Parameter = Concept("parameter").AddDescription("represents parameter of an action");
+        public readonly static Concept2 Yes = Concept("yes").AddDescription("positive answer to a question");
+        public readonly static Concept2 No = Concept("no").AddDescription("negative answer to a question");
+        public readonly static Concept2 Output = Concept("output");
+
         public readonly string Name;
 
         public readonly bool IsNative;
 
-        internal readonly BodyAction2 Action;
+        internal readonly MindAction Action;
 
         internal IEnumerable<Concept2> Properties => _propertyValues.Keys;
 
@@ -20,29 +27,33 @@ namespace PerceptiveDialogBasedAgent.V4
 
         private readonly List<string> _descriptions = new List<string>();
 
-        private readonly Dictionary<Concept2, HashSet<PointableInstance>> _propertyValues = new Dictionary<Concept2, HashSet<PointableInstance>>();
+        private readonly Dictionary<Concept2, PointableInstance> _propertyValues = new Dictionary<Concept2, PointableInstance>();
 
-        public Concept2(string name, BodyAction2 action, bool isNative)
+        public Concept2(string name, MindAction action, bool isNative)
         {
             Name = name;
             Action = action;
             IsNative = isNative;
         }
 
-        public void AddDescription(string description)
+        public Concept2 AddDescription(string description)
         {
             _descriptions.Add(description);
+
+            return this;
         }
 
-        public void AddPropertyValue(Concept2 property, PointableInstance value)
+        public static Concept2 Concept(string name)
         {
-            if (!_propertyValues.TryGetValue(property, out var valueSet))
-                _propertyValues[property] = valueSet = new HashSet<PointableInstance>();
-
-            valueSet.Add(value);
+            return new Concept2(name, null, true);
         }
 
-        internal IEnumerable<PointableInstance> GetPropertyValue(Concept2 property)
+        public void SetPropertyValue(Concept2 property, PointableInstance value)
+        {
+            _propertyValues[property] = value;
+        }
+
+        internal PointableInstance GetPropertyValue(Concept2 property)
         {
             _propertyValues.TryGetValue(property, out var values);
             return values;

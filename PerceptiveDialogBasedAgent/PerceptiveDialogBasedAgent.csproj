@@ -101,7 +101,6 @@
     <Compile Include="V3\ContextBeam.cs" />
     <Compile Include="V3\Experiments.cs" />
     <Compile Include="V4\AllowedPointableBaseConstraint.cs" />
-    <Compile Include="V4\Brain\ActionManagerPlanProvider.cs" />
     <Compile Include="V4\Brain\InstanceContext.cs" />
     <Compile Include="V4\Brain\MindEvaluationContext.cs" />
     <Compile Include="V4\Configuration.cs" />

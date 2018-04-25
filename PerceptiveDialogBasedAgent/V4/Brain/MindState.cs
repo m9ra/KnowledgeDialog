@@ -10,28 +10,23 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
     {
         private readonly Dictionary<MindField, object> _stateValues;
 
-        private readonly List<PlanProvider> _planProviders;
+        internal readonly IEnumerable<ConceptInstance> Events;
+
+        internal readonly ConceptInstance WorkingMemoryRoot;
 
         internal readonly PropertyContainer PropertyContainer;
 
         internal readonly double Score;
 
-        private MindState(MindState previousState, double extraScore = 0, Dictionary<MindField, object> stateValues = null, List<PlanProvider> planProviders = null, PropertyContainer container = null)
+        private MindState(MindState previousState, double extraScore = 0, Dictionary<MindField, object> stateValues = null, PropertyContainer container = null, IEnumerable<ConceptInstance> events = null, ConceptInstance workingMemoryRoot = null)
         {
             var score = previousState?.Score ?? 0;
 
             Score = score + extraScore;
             PropertyContainer = container ?? previousState.PropertyContainer;
             _stateValues = stateValues ?? previousState._stateValues;
-            _planProviders = planProviders ?? previousState._planProviders;
-        }
-
-        internal MindState AddPlanProvider(PlanProvider planProvider)
-        {
-            var newPlanProviders = new List<PlanProvider>(_planProviders);
-            newPlanProviders.Add(planProvider);
-
-            return new MindState(this, planProviders: newPlanProviders);
+            WorkingMemoryRoot = workingMemoryRoot ?? previousState?.WorkingMemoryRoot;
+            Events = events ?? previousState.Events;
         }
 
         internal MindState AddScore(double extraScore)
@@ -39,15 +34,29 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
             return new MindState(this, extraScore: extraScore);
         }
 
-        internal PointableInstance GetPropertyValue(PointableInstance instance, Concept2 parameter)
+        internal PointableInstance GetPropertyValue(PointableInstance instance, Concept2 property)
         {
-            return PropertyContainer.GetPropertyValue(instance, parameter);
+            return PropertyContainer.GetPropertyValue(instance, property);
         }
 
-        internal MindState SetPropertyValue(PointableInstance instance, Concept2 parameter, Concept2 value)
+        internal MindState SetPropertyValue(PointableInstance instance, Concept2 property, Concept2 value)
         {
-            var newContainer = PropertyContainer.SetPropertyValue(instance, parameter, value);
+            var newContainer = PropertyContainer.SetPropertyValue(instance, property, value);
             return new MindState(this, container: newContainer);
+        }
+
+        internal MindState SetPropertyValue(PointableInstance instance, Concept2 property, PointableInstance value)
+        {
+            var newContainer = PropertyContainer.SetPropertyValue(instance, property, value);
+            return new MindState(this, container: newContainer);
+        }
+
+        internal MindState AddEvent(ConceptInstance evt)
+        {
+            var newEvents = new List<ConceptInstance>(Events);
+            newEvents.Add(evt);
+
+            return new MindState(this, events: newEvents);
         }
 
         internal MindState Import(PointableInstance instance, PropertyContainer container)
@@ -61,9 +70,14 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
             return PropertyContainer.GetProperties(instance);
         }
 
-        internal static MindState Empty()
+        internal IEnumerable<Concept2> GetAvailableParameters(ConceptInstance instance)
         {
-            return new MindState(null, extraScore: 0, stateValues: new Dictionary<MindField, object>(), planProviders: new List<PlanProvider>(), container: new PropertyContainer());
+            return PropertyContainer.GetAvailableParameters(instance);
+        }
+
+        internal static MindState Empty(ConceptInstance workingMemoryRoot)
+        {
+            return new MindState(null, extraScore: 0, stateValues: new Dictionary<MindField, object>(), container: new PropertyContainer(), events: new ConceptInstance[0], workingMemoryRoot: workingMemoryRoot);
         }
 
         internal MindState SetValue<T>(MindField field, T value)
@@ -82,14 +96,30 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
 
         internal IEnumerable<SubstitutionPoint> GetSubstitutionPoints()
         {
-            //TODO substition points for all the providers with decaying weight should be here.
-            var providerWeight = 1.0; //reflects actuality of the topic
-            return _planProviders.Last().GenerateSubstitutionPoints(this, providerWeight);
+            //traverse working memory tree and find missing parameters
+            return collectSubstitutionPoints(WorkingMemoryRoot);
         }
 
-        internal PlanProvider GetActivePlanProvider()
+        private IEnumerable<SubstitutionPoint> collectSubstitutionPoints(ConceptInstance instance)
         {
-            return _planProviders.LastOrDefault();
+            var result = new List<SubstitutionPoint>();
+            foreach (var property in GetProperties(instance))
+            {
+                if (!PropertyContainer.IsParameter(property))
+                    continue;
+
+                var value = PropertyContainer.GetPropertyValue(instance, property) as ConceptInstance;
+                if (PropertyContainer.HasParameterSubstitution(instance, property))
+                {
+                    result.AddRange(collectSubstitutionPoints(value));
+                }
+                else
+                {
+                    result.Add(new SubstitutionPoint(instance, property, value, this, 0.1));//TODO consider
+                }
+            }
+
+            return result;
         }
     }
 

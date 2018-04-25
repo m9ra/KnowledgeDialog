@@ -12,7 +12,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 {
     class HandcraftedModel : PointingModelBase
     {
-        private readonly Body _body;
+        protected readonly Body _body;
 
         private readonly Random _rnd = new Random();
 

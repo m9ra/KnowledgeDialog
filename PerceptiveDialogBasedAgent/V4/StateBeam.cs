@@ -158,7 +158,7 @@ namespace PerceptiveDialogBasedAgent.V4
         private IEnumerable<BodyState2> evaluateParameterChange(PointableInstance pointableInstance, BodyState2 state)
         {
             var instance = pointableInstance as ConceptInstance;
-            if (instance == null || instance.Concept.Action == null)
+            if (instance == null || instance.Concept.OnParametersComplete == null)
                 return new[] { state };
 
             var context = new BodyContext2(instance, _body, state);

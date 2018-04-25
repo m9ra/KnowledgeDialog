@@ -11,16 +11,10 @@ namespace PerceptiveDialogBasedAgent.V4
     {
         internal readonly Concept2 Concept;
 
-        private ConceptInstance(ConceptInstance parentInstance)
-            : base(parentInstance.ActivationPhrase)
-        {
-            Concept = parentInstance.Concept;
-        }
-
         internal ConceptInstance(Concept2 concept, Phrase activationPhrase = null)
             : base(activationPhrase)
         {
-            Concept = concept;
+            Concept = concept ?? throw new ArgumentNullException(nameof(concept));
         }
 
         internal override string ToPrintable()

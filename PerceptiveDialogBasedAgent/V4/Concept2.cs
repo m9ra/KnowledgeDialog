@@ -8,18 +8,27 @@ namespace PerceptiveDialogBasedAgent.V4
 {
     class Concept2
     {
+        public readonly static Concept2 InstanceOf = Concept("instance of");
+        public readonly static Concept2 NewTurn = Concept("new turn");
+        public readonly static Concept2 NotFoundEvent = Concept("not found");
+        public readonly static Concept2 CompleteAction = Concept("complete action");
         public readonly static Concept2 NativeAction = Concept("native action").AddDescription("Describes action that agent can do");
         public readonly static Concept2 Something = Concept("something").AddDescription("placeholder for some concept");
         public readonly static Concept2 Parameter = Concept("parameter").AddDescription("represents parameter of an action");
         public readonly static Concept2 Yes = Concept("yes").AddDescription("positive answer to a question");
         public readonly static Concept2 No = Concept("no").AddDescription("negative answer to a question");
         public readonly static Concept2 Output = Concept("output");
+        public readonly static Concept2 Subject = Concept("subject").SetPropertyValue(Parameter, new ConceptInstance(Yes));
+
+
 
         public readonly string Name;
 
         public readonly bool IsNative;
 
-        internal readonly MindAction Action;
+        internal readonly MindAction OnParametersComplete;
+
+        internal readonly MindAction OnExecution;
 
         internal IEnumerable<Concept2> Properties => _propertyValues.Keys;
 
@@ -29,10 +38,12 @@ namespace PerceptiveDialogBasedAgent.V4
 
         private readonly Dictionary<Concept2, PointableInstance> _propertyValues = new Dictionary<Concept2, PointableInstance>();
 
-        public Concept2(string name, MindAction action, bool isNative)
+
+        public Concept2(string name, MindAction onParametersComplete, MindAction onExecution, bool isNative)
         {
             Name = name;
-            Action = action;
+            OnParametersComplete = onParametersComplete;
+            OnExecution = onExecution;
             IsNative = isNative;
         }
 
@@ -45,12 +56,13 @@ namespace PerceptiveDialogBasedAgent.V4
 
         public static Concept2 Concept(string name)
         {
-            return new Concept2(name, null, true);
+            return new Concept2(name, null, null, true);
         }
 
-        public void SetPropertyValue(Concept2 property, PointableInstance value)
+        public Concept2 SetPropertyValue(Concept2 property, PointableInstance value)
         {
             _propertyValues[property] = value;
+            return this;
         }
 
         internal PointableInstance GetPropertyValue(Concept2 property)

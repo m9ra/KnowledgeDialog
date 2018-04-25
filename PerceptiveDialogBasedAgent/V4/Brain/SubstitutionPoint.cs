@@ -8,7 +8,9 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
 {
     class SubstitutionPoint
     {
-        internal readonly PlanProvider Owner;
+        internal readonly ConceptInstance Target;
+
+        internal readonly Concept2 TargetProperty;
 
         internal readonly MindState State;
 
@@ -16,9 +18,10 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
 
         internal readonly double SubstitutionScore;
 
-        public SubstitutionPoint(ActionManagerPlanProvider actionRequester, ConceptInstance pattern, MindState mindState, double substitutionScore)
+        public SubstitutionPoint(ConceptInstance target, Concept2 targetProperty, ConceptInstance pattern, MindState mindState, double substitutionScore)
         {
-            Owner = actionRequester;
+            Target = target;
+            TargetProperty = targetProperty;
             Pattern = pattern;
             State = mindState;
             SubstitutionScore = substitutionScore;
@@ -29,8 +32,14 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
             if (!State.PropertyContainer.MeetsPattern(instance, Pattern))
                 return null;
 
-            var substitutedState = Owner.Substitute(instance, State);
-            return substitutedState.AddScore(SubstitutionScore);
+            var newState = State.SetPropertyValue(Target, TargetProperty, instance);
+            if (newState.GetAvailableParameters(Target).Any())
+                return newState;
+
+            //Target substitution is complete - lets call it (TODO resolve child/parent call deps)
+            var context = new MindEvaluationContext(Target, newState);
+            var resultState = context.EvaluateOnParametersComplete();
+            return resultState.AddScore(SubstitutionScore);
         }
 
     }

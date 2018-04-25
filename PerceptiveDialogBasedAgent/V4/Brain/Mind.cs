@@ -32,6 +32,19 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
             _currentBeam.Add(mindState);
         }
 
+        internal void NewTurnEvent()
+        {
+            var evt = new ConceptInstance(Concept2.NewTurn);
+
+            var newStates = new List<MindState>();
+            foreach (var state in _currentBeam)
+            {
+                newStates.Add(state.AddEvent(evt));
+            }
+            _currentBeam.Clear();
+            _currentBeam.AddRange(newStates);
+        }
+
         internal IEnumerable<MindState> expand(MindState state, IEnumerable<PointableInstance> instances, PropertyContainer container)
         {
             var currentStates = new List<MindState>();

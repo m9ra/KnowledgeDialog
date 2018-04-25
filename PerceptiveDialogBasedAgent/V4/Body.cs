@@ -30,22 +30,25 @@ namespace PerceptiveDialogBasedAgent.V4
 
         internal readonly PointingModelBase Model;
 
+        internal readonly ConceptInstance RootConcept;
+
         internal Body()
         {
             Log.Writeln("================================================================");
             RestaurantDb = V2.RestaurantAgent.CreateRestaurantDatabase();
-            //Model = new HandcraftedModel(this);
-            Model = new MindBasedModel(this);
-            _beam = new StateBeam(this);
 
 
             _concepts.AddRange(new[]
             {
-                Concept2.Something,Concept2.Yes, Concept2.No, Concept2.Parameter, Concept2.NativeAction
+                Concept2.Something,Concept2.Yes, Concept2.No, Concept2.Parameter, Concept2.NativeAction, Concept2.Subject
             });
 
-
             this
+            .Concept("action")
+                .SetProperty(Concept2.Parameter, Concept2.Yes)
+
+            .Concept("policy", onParametersComplete: _policy)
+                .SetProperty("action", Concept2.Something) //TODO set pattern
 
             .Concept("dont know")
                 .Description("I have no idea")
@@ -54,10 +57,7 @@ namespace PerceptiveDialogBasedAgent.V4
             .Concept("current time")
                 .Description("time on the system's clock")
 
-            .Concept("subject")
-                .SetProperty(Concept2.Parameter, Concept2.Yes)
-
-            .Concept("find", _findRestaurant)
+            .Concept("find", onExecution: _findRestaurant)
                 .SetProperty("subject", Concept2.Something)
                 .Description("looking up restaurant")
                 .Description("restaurant search")
@@ -143,8 +143,13 @@ namespace PerceptiveDialogBasedAgent.V4
             ;
 
             LastFinishedState = BodyState2.Empty();
+            RootConcept = new ConceptInstance(GetConcept("policy"));
 
-            Register(RestaurantDb);
+            Register(RestaurantDb, GetConcept("restaurant"));
+
+            //Model = new HandcraftedModel(this);
+            Model = new MindBasedModel(this);
+            _beam = new StateBeam(this);
         }
 
         private Body SetProperty(string propertyName, string propertyValue)
@@ -191,6 +196,7 @@ namespace PerceptiveDialogBasedAgent.V4
             Log.DialogUtterance("U: " + phrase);
             var bestState = InputTransition(_beam.BodyStates, phrase);
             var output = Model.StateReaction(bestState, out var finalState);
+            Log.DialogUtterance("S: " + output);
 
             _beam.SetBeam(finalState);
 
@@ -213,9 +219,10 @@ namespace PerceptiveDialogBasedAgent.V4
             return bestState;
         }
 
-        internal void Register(DatabaseHandler database)
+        internal void Register(DatabaseHandler database, Concept2 rowClass = null)
         {
             var properties = new Dictionary<string, Concept2>();
+            var rowClassInstance = rowClass == null ? null : new ConceptInstance(rowClass);
             foreach (var row in database.GetDump())
             {
                 Concept("the " + row["name"])
@@ -244,6 +251,8 @@ namespace PerceptiveDialogBasedAgent.V4
 
                     //TODO think about instance creation
                     rowConcept.SetPropertyValue(propertyConcept, new ConceptInstance(_currentConcept));
+                    if (rowClass != null)
+                        rowConcept.SetPropertyValue(Concept2.InstanceOf, rowClassInstance);
                 }
             }
 
@@ -275,21 +284,21 @@ namespace PerceptiveDialogBasedAgent.V4
             return result.FirstOrDefault();
         }
 
-        internal Body Concept(string conceptName, MindAction action = null, bool isNative = true)
+        internal Body Concept(string conceptName, MindAction onParametersComplete = null, MindAction onExecution = null, bool isNative = true)
         {
             var existingConcept = GetConcept(conceptName);
             if (existingConcept == null)
             {
-                _currentConcept = new Concept2(conceptName, action, isNative);
+                _currentConcept = new Concept2(conceptName, onParametersComplete, onExecution, isNative);
                 _concepts.Add(_currentConcept);
-                Model.OnConceptChange();
+                Model?.OnConceptChange();
             }
             else
             {
                 _currentConcept = existingConcept;
             }
 
-            if (action != null)
+            if (onParametersComplete != null)
                 _currentConcept.SetPropertyValue(Concept2.NativeAction, new ConceptInstance(Concept2.Something));
 
             return this;
@@ -300,6 +309,15 @@ namespace PerceptiveDialogBasedAgent.V4
             _currentConcept.AddDescription(description);
             //Model.OnConceptChange();
             return this;
+        }
+
+        private void _policy(MindEvaluationContext context)
+        {
+            var action = context.GetParameter(GetConcept("action"));
+            if (action == null)
+                throw new NotSupportedException("In which cases this could happen?");
+
+            context.SetProperty(Concept2.CompleteAction, action);
         }
 
         private void _print(MindEvaluationContext context)
@@ -314,7 +332,7 @@ namespace PerceptiveDialogBasedAgent.V4
 
         private void _findRestaurant(MindEvaluationContext context)
         {
-            var constraint = context.GetParameter(GetConcept("subject"));
+            var constraint = context.GetParameter(Concept2.Subject);
             var constraintConcept = (constraint as ConceptInstance)?.Concept;
             if (constraintConcept == null)
                 throw new NotImplementedException();
@@ -333,7 +351,19 @@ namespace PerceptiveDialogBasedAgent.V4
                 }
             }
 
-            throw new NotImplementedException();
+            if (result.Count == 0)
+            {
+                context.Event(Concept2.NotFoundEvent, Concept2.Subject, constraint);
+            }
+            else if (result.Count == 1)
+            {
+                context.OutputEvent(new ConceptInstance(result.First()));
+            }
+            else
+            {
+                throw new NotImplementedException("How to report result? Maybe reporting is not needed here. Limitation can be part of the output handler.");
+                //context.Event(Concept2.Select, Concept2.Subject, );
+            }
         }
 
         private IEnumerable<string> getCriterionColumns(PointableInstance criterion, DatabaseHandler database)

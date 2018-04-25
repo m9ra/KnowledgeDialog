@@ -69,7 +69,7 @@ namespace PerceptiveDialogBasedAgent.V4
 
         internal IEnumerable<Concept2> GetProperties(PointableInstance instance)
         {
-            var result = new List<Concept2>();
+            var result = new HashSet<Concept2>();
             foreach (var key in _propertyValues.Keys)
             {
                 if (key.Item1 == instance)
@@ -78,7 +78,24 @@ namespace PerceptiveDialogBasedAgent.V4
 
             var conceptInstance = instance as ConceptInstance;
             if (conceptInstance != null)
-                result.AddRange(conceptInstance.Concept.Properties);
+                result.UnionWith(conceptInstance.Concept.Properties);
+
+            return result;
+        }
+
+        internal IEnumerable<Concept2> GetAvailableParameters(ConceptInstance instance)
+        {
+            var result = new List<Concept2>();
+            foreach (var property in GetProperties(instance))
+            {
+                if (!IsParameter(property))
+                    continue;
+
+                if (HasParameterSubstitution(instance, property))
+                    continue;
+
+                result.Add(property);
+            }
 
             return result;
         }
@@ -87,6 +104,16 @@ namespace PerceptiveDialogBasedAgent.V4
         {
             var value = property.GetPropertyValue(Concept2.Parameter) as ConceptInstance;
             return value?.Concept == Concept2.Yes;
+        }
+
+        internal bool HasParameterSubstitution(PointableInstance instance, Concept2 parameter)
+        {
+            var conceptInstance = instance as ConceptInstance;
+            if (conceptInstance is null)
+                throw new NotImplementedException();
+
+            var currentValue = GetPropertyValue(instance, parameter);
+            return currentValue != conceptInstance.Concept.GetPropertyValue(parameter);
         }
 
         internal bool MeetsPattern(PointableInstance instance, ConceptInstance pattern)

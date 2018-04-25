@@ -13,14 +13,12 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         private readonly EventBasedNLG _nlg = new EventBasedNLG();
 
-        private readonly ActionManagerPlanProvider _actionRequester;
+        private readonly ConceptInstance _actionRequester;
 
         internal MindBasedModel(Body body) : base(body)
         {
-            _actionRequester = new ActionManagerPlanProvider(body);
-
-            var mindState = MindState.Empty();
-            mindState = mindState.AddPlanProvider(_actionRequester);
+            _actionRequester = body.RootConcept;
+            var mindState = MindState.Empty(_actionRequester);
 
             _mind = new Mind();
             _mind.SetBeam(mindState);
@@ -30,6 +28,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
         {
             LogState(state);
 
+            _mind.NewTurnEvent();
             _mind.Accept(state.ActiveConcepts, state.PropertyContainer);
             var bestMindState = _mind.BestState;
 
@@ -45,7 +44,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             else
             {
                 //no useful input was given
-                newMindState = askForMissingInformation(bestMindState, state);
+                newMindState = askExplorativeQuestion(bestMindState, state);
             }
 
             finalState = BodyState2.Empty();
@@ -65,11 +64,10 @@ namespace PerceptiveDialogBasedAgent.V4.Models
         private MindState askForMoreInformation(MindState bestMindState, BodyState2 state)
         {
             //get the top provider
-            var provider = bestMindState.GetActivePlanProvider();
-            return provider.GenerateQuestion(bestMindState);
+            throw new NotImplementedException();
         }
 
-        private MindState askForMissingInformation(MindState mindState, BodyState2 bodyState)
+        private MindState askExplorativeQuestion(MindState mindState, BodyState2 bodyState)
         {
             //event: input not helpful
             //retry question
@@ -79,13 +77,28 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         private MindState executeCompleteActions(MindState bestMindState)
         {
-            var actions = getCompleteActions(bestMindState);
+            var currentState = bestMindState;
+            var actions = getCompleteActions(currentState).ToArray();
             foreach (var action in actions)
             {
-                V2.Log.Writeln("TODO Missing execution for: " + action);
+                V2.Log.Writeln("Executing: " + action, V2.Log.ExecutedCommandColor);
+                if (action.Concept.OnExecution == null)
+                    continue;
+
+                var context = new MindEvaluationContext(action, currentState);
+                currentState = context.EvaluateOnExecution();
             }
 
-            return bestMindState.SetValue<ConceptInstance>(_actionRequester.CompleteActions, null);
+            V2.Log.Writeln("EVENTS", V2.Log.HeadlineColor);
+            V2.Log.Indent();
+            foreach (var evt in currentState.Events)
+            {
+                V2.Log.Writeln(evt.ToString(), V2.Log.ItemColor);
+            }
+            V2.Log.Dedent();
+
+
+            return currentState.SetPropertyValue(_actionRequester, Concept2.CompleteAction, (PointableInstance)null);
         }
 
         private bool hasCompleteActions(MindState state)
@@ -95,11 +108,9 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         private IEnumerable<ConceptInstance> getCompleteActions(MindState state)
         {
-            var actions = state.GetValue(_actionRequester.CompleteActions);
-            if (actions == null)
-                return Enumerable.Empty<ConceptInstance>();
-
-            return actions;
+            var action = state.GetPropertyValue(_actionRequester, Concept2.CompleteAction) as ConceptInstance;
+            if (action != null)
+                yield return action;
         }
     }
 }

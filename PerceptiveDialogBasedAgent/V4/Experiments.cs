@@ -21,6 +21,14 @@ namespace PerceptiveDialogBasedAgent.V4
             body.Input("find an expensive restaurant");
         }
 
+        public static void RefinementRestaurantSearch()
+        {
+            var b = new Body();
+            b.Input("find a restaurant");
+            //I know many restaurants
+            b.Input("some expensive");
+        }
+
         public static void LuxuryRestaurantSearch()
         {
             var b = new Body();

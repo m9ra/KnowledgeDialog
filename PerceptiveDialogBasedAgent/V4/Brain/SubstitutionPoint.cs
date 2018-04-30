@@ -29,15 +29,35 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
 
         internal MindState Substitute(PointableInstance instance)
         {
-            if (!State.PropertyContainer.MeetsPattern(instance, Pattern))
+            if (!State.PropertyContainer.MeetsPattern(instance, Pattern) || instance == Target)
                 return null;
 
-            var newState = State.SetPropertyValue(Target, TargetProperty, instance);
+            var newState = State;
+            var context = new MindEvaluationContext(Target, newState);
+
+            if (TargetProperty == Concept2.Something)
+            {
+                //we have to find the property first - this can cause state expansion
+                var conceptInstance = instance as ConceptInstance;
+                if (conceptInstance == null)
+                    throw new NotImplementedException();
+
+                var properties = context.GetPropertiesUsedFor(conceptInstance.Concept);
+                if (properties.Count() != 1)
+                    throw new NotImplementedException("Property expansion");
+
+                context.SetProperty(Target, properties.First(), instance);
+            }
+            else
+            {
+                context.SetProperty(Target, TargetProperty, instance);
+            }
+            newState = context.EvaluateOnPropertyChange();
+
             if (newState.GetAvailableParameters(Target).Any())
                 return newState;
 
             //Target substitution is complete - lets call it (TODO resolve child/parent call deps)
-            var context = new MindEvaluationContext(Target, newState);
             var resultState = context.EvaluateOnParametersComplete();
             return resultState.AddScore(SubstitutionScore);
         }

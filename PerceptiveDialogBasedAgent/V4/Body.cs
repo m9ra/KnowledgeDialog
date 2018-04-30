@@ -47,7 +47,7 @@ namespace PerceptiveDialogBasedAgent.V4
             .Concept("action")
                 .SetProperty(Concept2.Parameter, Concept2.Yes)
 
-            .Concept("policy", onParametersComplete: _policy)
+            .Concept("policy", onPropertyChange: _policy)
                 .SetProperty("action", Concept2.Something) //TODO set pattern
 
             .Concept("dont know")
@@ -284,12 +284,12 @@ namespace PerceptiveDialogBasedAgent.V4
             return result.FirstOrDefault();
         }
 
-        internal Body Concept(string conceptName, MindAction onParametersComplete = null, MindAction onExecution = null, bool isNative = true)
+        internal Body Concept(string conceptName, MindAction onParametersComplete = null, MindAction onExecution = null, MindAction onPropertyChange = null, bool isNative = true)
         {
             var existingConcept = GetConcept(conceptName);
             if (existingConcept == null)
             {
-                _currentConcept = new Concept2(conceptName, onParametersComplete, onExecution, isNative);
+                _currentConcept = new Concept2(conceptName, onParametersComplete, onExecution, onPropertyChange, isNative);
                 _concepts.Add(_currentConcept);
                 Model?.OnConceptChange();
             }
@@ -298,7 +298,7 @@ namespace PerceptiveDialogBasedAgent.V4
                 _currentConcept = existingConcept;
             }
 
-            if (onParametersComplete != null)
+            if (onParametersComplete != null || onPropertyChange != null || onExecution != null)
                 _currentConcept.SetPropertyValue(Concept2.NativeAction, new ConceptInstance(Concept2.Something));
 
             return this;
@@ -332,28 +332,36 @@ namespace PerceptiveDialogBasedAgent.V4
 
         private void _findRestaurant(MindEvaluationContext context)
         {
-            var constraint = context.GetParameter(Concept2.Subject);
-            var constraintConcept = (constraint as ConceptInstance)?.Concept;
-            if (constraintConcept == null)
+            var pattern = context.GetParameter(Concept2.Subject) as ConceptInstance;
+            var patternConcept = pattern?.Concept;
+            if (patternConcept == null)
                 throw new NotImplementedException();
+
+            if (patternConcept != Concept2.Something)
+            {
+                var properties = context.GetPropertiesUsedFor(patternConcept);
+                if (properties.Count() != 1)
+                    throw new NotImplementedException("Split into multiple states");
+
+                var property = properties.First();
+                //we expect top concept to be an empty placeholder
+                var newPattern = new ConceptInstance(Concept2.Something);
+                context.SetProperty(newPattern, property, pattern);
+                context.SetProperty(Concept2.Subject, newPattern);
+                pattern = newPattern;
+            }
 
             var result = new HashSet<Concept2>();
             foreach (var concept in Concepts)
             {
-                foreach (var property in concept.Properties)
-                {
-                    var propertyValue = (concept.GetPropertyValue(property) as ConceptInstance)?.Concept;
-                    if (propertyValue == constraintConcept)
-                    {
-                        result.Add(concept);
-                        break;
-                    }
-                }
+                var instance = new ConceptInstance(concept);
+                if (context.MeetsPattern(instance, pattern))
+                    result.Add(concept);
             }
 
             if (result.Count == 0)
             {
-                context.Event(Concept2.NotFoundEvent, Concept2.Subject, constraint);
+                context.Event(Concept2.NotFoundEvent, Concept2.Subject, pattern);
             }
             else if (result.Count == 1)
             {
@@ -361,8 +369,10 @@ namespace PerceptiveDialogBasedAgent.V4
             }
             else
             {
-                throw new NotImplementedException("How to report result? Maybe reporting is not needed here. Limitation can be part of the output handler.");
-                //context.Event(Concept2.Select, Concept2.Subject, );
+                var ambiguousEvt = new ConceptInstance(Concept2.NeedsRefinement);
+                context.SetProperty(ambiguousEvt, Concept2.Target, pattern);
+
+                context.Event(ambiguousEvt);
             }
         }
 

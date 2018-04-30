@@ -11,14 +11,15 @@ namespace PerceptiveDialogBasedAgent.V4.Models
     {
         private readonly Mind _mind;
 
-        private readonly EventBasedNLG _nlg = new EventBasedNLG();
+        private readonly EventBasedNLG _nlg;
 
         private readonly ConceptInstance _actionRequester;
 
         internal MindBasedModel(Body body) : base(body)
         {
+            _nlg = new EventBasedNLG(body);
             _actionRequester = body.RootConcept;
-            var mindState = MindState.Empty(_actionRequester);
+            var mindState = MindState.Empty(body, _actionRequester);
 
             _mind = new Mind();
             _mind.SetBeam(mindState);

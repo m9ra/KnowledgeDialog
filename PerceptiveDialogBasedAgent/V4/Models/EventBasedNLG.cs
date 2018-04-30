@@ -17,6 +17,8 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         private readonly Random _rnd = new Random();
 
+        private readonly Body _body;
+
         private ConceptInstance[] _processedEvents;
 
         private MindState _processedState;
@@ -25,11 +27,16 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         private PatternBasedGenerator _currentGenerator = null;
 
-        internal EventBasedNLG()
+        internal EventBasedNLG(Body body)
         {
+            _body = body;
+
             this
                 .ForPattern(Concept2.Output)
                     .Output(simpleOutput)
+
+                .ForPattern(Concept2.NeedsRefinement)
+                    .Output(refinement)
 
                 .ForPattern(Concept2.NotFoundEvent)
                     .Output(notFound)
@@ -50,6 +57,101 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
             yield return "I know " + outputRepresentation;
             yield return "I think, you want " + outputRepresentation;
+        }
+
+        private IEnumerable<string> refinement()
+        {
+            var ambiguousConstraint = getEventProperty(Concept2.Target);
+            var constraintSpecification = getConstraintDescription(ambiguousConstraint);
+            constraintSpecification = getPlural(constraintSpecification);
+
+            yield return "I know many " + constraintSpecification + ", could you be more specific?";
+        }
+
+        private string getConstraintDescription(PointableInstance instance)
+        {
+            var conceptInstance = instance as ConceptInstance;
+            if (conceptInstance is null || conceptInstance.Concept != Concept2.Something)
+                return instance.ToPrintable();
+
+            var description = getPropertyValue(conceptInstance, Concept2.InstanceOf)?.ToPrintable();
+            if (description == null)
+                description = "thing";
+
+            //collect modifiers
+            foreach (var property in _processedState.GetProperties(instance))
+            {
+                if (property == Concept2.InstanceOf)
+                    continue;
+
+                var modifier = getPropertyValue(instance, property).ToPrintable();
+                description = modifier + " " + description;
+            }
+
+            return description;
+        }
+
+        private PointableInstance getPropertyValue(PointableInstance instance, Concept2 property)
+        {
+            return _processedState.GetPropertyValue(instance, property);
+        }
+
+        private string getPlural(PointableInstance instance)
+        {
+            var printable = instance.ToPrintable();
+            return getPlural(printable);
+        }
+
+        private static string getPlural(string printable)
+        {
+            var endChar = printable.Last();
+
+            var esLetters = new[] { 's' };
+            if (esLetters.Contains(endChar))
+                return printable + "es";
+
+            return printable + "s";
+        }
+
+        private bool isPropertyValue(PointableInstance instance)
+        {
+            var conceptInstance = instance as ConceptInstance;
+            if (conceptInstance == null)
+                return false;
+
+            foreach (var concept in _body.Concepts)
+            {
+                foreach (var property in concept.Properties)
+                {
+                    var value = concept.GetPropertyValue(property);
+                    if (value == instance)
+                        return true;
+
+                    var conceptValue = value as ConceptInstance;
+                    if (conceptValue != null && conceptValue.Concept == concept)
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool isProperty(PointableInstance instance)
+        {
+            var conceptInstance = instance as ConceptInstance;
+            if (conceptInstance == null)
+                return false;
+
+            foreach (var concept in _body.Concepts)
+            {
+                foreach (var property in concept.Properties)
+                {
+                    if (property == conceptInstance.Concept)
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         private PointableInstance getEventProperty(Concept2 property)
@@ -102,7 +204,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
                     break;
 
             // generate response parts
-            for (_currentEventIndex = 0; _currentEventIndex < _processedEvents.Length; ++_currentEventIndex)
+            for (; _currentEventIndex < _processedEvents.Length; ++_currentEventIndex)
             {
                 foreach (var generator in _generators)
                 {

@@ -55,6 +55,17 @@ namespace PerceptiveDialogBasedAgent.V4
             return result;
         }
 
+        internal ConceptInstance GetParentConcept(ConceptInstance instance)
+        {
+            foreach (var property in _propertyValues)
+            {
+                if (property.Value == instance)
+                    return property.Key.Item1 as ConceptInstance;
+            }
+
+            return null;
+        }
+
         internal PropertyContainer Import(PointableInstance instance, PropertyContainer container)
         {
             var newValues = new Dictionary<Tuple<PointableInstance, Concept2>, PointableInstance>(_propertyValues);
@@ -132,6 +143,10 @@ namespace PerceptiveDialogBasedAgent.V4
 
             foreach (var property in GetProperties(pattern))
             {
+                if (property == Concept2.Something)
+                    //placeholdered properties has to be treaded in a more complex way
+                    throw new NotImplementedException();
+
                 if (!MeetsPattern(GetPropertyValue(instance, property), GetPropertyValue(pattern, property) as ConceptInstance))
                     return false;
             }

@@ -10,7 +10,7 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
     {
         private MindState _currentState;
 
-        internal readonly ConceptInstance EvaluatedConcept;
+        internal ConceptInstance EvaluatedConcept { get; private set; }
 
         internal MindEvaluationContext(ConceptInstance evaluatedConcept, MindState state)
         {
@@ -30,7 +30,12 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
 
         internal void SetProperty(Concept2 property, PointableInstance value)
         {
-            _currentState = _currentState.SetPropertyValue(EvaluatedConcept, property, value);
+            SetProperty(EvaluatedConcept, property, value);
+        }
+
+        internal void SetProperty(PointableInstance target, Concept2 property, PointableInstance value)
+        {
+            _currentState = _currentState.SetPropertyValue(target, property, value);
         }
 
         internal void AddScore(double score)
@@ -38,9 +43,31 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
             _currentState = _currentState.AddScore(score);
         }
 
+        internal MindState EvaluateOnPropertyChange()
+        {
+            var currentConcept = EvaluatedConcept;
+            while (currentConcept != null && currentConcept.Concept.OnPropertyChange == null)
+            {
+                currentConcept = GetParentConcept(currentConcept);
+            }
+            if (currentConcept == null)
+                return _currentState;
+
+            var initialConcept = EvaluatedConcept;
+            EvaluatedConcept = currentConcept;
+            EvaluatedConcept.Concept.OnPropertyChange?.Invoke(this);
+            EvaluatedConcept = initialConcept;
+            return _currentState;
+        }
+
+        internal ConceptInstance GetParentConcept(ConceptInstance instance)
+        {
+            return _currentState.PropertyContainer.GetParentConcept(instance);
+        }
+
         internal MindState EvaluateOnParametersComplete()
         {
-            EvaluatedConcept.Concept.OnParametersComplete(this);
+            EvaluatedConcept.Concept.OnParametersComplete?.Invoke(this);
             return _currentState;
         }
 
@@ -68,5 +95,29 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
             _currentState = _currentState.AddEvent(evt);
         }
 
+        internal bool MeetsPattern(PointableInstance instance, ConceptInstance pattern)
+        {
+            return _currentState.PropertyContainer.MeetsPattern(instance, pattern);
+        }
+
+        internal IEnumerable<Concept2> GetPropertiesUsedFor(Concept2 targetConcept)
+        {
+            var result = new HashSet<Concept2>();
+            foreach (var concept in _currentState.Body.Concepts)
+            {
+                foreach (var property in concept.Properties)
+                {
+                    var value = (concept.GetPropertyValue(property) as ConceptInstance)?.Concept;
+                    if (value == targetConcept)
+                    {
+                        result.Add(property);
+                        break;
+                    }
+                }
+            }
+
+            return result;
+        }
     }
 }
+

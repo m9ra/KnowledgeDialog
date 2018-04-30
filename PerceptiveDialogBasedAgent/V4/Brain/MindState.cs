@@ -16,12 +16,15 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
 
         internal readonly PropertyContainer PropertyContainer;
 
+        internal readonly Body Body;
+
         internal readonly double Score;
 
-        private MindState(MindState previousState, double extraScore = 0, Dictionary<MindField, object> stateValues = null, PropertyContainer container = null, IEnumerable<ConceptInstance> events = null, ConceptInstance workingMemoryRoot = null)
+        private MindState(MindState previousState, Body body = null, double extraScore = 0, Dictionary<MindField, object> stateValues = null, PropertyContainer container = null, IEnumerable<ConceptInstance> events = null, ConceptInstance workingMemoryRoot = null)
         {
             var score = previousState?.Score ?? 0;
 
+            Body = body ?? previousState.Body;
             Score = score + extraScore;
             PropertyContainer = container ?? previousState.PropertyContainer;
             _stateValues = stateValues ?? previousState._stateValues;
@@ -75,9 +78,9 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
             return PropertyContainer.GetAvailableParameters(instance);
         }
 
-        internal static MindState Empty(ConceptInstance workingMemoryRoot)
+        internal static MindState Empty(Body body, ConceptInstance workingMemoryRoot)
         {
-            return new MindState(null, extraScore: 0, stateValues: new Dictionary<MindField, object>(), container: new PropertyContainer(), events: new ConceptInstance[0], workingMemoryRoot: workingMemoryRoot);
+            return new MindState(null, body, extraScore: 0, stateValues: new Dictionary<MindField, object>(), container: new PropertyContainer(), events: new ConceptInstance[0], workingMemoryRoot: workingMemoryRoot);
         }
 
         internal MindState SetValue<T>(MindField field, T value)
@@ -97,10 +100,35 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
         internal IEnumerable<SubstitutionPoint> GetSubstitutionPoints()
         {
             //traverse working memory tree and find missing parameters
-            return collectSubstitutionPoints(WorkingMemoryRoot);
+            var substitutionPoints = collectSubstitutionPoints(WorkingMemoryRoot, new HashSet<ConceptInstance>()).ToList();
+            var targetSubstitutions = collectTargetSubstitutionPoints(Events).ToArray();
+
+            substitutionPoints.AddRange(targetSubstitutions);
+
+            return substitutionPoints;
         }
 
-        private IEnumerable<SubstitutionPoint> collectSubstitutionPoints(ConceptInstance instance)
+        private IEnumerable<SubstitutionPoint> collectTargetSubstitutionPoints(IEnumerable<ConceptInstance> events)
+        {
+            var result = new List<SubstitutionPoint>();
+            var evts = events.ToArray();
+            for (var i = evts.Length - 2; i >= 0; i--)
+            {
+                if (evts[i].Concept == Concept2.NewTurn)
+                    break;
+
+                var target = GetPropertyValue(evts[i], Concept2.Target) as ConceptInstance;
+                if (target == null)
+                    continue;
+
+                var substitutionPoint = new SubstitutionPoint(target, Concept2.Something, new ConceptInstance(Concept2.Something), this, 0.05);
+                result.Add(substitutionPoint);
+            }
+
+            return result;
+        }
+
+        private IEnumerable<SubstitutionPoint> collectSubstitutionPoints(ConceptInstance instance, HashSet<ConceptInstance> collectedInstances)
         {
             var result = new List<SubstitutionPoint>();
             foreach (var property in GetProperties(instance))
@@ -109,13 +137,16 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
                     continue;
 
                 var value = PropertyContainer.GetPropertyValue(instance, property) as ConceptInstance;
+                if (!collectedInstances.Add(value))
+                    continue;
+
                 if (PropertyContainer.HasParameterSubstitution(instance, property))
                 {
-                    result.AddRange(collectSubstitutionPoints(value));
+                    result.AddRange(collectSubstitutionPoints(value, collectedInstances));
                 }
                 else
                 {
-                    result.Add(new SubstitutionPoint(instance, property, value, this, 0.1));//TODO consider
+                    result.Add(new SubstitutionPoint(instance, property, value, this, 0.1));
                 }
             }
 

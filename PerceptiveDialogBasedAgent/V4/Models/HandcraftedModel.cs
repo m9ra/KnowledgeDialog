@@ -18,7 +18,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         private DocumentIndex _index = new DocumentIndex();
 
-        private readonly HashSet<string> _auxiliaryWords = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase) { "a", "an", "the", "on", "at", "in", "of", "some", "any", "none", "such", "to", "and", "with" };
+        private static readonly HashSet<string> _auxiliaryWords = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase) { "a", "an", "the", "on", "at", "in", "of", "some", "any", "none", "such", "to", "and", "with" };
 
         private readonly HashSet<string> _askedExplorativeQuestions = new HashSet<string>();
 
@@ -71,7 +71,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
                 output = makeUpExplorativeQuestion(ref state);
             }
 
-            _oldUnknownPhrases.UnionWith(getUnknownPhrases(state));
+            _oldUnknownPhrases.UnionWith(GetUnknownPhrases(state));
 
             Log.DialogUtterance("S: " + output);
 
@@ -113,7 +113,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
         private string makeUpExplorativeQuestion(ref BodyState2 state)
         {
             //ask for some unknown phrase
-            var unknownPhrases = getUnknownPhrases(state).ToArray();
+            var unknownPhrases = GetUnknownPhrases(state).ToArray();
             if (unknownPhrases.Any())
             {
                 var phraseToAsk = unknownPhrases.First();
@@ -154,7 +154,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         private bool hasSingleUnknownPhrase(BodyState2 state)
         {
-            return getUnknownPhrases(state).Except(_oldUnknownPhrases).Count() == 1;
+            return GetUnknownPhrases(state).Except(_oldUnknownPhrases).Count() == 1;
         }
 
         private bool needsParameter(BodyState2 state)
@@ -164,7 +164,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         private string askForUnknownPhrase(BodyState2 state)
         {
-            var unknownPhrase = getUnknownPhrases(state).FirstOrDefault();
+            var unknownPhrase = GetUnknownPhrases(state).FirstOrDefault();
             if (unknownPhrase == null)
                 return null;
 
@@ -244,11 +244,11 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             return _body.Concepts.Where(c => !c.IsNative).ToArray();
         }
 
-        private IEnumerable<string> getUnknownPhrases(BodyState2 state)
+        internal static IEnumerable<string> GetUnknownPhrases(BodyState2 state)
         {
             foreach (var inputPhrase in state.InputPhrases.Reverse())
             {
-                var sanitizedPhrase = toMeaningfulPhrase(inputPhrase.ToPrintable());
+                var sanitizedPhrase = ToMeaningfulPhrase(inputPhrase.ToPrintable());
                 if (sanitizedPhrase == "")
                     continue;
 
@@ -343,7 +343,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
         private double getSimilarity(string input, Concept2 concept)
         {
             var sanitizedInput = input.ToLowerInvariant();
-            var meaningFulInput = toMeaningfulPhrase(input);
+            var meaningFulInput = ToMeaningfulPhrase(input);
             var words = Phrase.AsWords(sanitizedInput);
             var name = concept.Name.ToLowerInvariant();
             var weight = 1.0 * words.Length;
@@ -390,7 +390,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             return score;
         }
 
-        private string toMeaningfulPhrase(string phrase)
+        internal static string ToMeaningfulPhrase(string phrase)
         {
             var input = phrase.ToLowerInvariant();
             var inputWords = Phrase.AsWords(input).ToList();

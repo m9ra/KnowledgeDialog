@@ -128,5 +128,14 @@ namespace PerceptiveDialogBasedAgent.V4
         {
             return string.Join(" ", _input.Select(i => $"[{i}]"));
         }
+
+        internal BodyState2 Import(PointableInstance instance, PropertyContainer container)
+        {
+            var newContainer = PropertyContainer.Import(instance, container);
+            var newPointings = new Dictionary<PointableInstance, RankedPointing>(_pointings);
+
+            newPointings[instance.ActivationPhrase] = new RankedPointing(instance.ActivationPhrase, instance, 1.0);
+            return new BodyState2(this, container: newContainer, pointings: newPointings);
+        }
     }
 }

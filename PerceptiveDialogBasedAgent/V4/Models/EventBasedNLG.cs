@@ -35,6 +35,9 @@ namespace PerceptiveDialogBasedAgent.V4.Models
                 .ForPattern(Concept2.Output)
                     .Output(simpleOutput)
 
+                .ForPattern(Concept2.SubstitutionRequestedEvent)
+                    .Output(substitutionRequested)
+
                 .ForPattern(Concept2.NeedsRefinement)
                     .Output(refinement)
 
@@ -59,13 +62,22 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             yield return "I think, you want " + outputRepresentation;
         }
 
+        private IEnumerable<string> substitutionRequested()
+        {
+            var request = getEventProperty(Concept2.Target);
+            var unknownPhrase = getPropertyValue(request, Concept2.ConceptName)?.ToPrintable();
+
+            if (unknownPhrase != null)
+                yield return "I don't know phrase " + unknownPhrase + ". What does it mean?";
+        }
+
         private IEnumerable<string> refinement()
         {
             var ambiguousConstraint = getEventProperty(Concept2.Target);
             var constraintSpecification = getConstraintDescription(ambiguousConstraint);
             constraintSpecification = getPlural(constraintSpecification);
 
-            yield return "I know many " + constraintSpecification + ", could you be more specific?";
+            yield return "I know many " + constraintSpecification + ", which one would you like?";
         }
 
         private string getConstraintDescription(PointableInstance instance)

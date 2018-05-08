@@ -108,6 +108,7 @@
     <Compile Include="V4\Brain\MindState.cs" />
     <Compile Include="V4\Brain\PlanProvider.cs" />
     <Compile Include="V4\Brain\SubstitutionPoint.cs" />
+    <Compile Include="V4\MindStateInstance.cs" />
     <Compile Include="V4\Models\EventBasedNLG.cs" />
     <Compile Include="V4\Models\MindBasedModel.cs" />
     <Compile Include="V4\Phrase.cs" />

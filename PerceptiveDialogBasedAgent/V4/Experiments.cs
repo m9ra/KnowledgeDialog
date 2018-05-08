@@ -33,7 +33,9 @@ namespace PerceptiveDialogBasedAgent.V4
         {
             var b = new Body();
             b.Input("find a luxury restaurant");
+            b.Input("some luxury restaurant");
             //what is luxury?
+            // b.Input("it means nice and expensive");
             b.Input("it means nice and expensive");
         }
 

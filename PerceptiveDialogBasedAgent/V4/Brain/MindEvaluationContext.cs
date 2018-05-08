@@ -12,6 +12,8 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
 
         internal ConceptInstance EvaluatedConcept { get; private set; }
 
+        internal MindState CurrentState => _currentState;
+
         internal MindEvaluationContext(ConceptInstance evaluatedConcept, MindState state)
         {
             _currentState = state;
@@ -23,9 +25,14 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
             throw new NotImplementedException();
         }
 
-        internal PointableInstance GetParameter(Concept2 parameter)
+        internal PointableInstance GetProperty(Concept2 property)
         {
-            return _currentState.GetPropertyValue(EvaluatedConcept, parameter);
+            return _currentState.GetPropertyValue(EvaluatedConcept, property);
+        }
+
+        internal PointableInstance GetProperty(PointableInstance target, Concept2 property)
+        {
+            return _currentState.GetPropertyValue(target, property);
         }
 
         internal void SetProperty(Concept2 property, PointableInstance value)
@@ -117,6 +124,21 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
             }
 
             return result;
+        }
+
+        internal void Import(ConceptInstance instance, PropertyContainer container)
+        {
+            _currentState = _currentState.Import(instance, container);
+        }
+
+        internal void SideEffectInvocation(ConceptInstance instance)
+        {
+            if (instance.Concept.OnExecution == null)
+                throw new InvalidOperationException("Cannot request invocation of given concept.");
+
+            var invocation = new ConceptInstance(Concept2.Invocation);
+            SetProperty(invocation, Concept2.Subject, instance);
+            Event(invocation);
         }
     }
 }

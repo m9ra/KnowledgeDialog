@@ -28,9 +28,11 @@ namespace PerceptiveDialogBasedAgent.V4
 
         internal readonly DatabaseHandler RestaurantDb;
 
-        internal readonly PointingModelBase Model;
+        internal readonly MindBasedModel Model;
 
         internal readonly ConceptInstance RootConcept;
+
+        internal readonly Concept2 AcceptDescriptionAction;
 
         internal Body()
         {
@@ -47,8 +49,11 @@ namespace PerceptiveDialogBasedAgent.V4
             .Concept("action")
                 .SetProperty(Concept2.Parameter, Concept2.Yes)
 
+            .Concept("accept description", out AcceptDescriptionAction, onParametersComplete: _acceptDescriptionComplete, onExecution: _acceptDescription)
+                .SetProperty("subject", Concept2.Something)
+
             .Concept("policy", onPropertyChange: _policy)
-                .SetProperty("action", Concept2.Something) //TODO set pattern
+                .SetProperty("action", Concept2.Something) 
 
             .Concept("dont know")
                 .Description("I have no idea")
@@ -286,6 +291,11 @@ namespace PerceptiveDialogBasedAgent.V4
 
         internal Body Concept(string conceptName, MindAction onParametersComplete = null, MindAction onExecution = null, MindAction onPropertyChange = null, bool isNative = true)
         {
+            return Concept(conceptName, out _, onParametersComplete, onExecution, onPropertyChange, isNative);
+        }
+
+        internal Body Concept(string conceptName, out Concept2 concept, MindAction onParametersComplete = null, MindAction onExecution = null, MindAction onPropertyChange = null, bool isNative = true)
+        {
             var existingConcept = GetConcept(conceptName);
             if (existingConcept == null)
             {
@@ -301,6 +311,7 @@ namespace PerceptiveDialogBasedAgent.V4
             if (onParametersComplete != null || onPropertyChange != null || onExecution != null)
                 _currentConcept.SetPropertyValue(Concept2.NativeAction, new ConceptInstance(Concept2.Something));
 
+            concept = _currentConcept;
             return this;
         }
 
@@ -311,9 +322,41 @@ namespace PerceptiveDialogBasedAgent.V4
             return this;
         }
 
+        private void _acceptDescription(MindEvaluationContext context)
+        {
+            var newConceptName = context.GetProperty(Concept2.ConceptName);
+            var forwardedConcept = context.GetProperty(Concept2.Subject);
+
+            Log.Writeln("Adding concept forwarding: " + newConceptName + " --> " + forwardedConcept, Log.InfoColor);
+            Concept(newConceptName.ToPrintable()).Description(forwardedConcept.ToPrintable());
+        }
+
+        private void _acceptDescriptionComplete(MindEvaluationContext context)
+        {
+            var newConceptName = context.GetProperty(Concept2.ConceptName);
+            var forwardedConcept = context.GetProperty(Concept2.Subject);
+            var mindState = (context.GetProperty(Concept2.StateToRetry) as MindStateInstance).State;
+
+            var retryMind = new Brain.Mind();
+            retryMind.SetBeam(mindState);
+
+            var state = BodyState2.Empty().Import(forwardedConcept, context.CurrentState.PropertyContainer);
+            var result = Model.ProcessState(state, retryMind);
+
+            var newEvts = result.Events.Skip(mindState.Events.Count());
+            foreach (var evt in newEvts)
+            {
+                context.Import(evt, result.PropertyContainer);
+                context.Event(evt);
+            }
+
+            context.AddScore(result.Score - mindState.Score);
+            context.SideEffectInvocation(context.EvaluatedConcept);
+        }
+
         private void _policy(MindEvaluationContext context)
         {
-            var action = context.GetParameter(GetConcept("action"));
+            var action = context.GetProperty(GetConcept("action"));
             if (action == null)
                 throw new NotSupportedException("In which cases this could happen?");
 
@@ -332,7 +375,7 @@ namespace PerceptiveDialogBasedAgent.V4
 
         private void _findRestaurant(MindEvaluationContext context)
         {
-            var pattern = context.GetParameter(Concept2.Subject) as ConceptInstance;
+            var pattern = context.GetProperty(Concept2.Subject) as ConceptInstance;
             var patternConcept = pattern?.Concept;
             if (patternConcept == null)
                 throw new NotImplementedException();
@@ -365,13 +408,14 @@ namespace PerceptiveDialogBasedAgent.V4
             }
             else if (result.Count == 1)
             {
+                context.AddScore(0.1);
                 context.OutputEvent(new ConceptInstance(result.First()));
             }
             else
             {
                 var ambiguousEvt = new ConceptInstance(Concept2.NeedsRefinement);
                 context.SetProperty(ambiguousEvt, Concept2.Target, pattern);
-
+                context.AddScore(0.05);
                 context.Event(ambiguousEvt);
             }
         }

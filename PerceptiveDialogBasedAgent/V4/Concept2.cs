@@ -21,6 +21,11 @@ namespace PerceptiveDialogBasedAgent.V4
         public readonly static Concept2 Output = Concept("output");
         public readonly static Concept2 Subject = Concept("subject").SetPropertyValue(Parameter, new ConceptInstance(Yes));
         public readonly static Concept2 Target = Concept("target");
+        public readonly static Concept2 TargetProperty = Concept("target property");
+        public readonly static Concept2 StateToRetry = Concept("state to retry");
+        public readonly static Concept2 SubstitutionRequestedEvent = Concept("substitution requested");
+        public readonly static Concept2 ConceptName = Concept("concept name");
+        public readonly static Concept2 Invocation = Concept("invocation").SetPropertyValue(Subject, new ConceptInstance(Concept2.Something));
 
 
 

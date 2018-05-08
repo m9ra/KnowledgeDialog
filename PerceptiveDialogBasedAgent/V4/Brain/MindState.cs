@@ -121,6 +121,9 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
                 if (target == null)
                     continue;
 
+                var targetProperty = GetPropertyValue(evts[i], Concept2.TargetProperty) as ConceptInstance;
+                var substitutionProperty = targetProperty?.Concept ?? Concept2.Something;
+
                 var substitutionPoint = new SubstitutionPoint(target, Concept2.Something, new ConceptInstance(Concept2.Something), this, 0.05);
                 result.Add(substitutionPoint);
             }

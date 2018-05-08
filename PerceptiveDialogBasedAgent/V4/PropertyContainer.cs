@@ -71,6 +71,7 @@ namespace PerceptiveDialogBasedAgent.V4
             var newValues = new Dictionary<Tuple<PointableInstance, Concept2>, PointableInstance>(_propertyValues);
             foreach (var key in container._propertyValues.Keys)
             {
+                //TODO recursive import !!
                 if (key.Item1 == instance)
                     newValues[key] = container._propertyValues[key];
             }

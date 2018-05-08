@@ -43,10 +43,21 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
                     throw new NotImplementedException();
 
                 var properties = context.GetPropertiesUsedFor(conceptInstance.Concept);
+                if (!properties.Any())
+                    //unknown properties cannot simply appear
+                    return null;
+
                 if (properties.Count() != 1)
                     throw new NotImplementedException("Property expansion");
 
-                context.SetProperty(Target, properties.First(), instance);
+                var property = properties.First();
+                var oldValue = context.GetProperty(property) as ConceptInstance;
+
+                if (oldValue?.Concept == conceptInstance.Concept)
+                    //TODO resolve assigning of same concept, but different instance
+                    return null;
+
+                context.SetProperty(Target, property, instance);
             }
             else
             {

@@ -30,23 +30,22 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             LogState(state);
 
             _mind.NewTurnEvent();
-            _mind.Accept(state.ActiveConcepts, state.PropertyContainer);
-            var bestMindState = _mind.BestState;
+            var newMindState = ProcessState(state, _mind);
+            newMindState = ProcessInvocation(newMindState);
 
-            MindState newMindState = null;
-            if (hasCompleteActions(bestMindState))
-            {
-                newMindState = executeCompleteActions(bestMindState);
-            }
-            else if (wasInputUseful(bestMindState))
-            {
-                newMindState = askForMoreInformation(bestMindState, state);
-            }
-            else
+            if (!wasInputUseful(newMindState))
             {
                 //no useful input was given
-                newMindState = askExplorativeQuestion(bestMindState, state);
+                newMindState = askExplorativeQuestion(newMindState, state);
             }
+
+            V2.Log.Writeln("EVENTS", V2.Log.HeadlineColor);
+            V2.Log.Indent();
+            foreach (var evt in newMindState.Events)
+            {
+                V2.Log.Writeln(evt.ToString(), V2.Log.ItemColor);
+            }
+            V2.Log.Dedent();
 
             finalState = BodyState2.Empty();
 
@@ -56,24 +55,65 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             return output;
         }
 
-        private bool wasInputUseful(MindState bestMindState)
+        internal MindState ProcessInvocation(MindState state)
         {
-            //throw new NotImplementedException();
-            return false;
+            var events = state.Events.ToArray();
+
+            var newState = state;
+            for (var i = events.Length - 1; i >= 0; --i)
+            {
+                var evt = events[i];
+                if (evt.Concept == Concept2.NewTurn)
+                    break;
+
+                if (evt.Concept != Concept2.Invocation)
+                    continue;
+
+                var invokedConcept = state.GetPropertyValue(evt, Concept2.Subject) as ConceptInstance;
+                var context = new MindEvaluationContext(invokedConcept, newState);
+                newState = context.EvaluateOnExecution();
+            }
+
+            return newState;
         }
 
-        private MindState askForMoreInformation(MindState bestMindState, BodyState2 state)
+        internal MindState ProcessState(BodyState2 state, Mind mind)
         {
-            //get the top provider
-            throw new NotImplementedException();
+            mind.Accept(state.ActiveConcepts, state.PropertyContainer);
+            var bestMindState = mind.BestState;
+
+            var newMindState = bestMindState;
+            if (hasCompleteActions(bestMindState))
+            {
+                newMindState = executeCompleteActions(bestMindState);
+            }
+
+
+            return newMindState;
+        }
+
+        private bool wasInputUseful(MindState bestMindState)
+        {
+            return bestMindState.Events.LastOrDefault().Concept != Concept2.NewTurn;
         }
 
         private MindState askExplorativeQuestion(MindState mindState, BodyState2 bodyState)
         {
-            //event: input not helpful
-            //retry question
-            //try picking up some unknown phrases
-            throw new NotImplementedException();
+            var unknownPhrases = HandcraftedModel.GetUnknownPhrases(bodyState).ToArray();
+            if (!unknownPhrases.Any())
+                throw new NotImplementedException();
+
+            var phrase = unknownPhrases.First();
+            var descriptionRequest = new ConceptInstance(_body.AcceptDescriptionAction);
+            var evt = new ConceptInstance(Concept2.SubstitutionRequestedEvent);
+
+            mindState = mindState.SetPropertyValue(descriptionRequest, Concept2.StateToRetry, new MindStateInstance(mindState));
+            mindState = mindState.SetPropertyValue(descriptionRequest, Concept2.ConceptName, Phrase.FromUtterance(phrase));
+
+            mindState = mindState.SetPropertyValue(evt, Concept2.Target, descriptionRequest);
+            mindState = mindState.SetPropertyValue(evt, Concept2.TargetProperty, Concept2.Subject);
+            mindState = mindState.AddEvent(evt);
+            return mindState;
         }
 
         private MindState executeCompleteActions(MindState bestMindState)
@@ -89,15 +129,6 @@ namespace PerceptiveDialogBasedAgent.V4.Models
                 var context = new MindEvaluationContext(action, currentState);
                 currentState = context.EvaluateOnExecution();
             }
-
-            V2.Log.Writeln("EVENTS", V2.Log.HeadlineColor);
-            V2.Log.Indent();
-            foreach (var evt in currentState.Events)
-            {
-                V2.Log.Writeln(evt.ToString(), V2.Log.ItemColor);
-            }
-            V2.Log.Dedent();
-
 
             return currentState.SetPropertyValue(_actionRequester, Concept2.CompleteAction, (PointableInstance)null);
         }

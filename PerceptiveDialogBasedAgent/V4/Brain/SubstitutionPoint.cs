@@ -73,5 +73,9 @@ namespace PerceptiveDialogBasedAgent.V4.Brain
             return resultState.AddScore(SubstitutionScore);
         }
 
+        internal bool IsSatisfiedBy(object instance)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

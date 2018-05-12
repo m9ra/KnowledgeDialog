@@ -10,7 +10,7 @@ namespace PerceptiveDialogBasedAgent
     {
         static void Main(string[] args)
         {
-            V4.Experiments.LuxuryRestaurantSearch();
+            V4.Experiments.DirectPolicyHandling();
 
             Console.WriteLine();
             Console.WriteLine("Press any key to leave");

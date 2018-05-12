@@ -18,7 +18,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         private DocumentIndex _index = new DocumentIndex();
 
-        private static readonly HashSet<string> _auxiliaryWords = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase) { "a", "an", "the", "on", "at", "in", "of", "some", "any", "none", "such", "to", "and", "with" };
+        internal static readonly HashSet<string> AuxiliaryWords = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase) { "a", "an", "the", "on", "at", "in", "of", "some", "any", "none", "such", "to", "and", "with" };
 
         private readonly HashSet<string> _askedExplorativeQuestions = new HashSet<string>();
 
@@ -261,7 +261,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
         private string[] getMeaningfulWords(string phrase)
         {
             var words = Phrase.AsWords(phrase);
-            return words.Where(w => !_auxiliaryWords.Contains(w)).ToArray();
+            return words.Where(w => !AuxiliaryWords.Contains(w)).ToArray();
         }
 
         private T choose<T>(IEnumerable<T> values)
@@ -360,7 +360,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             var scores = new List<double>();
             foreach (var word in words)
             {
-                if (_auxiliaryWords.Contains(word))
+                if (AuxiliaryWords.Contains(word))
                     continue;
 
                 var hitCount = 0.0;
@@ -370,7 +370,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
                     var descriptionWords = Phrase.AsWords(description.ToLowerInvariant());
                     foreach (var descriptionWord in descriptionWords)
                     {
-                        if (_auxiliaryWords.Contains(descriptionWord))
+                        if (AuxiliaryWords.Contains(descriptionWord))
                             continue;
 
                         var wordWeight = 1.0 / _index.TotalOccurences(descriptionWord);
@@ -395,10 +395,10 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             var input = phrase.ToLowerInvariant();
             var inputWords = Phrase.AsWords(input).ToList();
 
-            while (inputWords.Count > 0 && _auxiliaryWords.Contains(inputWords.First()))
+            while (inputWords.Count > 0 && AuxiliaryWords.Contains(inputWords.First()))
                 inputWords.RemoveAt(0);
 
-            while (inputWords.Count > 0 && _auxiliaryWords.Contains(inputWords.Last()))
+            while (inputWords.Count > 0 && AuxiliaryWords.Contains(inputWords.Last()))
                 inputWords.RemoveAt(inputWords.Count - 1);
 
             return string.Join(" ", inputWords);
@@ -429,7 +429,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
                 var totalWeight = 0.0;
                 foreach (var descriptionWord in descriptionWords)
                 {
-                    if (_auxiliaryWords.Contains(descriptionWord))
+                    if (AuxiliaryWords.Contains(descriptionWord))
                         continue;
 
                     var wordWeight = 1.0 / _index.TotalOccurences(descriptionWord);
@@ -438,7 +438,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
                     var wordScores = new List<double>();
                     foreach (var word in words)
                     {
-                        if (_auxiliaryWords.Contains(word))
+                        if (AuxiliaryWords.Contains(word))
                             continue;
 
                         if (descriptionWord == word)

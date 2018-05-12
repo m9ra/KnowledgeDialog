@@ -1,4 +1,7 @@
-﻿using System;
+﻿using PerceptiveDialogBasedAgent.V1;
+using PerceptiveDialogBasedAgent.V4.EventBeam;
+using PerceptiveDialogBasedAgent.V4.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -142,6 +145,31 @@ namespace PerceptiveDialogBasedAgent.V4
 
             b = new Body();
             b.Input("Please send me the address of an Italian restaurant in New York");
+        }
+
+        public static void DirectPolicyHandling()
+        {
+            var generator = new BeamGenerator();
+
+            var restaurantConcept = new Concept2("restaurant", null, null, null, true);
+
+            var findConcept = new Concept2("find", null, null, null, true);
+            var findParameterConstraint = new ConceptInstance(Concept2.Something);
+
+            generator.PushToAll(new ConceptDefinedEvent(restaurantConcept));
+            generator.PushToAll(new ConceptDefinedEvent(findConcept));
+            generator.PushToAll(new TargetDefinedEvent(findConcept, Concept2.Something, findParameterConstraint));
+            generator.PushToAll(new ConceptDescriptionEvent(findConcept, "finds concepts that agent knows"));
+            generator.PushToAll(new ConceptDescriptionEvent(findConcept, "find concept according to some constraint"));
+
+            var bestNode = generator.GetBestNode();
+            var descriptions = generator.GetDescriptions(findConcept, bestNode);
+
+            generator.PushToAll(new InputPhraseEvent("find"));
+            generator.PushToAll(new InputPhraseEvent("restaurant"));
+
+            Log.States(generator);
+            throw new NotImplementedException();
         }
     }
 }

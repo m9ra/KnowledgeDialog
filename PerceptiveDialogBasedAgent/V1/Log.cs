@@ -1,5 +1,7 @@
 ﻿using PerceptiveDialogBasedAgent.V1.Interpretation;
 using PerceptiveDialogBasedAgent.V1.SemanticRepresentation;
+using PerceptiveDialogBasedAgent.V4.EventBeam;
+using PerceptiveDialogBasedAgent.V4.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -81,7 +83,7 @@ namespace PerceptiveDialogBasedAgent.V1
                     parameters.Add(value);
             }
 
-            callName = callName.Split(new[] { "_$" },StringSplitOptions.None)[0];
+            callName = callName.Split(new[] { "_$" }, StringSplitOptions.None)[0];
 
             return string.Format("{0}({1})", callName, string.Join(", ", parameters));
         }
@@ -114,6 +116,37 @@ namespace PerceptiveDialogBasedAgent.V1
             Console.ForegroundColor = color;
             Console.Write(format, formatArgs);
             Console.ForegroundColor = previousColor;
+        }
+
+        internal static void States(BeamGenerator generator)
+        {
+            var rankedStates = generator.GetRankedNodes().Reverse().ToArray();
+
+            foreach (var state in rankedStates)
+            {
+                write($"S: {state.Rank:0.00} > ", Log.HeadlineColor);
+                State(state.Value);
+                writeln("", Log.HeadlineColor);
+
+            }
+        }
+
+        internal static void State(BeamNode node)
+        {
+            var events = new List<EventBase>();
+            var currentNode = node;
+
+            while (currentNode != null && currentNode.Evt != null)
+            {
+                events.Add(currentNode.Evt);
+                currentNode = currentNode.ParentNode;
+            }
+
+            events.Reverse();
+            foreach (var evt in events)
+            {
+                Log.write(evt.ToString(), Log.ItemColor);
+            }
         }
     }
 }

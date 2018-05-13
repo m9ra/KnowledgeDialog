@@ -7,23 +7,18 @@ using PerceptiveDialogBasedAgent.V4.EventBeam;
 
 namespace PerceptiveDialogBasedAgent.V4.Events
 {
-    class CompleteInstanceEvent : EventBase
+    class TooManyInstancesFoundEvent : EventBase
     {
-        internal readonly ConceptInstance Instance;
+        private Concept2 criterion;
 
-        internal CompleteInstanceEvent(ConceptInstance instance)
+        public TooManyInstancesFoundEvent(Concept2 criterion)
         {
-            Instance = instance;
+            this.criterion = criterion;
         }
 
         internal override void Accept(BeamGenerator g)
         {
             g.Visit(this);
-        }
-
-        public override string ToString()
-        {
-            return $"[complete: {Instance.Concept.Name}]";
         }
     }
 }

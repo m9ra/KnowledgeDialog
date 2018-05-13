@@ -110,8 +110,14 @@
     <Compile Include="V4\Brain\SubstitutionPoint.cs" />
     <Compile Include="V4\EventBeam\BeamGenerator.cs" />
     <Compile Include="V4\EventBeam\BeamNode.cs" />
+    <Compile Include="V4\EventBeam\ExecutionBeamGenerator.cs" />
+    <Compile Include="V4\EventBeam\RestaurantPolicyGenerator.cs" />
     <Compile Include="V4\Events\CompleteInstanceEvent.cs" />
-    <Compile Include="V4\Events\TargetDefinedEvent.cs" />
+    <Compile Include="V4\Events\InstanceFoundEvent.cs" />
+    <Compile Include="V4\Events\NoInstanceFoundEvent.cs" />
+    <Compile Include="V4\Events\ParamDefinedEvent.cs" />
+    <Compile Include="V4\Events\StaticScoreEvent.cs" />
+    <Compile Include="V4\Events\TooManyInstancesFoundEvent.cs" />
     <Compile Include="V4\Events\UnknownPhraseSubstitutionEvent.cs" />
     <Compile Include="V4\Events\DistanceScoreEvt.cs" />
     <Compile Include="V4\Events\EventBase.cs" />
@@ -121,7 +127,7 @@
     <Compile Include="V4\Events\InputPhraseEvent.cs" />
     <Compile Include="V4\Events\InputPhraseScoreEvent.cs" />
     <Compile Include="V4\Events\SubstitutionRequestEvent.cs" />
-    <Compile Include="V4\Events\SubstitutionEvent.cs" />
+    <Compile Include="V4\Events\PropertySetEvent.cs" />
     <Compile Include="V4\Events\TracedScoreEventBase.cs" />
     <Compile Include="V4\Events\UnknownPhraseEvent.cs" />
     <Compile Include="V4\MindStateInstance.cs" />
@@ -147,6 +153,7 @@
     <Compile Include="V4\ParameterRequirement.cs" />
     <Compile Include="V4\PointableInstance.cs" />
     <Compile Include="V4\PointingModelBase.cs" />
+    <Compile Include="V4\Primitives\PropertySetTarget.cs" />
     <Compile Include="V4\PropertyContainer.cs" />
     <Compile Include="V4\RankedPointing.cs" />
     <Compile Include="V4\StateBeam.cs" />

@@ -126,7 +126,7 @@ namespace PerceptiveDialogBasedAgent.V1
             {
                 write($"S: {state.Rank:0.00} > ", Log.HeadlineColor);
                 State(state.Value);
-                writeln("", Log.HeadlineColor);
+                writeln("\n", Log.HeadlineColor);
 
             }
         }

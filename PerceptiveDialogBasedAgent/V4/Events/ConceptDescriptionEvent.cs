@@ -23,5 +23,10 @@ namespace PerceptiveDialogBasedAgent.V4.Events
         {
             g.Visit(this);
         }
+
+        public override string ToString()
+        {
+            return $"[description for {Concept.Name}]";
+        }
     }
 }

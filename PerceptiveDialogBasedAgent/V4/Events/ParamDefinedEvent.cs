@@ -7,13 +7,13 @@ using PerceptiveDialogBasedAgent.V4.EventBeam;
 
 namespace PerceptiveDialogBasedAgent.V4.Events
 {
-    class TargetDefinedEvent : EventBase
+    class ParamDefinedEvent : EventBase
     {
         internal readonly Concept2 Concept;
         internal readonly Concept2 Property;
         internal readonly ConceptInstance ValueConstraint;
 
-        public TargetDefinedEvent(Concept2 concept, Concept2 property, ConceptInstance valueConstraint)
+        public ParamDefinedEvent(Concept2 concept, Concept2 property, ConceptInstance valueConstraint)
         {
             Concept = concept;
             Property = property;
@@ -23,6 +23,11 @@ namespace PerceptiveDialogBasedAgent.V4.Events
         internal override void Accept(BeamGenerator g)
         {
             g.Visit(this);
+        }
+
+        public override string ToString()
+        {
+            return $"[param {Concept.Name}--{Property.Name}-->{ValueConstraint.Concept.Name}]";
         }
     }
 }

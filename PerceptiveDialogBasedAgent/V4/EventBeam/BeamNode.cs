@@ -17,5 +17,10 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             ParentNode = parentNode;
             Evt = evt;
         }
+
+        public override string ToString()
+        {
+            return "n: " + Evt.ToString();
+        }
     }
 }

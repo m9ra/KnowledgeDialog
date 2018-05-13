@@ -26,7 +26,7 @@ namespace PerceptiveDialogBasedAgent.V4
         public readonly static Concept2 SubstitutionRequestedEvent = Concept("substitution requested");
         public readonly static Concept2 ConceptName = Concept("concept name");
         public readonly static Concept2 Invocation = Concept("invocation").SetPropertyValue(Subject, new ConceptInstance(Concept2.Something));
-
+        public readonly static Concept2 ActionToExecute = Concept("action to execute");
 
 
 
@@ -49,7 +49,7 @@ namespace PerceptiveDialogBasedAgent.V4
         private readonly Dictionary<Concept2, PointableInstance> _propertyValues = new Dictionary<Concept2, PointableInstance>();
 
 
-        public Concept2(string name, MindAction onParametersComplete, MindAction onExecution, MindAction onPropertyChange, bool isNative)
+        public Concept2(string name, MindAction onParametersComplete = null, MindAction onExecution = null, MindAction onPropertyChange = null, bool isNative = true)
         {
             Name = name;
             OnParametersComplete = onParametersComplete;

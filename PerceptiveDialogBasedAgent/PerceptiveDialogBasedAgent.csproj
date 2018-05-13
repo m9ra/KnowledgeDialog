@@ -100,20 +100,15 @@
     <Compile Include="V3\ConceptRequirement.cs" />
     <Compile Include="V3\ContextBeam.cs" />
     <Compile Include="V3\Experiments.cs" />
-    <Compile Include="V4\AllowedPointableBaseConstraint.cs" />
-    <Compile Include="V4\Brain\InstanceContext.cs" />
-    <Compile Include="V4\Brain\MindEvaluationContext.cs" />
+    <Compile Include="V4\Agent.cs" />
     <Compile Include="V4\Configuration.cs" />
-    <Compile Include="V4\Brain\Mind.cs" />
-    <Compile Include="V4\Brain\MindState.cs" />
-    <Compile Include="V4\Brain\PlanProvider.cs" />
-    <Compile Include="V4\Brain\SubstitutionPoint.cs" />
     <Compile Include="V4\EventBeam\BeamGenerator.cs" />
     <Compile Include="V4\EventBeam\BeamNode.cs" />
     <Compile Include="V4\EventBeam\ExecutionBeamGenerator.cs" />
-    <Compile Include="V4\EventBeam\RestaurantPolicyGenerator.cs" />
+    <Compile Include="V4\EventBeam\RestaurantPolicyBeam.cs" />
     <Compile Include="V4\Events\CompleteInstanceEvent.cs" />
     <Compile Include="V4\Events\InstanceFoundEvent.cs" />
+    <Compile Include="V4\Events\NewTurnEvent.cs" />
     <Compile Include="V4\Events\NoInstanceFoundEvent.cs" />
     <Compile Include="V4\Events\ParamDefinedEvent.cs" />
     <Compile Include="V4\Events\StaticScoreEvent.cs" />
@@ -130,10 +125,7 @@
     <Compile Include="V4\Events\PropertySetEvent.cs" />
     <Compile Include="V4\Events\TracedScoreEventBase.cs" />
     <Compile Include="V4\Events\UnknownPhraseEvent.cs" />
-    <Compile Include="V4\MindStateInstance.cs" />
     <Compile Include="V4\Models\EventBasedNLG.cs" />
-    <Compile Include="V4\Models\MindBasedModel.cs" />
-    <Compile Include="V4\Models\PolicyModel.cs" />
     <Compile Include="V4\Primitives\ParameterDefinition.cs" />
     <Compile Include="V4\Phrase.cs" />
     <Compile Include="V3\Models\HandcraftedStrategy.cs" />
@@ -142,21 +134,12 @@
     <Compile Include="V3\Models\StrategyModelBase.cs" />
     <Compile Include="V3\PointingAgent.cs" />
     <Compile Include="V3\RankedConcept.cs" />
-    <Compile Include="V4\AllowedConceptConstraint.cs" />
-    <Compile Include="V4\Body.cs" />
-    <Compile Include="V4\BodyContext2.cs" />
-    <Compile Include="V4\BodyState2.cs" />
     <Compile Include="V4\Concept2.cs" />
     <Compile Include="V4\ConceptInstance.cs" />
     <Compile Include="V4\Experiments.cs" />
-    <Compile Include="V4\Models\HandcraftedModel.cs" />
-    <Compile Include="V4\ParameterRequirement.cs" />
     <Compile Include="V4\PointableInstance.cs" />
-    <Compile Include="V4\PointingModelBase.cs" />
     <Compile Include="V4\Primitives\PropertySetTarget.cs" />
     <Compile Include="V4\PropertyContainer.cs" />
-    <Compile Include="V4\RankedPointing.cs" />
-    <Compile Include="V4\StateBeam.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

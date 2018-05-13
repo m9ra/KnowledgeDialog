@@ -1,6 +1,7 @@
-﻿using PerceptiveDialogBasedAgent.V1;
+﻿using PerceptiveDialogBasedAgent.V2;
 using PerceptiveDialogBasedAgent.V4.EventBeam;
 using PerceptiveDialogBasedAgent.V4.Events;
+using PerceptiveDialogBasedAgent.V4.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -96,7 +97,6 @@ namespace PerceptiveDialogBasedAgent.V4
             b.Input("find the address of a restaurant");
             b.Input("luxury one");
             b.Input(expensiveAnswer);
-
         }
 
         public static void CollectedDataDebugging()
@@ -149,14 +149,8 @@ namespace PerceptiveDialogBasedAgent.V4
 
         public static void DirectPolicyHandling()
         {
-            var generator = new RestaurantPolicyGenerator();
-
-            generator.PushInput("find");
-            generator.PushInput("expensive");
-            generator.PushInput("restaurant");
-
-            Log.States(generator);
-            throw new NotImplementedException();
+            var agent = new Agent();
+            agent.Input("find an expensive restaurant");
         }
     }
 }

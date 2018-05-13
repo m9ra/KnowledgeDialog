@@ -20,6 +20,7 @@ namespace PerceptiveDialogBasedAgent.V4
         public readonly static Concept2 No = Concept("no").AddDescription("negative answer to a question");
         public readonly static Concept2 Output = Concept("output");
         public readonly static Concept2 Subject = Concept("subject").SetPropertyValue(Parameter, new ConceptInstance(Yes));
+        public readonly static Concept2 Property = Concept("property");
         public readonly static Concept2 Target = Concept("target");
         public readonly static Concept2 TargetProperty = Concept("target property");
         public readonly static Concept2 StateToRetry = Concept("state to retry");
@@ -34,12 +35,6 @@ namespace PerceptiveDialogBasedAgent.V4
 
         public readonly bool IsNative;
 
-        internal readonly MindAction OnPropertyChange;
-
-        internal readonly MindAction OnParametersComplete;
-
-        internal readonly MindAction OnExecution;
-
         internal IEnumerable<Concept2> Properties => _propertyValues.Keys;
 
         internal IEnumerable<string> Descriptions => _descriptions;
@@ -49,12 +44,9 @@ namespace PerceptiveDialogBasedAgent.V4
         private readonly Dictionary<Concept2, PointableInstance> _propertyValues = new Dictionary<Concept2, PointableInstance>();
 
 
-        public Concept2(string name, MindAction onParametersComplete = null, MindAction onExecution = null, MindAction onPropertyChange = null, bool isNative = true)
+        public Concept2(string name, bool isNative = true)
         {
             Name = name;
-            OnParametersComplete = onParametersComplete;
-            OnPropertyChange = onPropertyChange;
-            OnExecution = onExecution;
             IsNative = isNative;
         }
 
@@ -67,7 +59,7 @@ namespace PerceptiveDialogBasedAgent.V4
 
         public static Concept2 Concept(string name)
         {
-            return new Concept2(name, null, null, null, true);
+            return new Concept2(name, true);
         }
 
         public Concept2 SetPropertyValue(Concept2 property, PointableInstance value)

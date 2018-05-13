@@ -9,11 +9,11 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 {
     class NoInstanceFoundEvent : EventBase
     {
-        private Concept2 criterion;
+        internal readonly ConceptInstance Criterion;
 
-        public NoInstanceFoundEvent(Concept2 criterion)
+        public NoInstanceFoundEvent(ConceptInstance criterion)
         {
-            this.criterion = criterion;
+            Criterion = criterion;
         }
 
         internal override void Accept(BeamGenerator g)

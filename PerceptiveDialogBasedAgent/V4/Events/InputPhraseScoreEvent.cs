@@ -9,8 +9,10 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 {
     class InputPhraseScoreEvent : TracedScoreEventBase
     {
-        internal readonly InputPhraseEvent InputPhrase
-            ;
+        internal static readonly HashSet<string> AuxiliaryWords = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase) { "a", "an", "the", "on", "at", "in", "of", "some", "any", "none", "such", "to", "and", "with" };
+
+        internal readonly InputPhraseEvent InputPhrase;
+
         internal readonly Concept2 Concept;
 
         public InputPhraseScoreEvent(InputPhraseEvent inputPhrase, Concept2 concept)
@@ -24,10 +26,24 @@ namespace PerceptiveDialogBasedAgent.V4.Events
             return getSimilarity(InputPhrase.Phrase, Concept.Name, new string[0]); //TODO solve the descriptions
         }
 
+        internal static string ToMeaningfulPhrase(string phrase)
+        {
+            var input = phrase.ToLowerInvariant();
+            var inputWords = Phrase.AsWords(input).ToList();
+
+            while (inputWords.Count > 0 && AuxiliaryWords.Contains(inputWords.First()))
+                inputWords.RemoveAt(0);
+
+            while (inputWords.Count > 0 && AuxiliaryWords.Contains(inputWords.Last()))
+                inputWords.RemoveAt(inputWords.Count - 1);
+
+            return string.Join(" ", inputWords);
+        }
+
         private double getSimilarity(string input, string conceptName, IEnumerable<string> conceptDescriptions)
         {
             var sanitizedInput = input.ToLowerInvariant();
-            var meaningFulInput = HandcraftedModel.ToMeaningfulPhrase(input);
+            var meaningFulInput = ToMeaningfulPhrase(input);
             var words = Phrase.AsWords(sanitizedInput);
             var name = conceptName.ToLowerInvariant();
             var weight = 1.0 * words.Length;
@@ -44,7 +60,7 @@ namespace PerceptiveDialogBasedAgent.V4.Events
             var scores = new List<double>();
             foreach (var word in words)
             {
-                if (HandcraftedModel.AuxiliaryWords.Contains(word))
+                if (AuxiliaryWords.Contains(word))
                     continue;
 
                 var hitCount = 0.0;
@@ -54,7 +70,7 @@ namespace PerceptiveDialogBasedAgent.V4.Events
                     var descriptionWords = Phrase.AsWords(description.ToLowerInvariant());
                     foreach (var descriptionWord in descriptionWords)
                     {
-                        if (HandcraftedModel.AuxiliaryWords.Contains(descriptionWord))
+                        if (AuxiliaryWords.Contains(descriptionWord))
                             continue;
 
                         //var wordWeight = 1.0 / _index.TotalOccurences(descriptionWord);

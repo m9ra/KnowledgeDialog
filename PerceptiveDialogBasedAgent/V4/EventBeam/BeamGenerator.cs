@@ -1,5 +1,4 @@
 ﻿using KnowledgeDialog.Dialog;
-using PerceptiveDialogBasedAgent.V4.Brain;
 using PerceptiveDialogBasedAgent.V4.Events;
 using PerceptiveDialogBasedAgent.V4.Primitives;
 using System;
@@ -114,6 +113,11 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             // nothing to do by default
         }
 
+        internal virtual void Visit(NewTurnEvent evt)
+        {
+            // nothing to do by default
+        }
+
         internal virtual void Visit(EventBase evt)
         {
             throw new NotSupportedException("Unknown event");
@@ -200,6 +204,10 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
         protected bool IsSatisfiedBy(SubstitutionRequestEvent request, ConceptInstance instance)
         {
+            if (request.Target.Instance == instance)
+                //disable self assignments
+                return false;
+
             //TODO check for patterns
             return true;
         }
@@ -358,7 +366,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return GetInstanceActivation(instance, getCurrentNode());
         }
 
-        internal InstanceActivationEvent GetInstanceActivation(ConceptInstance instance, BeamNode node)
+        internal static InstanceActivationEvent GetInstanceActivation(ConceptInstance instance, BeamNode node)
         {
             var currentNode = node;
             while (currentNode != null)
@@ -384,13 +392,15 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         }
 
 
-        internal ConceptInstance GetValue(ConceptInstance instance, ParamDefinedEvent parameter, BeamNode node)
+        internal static ConceptInstance GetValue(ConceptInstance instance, ParamDefinedEvent parameter, BeamNode node)
         {
             var currentNode = node;
             while (currentNode != null)
             {
                 var substitutionEvent = currentNode.Evt as PropertySetEvent;
-                if (substitutionEvent?.Target.Instance == instance)
+                var propertyMatch = substitutionEvent?.Target.Property == parameter.Property || parameter.Property == Concept2.Something;
+
+                if (substitutionEvent?.Target.Instance == instance && propertyMatch)
                     //TODO!!!!!!!! Check which parameter was assigned
                     return substitutionEvent.SubstitutedValue;
 
@@ -400,7 +410,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return null;
         }
 
-        internal ConceptInstance GetValue(ConceptInstance instance, Concept2 property, BeamNode node)
+        internal static ConceptInstance GetValue(ConceptInstance instance, Concept2 property, BeamNode node)
         {
             var currentNode = node;
             while (currentNode != null)
@@ -420,7 +430,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return GetPropertyValues(instance, getCurrentNode());
         }
 
-        internal Dictionary<Concept2, ConceptInstance> GetPropertyValues(ConceptInstance instance, BeamNode node)
+        internal static Dictionary<Concept2, ConceptInstance> GetPropertyValues(ConceptInstance instance, BeamNode node)
         {
             var result = new Dictionary<Concept2, ConceptInstance>();
 
@@ -438,7 +448,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return result;
         }
 
-        internal IEnumerable<string> GetDescriptions(Concept2 concept, BeamNode node)
+        internal static IEnumerable<string> GetDescriptions(Concept2 concept, BeamNode node)
         {
             var result = new List<string>();
             var currentNode = node;
@@ -497,8 +507,8 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                 if (score < Configuration.ConceptActivationThreshold)
                     continue;
 
-                Push(new InstanceActivationEvent(evt, new ConceptInstance(concept)));
                 Push(scoreEvent);
+                Push(new InstanceActivationEvent(evt, new ConceptInstance(concept)));
                 Pop();
                 Pop();
             }
@@ -519,8 +529,8 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                     continue;
 
                 var scoreEvt = new DistanceScoreEvt(request, evt);
-                Push(new PropertySetEvent(request, evt));
                 Push(scoreEvt);
+                Push(new PropertySetEvent(request, evt));
                 Pop();
                 Pop();
             }
@@ -532,8 +542,8 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             foreach (var request in substitutionRequests)
             {
                 var scoreEvt = new DistanceScoreEvt(request, evt);
-                Push(new UnknownPhraseSubstitutionEvent(request, evt));
                 Push(scoreEvt);
+                Push(new UnknownPhraseSubstitutionEvent(request, evt));
                 Pop();
                 Pop();
             }
@@ -544,8 +554,8 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             foreach (var unknownPhrase in unknownPhrases)
             {
                 var scoreEvt = new DistanceScoreEvt(evt, unknownPhrase);
-                Push(new UnknownPhraseSubstitutionEvent(evt, unknownPhrase));
                 Push(scoreEvt);
+                Push(new UnknownPhraseSubstitutionEvent(evt, unknownPhrase));
                 Pop();
                 Pop();
             }
@@ -559,8 +569,8 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                     continue;
 
                 var scoreEvt = new DistanceScoreEvt(evt, freeInstance);
-                Push(new PropertySetEvent(evt, freeInstance));
                 Push(scoreEvt);
+                Push(new PropertySetEvent(evt, freeInstance));
                 Pop();
                 Pop();
             }

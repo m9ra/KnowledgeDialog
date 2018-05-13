@@ -7,18 +7,19 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V4.EventBeam
 {
-    class RestaurantPolicyGenerator : ExecutionBeamGenerator
+    class RestaurantPolicyBeam : ExecutionBeamGenerator
     {
         public static readonly Concept2 Find = new Concept2("find");
 
 
-        internal RestaurantPolicyGenerator()
+        internal RestaurantPolicyBeam()
         {
             var restaurant = new Concept2("restaurant");
             var restaurantInstance = new ConceptInstance(restaurant);
             PushToAll(new ConceptDefinedEvent(restaurant));
 
             var pricerange = new Concept2("pricerange");
+            PushToAll(new ConceptDefinedEvent(pricerange));
 
             var expensive = new Concept2("expensive");
             var expensiveInstance = new ConceptInstance(expensive);
@@ -46,12 +47,38 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             PushToAll(new ConceptDescriptionEvent(Find, "find concept according to some constraint"));
 
             AddCallback(Find, _find);
+
+            var whatConcept = new Concept2("what");
+            PushToAll(new ConceptDefinedEvent(whatConcept));
+            PushToAll(new ParamDefinedEvent(whatConcept, Concept2.Property, new ConceptInstance(Concept2.Something)));
+            PushToAll(new ParamDefinedEvent(whatConcept, Concept2.Subject, new ConceptInstance(Concept2.Something)));
+
+            AddCallback(whatConcept, _what);
+
+        }
+
+        private void _what(ConceptInstance action, ExecutionBeamGenerator generator)
+        {
+            var property = GetValue(action, Concept2.Property);
+            var subject = GetValue(action, Concept2.Subject);
+
+            var value = GetValue(subject, property.Concept);
+            if (value == null)
+            {
+                Push(new NoInstanceFoundEvent(property));
+            }
+            else
+            {
+                Push(new StaticScoreEvent(0.05));
+                Push(new InstanceFoundEvent(value));
+            }
         }
 
         private void _find(ConceptInstance action, ExecutionBeamGenerator generator)
         {
             //TODO we need more complex patterns here
-            var criterion = GetValue(action, Concept2.Subject).Concept;
+            var criterion = GetValue(action, Concept2.Subject);
+            var criterionConcept = criterion.Concept;
             var concepts = GetConcepts();
 
             var result = new List<ConceptInstance>();
@@ -63,7 +90,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                     var property = propertyValue.Key;
                     var value = propertyValue.Value;
 
-                    if (property == criterion || value?.Concept == criterion)
+                    if (property == criterionConcept || value?.Concept == criterionConcept)
                     {
                         result.Add(conceptInstance);
                         break;

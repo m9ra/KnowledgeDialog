@@ -1,4 +1,6 @@
-﻿using System;
+﻿using PerceptiveDialogBasedAgent.V4.EventBeam;
+using PerceptiveDialogBasedAgent.V4.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -145,6 +147,36 @@ namespace PerceptiveDialogBasedAgent.V2
         {
             Writeln("\tSENSOR: {0}", SensorColor, condition);
             Writeln("\t\t{0}", ActionColor, action);
+        }
+
+        internal static void States(BeamGenerator generator, int stateCount = int.MaxValue)
+        {
+            var rankedStates = generator.GetRankedNodes().Take(stateCount).Reverse().ToArray();
+
+            foreach (var state in rankedStates)
+            {
+                Write($"S: {state.Rank:0.00} > ", HeadlineColor);
+                State(state.Value);
+                Writeln("\n", HeadlineColor);
+            }
+        }
+
+        internal static void State(BeamNode node)
+        {
+            var events = new List<EventBase>();
+            var currentNode = node;
+
+            while (currentNode != null && currentNode.Evt != null)
+            {
+                events.Add(currentNode.Evt);
+                currentNode = currentNode.ParentNode;
+            }
+
+            events.Reverse();
+            foreach (var evt in events)
+            {
+                Write(evt.ToString(), Log.ItemColor);
+            }
         }
 
         internal static void Writeln(string format = "", ConsoleColor color = ConsoleColor.Gray, params object[] formatArgs)

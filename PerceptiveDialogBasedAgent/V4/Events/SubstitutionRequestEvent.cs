@@ -1,5 +1,4 @@
-﻿using PerceptiveDialogBasedAgent.V4.Brain;
-using PerceptiveDialogBasedAgent.V4.EventBeam;
+﻿using PerceptiveDialogBasedAgent.V4.EventBeam;
 using PerceptiveDialogBasedAgent.V4.Primitives;
 using System;
 using System.Collections.Generic;

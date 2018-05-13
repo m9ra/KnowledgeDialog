@@ -9,11 +9,11 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 {
     class TooManyInstancesFoundEvent : EventBase
     {
-        private Concept2 criterion;
+        internal readonly ConceptInstance Criterion;
 
-        public TooManyInstancesFoundEvent(Concept2 criterion)
+        public TooManyInstancesFoundEvent(ConceptInstance criterion)
         {
-            this.criterion = criterion;
+            Criterion = criterion;
         }
 
         internal override void Accept(BeamGenerator g)

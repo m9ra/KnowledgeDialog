@@ -20,7 +20,7 @@ namespace PerceptiveDialogBasedAgent
 
         public bool CanBeCompleted => true;
 
-        private readonly Body _body = new Body();
+        private readonly Agent _agent;
 
         public override ResponseBase Initialize()
         {
@@ -33,8 +33,7 @@ namespace PerceptiveDialogBasedAgent
             string response;
             try
             {
-                response = _body.Input(utterance.OriginalSentence);
-                var pricerangeSpecifier = _body.RestaurantDb.GetSpecifier("pricerange");
+                response = _agent.Input(utterance.OriginalSentence);
                 if (response.ToLowerInvariant().Contains("ceasar"))
                     _hadInformativeInput = true;
             }

@@ -1,4 +1,5 @@
-﻿using PerceptiveDialogBasedAgent.V4.Brain;
+﻿using PerceptiveDialogBasedAgent.V4.EventBeam;
+using PerceptiveDialogBasedAgent.V4.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,55 +18,54 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         private readonly Random _rnd = new Random();
 
-        private readonly Body _body;
+        private EventBase[] _processedEvents;
 
-        private ConceptInstance[] _processedEvents;
-
-        private MindState _processedState;
+        private BeamNode _processedNode;
 
         private int _currentEventIndex = 0;
 
         private PatternBasedGenerator _currentGenerator = null;
 
-        internal EventBasedNLG(Body body)
-        {
-            _body = body;
+        internal EventBase CurrentEvent => _processedEvents[_currentEventIndex];
 
+        internal EventBasedNLG()
+        {
             this
-                .ForPattern(Concept2.Output)
+                .ForEvent<InstanceFoundEvent>()
                     .Output(simpleOutput)
 
-                .ForPattern(Concept2.SubstitutionRequestedEvent)
-                    .Output(substitutionRequested)
+                .ForEvent<UnknownPhraseSubstitutionEvent>()
+                    .Output(unknownPhraseSubstitution)
 
-                .ForPattern(Concept2.NeedsRefinement)
+                .ForEvent<TooManyInstancesFoundEvent>()
                     .Output(refinement)
 
-                .ForPattern(Concept2.NotFoundEvent)
+                .ForEvent<NoInstanceFoundEvent>()
                     .Output(notFound)
             ;
         }
 
         private IEnumerable<string> notFound()
         {
-            var constraint = getEventProperty(Concept2.Subject);
-            var constraintRepresentation = constraint.ToPrintable();
+            var evt = CurrentEvent as NoInstanceFoundEvent;
+            var constraintRepresentation = evt.Criterion.ToPrintable();
 
             yield return "I don't know anything which is " + constraintRepresentation;
         }
 
         private IEnumerable<string> simpleOutput()
         {
-            var outputRepresentation = getEventProperty(Concept2.Subject).ToPrintable();
+            var evt = CurrentEvent as InstanceFoundEvent;
+            var outputRepresentation = evt.Instance.ToPrintable();
 
             yield return "I know " + outputRepresentation;
             yield return "I think, you want " + outputRepresentation;
         }
 
-        private IEnumerable<string> substitutionRequested()
+        private IEnumerable<string> unknownPhraseSubstitution()
         {
-            var request = getEventProperty(Concept2.Target);
-            var unknownPhrase = getPropertyValue(request, Concept2.ConceptName)?.ToPrintable();
+            var evt = CurrentEvent as UnknownPhraseSubstitutionEvent;
+            var unknownPhrase = evt.UnknownPhrase;
 
             if (unknownPhrase != null)
                 yield return "I don't know phrase " + unknownPhrase + ". What does it mean?";
@@ -73,7 +73,9 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         private IEnumerable<string> refinement()
         {
-            var ambiguousConstraint = getEventProperty(Concept2.Target);
+            var evt = CurrentEvent as TooManyInstancesFoundEvent;
+
+            var ambiguousConstraint = evt.Criterion;
             var constraintSpecification = getConstraintDescription(ambiguousConstraint);
             constraintSpecification = getPlural(constraintSpecification);
 
@@ -91,7 +93,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
                 description = "thing";
 
             //collect modifiers
-            foreach (var property in _processedState.GetProperties(instance))
+            foreach (var property in getProperties(instance))
             {
                 if (property == Concept2.InstanceOf)
                     continue;
@@ -105,7 +107,12 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         private PointableInstance getPropertyValue(PointableInstance instance, Concept2 property)
         {
-            return _processedState.GetPropertyValue(instance, property);
+            throw new NotImplementedException();
+        }
+
+        private IEnumerable<Concept2> getProperties(PointableInstance instance)
+        {
+            throw new NotImplementedException();
         }
 
         private string getPlural(PointableInstance instance)
@@ -131,19 +138,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             if (conceptInstance == null)
                 return false;
 
-            foreach (var concept in _body.Concepts)
-            {
-                foreach (var property in concept.Properties)
-                {
-                    var value = concept.GetPropertyValue(property);
-                    if (value == instance)
-                        return true;
-
-                    var conceptValue = value as ConceptInstance;
-                    if (conceptValue != null && conceptValue.Concept == concept)
-                        return true;
-                }
-            }
+            throw new NotImplementedException();
 
             return false;
         }
@@ -154,39 +149,18 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             if (conceptInstance == null)
                 return false;
 
-            foreach (var concept in _body.Concepts)
-            {
-                foreach (var property in concept.Properties)
-                {
-                    if (property == conceptInstance.Concept)
-                        return true;
-                }
-            }
-
-            return false;
+            throw new NotImplementedException();
         }
 
-        private PointableInstance getEventProperty(Concept2 property)
+        private ConceptInstance getProperty(ConceptInstance instance, Concept2 property)
         {
-            var evt = _processedEvents[_currentEventIndex];
-            return _processedState.GetPropertyValue(evt, property);
+            return BeamGenerator.GetValue(instance, property, _processedNode);
         }
 
-        private bool evtPatternCondition(Concept2[] evtPattern)
+        private bool evtCondition<T>()
+            where T : EventBase
         {
-            if (_currentEventIndex + evtPattern.Length > _processedEvents.Length)
-                return false;
-
-            for (var i = 0; i < evtPattern.Length; ++i)
-            {
-                var pattern = evtPattern[i];
-                var processedEvent = _processedEvents[_currentEventIndex + i];
-
-                if (processedEvent.Concept != pattern)
-                    return false;
-            }
-
-            return true;
+            return _processedEvents[_currentEventIndex] is T;
         }
 
         private EventBasedNLG Output(OutputGenerator generator)
@@ -195,27 +169,24 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             return this;
         }
 
-        private EventBasedNLG ForPattern(params Concept2[] evtPattern)
+        private EventBasedNLG ForEvent<T>()
+            where T : EventBase
         {
             _currentGenerator = new PatternBasedGenerator();
             _generators.Add(_currentGenerator);
 
-            _currentGenerator.Condition = () => evtPatternCondition(evtPattern);
+            _currentGenerator.Condition = () => evtCondition<T>();
             return this;
         }
 
-        internal string GenerateResponse(MindState state)
+        internal string GenerateResponse(BeamNode node)
         {
-            _processedState = state;
-            _processedEvents = state.Events.ToArray();
-            var responseParts = new List<string>();
+            _processedNode = node;
 
-            // find where turn started
-            for (_currentEventIndex = _processedEvents.Length - 1; _currentEventIndex >= 0; _currentEventIndex--)
-                if (_processedEvents[_currentEventIndex].Concept == Concept2.NewTurn)
-                    break;
+            _processedEvents = getTurnEvents(node);
 
             // generate response parts
+            var responseParts = new List<string>();
             for (; _currentEventIndex < _processedEvents.Length; ++_currentEventIndex)
             {
                 foreach (var generator in _generators)
@@ -236,6 +207,21 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
             //TODO response part combinations
             return string.Join(" ", responseParts);
+        }
+
+        private EventBase[] getTurnEvents(BeamNode node)
+        {
+            var turnEvents = new List<EventBase>();
+            var currentNode = node;
+            while (currentNode != null)
+            {
+                if (currentNode.Evt is NewTurnEvent)
+                    break;
+
+                turnEvents.Add(currentNode.Evt);
+                currentNode = currentNode.ParentNode;
+            }
+            return turnEvents.ToArray();
         }
 
         private string getSample(OutputGenerator generator)

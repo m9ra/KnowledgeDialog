@@ -117,36 +117,5 @@ namespace PerceptiveDialogBasedAgent.V1
             Console.Write(format, formatArgs);
             Console.ForegroundColor = previousColor;
         }
-
-        internal static void States(BeamGenerator generator)
-        {
-            var rankedStates = generator.GetRankedNodes().Reverse().ToArray();
-
-            foreach (var state in rankedStates)
-            {
-                write($"S: {state.Rank:0.00} > ", Log.HeadlineColor);
-                State(state.Value);
-                writeln("\n", Log.HeadlineColor);
-
-            }
-        }
-
-        internal static void State(BeamNode node)
-        {
-            var events = new List<EventBase>();
-            var currentNode = node;
-
-            while (currentNode != null && currentNode.Evt != null)
-            {
-                events.Add(currentNode.Evt);
-                currentNode = currentNode.ParentNode;
-            }
-
-            events.Reverse();
-            foreach (var evt in events)
-            {
-                Log.write(evt.ToString(), Log.ItemColor);
-            }
-        }
     }
 }

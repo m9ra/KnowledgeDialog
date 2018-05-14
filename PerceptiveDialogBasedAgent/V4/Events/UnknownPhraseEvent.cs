@@ -9,11 +9,11 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 {
     class UnknownPhraseEvent : EventBase
     {
-        private InputPhraseEvent evt;
+        public readonly InputPhraseEvent InputPhraseEvt;
 
         public UnknownPhraseEvent(InputPhraseEvent evt)
         {
-            this.evt = evt;
+            this.InputPhraseEvt = evt;
         }
 
         internal override void Accept(BeamGenerator g)
@@ -23,7 +23,7 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 
         public override string ToString()
         {
-            return $"[unknown: {evt.Phrase}]";
+            return $"[unknown: {InputPhraseEvt.Phrase}]";
         }
     }
 }

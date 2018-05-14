@@ -37,11 +37,15 @@ namespace PerceptiveDialogBasedAgent.V4.Models
                 .ForEvent<UnknownPhraseSubstitutionEvent>()
                     .Output(unknownPhraseSubstitution)
 
+                .ForEvent<SubstitutionRequestEvent>()
+                    .Output(needsSubstitution)
+
                 .ForEvent<TooManyInstancesFoundEvent>()
                     .Output(refinement)
 
                 .ForEvent<NoInstanceFoundEvent>()
                     .Output(notFound)
+
             ;
         }
 
@@ -58,14 +62,46 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             var evt = CurrentEvent as InstanceFoundEvent;
             var outputRepresentation = evt.Instance.ToPrintable();
 
-            yield return "I know " + outputRepresentation;
-            yield return "I think, you want " + outputRepresentation;
+            outputRepresentation += ".";
+            if (hasFindAction())
+            {
+                yield return "I know " + outputRepresentation;
+                yield return "I think, you would like " + outputRepresentation;
+            }
+
+            yield return "It is " + outputRepresentation;
+        }
+
+        private IEnumerable<string> needsSubstitution()
+        {
+            var evt = CurrentEvent as SubstitutionRequestEvent;
+            var value = getPropertyValue(evt.Target.Instance, evt.Target.Property);
+            if (value != null)
+                //request is not opened
+                yield break;
+
+            var questionFormulation = getPropertyQuestion(evt.Target.Property);
+            var subject = evt.Target.Instance.Concept.Name;
+
+            yield return questionFormulation + " " + subject;
+        }
+
+        private string getPropertyQuestion(Concept2 property)
+        {
+            if (property == Concept2.Something || property == Concept2.Subject)
+            {
+                return "What should I";
+            }
+            else
+            {
+                return $"What {property.Name} should I";
+            }
         }
 
         private IEnumerable<string> unknownPhraseSubstitution()
         {
             var evt = CurrentEvent as UnknownPhraseSubstitutionEvent;
-            var unknownPhrase = evt.UnknownPhrase;
+            var unknownPhrase = evt.UnknownPhrase.InputPhraseEvt.Phrase;
 
             if (unknownPhrase != null)
                 yield return "I don't know phrase " + unknownPhrase + ". What does it mean?";
@@ -82,32 +118,31 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             yield return "I know many " + constraintSpecification + ", which one would you like?";
         }
 
-        private string getConstraintDescription(PointableInstance instance)
+        private string getConstraintDescription(ConceptInstance conceptInstance)
         {
-            var conceptInstance = instance as ConceptInstance;
             if (conceptInstance is null || conceptInstance.Concept != Concept2.Something)
-                return instance.ToPrintable();
+                return conceptInstance.ToPrintable();
 
             var description = getPropertyValue(conceptInstance, Concept2.InstanceOf)?.ToPrintable();
             if (description == null)
                 description = "thing";
 
             //collect modifiers
-            foreach (var property in getProperties(instance))
+            foreach (var property in getProperties(conceptInstance))
             {
                 if (property == Concept2.InstanceOf)
                     continue;
 
-                var modifier = getPropertyValue(instance, property).ToPrintable();
+                var modifier = getPropertyValue(conceptInstance, property).ToPrintable();
                 description = modifier + " " + description;
             }
 
             return description;
         }
 
-        private PointableInstance getPropertyValue(PointableInstance instance, Concept2 property)
+        private ConceptInstance getPropertyValue(ConceptInstance instance, Concept2 property)
         {
-            throw new NotImplementedException();
+            return BeamGenerator.GetValue(instance, property, _processedNode);
         }
 
         private IEnumerable<Concept2> getProperties(PointableInstance instance)
@@ -187,14 +222,19 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
             // generate response parts
             var responseParts = new List<string>();
-            for (; _currentEventIndex < _processedEvents.Length; ++_currentEventIndex)
+            foreach (var generator in _generators)
             {
-                foreach (var generator in _generators)
+                for (_currentEventIndex = 0; _currentEventIndex < _processedEvents.Length; ++_currentEventIndex)
                 {
                     if (!generator.Condition())
                         continue;
 
-                    responseParts.Add(getSample(generator.Generator));
+                    var sample = getSample(generator.Generator);
+                    if (sample == null)
+                        //sample generation failed - try further
+                        continue;
+
+                    responseParts.Add(sample);
                     //TODO offset by the pattern length
                     break;
                 }
@@ -206,7 +246,8 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             }
 
             //TODO response part combinations
-            return string.Join(" ", responseParts);
+            //return string.Join(" ", responseParts);
+            return responseParts.First();
         }
 
         private EventBase[] getTurnEvents(BeamNode node)
@@ -215,7 +256,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             var currentNode = node;
             while (currentNode != null)
             {
-                if (currentNode.Evt is NewTurnEvent)
+                if (currentNode.Evt is TurnStartEvent)
                     break;
 
                 turnEvents.Add(currentNode.Evt);
@@ -227,9 +268,16 @@ namespace PerceptiveDialogBasedAgent.V4.Models
         private string getSample(OutputGenerator generator)
         {
             var samples = generator().ToArray();
+            if (samples.Length == 0)
+                return null;
 
             var sampleIndex = _rnd.Next(samples.Length);
             return samples[sampleIndex];
+        }
+
+        private bool hasFindAction()
+        {
+            return _processedEvents.Select(e => e as CompleteInstanceEvent).Where(e => e != null).Where(e => e.Instance.Concept == RestaurantDomainBeamGenerator.Find).Any();
         }
     }
 

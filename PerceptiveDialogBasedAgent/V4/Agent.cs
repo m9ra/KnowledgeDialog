@@ -12,11 +12,11 @@ namespace PerceptiveDialogBasedAgent.V4
 {
     class Agent
     {
-        private readonly RestaurantPolicyBeam _beam;
+        private readonly RestaurantDomainBeamGenerator _beam;
 
         internal Agent()
         {
-            _beam = new RestaurantPolicyBeam();
+            _beam = new RestaurantDomainBeamGenerator();
         }
 
         internal string Input(string originalSentence)
@@ -25,15 +25,18 @@ namespace PerceptiveDialogBasedAgent.V4
 
             var words = Phrase.AsWords(originalSentence);
             if (words.Length > 10)
-                return "I'm sorry, the sentence is too long. Try to use simpler phrases please.";
+                return "I'm sorry, the sentence is too long. Try to use simpler sentences please.";
 
-            _beam.PushToAll(new NewTurnEvent());
+            _beam.PushToAll(new TurnStartEvent());
             foreach (var word in words)
             {
+                _beam.LimitBeam(500);
                 _beam.PushInput(word);
             }
 
-            Log.States(_beam, 3);
+            _beam.PushToAll(new TurnEndEvent());
+            _beam.LimitBeam(10);
+            Log.States(_beam, 1);
 
             var nlg = new EventBasedNLG();
             var response = nlg.GenerateResponse(_beam.GetBestNode());

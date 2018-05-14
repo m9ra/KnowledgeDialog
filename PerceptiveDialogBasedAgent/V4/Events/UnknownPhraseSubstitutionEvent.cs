@@ -6,6 +6,7 @@ namespace PerceptiveDialogBasedAgent.V4.Events
     internal class UnknownPhraseSubstitutionEvent : EventBase
     {
         internal readonly SubstitutionRequestEvent SubstitutionRequest;
+
         internal readonly UnknownPhraseEvent UnknownPhrase;
 
         public UnknownPhraseSubstitutionEvent(SubstitutionRequestEvent substitutionRequest, UnknownPhraseEvent unknownPhrase)

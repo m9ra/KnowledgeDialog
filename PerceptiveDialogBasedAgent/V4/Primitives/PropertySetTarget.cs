@@ -31,5 +31,29 @@ namespace PerceptiveDialogBasedAgent.V4.Primitives
             Concept = concept;
             Property = property;
         }
+
+        public override int GetHashCode()
+        {
+            var acc = 0;
+            if (Concept != null)
+                acc += Concept.GetHashCode();
+
+            if (Property != null)
+                acc += Property.GetHashCode();
+
+            if (Instance != null)
+                acc += Instance.GetHashCode();
+
+            return acc;
+        }
+
+        public override bool Equals(object obj)
+        {
+            var o = obj as PropertySetTarget;
+            if (o == null)
+                return false;
+
+            return Concept == o.Concept && Instance == o.Instance && Property == o.Property;
+        }
     }
 }

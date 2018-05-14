@@ -34,7 +34,7 @@ namespace PerceptiveDialogBasedAgent.V4.Events
         public override string ToString()
         {
             var targetDescriptor = Target.Concept?.Name ?? Target.Instance.Concept.Name;
-            return $"[{targetDescriptor} <--{Target.Property.Name}-- {SubstitutedValue.Concept.Name}]";
+            return $"[{targetDescriptor}<--{Target.Property.Name}--{SubstitutedValue.Concept.Name}]";
         }
     }
 }

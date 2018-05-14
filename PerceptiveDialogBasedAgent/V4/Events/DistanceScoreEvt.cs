@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PerceptiveDialogBasedAgent.V4.EventBeam;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,7 +18,7 @@ namespace PerceptiveDialogBasedAgent.V4.Events
             _evt2 = evt2;
         }
 
-        internal override double GetDefaultScore()
+        internal override double GetDefaultScore(BeamNode rootNode)
         {
             return 0.1;
         }

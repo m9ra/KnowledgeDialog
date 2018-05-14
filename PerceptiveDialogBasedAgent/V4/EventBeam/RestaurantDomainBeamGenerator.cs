@@ -7,12 +7,14 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V4.EventBeam
 {
-    class RestaurantPolicyBeam : ExecutionBeamGenerator
+    class RestaurantDomainBeamGenerator : PolicyBeamGenerator
     {
         public static readonly Concept2 Find = new Concept2("find");
 
+        public readonly ParamDefinedEvent FindParam;
 
-        internal RestaurantPolicyBeam()
+
+        internal RestaurantDomainBeamGenerator()
         {
             var restaurant = new Concept2("restaurant");
             var restaurantInstance = new ConceptInstance(restaurant);
@@ -42,7 +44,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             var findParameterConstraint = new ConceptInstance(Concept2.Something);
 
             PushToAll(new ConceptDefinedEvent(Find));
-            PushToAll(new ParamDefinedEvent(Find, Concept2.Subject, findParameterConstraint));
+            PushToAll(FindParam = new ParamDefinedEvent(Find, Concept2.Subject, findParameterConstraint));
             PushToAll(new ConceptDescriptionEvent(Find, "finds concepts that agent knows"));
             PushToAll(new ConceptDescriptionEvent(Find, "find concept according to some constraint"));
 
@@ -69,7 +71,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             }
             else
             {
-                Push(new StaticScoreEvent(0.05));
+                Push(new StaticScoreEvent(0.20));
                 Push(new InstanceFoundEvent(value));
             }
         }
@@ -104,12 +106,12 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             }
             else if (result.Count == 1)
             {
-                Push(new InstanceFoundEvent(result.First()));
                 Push(new StaticScoreEvent(0.2));
+                Push(new InstanceFoundEvent(result.First()));
             }
             else
             {
-                Push(new TooManyInstancesFoundEvent(criterion));
+                Push(new TooManyInstancesFoundEvent(criterion, new SubstitutionRequestEvent(action, FindParam)));
             }
         }
     }

@@ -155,8 +155,10 @@ namespace PerceptiveDialogBasedAgent.V2
 
             foreach (var state in rankedStates)
             {
-                Write($"S: {state.Rank:0.00} > ", HeadlineColor);
+                Writeln($"S: {state.Rank:0.00} > ", HeadlineColor);
+                Indent();
                 State(state.Value);
+                Dedent();
                 Writeln("\n", HeadlineColor);
             }
         }
@@ -175,7 +177,20 @@ namespace PerceptiveDialogBasedAgent.V2
             events.Reverse();
             foreach (var evt in events)
             {
-                Write(evt.ToString(), Log.ItemColor);
+                var color = ItemColor;
+                if (evt is TurnStartEvent || evt is TurnEndEvent)
+                    color = PolicyColor;
+
+                if (evt is ResultEvent)
+                    color = ExecutedCommandColor;
+
+                if (evt is InputPhraseEvent)
+                    color = UtteranceColor;
+
+                if (evt is ConceptDescriptionEvent || evt is ConceptDefinedEvent)
+                    color = ConsoleColor.Yellow;
+
+                Writeln(evt.ToString(), color);
             }
         }
 

@@ -150,7 +150,11 @@ namespace PerceptiveDialogBasedAgent.V4
         public static void DirectPolicyHandling()
         {
             var agent = new Agent();
-            agent.Input("find an expensive restaurant");
+            agent.Input("find");
+            agent.Input("restaurant");
+            agent.Input("luxury");
+            agent.Input("expensive");
+            agent.Input("what pricerange");
         }
     }
 }

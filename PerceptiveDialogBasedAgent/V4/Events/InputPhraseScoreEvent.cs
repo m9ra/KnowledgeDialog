@@ -1,4 +1,5 @@
-﻿using PerceptiveDialogBasedAgent.V4.Models;
+﻿using PerceptiveDialogBasedAgent.V4.EventBeam;
+using PerceptiveDialogBasedAgent.V4.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,9 +22,10 @@ namespace PerceptiveDialogBasedAgent.V4.Events
             Concept = concept;
         }
 
-        internal override double GetDefaultScore()
+        internal override double GetDefaultScore(BeamNode rootNode)
         {
-            return getSimilarity(InputPhrase.Phrase, Concept.Name, new string[0]); //TODO solve the descriptions
+            var descriptions = BeamGenerator.GetDescriptions(Concept, rootNode);
+            return getSimilarity(InputPhrase.Phrase, Concept.Name, descriptions); //TODO solve the descriptions
         }
 
         internal static string ToMeaningfulPhrase(string phrase)

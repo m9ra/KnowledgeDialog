@@ -17,6 +17,11 @@ namespace PerceptiveDialogBasedAgent.V4.Events
             Target = new PropertySetTarget(targetInstance, parameterDefinition.Property);
         }
 
+        public SubstitutionRequestEvent(PropertySetTarget target)
+        {
+            Target = target;
+        }
+
         internal override void Accept(BeamGenerator g)
         {
             g.Visit(this);

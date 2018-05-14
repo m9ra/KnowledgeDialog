@@ -7,13 +7,16 @@ using PerceptiveDialogBasedAgent.V4.EventBeam;
 
 namespace PerceptiveDialogBasedAgent.V4.Events
 {
-    class TooManyInstancesFoundEvent : EventBase
+    class TooManyInstancesFoundEvent : ResultEvent
     {
         internal readonly ConceptInstance Criterion;
 
-        public TooManyInstancesFoundEvent(ConceptInstance criterion)
+        internal readonly SubstitutionRequestEvent SubstitutionRequest;
+
+        public TooManyInstancesFoundEvent(ConceptInstance criterion, SubstitutionRequestEvent request)
         {
             Criterion = criterion;
+            SubstitutionRequest = request;
         }
 
         internal override void Accept(BeamGenerator g)

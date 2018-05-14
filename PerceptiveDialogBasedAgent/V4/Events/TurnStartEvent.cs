@@ -7,7 +7,7 @@ using PerceptiveDialogBasedAgent.V4.EventBeam;
 
 namespace PerceptiveDialogBasedAgent.V4.Events
 {
-    class NewTurnEvent : EventBase
+    class TurnStartEvent : EventBase
     {
         internal override void Accept(BeamGenerator g)
         {
@@ -16,7 +16,7 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 
         public override string ToString()
         {
-            return "[new turn]";
+            return "[turn start]";
         }
     }
 }

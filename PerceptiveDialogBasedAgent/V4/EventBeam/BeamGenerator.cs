@@ -49,10 +49,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
         internal virtual void Visit(UnknownPhraseEvent evt)
         {
-            //try to substitute unknown phrase to some targets
-            tryAsSubstitution(evt);
-
-            PushSelf();
+            //nothing to do by default (unknown phrase substitutions are up to policy decisions)
         }
 
         internal virtual void Visit(SubstitutionRequestEvent evt)
@@ -74,6 +71,11 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         }
 
         internal virtual void Visit(UnknownPhraseSubstitutionEvent evt)
+        {
+            // nothing to do by default - instance available is generated after unkonwn phrase is confirmed
+        }
+
+        internal virtual void Visit(UnknownPhraseSubstitutedEvent evt)
         {
             // nothing to do by default - instance available is generated after unkonwn phrase is confirmed
         }
@@ -113,7 +115,17 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             // nothing to do by default
         }
 
-        internal virtual void Visit(NewTurnEvent evt)
+        internal virtual void Visit(TurnStartEvent evt)
+        {
+            // nothing to do by default
+        }
+
+        internal virtual void Visit(TurnEndEvent evt)
+        {
+            // nothing to do by default
+        }
+
+        internal virtual void Visit(ActiveInstanceBarrierEvent evt)
         {
             // nothing to do by default
         }
@@ -133,6 +145,14 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         public void PushInput(string input)
         {
             PushToAll(new InputPhraseEvent(input));
+        }
+
+        public void LimitBeam(int count)
+        {
+            var bestNodes = GetRankedNodes().Take(count).Select(r => r.Value).ToArray();
+            _beam.Clear();
+            _beam.UnionWith(bestNodes);
+
         }
 
         /// <summary>
@@ -202,9 +222,9 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             _layers.Pop();
         }
 
-        protected bool IsSatisfiedBy(SubstitutionRequestEvent request, ConceptInstance instance)
+        protected virtual bool IsSatisfiedBy(SubstitutionRequestEvent request, ConceptInstance instance)
         {
-            if (request.Target.Instance == instance)
+            if (request.Target.Instance.Concept == instance.Concept)
                 //disable self assignments
                 return false;
 
@@ -215,7 +235,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         protected double GetScore(TracedScoreEventBase scoreEvt)
         {
             //TODO recognition learning belongs here
-            return scoreEvt.GetDefaultScore();
+            return scoreEvt.GetDefaultScore(getCurrentNode());
         }
 
         protected double GetScore(BeamNode node)
@@ -257,6 +277,11 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return GetFreeSubstitutionRequests(getCurrentNode());
         }
 
+        protected IEnumerable<UnknownPhraseSubstitutionEvent> GetFreeUnknownPhraseRequests()
+        {
+            return GetFreeUnknownPhraseRequests(getCurrentNode());
+        }
+
         protected IEnumerable<UnknownPhraseEvent> GetFreeUnknownPhrases()
         {
             return GetFreeUnknownPhrases(getCurrentNode());
@@ -275,6 +300,9 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             var currentNode = node;
             while (currentNode != null)
             {
+                if (currentNode.Evt is ActiveInstanceBarrierEvent)
+                    break;
+
                 if (currentNode.Evt is PropertySetEvent propertySetEvt)
                     substitutedInstances.Add(propertySetEvt.SubstitutedValue);
 
@@ -295,6 +323,9 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             var currentNode = node;
             while (currentNode != null)
             {
+                if (currentNode.Evt is ActiveInstanceBarrierEvent)
+                    break;
+
                 if (currentNode.Evt is UnknownPhraseSubstitutionEvent substitutionEvt)
                     usedPhrases.Add(substitutionEvt.UnknownPhrase);
 
@@ -307,6 +338,27 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return result;
         }
 
+        internal IEnumerable<EventBase> GetTurnEvents()
+        {
+            return GetTurnEvents(getCurrentNode());
+        }
+
+        internal static IEnumerable<EventBase> GetTurnEvents(BeamNode node)
+        {
+            var result = new List<EventBase>();
+
+            var currentNode = node;
+            while (currentNode != null)
+            {
+                if (currentNode.Evt is TurnStartEvent)
+                    break;
+
+                result.Add(currentNode.Evt);
+                currentNode = currentNode.ParentNode;
+            }
+            return result;
+        }
+
         protected IEnumerable<SubstitutionRequestEvent> GetFreeSubstitutionRequests(BeamNode node)
         {
             var result = new List<SubstitutionRequestEvent>();
@@ -315,6 +367,9 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             var currentNode = node;
             while (currentNode != null)
             {
+                if (currentNode.Evt is ActiveInstanceBarrierEvent)
+                    break;
+
                 if (currentNode.Evt is PropertySetEvent propertySetEvt)
                     substitutedTargets.Add(propertySetEvt.Target);
 
@@ -328,6 +383,43 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             }
 
             return result;
+        }
+
+        protected IEnumerable<UnknownPhraseSubstitutionEvent> GetFreeUnknownPhraseRequests(BeamNode node)
+        {
+            var result = new List<UnknownPhraseSubstitutionEvent>();
+            var substitutedTargets = new HashSet<PropertySetTarget>();
+
+            var currentNode = node;
+
+            //unknown phrase substitutions are valid only from previous turns
+            while (currentNode != null)
+            {
+                if (currentNode.Evt is TurnStartEvent)
+                    break;
+
+                if (currentNode.Evt is PropertySetEvent propertySetEvt)
+                    substitutedTargets.Add(propertySetEvt.Target);
+
+                currentNode = currentNode.ParentNode;
+            }
+
+            while (currentNode != null)
+            {
+                if (currentNode.Evt is ActiveInstanceBarrierEvent)
+                    break;
+
+                if (currentNode.Evt is PropertySetEvent propertySetEvt)
+                    substitutedTargets.Add(propertySetEvt.Target);
+
+                if (currentNode.Evt is UnknownPhraseSubstitutionEvent requestEvt && !substitutedTargets.Contains(requestEvt.SubstitutionRequest.Target))
+                    result.Add(requestEvt);
+
+                currentNode = currentNode.ParentNode;
+            }
+
+            return result;
+
         }
 
         internal IEnumerable<Concept2> GetConcepts(BeamNode node)
@@ -531,6 +623,19 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                 var scoreEvt = new DistanceScoreEvt(request, evt);
                 Push(scoreEvt);
                 Push(new PropertySetEvent(request, evt));
+                Pop();
+                Pop();
+            }
+
+            foreach (var unknownPhraseRequest in GetFreeUnknownPhraseRequests())
+            {
+                var request = unknownPhraseRequest.SubstitutionRequest;
+                if (!IsSatisfiedBy(request, evt.Instance))
+                    //substitution is not possible
+                    continue;
+
+                Push(new PropertySetEvent(request, evt));
+                Push(new UnknownPhraseSubstitutedEvent(unknownPhraseRequest, evt.Instance));
                 Pop();
                 Pop();
             }

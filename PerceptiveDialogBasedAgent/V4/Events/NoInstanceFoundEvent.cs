@@ -7,7 +7,7 @@ using PerceptiveDialogBasedAgent.V4.EventBeam;
 
 namespace PerceptiveDialogBasedAgent.V4.Events
 {
-    class NoInstanceFoundEvent : EventBase
+    class NoInstanceFoundEvent : ResultEvent
     {
         internal readonly ConceptInstance Criterion;
 

@@ -103,6 +103,8 @@
     <Compile Include="V4\Agent.cs" />
     <Compile Include="V4\Configuration.cs" />
     <Compile Include="V4\EventBeam\ExecutionBeamGenerator.cs" />
+    <Compile Include="V4\Events\InstanceUnderstoodEvent.cs" />
+    <Compile Include="V4\Events\PhraseStillNotKnownEvent.cs" />
     <Compile Include="V4\Events\ActiveInstanceBarrierEvent.cs" />
     <Compile Include="V4\EventBeam\BeamGenerator.cs" />
     <Compile Include="V4\EventBeam\BeamNode.cs" />

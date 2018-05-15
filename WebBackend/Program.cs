@@ -82,44 +82,45 @@ namespace WebBackend
 
             Experiments = new ExperimentCollection(experimentsRootPath,
 
-           /*     //question collection experiment 
-                new QuestionCollectionExperiment(experimentsRootPath, "question_collection", 15, simpleQuestions1),
+                /*     //question collection experiment 
+                     new QuestionCollectionExperiment(experimentsRootPath, "question_collection", 15, simpleQuestions1),
 
-                //question collection experiment 
-                new QuestionCollectionExperiment(experimentsRootPath, "question_collection2", 50, simpleQuestionsTrain),
+                     //question collection experiment 
+                     new QuestionCollectionExperiment(experimentsRootPath, "question_collection2", 50, simpleQuestionsTrain),
 
 
-                //full operation question collection experiment 
-                new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_1", 100, simpleQuestionsTrain),
+                     //full operation question collection experiment 
+                     new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_1", 100, simpleQuestionsTrain),
 
-                new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_2", 100, simpleQuestionsTrain),
+                     new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_2", 100, simpleQuestionsTrain),
 
-                new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_3", 100, simpleQuestionsTrain),
+                     new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_3", 100, simpleQuestionsTrain),
 
-                new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_4", 100, simpleQuestionsTrain),
+                     new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_4", 100, simpleQuestionsTrain),
 
-                new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_5", 100, simpleQuestionsTrain),
+                     new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_5", 100, simpleQuestionsTrain),
 
-                new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_6", 100, simpleQuestionsTrain),
+                     new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_6", 100, simpleQuestionsTrain),
 
-                new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_7", 100, simpleQuestionsTrain),
+                     new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_7", 100, simpleQuestionsTrain),
 
-                new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_8", 100, simpleQuestionsTrain),
+                     new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_8", 100, simpleQuestionsTrain),
 
-                new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_9", 100, simpleQuestionsTrain),
+                     new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_9", 100, simpleQuestionsTrain),
 
-                new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_10", 100, simpleQuestionsTrain),
+                     new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_10", 100, simpleQuestionsTrain),
 
-                new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_1", 100, simpleQuestionsTrain),
-                new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_2", 100, simpleQuestionsTrain),
-                new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_3", 100, extensionQuestions),
-                new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_4", 100, extensionQuestions),
-                new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_5", 100, extensionQuestions),
-                new AnswerExtractionExperiment(experimentsRootPath, "answer_extraction", 100, simpleQuestionsTrain, Configuration.AnswerExtractor),
-                new GraphNavigationExperiment(experimentsRootPath, "graph_navigation", 100, Configuration.GetQuestionDialogsTrain()),
-                new GraphNavigationExperiment(experimentsRootPath, "edge_requests", 100, Configuration.GetQuestionDialogsTrain()),*/
+                     new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_1", 100, simpleQuestionsTrain),
+                     new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_2", 100, simpleQuestionsTrain),
+                     new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_3", 100, extensionQuestions),
+                     new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_4", 100, extensionQuestions),
+                     new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_5", 100, extensionQuestions),
+                     new AnswerExtractionExperiment(experimentsRootPath, "answer_extraction", 100, simpleQuestionsTrain, Configuration.AnswerExtractor),
+                     new GraphNavigationExperiment(experimentsRootPath, "graph_navigation", 100, Configuration.GetQuestionDialogsTrain()),
+                     new GraphNavigationExperiment(experimentsRootPath, "edge_requests", 100, Configuration.GetQuestionDialogsTrain()),*/
                 new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant", 10),
-                new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant2", 10)
+                new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant2", 10),
+                new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant3", 10)
                 );
 
             //QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "qdd_extension_r_");

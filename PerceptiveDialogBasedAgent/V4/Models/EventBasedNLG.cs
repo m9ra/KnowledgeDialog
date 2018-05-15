@@ -40,6 +40,12 @@ namespace PerceptiveDialogBasedAgent.V4.Models
                 .ForEvent<SubstitutionRequestEvent>()
                     .Output(needsSubstitution)
 
+                .ForEvent<PhraseStillNotKnownEvent>()
+                    .Output(stillNotKnown)
+
+                .ForEvent<InstanceUnderstoodEvent>()
+                    .Output(instanceUnderstood)
+
                 .ForEvent<TooManyInstancesFoundEvent>()
                     .Output(refinement)
 
@@ -83,7 +89,32 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             var questionFormulation = getPropertyQuestion(evt.Target.Property);
             var subject = evt.Target.Instance.Concept.Name;
 
-            yield return questionFormulation + " " + subject;
+            if (subject == "what")
+            {
+                yield return "What are you asking for?";
+            }
+            else
+            {
+                yield return questionFormulation + " " + subject;
+            }
+        }
+
+
+        private IEnumerable<string> stillNotKnown()
+        {
+            var evt = CurrentEvent as PhraseStillNotKnownEvent;
+            var unknownPhrase = evt.UnknownPhraseSubstitutionEvent.UnknownPhrase.InputPhraseEvt.Phrase;
+
+            if (unknownPhrase != null)
+                yield return $"It seems to be complicated, I don't know {evt.UnknownPhraseEvent.InputPhraseEvt.Phrase} either. So, what does {unknownPhrase} mean?";
+        }
+
+        private IEnumerable<string> instanceUnderstood()
+        {
+            var evt = CurrentEvent as InstanceUnderstoodEvent;
+            var phrase = evt.InstanceActivationEvent.Instance.Concept.Name;
+
+            yield return $"I know what {phrase} is. But I don't know what should I do?";
         }
 
         private string getPropertyQuestion(Concept2 property)

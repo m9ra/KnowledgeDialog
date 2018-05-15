@@ -147,14 +147,48 @@ namespace PerceptiveDialogBasedAgent.V4
             b.Input("Please send me the address of an Italian restaurant in New York");
         }
 
-        public static void DirectPolicyHandling()
+        public static void RichDialogTest()
         {
             var agent = new Agent();
-            agent.Input("find");
-            agent.Input("restaurant");
+            agent.Input("I would like to find something");
+            agent.Input("some nice restaurant");
             agent.Input("luxury");
+            agent.Input("bla bla");
             agent.Input("expensive");
             agent.Input("what pricerange");
+        }
+
+        public static void DialogWithDistractions()
+        {
+            var agent = new Agent();
+            agent.Input("I would like a restaurant for dinner with my wife");
+            //I understand the restaurant. However, what should I do?
+            agent.Input("find it");
+            //I know many restaurants which one would you like?
+            agent.Input("luxury");
+            agent.Input("bla bla");
+            agent.Input("give me expensive restaurant");
+            agent.Input("what are the prices?");
+            agent.Input("pricerange");
+        }
+
+        public static void AliasTesting()
+        {
+            var a = new Agent();
+            a.Input("give me expensive restaurant");
+            a.Reset();
+
+            a.Input("get me expensive restaurant");
+            a.Reset();
+
+            a.Input("i want expensive restaurant");
+            a.Reset();
+
+            a.Input("search for expensive restaurant");
+            a.Reset();
+
+            a.Input("look up expensive restaurant");
+            a.Reset();
         }
     }
 }

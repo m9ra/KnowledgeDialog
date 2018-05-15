@@ -190,7 +190,13 @@ namespace PerceptiveDialogBasedAgent.V2
                 if (evt is ConceptDescriptionEvent || evt is ConceptDefinedEvent)
                     color = ConsoleColor.Yellow;
 
+                if (evt is TurnEndEvent)
+                    Dedent();
+
                 Writeln(evt.ToString(), color);
+
+                if (evt is TurnStartEvent)
+                    Indent();
             }
         }
 

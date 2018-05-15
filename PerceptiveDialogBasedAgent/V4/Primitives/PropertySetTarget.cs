@@ -32,6 +32,14 @@ namespace PerceptiveDialogBasedAgent.V4.Primitives
             Property = property;
         }
 
+        public string TargetRepresentation()
+        {
+            if (Instance == null)
+                return Concept.Name;
+
+            return Instance.ToPrintable();
+        }
+
         public override int GetHashCode()
         {
             var acc = 0;

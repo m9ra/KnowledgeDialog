@@ -47,6 +47,12 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             PushToAll(FindParam = new ParamDefinedEvent(Find, Concept2.Subject, findParameterConstraint));
             PushToAll(new ConceptDescriptionEvent(Find, "finds concepts that agent knows"));
             PushToAll(new ConceptDescriptionEvent(Find, "find concept according to some constraint"));
+            PushToAll(new ConceptDescriptionEvent(Find, "give"));
+            PushToAll(new ConceptDescriptionEvent(Find, "get"));
+            PushToAll(new ConceptDescriptionEvent(Find, "want"));
+            PushToAll(new ConceptDescriptionEvent(Find, "lookup"));
+            PushToAll(new ConceptDescriptionEvent(Find, "look"));
+            PushToAll(new ConceptDescriptionEvent(Find, "search"));
 
             AddCallback(Find, _find);
 

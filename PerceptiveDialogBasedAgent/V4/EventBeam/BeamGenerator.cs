@@ -58,10 +58,6 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             var completeInstances = GetFreeCompleteInstances();
             trySubstituteBy(evt, completeInstances);
 
-            //try to substitute by unknown phrases
-            var unknownPhrases = GetFreeUnknownPhrases();
-            trySubstituteBy(evt, unknownPhrases);
-
             PushSelf();
         }
 
@@ -126,6 +122,16 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         }
 
         internal virtual void Visit(ActiveInstanceBarrierEvent evt)
+        {
+            // nothing to do by default
+        }
+
+        internal virtual void Visit(PhraseStillNotKnownEvent evt)
+        {
+            // nothing to do by default
+        }
+
+        internal virtual void Visit(InstanceUnderstoodEvent evt)
         {
             // nothing to do by default
         }
@@ -343,7 +349,26 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return GetTurnEvents(getCurrentNode());
         }
 
-        internal static IEnumerable<EventBase> GetTurnEvents(BeamNode node)
+        internal IEnumerable<EventBase> GetPreviousTurnEvents()
+        {
+            return GetPreviousTurnEvents(getCurrentNode());
+        }
+
+        internal static IEnumerable<EventBase> GetPreviousTurnEvents(BeamNode node)
+        {
+            var currentNode = node;
+            while (currentNode != null)
+            {
+                if (currentNode.Evt is TurnStartEvent)
+                    break;
+
+                currentNode = currentNode.ParentNode;
+            }
+
+            return GetTurnEvents(currentNode.ParentNode);
+        }
+
+            internal static IEnumerable<EventBase> GetTurnEvents(BeamNode node)
         {
             var result = new List<EventBase>();
 

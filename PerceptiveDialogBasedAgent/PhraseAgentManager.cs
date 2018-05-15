@@ -16,11 +16,13 @@ namespace PerceptiveDialogBasedAgent
     {
         private bool _hadInformativeInput = false;
 
+        private int _inputCount = 0;
+
         public bool HadInformativeInput => _hadInformativeInput;
 
         public bool CanBeCompleted => true;
 
-        private readonly Agent _agent;
+        private readonly Agent _agent = new Agent();
 
         public override ResponseBase Initialize()
         {
@@ -33,9 +35,17 @@ namespace PerceptiveDialogBasedAgent
             string response;
             try
             {
-                response = _agent.Input(utterance.OriginalSentence);
-                if (response.ToLowerInvariant().Contains("ceasar"))
-                    _hadInformativeInput = true;
+                _inputCount += 1;
+                if (_inputCount > 10)
+                {
+                    response = "[NOTE] Too much inputs. The task should be easier - use simple phrases. Type reset to start the dialog from beginning.";
+                }
+                else
+                {
+                    response = _agent.Input(utterance.OriginalSentence);
+                    if (response.ToLowerInvariant().Contains("ceasar"))
+                        _hadInformativeInput = true;
+                }
             }
             catch (Exception ex)
             {

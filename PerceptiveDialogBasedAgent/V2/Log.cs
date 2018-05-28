@@ -193,6 +193,18 @@ namespace PerceptiveDialogBasedAgent.V2
                 if (evt is TurnEndEvent)
                     Dedent();
 
+                if (evt is TracedScoreEventBase)
+                {
+                    var scoreEvt = evt as TracedScoreEventBase;
+                    var score = BeamGenerator.GetScore(scoreEvt, node);
+                    var scoreText = score.ToString("0.00");
+                    if (score >= 0)
+                        scoreText = "+" + scoreText;
+
+                    Writeln($"[{scoreText}]", color);
+                    continue;
+                }
+
                 Writeln(evt.ToString(), color);
 
                 if (evt is TurnStartEvent)

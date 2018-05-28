@@ -11,10 +11,24 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
     {
         private bool _isSubstitutionDisabled = false;
 
-        internal override void Visit(TurnEndEvent evt)
+        internal PolicyBeamGenerator()
         {
-            base.Visit(evt);
+            DefineConcept(Concept2.YesExplicit);
+            //DefineConcept(Concept2.Yes);
+            DefineConcept(Concept2.No);
+            DefineConcept(Concept2.DontKnow);
+            DefineConcept(Concept2.It);
 
+            DefineParameter(Concept2.Prompt, Concept2.Answer, new ConceptInstance(Concept2.Something));
+            DefineParameter(Concept2.YesExplicit, Concept2.Subject, new ConceptInstance(Concept2.Something));
+            DefineParameter(Concept2.YesExplicit, Concept2.Target, new ConceptInstance(Concept2.Something));
+
+
+            AddCallback(Concept2.Prompt, _prompt);
+        }
+
+        private void policy()
+        {
             // collect turn features
             var previousTurnEvents = GetPreviousTurnEvents();
             var turnEvents = GetTurnEvents();
@@ -25,9 +39,10 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             var unknownPhraseSubstitutions = GetFreeUnknownPhraseRequests();
             var results = turnEvents.Select(e => e as ResultEvent).Where(e => e != null).ToArray();
             var substitutionRequests = GetFreeSubstitutionRequests();
+            var instanceOfRequest = substitutionRequests.Where(r => r.Target.Instance?.Concept == Concept2.InstanceOf).FirstOrDefault();
 
 
-            var hasActiveInstance = activatedInstances.Any();
+            var hasActivatedInstance = activatedInstances.Any();
             var hasResultFound = resultsFound.Any();
             var hasResult = results.Any();
             var hasTooManyResults = tooManyResults.Any();
@@ -35,26 +50,39 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             var hasRecentSubstitutionRequest = turnEvents.Any(e => e is SubstitutionRequestEvent);
             var hasSubstitutionRequest = substitutionRequests.Any();
             var hasUnknownPhraseSubstitution = unknownPhraseSubstitutions.Any();
+            var hasInstanceOfRequest = instanceOfRequest != null;
 
-            _isSubstitutionDisabled = true; //this prevents answering requests/actions before the question was presented to user
             if (hasResultFound)
             {
                 //start a new task
                 Push(new ActiveInstanceBarrierEvent());
                 Push(new CompleteInstanceEvent(resultsFound.First().Instance));
+                return;
             }
-            else if (hasTooManyResults && unknownPhrases.Count() == 1)
+
+            if (hasTooManyResults && unknownPhrases.Count() == 1)
             {
                 Push(new UnknownPhraseSubstitutionEvent(tooManyResults.First().SubstitutionRequest, unknownPhrases.First()));
+                return;
             }
-            else if (hasTooManyResults)
+
+            if (hasTooManyResults)
             {
                 var request = tooManyResults.First().SubstitutionRequest;
                 Push(new SubstitutionRequestEvent(request.Target));
+                return;
             }
-            else if (!hasResult)
+
+            if (hasInstanceOfRequest && unknownPhrases.Count() == 1)
             {
-                if (hasActiveInstance)
+                // throw new NotImplementedException();
+                Push(new SubstitutionConfirmationRequestEvent(instanceOfRequest, unknownPhrases.First(), onAccepted: _instanceOfAccepted));
+                return;
+            }
+
+            if (!hasResult)
+            {
+                if (hasActivatedInstance)
                 {
                     Push(new InstanceUnderstoodEvent(activatedInstances.First()));
                 }
@@ -66,7 +94,76 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                 {
                     Push(new PhraseStillNotKnownEvent(unknownPhraseSubstitutions.First(), unknownPhrases.First()));
                 }
+                return;
             }
+        }
+
+        internal override void Visit(SubstitutionConfirmationRequestEvent evt)
+        {
+            //ask for the confirmation
+
+            Push(new InstanceActivationEvent(null, evt.ConfirmationRequest.Instance));
+        }
+
+        private void _instanceOfAccepted(BeamGenerator generator, SubstitutionConfirmationRequestEvent request)
+        {
+            var target = request.SubstitutionRequest.Target;
+            var newConceptName = request.UnknownPhrase.InputPhraseEvt.Phrase;
+            var newConcept = generator.DefineConcept(new Concept2(newConceptName, false));
+
+            if (target.Property == Concept2.Subject)
+            {
+                //we have got a new class member
+                var superClass = generator.GetValue(target.Instance, Concept2.Target);
+                generator.SetProperty(newConcept, Concept2.InstanceOf, superClass);
+            }
+            else if (target.Property == Concept2.Target)
+            {
+                //we have got a new superclass
+                var inheritant = generator.GetValue(target.Instance, Concept2.Subject);
+                if (inheritant != null)
+                    //TODO this should not happen
+                    generator.SetProperty(inheritant.Concept, Concept2.InstanceOf, new ConceptInstance(newConcept));
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private void _prompt(ConceptInstance action, ExecutionBeamGenerator generator)
+        {
+            var answer = generator.GetValue(action, Concept2.Answer);
+            var requester = generator.GetRequester(action);
+            if (requester == null)
+                throw new InvalidOperationException();
+
+            if (answer.Concept == Concept2.Yes || answer.Concept == Concept2.YesExplicit)
+            {
+                generator.Push(new StaticScoreEvent(0.5));
+                requester.FireOnAccepted(generator);
+            }
+            else if (answer.Concept == Concept2.No)
+            {
+                requester.FireOnDeclined(generator);
+            }
+            else if (answer.Concept == Concept2.DontKnow)
+            {
+                requester.FireOnUnknown(generator);
+            }
+            else
+            {
+                generator.Push(new StaticScoreEvent(-1.0));
+            }
+        }
+
+        internal override void Visit(TurnEndEvent evt)
+        {
+            base.Visit(evt);
+
+            _isSubstitutionDisabled = true; //this prevents answering requests/actions before the question was presented to user
+
+            policy();
 
             _isSubstitutionDisabled = false;
         }

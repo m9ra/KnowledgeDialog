@@ -9,60 +9,43 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 {
     class RestaurantDomainBeamGenerator : PolicyBeamGenerator
     {
-        public static readonly Concept2 Find = new Concept2("find");
-
-        public readonly ParamDefinedEvent FindParam;
-
+        private readonly ParamDefinedEvent _findParam;
 
         internal RestaurantDomainBeamGenerator()
         {
-            var restaurant = new Concept2("restaurant");
-            var restaurantInstance = new ConceptInstance(restaurant);
-            PushToAll(new ConceptDefinedEvent(restaurant));
+            var restaurantInstance = DefineConceptInstance("restaurant");
+            var pricerange = DefineConcept("pricerange");
+            var expensiveInstance = DefineConceptInstance("expensive");
+            var cheapInstance = DefineConceptInstance("cheap");
 
-            var pricerange = new Concept2("pricerange");
-            PushToAll(new ConceptDefinedEvent(pricerange));
-
-            var expensive = new Concept2("expensive");
-            var expensiveInstance = new ConceptInstance(expensive);
-            PushToAll(new ConceptDefinedEvent(expensive));
-
-            var cheap = new Concept2("cheap");
-            var cheapInstance = new ConceptInstance(cheap);
-            PushToAll(new ConceptDefinedEvent(cheap));
-
-            var restaurant1 = new Concept2("Ceasar Palace");
-            PushToAll(new ConceptDefinedEvent(restaurant1));
+            var restaurant1 = DefineConcept("Ceasar Palace");
             SetProperty(restaurant1, Concept2.InstanceOf, restaurantInstance);
             SetProperty(restaurant1, pricerange, expensiveInstance);
 
-            var restaurant2 = new Concept2("Chinese Bistro");
-            PushToAll(new ConceptDefinedEvent(restaurant2));
+            var restaurant2 = DefineConcept("Chinese Bistro");
             SetProperty(restaurant2, Concept2.InstanceOf, restaurantInstance);
             SetProperty(restaurant2, pricerange, cheapInstance);
 
+            var find = DefineConcept("find");
             var findParameterConstraint = new ConceptInstance(Concept2.Something);
+            _findParam = DefineParameter(find, Concept2.Subject, findParameterConstraint);
 
-            PushToAll(new ConceptDefinedEvent(Find));
-            PushToAll(FindParam = new ParamDefinedEvent(Find, Concept2.Subject, findParameterConstraint));
-            PushToAll(new ConceptDescriptionEvent(Find, "finds concepts that agent knows"));
-            PushToAll(new ConceptDescriptionEvent(Find, "find concept according to some constraint"));
-            PushToAll(new ConceptDescriptionEvent(Find, "give"));
-            PushToAll(new ConceptDescriptionEvent(Find, "get"));
-            PushToAll(new ConceptDescriptionEvent(Find, "want"));
-            PushToAll(new ConceptDescriptionEvent(Find, "lookup"));
-            PushToAll(new ConceptDescriptionEvent(Find, "look"));
-            PushToAll(new ConceptDescriptionEvent(Find, "search"));
+            AddDescription(find, "finds concepts that agent knows");
+            AddDescription(find, "find concept according to some constraint");
+            AddDescription(find, "give");
+            AddDescription(find, "get");
+            AddDescription(find, "want");
+            AddDescription(find, "lookup");
+            AddDescription(find, "look");
+            AddDescription(find, "search");
 
-            AddCallback(Find, _find);
+            AddCallback(find, _find);
 
-            var whatConcept = new Concept2("what");
-            PushToAll(new ConceptDefinedEvent(whatConcept));
-            PushToAll(new ParamDefinedEvent(whatConcept, Concept2.Property, new ConceptInstance(Concept2.Something)));
-            PushToAll(new ParamDefinedEvent(whatConcept, Concept2.Subject, new ConceptInstance(Concept2.Something)));
+            var whatConcept = DefineConcept("what");
+            DefineParameter(whatConcept, Concept2.Property, new ConceptInstance(Concept2.Something));
+            DefineParameter(whatConcept, Concept2.Subject, new ConceptInstance(Concept2.Something));
 
             AddCallback(whatConcept, _what);
-
         }
 
         private void _what(ConceptInstance action, ExecutionBeamGenerator generator)
@@ -117,7 +100,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             }
             else
             {
-                Push(new TooManyInstancesFoundEvent(criterion, new SubstitutionRequestEvent(action, FindParam)));
+                Push(new TooManyInstancesFoundEvent(criterion, new SubstitutionRequestEvent(action, _findParam)));
             }
         }
     }

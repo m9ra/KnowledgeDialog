@@ -158,6 +158,13 @@ namespace PerceptiveDialogBasedAgent.V4
             agent.Input("what pricerange");
         }
 
+        public static void AdviceProcessing()
+        {
+            var a = new Agent();
+            a.Input("banana is food");
+            a.Input("yes it is");
+        }
+
         public static void DialogWithDistractions()
         {
             var agent = new Agent();
@@ -167,7 +174,7 @@ namespace PerceptiveDialogBasedAgent.V4
             //I know many restaurants which one would you like?
             agent.Input("luxury");
             agent.Input("bla bla");
-            agent.Input("give me expensive restaurant");
+            agent.Input("expensive restaurant");
             agent.Input("what are the prices?");
             agent.Input("pricerange");
         }

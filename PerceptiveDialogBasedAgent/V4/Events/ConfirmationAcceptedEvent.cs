@@ -1,18 +1,14 @@
-﻿using PerceptiveDialogBasedAgent.V4.EventBeam;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PerceptiveDialogBasedAgent.V4.EventBeam;
 
 namespace PerceptiveDialogBasedAgent.V4.Events
 {
-    abstract class TracedScoreEventBase : EventBase
+    class ConfirmationAcceptedEvent : EventBase
     {
-        internal abstract double GetDefaultScore(BeamNode node);
-
-        internal abstract IEnumerable<string> GenerateFeatures(BeamNode node);
-
         internal override void Accept(BeamGenerator g)
         {
             g.Visit(this);
@@ -20,7 +16,7 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 
         public override string ToString()
         {
-            return $"[+{GetDefaultScore(null):0.00}]";
+            return "[confirmed]";
         }
     }
 }

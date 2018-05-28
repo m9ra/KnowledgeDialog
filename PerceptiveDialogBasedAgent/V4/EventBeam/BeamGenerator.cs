@@ -1,4 +1,5 @@
 ﻿using KnowledgeDialog.Dialog;
+using PerceptiveDialogBasedAgent.V2;
 using PerceptiveDialogBasedAgent.V4.Events;
 using PerceptiveDialogBasedAgent.V4.Primitives;
 using System;
@@ -14,6 +15,11 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         private readonly Stack<List<BeamNode>> _layers = new Stack<List<BeamNode>>();
 
         private readonly HashSet<BeamNode> _beam = new HashSet<BeamNode>();
+
+        /// <summary>
+        /// TODO this should not be static
+        /// </summary>
+        private static readonly Dictionary<string, double> _featureScores = new Dictionary<string, double>();
 
         internal BeamGenerator()
         {
@@ -136,12 +142,54 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             // nothing to do by default
         }
 
+        internal virtual void Visit(SubstitutionConfirmationRequestEvent evt)
+        {
+            //nothing to do by default
+        }
+
+        internal virtual void Visit(ConfirmationAcceptedEvent evt)
+        {
+            //nothing to do by default
+        }
+
         internal virtual void Visit(EventBase evt)
         {
             throw new NotSupportedException("Unknown event");
         }
 
         #region Beam Operations
+
+        public Concept2 DefineConcept(string conceptName)
+        {
+            var concept = new Concept2(conceptName);
+            return DefineConcept(concept);
+        }
+
+        public Concept2 DefineConcept(Concept2 concept)
+        {
+            PushToAll(new ConceptDefinedEvent(concept));
+            return concept;
+        }
+
+        public ConceptInstance DefineConceptInstance(string conceptName)
+        {
+            var concept = DefineConcept(conceptName);
+            var instance = new ConceptInstance(concept);
+
+            return instance;
+        }
+
+        public ParamDefinedEvent DefineParameter(Concept2 concept, Concept2 parameter, ConceptInstance pattern)
+        {
+            var result = new ParamDefinedEvent(concept, parameter, pattern);
+            PushToAll(result);
+            return result;
+        }
+
+        public void AddDescription(Concept2 concept, string description)
+        {
+            PushToAll(new ConceptDescriptionEvent(concept, description));
+        }
 
         public void SetProperty(Concept2 concept, Concept2 property, ConceptInstance value)
         {
@@ -155,6 +203,10 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
         public void LimitBeam(int count)
         {
+            if (_beam.Count < count)
+                //there is nothing to do
+                return;
+
             var bestNodes = GetRankedNodes().Take(count).Select(r => r.Value).ToArray();
             _beam.Clear();
             _beam.UnionWith(bestNodes);
@@ -166,16 +218,22 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         /// </summary>
         public void PushToAll(EventBase evt)
         {
-            foreach (var node in _beam.ToArray())
+            var isRootPush = _layers.Count == 0;
+            var pushNodes = isRootPush ? _beam.ToArray() : new[] { getCurrentNode() };
+
+            foreach (var node in pushNodes)
             {
                 try
                 {
-                    _layers.Push(new List<BeamNode>() { node });
+                    if (isRootPush)
+                        _layers.Push(new List<BeamNode>() { node });
+
                     Push(evt);
                 }
                 finally
                 {
-                    _layers.Pop();
+                    if (isRootPush)
+                        _layers.Clear();
                 }
             }
         }
@@ -238,10 +296,30 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return true;
         }
 
-        protected double GetScore(TracedScoreEventBase scoreEvt)
+        public static void AddFeatureScore(string feature, double score)
+        {
+            _featureScores.TryGetValue(feature, out var oldScore);
+            _featureScores[feature] = score + oldScore;
+        }
+
+        public static double GetScore(TracedScoreEventBase scoreEvt, BeamNode node)
         {
             //TODO recognition learning belongs here
-            return scoreEvt.GetDefaultScore(getCurrentNode());
+            var featureScore = 0.0;
+            foreach (var feature in scoreEvt.GenerateFeatures(node))
+            {
+                if (_featureScores.TryGetValue(feature, out var score))
+                {
+                    featureScore += score;
+                    break; //TODO think more about feature semantic
+                }
+            }
+            return scoreEvt.GetDefaultScore(node) + featureScore;
+        }
+
+        protected double GetScore(TracedScoreEventBase scoreEvt)
+        {
+            return GetScore(scoreEvt, getCurrentNode());
         }
 
         protected double GetScore(BeamNode node)
@@ -251,7 +329,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             while (currentNode != null)
             {
                 if (currentNode.Evt is TracedScoreEventBase scoreEvt)
-                    accumulator += GetScore(scoreEvt);
+                    accumulator += GetScore(scoreEvt, node);
 
                 currentNode = currentNode.ParentNode;
             }
@@ -298,6 +376,35 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return GetFreeCompleteInstances(getCurrentNode());
         }
 
+        protected IEnumerable<CompleteInstanceEvent> GetCompleteInstances()
+        {
+            return GetCompleteInstances(getCurrentNode());
+        }
+
+        protected IEnumerable<InstanceActivationEvent> GetActivatedInstances()
+        {
+            return GetActivatedInstances(getCurrentNode());
+        }
+
+        protected static IEnumerable<InstanceActivationEvent> GetActivatedInstances(BeamNode node)
+        {
+            var result = new List<InstanceActivationEvent>();
+
+            var currentNode = node;
+            while (currentNode != null)
+            {
+                if (currentNode.Evt is ActiveInstanceBarrierEvent)
+                    break;
+
+                if (currentNode.Evt is InstanceActivationEvent activationEvt)
+                    result.Add(activationEvt);
+
+                currentNode = currentNode.ParentNode;
+            }
+
+            return result;
+        }
+
         protected IEnumerable<CompleteInstanceEvent> GetFreeCompleteInstances(BeamNode node)
         {
             var result = new List<CompleteInstanceEvent>();
@@ -314,6 +421,25 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
                 if (currentNode.Evt is CompleteInstanceEvent activationEvt && !substitutedInstances.Contains(activationEvt.Instance))
                     result.Add(activationEvt);
+
+                currentNode = currentNode.ParentNode;
+            }
+
+            return result;
+        }
+
+
+        protected IEnumerable<CompleteInstanceEvent> GetCompleteInstances(BeamNode node)
+        {
+            var result = new List<CompleteInstanceEvent>();
+            var currentNode = node;
+            while (currentNode != null)
+            {
+                if (currentNode.Evt is ActiveInstanceBarrierEvent)
+                    break;
+
+                if (currentNode.Evt is CompleteInstanceEvent evt)
+                    result.Add(evt);
 
                 currentNode = currentNode.ParentNode;
             }
@@ -368,7 +494,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return GetTurnEvents(currentNode.ParentNode);
         }
 
-            internal static IEnumerable<EventBase> GetTurnEvents(BeamNode node)
+        internal static IEnumerable<EventBase> GetTurnEvents(BeamNode node)
         {
             var result = new List<EventBase>();
 
@@ -447,6 +573,39 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
         }
 
+        internal static InputPhraseEvent[] GetSufixPhrases(InputPhraseEvent phrase, int ngramLimitCount, BeamNode node)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal static InputPhraseEvent[] GetPrefixPhrases(InputPhraseEvent phrase, int prefixLength, BeamNode node)
+        {
+            var result = new List<InputPhraseEvent>();
+            var currentNode = node;
+
+            //find node where prefix starts
+            while (currentNode != null && currentNode.Evt != phrase)
+                currentNode = currentNode.ParentNode;
+
+            while (currentNode != null)
+            {
+                if (currentNode.Evt is TurnStartEvent)
+                    break;
+
+                if (currentNode.Evt is InputPhraseEvent prefixPhrase)
+                {
+                    result.Add(prefixPhrase);
+                    if (result.Count >= prefixLength)
+                        break;
+                }
+
+                currentNode = currentNode.ParentNode;
+            }
+
+            result.Reverse();
+            return result.ToArray();
+        }
+
         internal IEnumerable<Concept2> GetConcepts(BeamNode node)
         {
             var result = new List<Concept2>();
@@ -508,6 +667,25 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return GetValue(instance, property, getCurrentNode());
         }
 
+        internal SubstitutionConfirmationRequestEvent GetRequester(ConceptInstance request)
+        {
+            return GetRequester(request, getCurrentNode());
+        }
+
+        private SubstitutionConfirmationRequestEvent GetRequester(ConceptInstance request, BeamNode node)
+        {
+            var currentNode = node;
+            while (currentNode != null)
+            {
+                var requester = currentNode.Evt as SubstitutionConfirmationRequestEvent;
+                if (requester?.ConfirmationRequest.Instance == request)
+                    return requester;
+
+                currentNode = currentNode.ParentNode;
+            }
+
+            return null;
+        }
 
         internal static ConceptInstance GetValue(ConceptInstance instance, ParamDefinedEvent parameter, BeamNode node)
         {
@@ -518,7 +696,6 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                 var propertyMatch = substitutionEvent?.Target.Property == parameter.Property || parameter.Property == Concept2.Something;
 
                 if (substitutionEvent?.Target.Instance == instance && propertyMatch)
-                    //TODO!!!!!!!! Check which parameter was assigned
                     return substitutionEvent.SubstitutedValue;
 
                 currentNode = currentNode.ParentNode;
@@ -617,8 +794,17 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
         private void tryActivateKnownConcepts(InputPhraseEvent evt)
         {
+            var concepts = GetConcepts();
+            var activatedInstances = GetActivatedInstances();
+
+            var activatedConcepts = new HashSet<Concept2>(activatedInstances.Select(a => a.Instance.Concept));
+
             foreach (var concept in GetConcepts())
             {
+                if (activatedConcepts.Contains(concept))
+                    //prevent multi concept activation
+                    continue;
+
                 var scoreEvent = new InputPhraseScoreEvent(evt, concept);
                 var score = GetScore(scoreEvent);
                 if (score < Configuration.ConceptActivationThreshold)
@@ -626,6 +812,25 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
                 Push(scoreEvent);
                 Push(new InstanceActivationEvent(evt, new ConceptInstance(concept)));
+                Pop();
+                Pop();
+            }
+
+            var incompleteInstances = new HashSet<ConceptInstance>(GetFreeSubstitutionRequests().Select(c => c.Target.Instance));
+            foreach (var activatedInstance in activatedInstances)
+            {
+                var scoreEvent = new InputPhraseScoreEvent(evt, activatedInstance.Instance.Concept);
+                var score = GetScore(scoreEvent);
+                if (score < Configuration.ConceptActivationThreshold)
+                    continue;
+
+                //reactivation 
+                if (incompleteInstances.Contains(activatedInstance.Instance))
+                    //TODO think how to reactivate incomplete instances
+                    continue;
+
+                Push(scoreEvent);
+                Push(new CompleteInstanceEvent(activatedInstance.Instance));
                 Pop();
                 Pop();
             }
@@ -645,9 +850,9 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                     //substitution is not possible
                     continue;
 
-                var scoreEvt = new DistanceScoreEvt(request, evt);
-                Push(scoreEvt);
-                Push(new PropertySetEvent(request, evt));
+                var setEvent = new PropertySetEvent(request, evt);
+                Push(new PropertySetScoreEvent(setEvent));
+                Push(setEvent);
                 Pop();
                 Pop();
             }
@@ -698,9 +903,10 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                 if (!IsSatisfiedBy(evt, freeInstance.Instance))
                     continue;
 
-                var scoreEvt = new DistanceScoreEvt(evt, freeInstance);
-                Push(scoreEvt);
-                Push(new PropertySetEvent(evt, freeInstance));
+
+                var setEvent = new PropertySetEvent(evt, freeInstance);
+                Push(new PropertySetScoreEvent(setEvent));
+                Push(setEvent);
                 Pop();
                 Pop();
             }

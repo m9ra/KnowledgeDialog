@@ -22,9 +22,9 @@ namespace PerceptiveDialogBasedAgent.V4.Events
             Concept = concept;
         }
 
-        internal override double GetDefaultScore(BeamNode rootNode)
+        internal override double GetDefaultScore(BeamNode node)
         {
-            var descriptions = BeamGenerator.GetDescriptions(Concept, rootNode);
+            var descriptions = BeamGenerator.GetDescriptions(Concept, node);
             return getSimilarity(InputPhrase.Phrase, Concept.Name, descriptions); //TODO solve the descriptions
         }
 
@@ -91,6 +91,11 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 
             var score = scores.Sum() * weight;
             return score;
+        }
+
+        internal override IEnumerable<string> GenerateFeatures(BeamNode node)
+        {
+            yield break;
         }
     }
 }

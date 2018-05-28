@@ -26,13 +26,14 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             if (executor == null)
             {
                 //executor is not defined
-                base.Visit(evt);
-                return;
             }
-
-            //we have got action to execute
-            Push(new StaticScoreEvent(0.05));
-            executor(completeInstance, this);
+            else
+            {
+                //we have got action to execute
+                Push(new StaticScoreEvent(0.05));
+                executor(completeInstance, this);
+            }
+            base.Visit(evt);
         }
     }
 }

@@ -20,6 +20,8 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         private EventBase[] _processedEvents;
 
+        private HashSet<EventBase> _completedEvents = new HashSet<EventBase>();
+
         private BeamNode _processedNode;
 
         private int _currentEventIndex = 0;
@@ -33,6 +35,12 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             this
                 .ForEvent<InstanceFoundEvent>()
                     .Output(simpleOutput)
+
+                .ForEvent<ConfirmationAcceptedEvent>()
+                    .Output(confirmationAccepted)
+
+                .ForEvent<SubstitutionConfirmationRequestEvent>()
+                    .Output(substitutionConfirmationRequest)
 
                 .ForEvent<UnknownPhraseSubstitutionEvent>()
                     .Output(unknownPhraseSubstitution)
@@ -78,6 +86,28 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             yield return "It is " + outputRepresentation;
         }
 
+        private IEnumerable<string> confirmationAccepted()
+        {
+            var continuation = generateResponse(); //continuation is required
+
+            yield return "Ok. " + continuation;
+            yield return "I see. " + continuation;
+            yield return "Nice. " + continuation;
+            yield return "Interesting. " + continuation;
+        }
+
+        private IEnumerable<string> substitutionConfirmationRequest()
+        {
+            var evt = CurrentEvent as SubstitutionConfirmationRequestEvent;
+
+            var target = evt.SubstitutionRequest.Target;
+            var classDescriptor = target.Property == Concept2.Subject ? getPropertyValue(target.Instance, Concept2.Target).Concept.Name : evt.UnknownPhrase.InputPhraseEvt.Phrase;
+            var childDescriptor = target.Property == Concept2.Subject ? evt.UnknownPhrase.InputPhraseEvt.Phrase : getPropertyValue(target.Instance, Concept2.Subject)?.Concept.Name;
+
+            //TODO make it more general
+            yield return $"You think {childDescriptor} is {target.Instance.Concept.Name} {classDescriptor} ?";
+        }
+
         private IEnumerable<string> needsSubstitution()
         {
             var evt = CurrentEvent as SubstitutionRequestEvent;
@@ -92,6 +122,22 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             if (subject == "what")
             {
                 yield return "What are you asking for?";
+            }
+            else if (subject == Concept2.InstanceOf.Name)
+            {
+                var target = getProperty(evt.Target.Instance, Concept2.Target);
+                if (target != null)
+                {
+                    yield return "What is " + target.ToPrintable() + " ?";
+                }
+                else if (subject != null)
+                {
+                    yield return "What class is " + subject + " ?";
+                }
+                else
+                {
+                    yield return "What is instance of what ?";
+                }
             }
             else
             {
@@ -112,7 +158,12 @@ namespace PerceptiveDialogBasedAgent.V4.Models
         private IEnumerable<string> instanceUnderstood()
         {
             var evt = CurrentEvent as InstanceUnderstoodEvent;
-            var phrase = evt.InstanceActivationEvent.Instance.Concept.Name;
+            var concept = evt.InstanceActivationEvent.Instance.Concept;
+            var phrase = concept.Name;
+
+            if (new[] { Concept2.Yes, Concept2.No, Concept2.DontKnow}.Contains(concept))
+                //filter too general answers
+                yield break;
 
             yield return $"I know what {phrase} is. But I don't know what should I do?";
         }
@@ -250,15 +301,27 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             _processedNode = node;
 
             _processedEvents = getTurnEvents(node);
+            _completedEvents = new HashSet<EventBase>();
 
+            return generateResponse();
+        }
+
+        private string generateResponse()
+        {
             // generate response parts
             var responseParts = new List<string>();
             foreach (var generator in _generators)
             {
                 for (_currentEventIndex = 0; _currentEventIndex < _processedEvents.Length; ++_currentEventIndex)
                 {
+                    var eventToProcess = _processedEvents[_currentEventIndex];
+                    if (_completedEvents.Contains(eventToProcess))
+                        continue;
+
                     if (!generator.Condition())
                         continue;
+
+                    _completedEvents.Add(eventToProcess);
 
                     var sample = getSample(generator.Generator);
                     if (sample == null)
@@ -273,7 +336,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
             if (responseParts.Count == 0)
             {
-                return "I don't know what to say.";
+                return "I don't know what to say next.";
             }
 
             //TODO response part combinations
@@ -308,7 +371,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         private bool hasFindAction()
         {
-            return _processedEvents.Select(e => e as CompleteInstanceEvent).Where(e => e != null).Where(e => e.Instance.Concept == RestaurantDomainBeamGenerator.Find).Any();
+            return _processedEvents.Select(e => e as CompleteInstanceEvent).Where(e => e != null).Where(e => e.Instance.Concept.Name == "find").Any();
         }
     }
 

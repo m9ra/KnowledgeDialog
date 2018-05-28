@@ -12,14 +12,14 @@ namespace PerceptiveDialogBasedAgent.V4
 {
     class Agent
     {
-        private RestaurantDomainBeamGenerator _beam;
+        private AdviceProcessingBeamGenerator _beam;
 
         private readonly HashSet<string> _irrelevantWords = new HashSet<string>();
 
         internal Agent()
         {
             _irrelevantWords.UnionWith(KnowledgeDialog.Dialog.UtteranceParser.NonInformativeWords);
-            foreach (var word in new[] { "find", "search", "google", "lookup", "look", "want", "get", "give", "expensive", "cheap", "stupid", "what", "where", "which" })
+            foreach (var word in new[] { "it", "no", "yes", "is", "find", "search", "google", "lookup", "look", "want", "get", "give", "expensive", "cheap", "stupid", "what", "where", "which" })
             {
                 _irrelevantWords.Remove(word);
             }
@@ -28,7 +28,7 @@ namespace PerceptiveDialogBasedAgent.V4
 
         internal void Reset()
         {
-            _beam = new RestaurantDomainBeamGenerator();
+            _beam = new AdviceProcessingBeamGenerator();
         }
 
         internal string Input(string originalSentence)

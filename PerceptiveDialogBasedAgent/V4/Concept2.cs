@@ -8,6 +8,8 @@ namespace PerceptiveDialogBasedAgent.V4
 {
     class Concept2
     {
+        public readonly static Concept2 Answer = Concept("answer");
+        public readonly static Concept2 Prompt = Concept("prompt");
         public readonly static Concept2 InstanceOf = Concept("instance of");
         public readonly static Concept2 NewTurn = Concept("new turn");
         public readonly static Concept2 NotFoundEvent = Concept("not found");
@@ -17,7 +19,10 @@ namespace PerceptiveDialogBasedAgent.V4
         public readonly static Concept2 Something = Concept("something").AddDescription("placeholder for some concept");
         public readonly static Concept2 Parameter = Concept("parameter").AddDescription("represents parameter of an action");
         public readonly static Concept2 Yes = Concept("yes").AddDescription("positive answer to a question");
+        public readonly static Concept2 YesExplicit = Concept("yes").AddDescription("yes it is");
         public readonly static Concept2 No = Concept("no").AddDescription("negative answer to a question");
+        public readonly static Concept2 DontKnow = Concept("dont know").AddDescription("i dont know").AddDescription("dunno");
+        public readonly static Concept2 It = Concept("it").AddDescription("reference");
         public readonly static Concept2 Output = Concept("output");
         public readonly static Concept2 Subject = Concept("subject").SetPropertyValue(Parameter, new ConceptInstance(Yes));
         public readonly static Concept2 Property = Concept("property");

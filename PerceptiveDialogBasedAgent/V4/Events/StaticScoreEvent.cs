@@ -16,9 +16,14 @@ namespace PerceptiveDialogBasedAgent.V4.Events
             Score = score;
         }
 
-        internal override double GetDefaultScore(BeamNode rootNode)
+        internal override double GetDefaultScore(BeamNode node)
         {
             return Score;
+        }
+
+        internal override IEnumerable<string> GenerateFeatures(BeamNode node)
+        {
+            yield break;
         }
     }
 }

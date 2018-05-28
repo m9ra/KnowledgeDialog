@@ -9,8 +9,9 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 {
     class DistanceScoreEvt : TracedScoreEventBase
     {
-        private EventBase _evt1;
-        private EventBase _evt2;
+        private readonly EventBase _evt1;
+
+        private readonly EventBase _evt2;
 
         public DistanceScoreEvt(EventBase evt1, EventBase evt2)
         {
@@ -18,9 +19,14 @@ namespace PerceptiveDialogBasedAgent.V4.Events
             _evt2 = evt2;
         }
 
-        internal override double GetDefaultScore(BeamNode rootNode)
+        internal override double GetDefaultScore(BeamNode node)
         {
             return 0.1;
+        }
+
+        internal override IEnumerable<string> GenerateFeatures(BeamNode node)
+        {
+            yield break;
         }
     }
 }

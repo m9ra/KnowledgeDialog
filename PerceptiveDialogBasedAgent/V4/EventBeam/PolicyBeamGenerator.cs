@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PerceptiveDialogBasedAgent.V4.Events;
+using PerceptiveDialogBasedAgent.V4.Primitives;
 
 namespace PerceptiveDialogBasedAgent.V4.EventBeam
 {
@@ -25,6 +26,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
 
             AddCallback(Concept2.Prompt, _prompt);
+            PushToAll(new GoalEvent(new ConceptInstance(Concept2.ActionToExecute)));
         }
 
         private void policy()
@@ -82,6 +84,10 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
             if (!hasResult)
             {
+                var goal = GetOpenGoal();
+                progressGoal(goal);
+                return;
+
                 if (hasActivatedInstance)
                 {
                     Push(new InstanceUnderstoodEvent(activatedInstances.First()));
@@ -97,6 +103,42 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                 return;
             }
         }
+
+        private void progressGoal(GoalEvent goalEvt)
+        {
+            if (goalEvt == null)
+            {
+                throw new NotImplementedException("How to initialize goal");
+            }
+
+            var goalConcept = goalEvt.Goal.Concept;
+
+            if (goalConcept == Concept2.ActionToExecute)
+            {
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        internal override void Visit(GoalEvent evt)
+        {
+            base.Visit(evt);
+            var goalConcept = evt.Goal.Concept;
+
+            if (goalConcept == Concept2.ActionToExecute)
+            {
+                var target = new PropertySetTarget(evt.Goal, Concept2.Subject);
+                Push(new SubstitutionRequestEvent(target));
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+
 
         internal override void Visit(SubstitutionConfirmationRequestEvent evt)
         {

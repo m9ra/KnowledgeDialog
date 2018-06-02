@@ -105,7 +105,9 @@
     <Compile Include="V4\EventBeam\AdviceProcessingBeamGenerator.cs" />
     <Compile Include="V4\EventBeam\ExecutionBeamGenerator.cs" />
     <Compile Include="V4\EventBeam\FeatureGenerator.cs" />
+    <Compile Include="V4\Events\CloseEvent.cs" />
     <Compile Include="V4\Events\ConfirmationAcceptedEvent.cs" />
+    <Compile Include="V4\Events\GoalEvent.cs" />
     <Compile Include="V4\Events\SubstitutionConfirmationRequestEvent.cs" />
     <Compile Include="V4\Events\InstanceUnderstoodEvent.cs" />
     <Compile Include="V4\Events\PhraseStillNotKnownEvent.cs" />

@@ -197,5 +197,31 @@ namespace PerceptiveDialogBasedAgent.V4
             a.Input("look up expensive restaurant");
             a.Reset();
         }
+
+        public static void UnknownPropertyLearning()
+        {
+            var a = new Agent();
+            a.Input("give me luxury restaurant");
+            // what luxury is ?
+            a.Input("it is a property");
+            // is it a name of some restaurant ?
+            a.Input("no it is pricerange");
+        }
+
+        public static void UnknownConceptLearning()
+        {
+            var a = new Agent();
+            a.Input("give me banana");
+            // what banana is ?
+            a.Input("it is a food");
+            // I see. I know pizza is food as well but I'm not able to give you a food.
+        }
+
+        public static void QuestionDetection()
+        {
+            var a = new Agent();
+            a.Input("is banana yellow");
+            a.Input("banana is yellow");
+        }
     }
 }

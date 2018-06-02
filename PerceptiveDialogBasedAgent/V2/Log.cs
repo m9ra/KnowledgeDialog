@@ -178,7 +178,7 @@ namespace PerceptiveDialogBasedAgent.V2
             foreach (var evt in events)
             {
                 var color = ItemColor;
-                if (evt is TurnStartEvent || evt is TurnEndEvent)
+                if (evt is TurnStartEvent || evt is TurnEndEvent || evt is GoalEvent)
                     color = PolicyColor;
 
                 if (evt is ResultEvent)

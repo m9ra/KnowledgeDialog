@@ -152,6 +152,11 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             //nothing to do by default
         }
 
+        internal virtual void Visit(GoalEvent evt)
+        {
+            //nothing to do by default
+        }
+
         internal virtual void Visit(EventBase evt)
         {
             throw new NotSupportedException("Unknown event");
@@ -351,6 +356,11 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return GetConcepts(getCurrentNode());
         }
 
+        protected GoalEvent GetOpenGoal()
+        {
+            return GetOpenGoal(getCurrentNode());
+        }
+
         protected IEnumerable<ParamDefinedEvent> GetParameterDefinitions(ConceptInstance instance)
         {
             return GetParameterDefinitions(instance, getCurrentNode());
@@ -403,6 +413,31 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             }
 
             return result;
+        }
+
+
+        protected GoalEvent GetOpenGoal(BeamNode node)
+        {
+            var currentNode = node;
+            var closedEvents = new HashSet<EventBase>();
+            while (currentNode != null)
+            {
+                if (currentNode.Evt is CloseEvent closeEvt)
+                    closedEvents.Add(closeEvt.ClosedEvent);
+
+                if (currentNode.Evt is GoalEvent goalEvent)
+                {
+                    if (closedEvents.Contains(goalEvent))
+                        //TODO think more about goal closing semantic
+                        return null;
+
+                    return goalEvent;
+                }
+
+                currentNode = currentNode.ParentNode;
+            }
+
+            return null;
         }
 
         protected IEnumerable<CompleteInstanceEvent> GetFreeCompleteInstances(BeamNode node)

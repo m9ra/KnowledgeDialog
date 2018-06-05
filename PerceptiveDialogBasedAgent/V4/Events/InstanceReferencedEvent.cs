@@ -1,19 +1,19 @@
-﻿using PerceptiveDialogBasedAgent.V4.EventBeam;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PerceptiveDialogBasedAgent.V4.EventBeam;
 
 namespace PerceptiveDialogBasedAgent.V4.Events
 {
-    class UnknownPhraseEvent : EventBase
+    class InstanceReferencedEvent : EventBase
     {
-        public readonly InputPhraseEvent InputPhraseEvt;
+        internal readonly ConceptInstance Instance;
 
-        public UnknownPhraseEvent(InputPhraseEvent evt)
+        internal InstanceReferencedEvent(ConceptInstance instance)
         {
-            this.InputPhraseEvt = evt;
+            Instance = instance;
         }
 
         internal override void Accept(BeamGenerator g)
@@ -23,7 +23,7 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 
         public override string ToString()
         {
-            return $"[unknown: {InputPhraseEvt.Phrase}]";
+            return $"[ref: {Instance.Concept.Name}]";
         }
     }
 }

@@ -7,11 +7,11 @@ using PerceptiveDialogBasedAgent.V4.EventBeam;
 
 namespace PerceptiveDialogBasedAgent.V4.Events
 {
-    class CompleteInstanceEvent : EventBase
+    class InstanceActiveEvent : EventBase
     {
         internal readonly ConceptInstance Instance;
 
-        internal CompleteInstanceEvent(ConceptInstance instance)
+        internal InstanceActiveEvent(ConceptInstance instance)
         {
             Instance = instance;
         }
@@ -23,7 +23,7 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 
         public override string ToString()
         {
-            return $"[complete: {Instance.Concept.Name}]";
+            return $"[active: {Instance.Concept.Name}]";
         }
     }
 }

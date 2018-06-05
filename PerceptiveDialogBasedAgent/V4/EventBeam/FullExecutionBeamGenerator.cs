@@ -18,7 +18,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam.TODO
         {
             PushToAll(new ConceptDefinedEvent(Concept2.ActionToExecute));
             PushToAll(new ParamDefinedEvent(Concept2.ActionToExecute, Concept2.Subject, new ConceptInstance(Concept2.Something)));
-            PushToAll(new InstanceActivationEvent(null, new ConceptInstance(Concept2.ActionToExecute)));
+            PushToAll(new InstanceActivationRequestEvent(null, new ConceptInstance(Concept2.ActionToExecute)));
         }
 
         internal void AddCallback(Concept2 concept, BeamExecutionCallback callback)
@@ -26,7 +26,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam.TODO
             _conceptCallbacks.Add(concept, callback);
         }
 
-        internal override void Visit(CompleteInstanceEvent evt)
+        internal override void Visit(InstanceActiveEvent evt)
         {
             if (evt.Instance.Concept != Concept2.ActionToExecute)
             {

@@ -29,39 +29,35 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
         internal virtual void Visit(InputPhraseEvent evt)
         {
-            //try to activate known concepts
-            tryActivateKnownConcepts(evt);
+            // input phrase can create a new instance or point to some old instance
+            tryActivateNewInstances();
 
-            //try to treat it as an unknown phrase
-            tryActivateUnknownPhrase(evt);
+            // input can be unrecognized
+            PushSelf();
         }
 
-        internal virtual void Visit(InstanceActivationEvent evt)
+        internal virtual void Visit(InstanceActivationRequestEvent evt)
         {
             var requests = pushFreeParameterSubstitutionRequests(evt);
             if (!requests.Any())
                 //we have got a complete instance
-                Push(new CompleteInstanceEvent(evt.Instance));
+                Push(new InstanceActiveEvent(evt.Instance));
         }
 
-        internal virtual void Visit(CompleteInstanceEvent evt)
+        internal virtual void Visit(InstanceActiveEvent evt)
         {
             // we have a complete instance - lets look where it can be put into
             tryAsSubstitution(evt);
+            tryPropertySubstitution(evt);
 
             //instance can be left without being substituted anywhere
             PushSelf();
         }
 
-        internal virtual void Visit(UnknownPhraseEvent evt)
-        {
-            //nothing to do by default (unknown phrase substitutions are up to policy decisions)
-        }
-
         internal virtual void Visit(SubstitutionRequestEvent evt)
         {
             //try to substitute by some free active instance
-            var completeInstances = GetFreeCompleteInstances();
+            var completeInstances = GetAvailableActiveInstances();
             trySubstituteBy(evt, completeInstances);
 
             PushSelf();
@@ -69,17 +65,13 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
         internal virtual void Visit(PropertySetEvent evt)
         {
-            tryPushComplete(evt.Target.Instance);
+            tryPushComplete(evt.Target.Instance, allowTurnReactivation: false);
         }
 
-        internal virtual void Visit(UnknownPhraseSubstitutionEvent evt)
+        internal virtual void Visit(InstanceReferencedEvent evt)
         {
-            // nothing to do by default - instance available is generated after unkonwn phrase is confirmed
-        }
-
-        internal virtual void Visit(UnknownPhraseSubstitutedEvent evt)
-        {
-            // nothing to do by default - instance available is generated after unkonwn phrase is confirmed
+            //notice that we should not care about multiple activations - because of multiple mentions
+            tryPushComplete(evt.Instance);
         }
 
         internal virtual void Visit(ConceptDefinedEvent evt)
@@ -102,17 +94,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             // nothing to do by default
         }
 
-        internal virtual void Visit(InstanceFoundEvent evt)
-        {
-            // nothing to do by default
-        }
-
-        internal virtual void Visit(TooManyInstancesFoundEvent evt)
-        {
-            // nothing to do by default
-        }
-
-        internal virtual void Visit(NoInstanceFoundEvent evt)
+        internal virtual void Visit(InformationReportEvent evt)
         {
             // nothing to do by default
         }
@@ -127,34 +109,14 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             // nothing to do by default
         }
 
-        internal virtual void Visit(ActiveInstanceBarrierEvent evt)
+        internal virtual void Visit(FrameEvent evt)
         {
             // nothing to do by default
         }
 
-        internal virtual void Visit(PhraseStillNotKnownEvent evt)
+        internal virtual void Visit(CloseEvent evt)
         {
-            // nothing to do by default
-        }
-
-        internal virtual void Visit(InstanceUnderstoodEvent evt)
-        {
-            // nothing to do by default
-        }
-
-        internal virtual void Visit(SubstitutionConfirmationRequestEvent evt)
-        {
-            //nothing to do by default
-        }
-
-        internal virtual void Visit(ConfirmationAcceptedEvent evt)
-        {
-            //nothing to do by default
-        }
-
-        internal virtual void Visit(GoalEvent evt)
-        {
-            //nothing to do by default
+            // nothing do to do by default
         }
 
         internal virtual void Visit(EventBase evt)
@@ -164,9 +126,97 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
         #region Beam Operations
 
+        internal IEnumerable<Concept2> GetConcepts()
+        {
+            return GetAllEvents<ConceptDefinedEvent>(getCurrentNode()).Select(e => e.Concept);
+        }
+
+        protected IEnumerable<SubstitutionRequestEvent> GetAvailableSubstitutionRequests()
+        {
+            return GetFrameEvents<SubstitutionRequestEvent>(getCurrentNode(), turnLimited: true);
+        }
+
+        protected IEnumerable<InstanceActiveEvent> GetAvailableActiveInstances()
+        {
+            return GetFrameEvents<InstanceActiveEvent>(getCurrentNode(), turnLimited: true);
+        }
+
+        protected IEnumerable<InputPhraseEvent> GetAvailableInputPhrases()
+        {
+            var node = getCurrentNode();
+            return GetFrameEvents<InputPhraseEvent>(node, turnLimited: true);
+        }
+
+        internal IEnumerable<ConceptInstance> GetInstances()
+        {
+            var node = getCurrentNode();
+
+            var instances = new HashSet<ConceptInstance>();
+            instances.UnionWith(GetFrameEvents<InstanceActivationRequestEvent>(node, turnLimited: false).Select(i => i.Instance));
+            instances.UnionWith(GetFrameEvents<InstanceActiveEvent>(node, turnLimited: false).Select(i => i.Instance));
+
+            return instances;
+        }
+
+        protected IEnumerable<T> GetFrameEvents<T>(BeamNode node, bool turnLimited)
+            where T : EventBase
+        {
+            var closedEvents = new HashSet<T>();
+            var closedFrames = new HashSet<FrameEvent>();
+
+            var currentNode = node;
+            while (currentNode != null)
+            {
+                var evt = currentNode.Evt;
+                if (evt is CloseEvent closingEvent)
+                {
+                    if (closingEvent.ClosedEvent is T closedEvent)
+                        closedEvents.Add(closedEvent);
+
+                    if (closingEvent.ClosedEvent is FrameEvent cfEvt)
+                        closedFrames.Add(cfEvt);
+                }
+
+                if (turnLimited && evt is TurnEndEvent)
+                    break;
+
+                if (evt is T searchedEvent && !closedEvents.Contains(searchedEvent))
+                    yield return searchedEvent;
+
+                if (evt is FrameEvent fEvt && !closedFrames.Contains(fEvt))
+                    //we found boundary of an active frame
+                    break;
+
+                currentNode = currentNode.ParentNode;
+            }
+        }
+
+        protected IEnumerable<T> GetAllEvents<T>(BeamNode node)
+          where T : EventBase
+        {
+            var closedEvents = new HashSet<T>();
+
+            var currentNode = node;
+            while (currentNode != null)
+            {
+                var evt = currentNode.Evt;
+                if (evt is CloseEvent closingEvent)
+                {
+                    if (closingEvent.ClosedEvent is T closedEvent)
+                        closedEvents.Add(closedEvent);
+                }
+
+
+                if (evt is T searchedEvent && !closedEvents.Contains(searchedEvent))
+                    yield return searchedEvent;
+
+                currentNode = currentNode.ParentNode;
+            }
+        }
+
         public Concept2 DefineConcept(string conceptName)
         {
-            var concept = new Concept2(conceptName);
+            var concept = Concept2.From(conceptName);
             return DefineConcept(concept);
         }
 
@@ -351,12 +401,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return layer.First();
         }
 
-        protected IEnumerable<Concept2> GetConcepts()
-        {
-            return GetConcepts(getCurrentNode());
-        }
-
-        protected GoalEvent GetOpenGoal()
+        protected FrameEvent GetOpenGoal()
         {
             return GetOpenGoal(getCurrentNode());
         }
@@ -366,57 +411,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return GetParameterDefinitions(instance, getCurrentNode());
         }
 
-        protected IEnumerable<SubstitutionRequestEvent> GetFreeSubstitutionRequests()
-        {
-            return GetFreeSubstitutionRequests(getCurrentNode());
-        }
-
-        protected IEnumerable<UnknownPhraseSubstitutionEvent> GetFreeUnknownPhraseRequests()
-        {
-            return GetFreeUnknownPhraseRequests(getCurrentNode());
-        }
-
-        protected IEnumerable<UnknownPhraseEvent> GetFreeUnknownPhrases()
-        {
-            return GetFreeUnknownPhrases(getCurrentNode());
-        }
-
-        protected IEnumerable<CompleteInstanceEvent> GetFreeCompleteInstances()
-        {
-            return GetFreeCompleteInstances(getCurrentNode());
-        }
-
-        protected IEnumerable<CompleteInstanceEvent> GetCompleteInstances()
-        {
-            return GetCompleteInstances(getCurrentNode());
-        }
-
-        protected IEnumerable<InstanceActivationEvent> GetActivatedInstances()
-        {
-            return GetActivatedInstances(getCurrentNode());
-        }
-
-        protected static IEnumerable<InstanceActivationEvent> GetActivatedInstances(BeamNode node)
-        {
-            var result = new List<InstanceActivationEvent>();
-
-            var currentNode = node;
-            while (currentNode != null)
-            {
-                if (currentNode.Evt is ActiveInstanceBarrierEvent)
-                    break;
-
-                if (currentNode.Evt is InstanceActivationEvent activationEvt)
-                    result.Add(activationEvt);
-
-                currentNode = currentNode.ParentNode;
-            }
-
-            return result;
-        }
-
-
-        protected GoalEvent GetOpenGoal(BeamNode node)
+        protected FrameEvent GetOpenGoal(BeamNode node)
         {
             var currentNode = node;
             var closedEvents = new HashSet<EventBase>();
@@ -425,7 +420,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                 if (currentNode.Evt is CloseEvent closeEvt)
                     closedEvents.Add(closeEvt.ClosedEvent);
 
-                if (currentNode.Evt is GoalEvent goalEvent)
+                if (currentNode.Evt is FrameEvent goalEvent)
                 {
                     if (closedEvents.Contains(goalEvent))
                         //TODO think more about goal closing semantic
@@ -438,71 +433,6 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             }
 
             return null;
-        }
-
-        protected IEnumerable<CompleteInstanceEvent> GetFreeCompleteInstances(BeamNode node)
-        {
-            var result = new List<CompleteInstanceEvent>();
-            var substitutedInstances = new HashSet<ConceptInstance>();
-
-            var currentNode = node;
-            while (currentNode != null)
-            {
-                if (currentNode.Evt is ActiveInstanceBarrierEvent)
-                    break;
-
-                if (currentNode.Evt is PropertySetEvent propertySetEvt)
-                    substitutedInstances.Add(propertySetEvt.SubstitutedValue);
-
-                if (currentNode.Evt is CompleteInstanceEvent activationEvt && !substitutedInstances.Contains(activationEvt.Instance))
-                    result.Add(activationEvt);
-
-                currentNode = currentNode.ParentNode;
-            }
-
-            return result;
-        }
-
-
-        protected IEnumerable<CompleteInstanceEvent> GetCompleteInstances(BeamNode node)
-        {
-            var result = new List<CompleteInstanceEvent>();
-            var currentNode = node;
-            while (currentNode != null)
-            {
-                if (currentNode.Evt is ActiveInstanceBarrierEvent)
-                    break;
-
-                if (currentNode.Evt is CompleteInstanceEvent evt)
-                    result.Add(evt);
-
-                currentNode = currentNode.ParentNode;
-            }
-
-            return result;
-        }
-
-        protected IEnumerable<UnknownPhraseEvent> GetFreeUnknownPhrases(BeamNode node)
-        {
-            var result = new List<UnknownPhraseEvent>();
-            var usedPhrases = new HashSet<UnknownPhraseEvent>();
-
-            var currentNode = node;
-            while (currentNode != null)
-            {
-                if (currentNode.Evt is ActiveInstanceBarrierEvent)
-                    break;
-
-                if (currentNode.Evt is UnknownPhraseSubstitutionEvent substitutionEvt)
-                    usedPhrases.Add(substitutionEvt.UnknownPhrase);
-
-                if (currentNode.Evt is UnknownPhraseEvent unknownPhraseEvt && !usedPhrases.Contains(unknownPhraseEvt))
-                    result.Add(unknownPhraseEvt);
-
-                currentNode = currentNode.ParentNode;
-            }
-
-            return result;
         }
 
         internal IEnumerable<EventBase> GetTurnEvents()
@@ -545,69 +475,6 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return result;
         }
 
-        protected IEnumerable<SubstitutionRequestEvent> GetFreeSubstitutionRequests(BeamNode node)
-        {
-            var result = new List<SubstitutionRequestEvent>();
-            var substitutedTargets = new HashSet<PropertySetTarget>();
-
-            var currentNode = node;
-            while (currentNode != null)
-            {
-                if (currentNode.Evt is ActiveInstanceBarrierEvent)
-                    break;
-
-                if (currentNode.Evt is PropertySetEvent propertySetEvt)
-                    substitutedTargets.Add(propertySetEvt.Target);
-
-                if (currentNode.Evt is UnknownPhraseSubstitutionEvent unknownPhraseSubstitution)
-                    substitutedTargets.Add(unknownPhraseSubstitution.SubstitutionRequest.Target);
-
-                if (currentNode.Evt is SubstitutionRequestEvent requestEvt && !substitutedTargets.Contains(requestEvt.Target))
-                    result.Add(requestEvt);
-
-                currentNode = currentNode.ParentNode;
-            }
-
-            return result;
-        }
-
-        protected IEnumerable<UnknownPhraseSubstitutionEvent> GetFreeUnknownPhraseRequests(BeamNode node)
-        {
-            var result = new List<UnknownPhraseSubstitutionEvent>();
-            var substitutedTargets = new HashSet<PropertySetTarget>();
-
-            var currentNode = node;
-
-            //unknown phrase substitutions are valid only from previous turns
-            while (currentNode != null)
-            {
-                if (currentNode.Evt is TurnStartEvent)
-                    break;
-
-                if (currentNode.Evt is PropertySetEvent propertySetEvt)
-                    substitutedTargets.Add(propertySetEvt.Target);
-
-                currentNode = currentNode.ParentNode;
-            }
-
-            while (currentNode != null)
-            {
-                if (currentNode.Evt is ActiveInstanceBarrierEvent)
-                    break;
-
-                if (currentNode.Evt is PropertySetEvent propertySetEvt)
-                    substitutedTargets.Add(propertySetEvt.Target);
-
-                if (currentNode.Evt is UnknownPhraseSubstitutionEvent requestEvt && !substitutedTargets.Contains(requestEvt.SubstitutionRequest.Target))
-                    result.Add(requestEvt);
-
-                currentNode = currentNode.ParentNode;
-            }
-
-            return result;
-
-        }
-
         internal static InputPhraseEvent[] GetSufixPhrases(InputPhraseEvent phrase, int ngramLimitCount, BeamNode node)
         {
             throw new NotImplementedException();
@@ -641,21 +508,6 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return result.ToArray();
         }
 
-        internal IEnumerable<Concept2> GetConcepts(BeamNode node)
-        {
-            var result = new List<Concept2>();
-            var currentNode = node;
-            while (currentNode != null)
-            {
-                if (currentNode.Evt is ConceptDefinedEvent conceptDefinedEvt)
-                    result.Add(conceptDefinedEvt.Concept);
-
-                currentNode = currentNode.ParentNode;
-            }
-
-            return result;
-        }
-
         protected IEnumerable<ParamDefinedEvent> GetParameterDefinitions(ConceptInstance instance, BeamNode node)
         {
             var result = new List<ParamDefinedEvent>();
@@ -672,17 +524,22 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return result;
         }
 
-        internal InstanceActivationEvent GetInstanceActivation(ConceptInstance instance)
+        internal InstanceActiveEvent GetTurnInstanceActivation(ConceptInstance instance)
         {
-            return GetInstanceActivation(instance, getCurrentNode());
+            return GetFrameEvents<InstanceActiveEvent>(getCurrentNode(), turnLimited: true).Where(e => e.Instance == instance).FirstOrDefault();
         }
 
-        internal static InstanceActivationEvent GetInstanceActivation(ConceptInstance instance, BeamNode node)
+        internal InstanceActivationRequestEvent GetInstanceActivationRequest(ConceptInstance instance)
+        {
+            return GetInstanceActivationRequest(instance, getCurrentNode());
+        }
+
+        internal static InstanceActivationRequestEvent GetInstanceActivationRequest(ConceptInstance instance, BeamNode node)
         {
             var currentNode = node;
             while (currentNode != null)
             {
-                var activationEvt = currentNode.Evt as InstanceActivationEvent;
+                var activationEvt = currentNode.Evt as InstanceActivationRequestEvent;
                 if (activationEvt?.Instance == instance)
                     return activationEvt;
 
@@ -700,26 +557,6 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         internal ConceptInstance GetValue(ConceptInstance instance, Concept2 property)
         {
             return GetValue(instance, property, getCurrentNode());
-        }
-
-        internal SubstitutionConfirmationRequestEvent GetRequester(ConceptInstance request)
-        {
-            return GetRequester(request, getCurrentNode());
-        }
-
-        private SubstitutionConfirmationRequestEvent GetRequester(ConceptInstance request, BeamNode node)
-        {
-            var currentNode = node;
-            while (currentNode != null)
-            {
-                var requester = currentNode.Evt as SubstitutionConfirmationRequestEvent;
-                if (requester?.ConfirmationRequest.Instance == request)
-                    return requester;
-
-                currentNode = currentNode.ParentNode;
-            }
-
-            return null;
         }
 
         internal static ConceptInstance GetValue(ConceptInstance instance, ParamDefinedEvent parameter, BeamNode node)
@@ -827,59 +664,38 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
         #region Policy implementation
 
-        private void tryActivateKnownConcepts(InputPhraseEvent evt)
+        private void tryActivateNewInstances()
         {
+            var existingInstances = GetInstances();
+            var existingConcepts = new HashSet<Concept2>(existingInstances.Select(i => i.Concept));
             var concepts = GetConcepts();
-            var activatedInstances = GetActivatedInstances();
+            var inputPhrase = GetAvailableInputPhrases().First();
 
-            var activatedConcepts = new HashSet<Concept2>(activatedInstances.Select(a => a.Instance.Concept));
 
-            foreach (var concept in GetConcepts())
+            foreach (var concept in concepts)
             {
-                if (activatedConcepts.Contains(concept))
-                    //prevent multi concept activation
+                if (existingConcepts.Contains(concept))
+                    // prevent concept multi activation
                     continue;
 
-                var scoreEvent = new InputPhraseScoreEvent(evt, concept);
+                var scoreEvent = new InputPhraseScoreEvent(inputPhrase, concept);
                 var score = GetScore(scoreEvent);
                 if (score < Configuration.ConceptActivationThreshold)
+                    // performance optimization
                     continue;
 
+                Push(new CloseEvent(inputPhrase)); //TODO this could be optimized
                 Push(scoreEvent);
-                Push(new InstanceActivationEvent(evt, new ConceptInstance(concept)));
+                Push(new InstanceActivationRequestEvent(inputPhrase, new ConceptInstance(concept)));
                 Pop();
-                Pop();
-            }
-
-            var incompleteInstances = new HashSet<ConceptInstance>(GetFreeSubstitutionRequests().Select(c => c.Target.Instance));
-            foreach (var activatedInstance in activatedInstances)
-            {
-                var scoreEvent = new InputPhraseScoreEvent(evt, activatedInstance.Instance.Concept);
-                var score = GetScore(scoreEvent);
-                if (score < Configuration.ConceptActivationThreshold)
-                    continue;
-
-                //reactivation 
-                if (incompleteInstances.Contains(activatedInstance.Instance))
-                    //TODO think how to reactivate incomplete instances
-                    continue;
-
-                Push(scoreEvent);
-                Push(new CompleteInstanceEvent(activatedInstance.Instance));
                 Pop();
                 Pop();
             }
         }
 
-        private void tryActivateUnknownPhrase(InputPhraseEvent evt)
+        private void tryAsSubstitution(InstanceActiveEvent evt)
         {
-            Push(new UnknownPhraseEvent(evt));
-            Pop();
-        }
-
-        private void tryAsSubstitution(CompleteInstanceEvent evt)
-        {
-            foreach (var request in GetFreeSubstitutionRequests())
+            foreach (var request in GetAvailableSubstitutionRequests())
             {
                 if (!IsSatisfiedBy(request, evt.Instance))
                     //substitution is not possible
@@ -887,51 +703,97 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
                 var setEvent = new PropertySetEvent(request, evt);
                 Push(new PropertySetScoreEvent(setEvent));
+                Push(new CloseEvent(evt));
+                Push(new CloseEvent(request));
                 Push(setEvent);
                 Pop();
                 Pop();
+                Pop();
+                Pop();
             }
+        }
 
-            foreach (var unknownPhraseRequest in GetFreeUnknownPhraseRequests())
+        private void tryAsDirectInstanceSubstitution(ConceptInstance instance)
+        {
+            foreach (var request in GetAvailableSubstitutionRequests())
             {
-                var request = unknownPhraseRequest.SubstitutionRequest;
-                if (!IsSatisfiedBy(request, evt.Instance))
+                if (!IsSatisfiedBy(request, instance))
                     //substitution is not possible
                     continue;
 
-                Push(new PropertySetEvent(request, evt));
-                Push(new UnknownPhraseSubstitutedEvent(unknownPhraseRequest, evt.Instance));
+                var setEvent = new PropertySetEvent(request.Target, instance);
+                Push(new PropertySetScoreEvent(setEvent));
+                Push(new CloseEvent(request));
+                Push(setEvent);
+                Pop();
                 Pop();
                 Pop();
             }
         }
 
-        private void tryAsSubstitution(UnknownPhraseEvent evt)
+        private void tryPropertySubstitution(InstanceActiveEvent evt)
         {
-            var substitutionRequests = GetFreeSubstitutionRequests();
-            foreach (var request in substitutionRequests)
+            var availableInstances = GetAvailableActiveInstances();
+            var targetPropertyOccurences = GetPointingProperties(evt.Instance.Concept);
+
+            foreach (var instanceEvt in availableInstances)
             {
-                var scoreEvt = new DistanceScoreEvt(request, evt);
-                Push(scoreEvt);
-                Push(new UnknownPhraseSubstitutionEvent(request, evt));
-                Pop();
-                Pop();
+                if (instanceEvt.Instance.Concept == evt.Instance.Concept)
+                    //self indexing is not allowed
+                    continue;
+
+                //try to set as a property value
+                foreach (var targetProperty in targetPropertyOccurences)
+                {
+                    var value = GetValue(instanceEvt.Instance, targetProperty);
+                    if (value != null)
+                        //TODO think about reassigning logic
+                        continue;
+
+                    var target = new PropertySetTarget(instanceEvt.Instance, targetProperty);
+                    Push(new StaticScoreEvent(10.05));
+                    Push(new CloseEvent(evt));
+                    Push(new PropertySetEvent(target, evt.Instance));
+                    tryAsDirectInstanceSubstitution(target.Instance);
+                    Pop();
+                    Pop();
+                    Pop();
+                }
+
+                //try to grab other instances as properties to this instance
+                foreach (var sourceProperty in GetPointingProperties(instanceEvt.Instance.Concept))
+                {
+                    var value = GetValue(instanceEvt.Instance, sourceProperty);
+                    if (value != null)
+                        //TODO think about reassigning logic
+                        continue;
+
+                    //TODO combination of properties should be here
+                    var target = new PropertySetTarget(evt.Instance, sourceProperty);
+                    Push(new StaticScoreEvent(0.05));
+                    Push(new CloseEvent(instanceEvt));
+                    Push(new PropertySetEvent(target, instanceEvt.Instance));
+                    tryAsDirectInstanceSubstitution(target.Instance);
+                    Pop();
+                    Pop();
+                    Pop();
+                }
             }
         }
 
-        private void trySubstituteBy(SubstitutionRequestEvent evt, IEnumerable<UnknownPhraseEvent> unknownPhrases)
+        private IEnumerable<Concept2> GetPointingProperties(Concept2 concept)
         {
-            foreach (var unknownPhrase in unknownPhrases)
+            var propertySets = GetAllEvents<PropertySetEvent>(getCurrentNode());
+            var result = new HashSet<Concept2>();
+            foreach (var propertySet in propertySets)
             {
-                var scoreEvt = new DistanceScoreEvt(evt, unknownPhrase);
-                Push(scoreEvt);
-                Push(new UnknownPhraseSubstitutionEvent(evt, unknownPhrase));
-                Pop();
-                Pop();
+                if (propertySet.SubstitutedValue.Concept == concept)
+                    result.Add(propertySet.Target.Property);
             }
+            return result;
         }
 
-        private void trySubstituteBy(SubstitutionRequestEvent evt, IEnumerable<CompleteInstanceEvent> completeInstances)
+        private void trySubstituteBy(SubstitutionRequestEvent evt, IEnumerable<InstanceActiveEvent> completeInstances)
         {
             foreach (var freeInstance in completeInstances)
             {
@@ -941,17 +803,23 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
                 var setEvent = new PropertySetEvent(evt, freeInstance);
                 Push(new PropertySetScoreEvent(setEvent));
+                Push(new CloseEvent(freeInstance));
+                Push(new CloseEvent(evt));
                 Push(setEvent);
                 Pop();
                 Pop();
             }
         }
 
-        private void tryPushComplete(ConceptInstance instance)
+        private void tryPushComplete(ConceptInstance instance, bool allowTurnReactivation = true)
         {
-            var activation = GetInstanceActivation(instance);
+            var activation = GetInstanceActivationRequest(instance);
             if (activation == null)
-                //only activated instances can fire completition
+                // only activated instances can fire completition
+                return;
+
+            if (!allowTurnReactivation && GetTurnInstanceActivation(instance) != null)
+                // we dont want to reactivate instance again
                 return;
 
             var parameters = GetParameterDefinitions(instance);
@@ -963,10 +831,10 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                     return;
             }
 
-            Push(new CompleteInstanceEvent(instance));
+            Push(new InstanceActiveEvent(instance));
         }
 
-        private IEnumerable<SubstitutionRequestEvent> pushFreeParameterSubstitutionRequests(InstanceActivationEvent evt)
+        private IEnumerable<SubstitutionRequestEvent> pushFreeParameterSubstitutionRequests(InstanceActivationRequestEvent evt)
         {
             var requests = new List<SubstitutionRequestEvent>();
             var targetDefinitions = GetParameterDefinitions(evt.Instance);

@@ -19,8 +19,8 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 
         internal override IEnumerable<string> GenerateFeatures(BeamNode node)
         {
-            var targetActivationEvent = BeamGenerator.GetInstanceActivation(PropertySet.Target.Instance, node);
-            var sourceActivationEvent = BeamGenerator.GetInstanceActivation(PropertySet.SubstitutedValue, node);
+            var targetActivationEvent = BeamGenerator.GetInstanceActivationRequest(PropertySet.Target.Instance, node);
+            var sourceActivationEvent = BeamGenerator.GetInstanceActivationRequest(PropertySet.SubstitutedValue, node);
 
             if (targetActivationEvent == null || sourceActivationEvent == null)
                 yield break;

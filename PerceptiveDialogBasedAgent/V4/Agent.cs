@@ -1,4 +1,5 @@
 ﻿using PerceptiveDialogBasedAgent.V2;
+using PerceptiveDialogBasedAgent.V4.Abilities;
 using PerceptiveDialogBasedAgent.V4.EventBeam;
 using PerceptiveDialogBasedAgent.V4.Events;
 using PerceptiveDialogBasedAgent.V4.Models;
@@ -12,14 +13,14 @@ namespace PerceptiveDialogBasedAgent.V4
 {
     class Agent
     {
-        private AdviceProcessingBeamGenerator _beam;
+        private AbilityBeamGenerator _beam;
 
         private readonly HashSet<string> _irrelevantWords = new HashSet<string>();
 
         internal Agent()
         {
             _irrelevantWords.UnionWith(KnowledgeDialog.Dialog.UtteranceParser.NonInformativeWords);
-            foreach (var word in new[] { "it", "no", "yes", "is", "find", "search", "google", "lookup", "look", "want", "get", "give", "expensive", "cheap", "stupid", "what", "where", "which" })
+            foreach (var word in new[] { "a", "an", "the", "it", "no", "yes", "is", "find", "search", "google", "lookup", "look", "want", "get", "give", "expensive", "cheap", "stupid", "what", "where", "which" })
             {
                 _irrelevantWords.Remove(word);
             }
@@ -28,7 +29,12 @@ namespace PerceptiveDialogBasedAgent.V4
 
         internal void Reset()
         {
-            _beam = new AdviceProcessingBeamGenerator();
+            _beam = new AbilityBeamGenerator();
+
+            _beam.RegisterAbility(new RestaurantDomainKnowledge());
+            _beam.RegisterAbility(new DefiniteReferenceResolver());
+            _beam.RegisterAbility(new FindProvider());
+            _beam.RegisterAbility(new WhatProvider());
         }
 
         internal string Input(string originalSentence)

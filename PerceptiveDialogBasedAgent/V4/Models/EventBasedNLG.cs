@@ -33,47 +33,16 @@ namespace PerceptiveDialogBasedAgent.V4.Models
         internal EventBasedNLG()
         {
             this
-                .ForEvent<InstanceFoundEvent>()
+                .ForEvent<InformationReportEvent>()
                     .Output(simpleOutput)
 
-                .ForEvent<ConfirmationAcceptedEvent>()
-                    .Output(confirmationAccepted)
-
-                .ForEvent<SubstitutionConfirmationRequestEvent>()
-                    .Output(substitutionConfirmationRequest)
-
-                .ForEvent<UnknownPhraseSubstitutionEvent>()
-                    .Output(unknownPhraseSubstitution)
-
-                .ForEvent<SubstitutionRequestEvent>()
-                    .Output(needsSubstitution)
-
-                .ForEvent<PhraseStillNotKnownEvent>()
-                    .Output(stillNotKnown)
-
-                .ForEvent<InstanceUnderstoodEvent>()
-                    .Output(instanceUnderstood)
-
-                .ForEvent<TooManyInstancesFoundEvent>()
-                    .Output(refinement)
-
-                .ForEvent<NoInstanceFoundEvent>()
-                    .Output(notFound)
 
             ;
         }
-
-        private IEnumerable<string> notFound()
-        {
-            var evt = CurrentEvent as NoInstanceFoundEvent;
-            var constraintRepresentation = evt.Criterion.ToPrintable();
-
-            yield return "I don't know anything which is " + constraintRepresentation;
-        }
-
+        
         private IEnumerable<string> simpleOutput()
         {
-            var evt = CurrentEvent as InstanceFoundEvent;
+            var evt = CurrentEvent as InformationReportEvent;
             var outputRepresentation = evt.Instance.ToPrintable();
 
             outputRepresentation += ".";
@@ -94,18 +63,6 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             yield return "I see. " + continuation;
             yield return "Nice. " + continuation;
             yield return "Interesting. " + continuation;
-        }
-
-        private IEnumerable<string> substitutionConfirmationRequest()
-        {
-            var evt = CurrentEvent as SubstitutionConfirmationRequestEvent;
-
-            var target = evt.SubstitutionRequest.Target;
-            var classDescriptor = target.Property == Concept2.Subject ? getPropertyValue(target.Instance, Concept2.Target).Concept.Name : evt.UnknownPhrase.InputPhraseEvt.Phrase;
-            var childDescriptor = target.Property == Concept2.Subject ? evt.UnknownPhrase.InputPhraseEvt.Phrase : getPropertyValue(target.Instance, Concept2.Subject)?.Concept.Name;
-
-            //TODO make it more general
-            yield return $"You think {childDescriptor} is {target.Instance.Concept.Name} {classDescriptor} ?";
         }
 
         private IEnumerable<string> needsSubstitution()
@@ -146,27 +103,6 @@ namespace PerceptiveDialogBasedAgent.V4.Models
         }
 
 
-        private IEnumerable<string> stillNotKnown()
-        {
-            var evt = CurrentEvent as PhraseStillNotKnownEvent;
-            var unknownPhrase = evt.UnknownPhraseSubstitutionEvent.UnknownPhrase.InputPhraseEvt.Phrase;
-
-            if (unknownPhrase != null)
-                yield return $"It seems to be complicated, I don't know {evt.UnknownPhraseEvent.InputPhraseEvt.Phrase} either. So, what does {unknownPhrase} mean?";
-        }
-
-        private IEnumerable<string> instanceUnderstood()
-        {
-            var evt = CurrentEvent as InstanceUnderstoodEvent;
-            var concept = evt.InstanceActivationEvent.Instance.Concept;
-            var phrase = concept.Name;
-
-            if (new[] { Concept2.Yes, Concept2.No, Concept2.DontKnow}.Contains(concept))
-                //filter too general answers
-                yield break;
-
-            yield return $"I know what {phrase} is. But I don't know what should I do?";
-        }
 
         private string getPropertyQuestion(Concept2 property)
         {
@@ -179,27 +115,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
                 return $"What {property.Name} should I";
             }
         }
-
-        private IEnumerable<string> unknownPhraseSubstitution()
-        {
-            var evt = CurrentEvent as UnknownPhraseSubstitutionEvent;
-            var unknownPhrase = evt.UnknownPhrase.InputPhraseEvt.Phrase;
-
-            if (unknownPhrase != null)
-                yield return "I don't know phrase " + unknownPhrase + ". What does it mean?";
-        }
-
-        private IEnumerable<string> refinement()
-        {
-            var evt = CurrentEvent as TooManyInstancesFoundEvent;
-
-            var ambiguousConstraint = evt.Criterion;
-            var constraintSpecification = getConstraintDescription(ambiguousConstraint);
-            constraintSpecification = getPlural(constraintSpecification);
-
-            yield return "I know many " + constraintSpecification + ", which one would you like?";
-        }
-
+    
         private string getConstraintDescription(ConceptInstance conceptInstance)
         {
             if (conceptInstance is null || conceptInstance.Concept != Concept2.Something)
@@ -371,7 +287,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         private bool hasFindAction()
         {
-            return _processedEvents.Select(e => e as CompleteInstanceEvent).Where(e => e != null).Where(e => e.Instance.Concept.Name == "find").Any();
+            return _processedEvents.Select(e => e as InstanceActiveEvent).Where(e => e != null).Where(e => e.Instance.Concept.Name == "find").Any();
         }
     }
 

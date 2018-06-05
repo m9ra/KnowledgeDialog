@@ -12,7 +12,7 @@ namespace PerceptiveDialogBasedAgent.V4
         public readonly static Concept2 Prompt = Concept("prompt");
         public readonly static Concept2 InstanceOf = Concept("instance of");
         public readonly static Concept2 NewTurn = Concept("new turn");
-        public readonly static Concept2 NotFoundEvent = Concept("not found");
+        public readonly static Concept2 NotFound = Concept("not found");
         public readonly static Concept2 NeedsRefinement = Concept("refinement");
         public readonly static Concept2 CompleteAction = Concept("complete action");
         public readonly static Concept2 NativeAction = Concept("native action").AddDescription("Describes action that agent can do");
@@ -48,11 +48,25 @@ namespace PerceptiveDialogBasedAgent.V4
 
         private readonly Dictionary<Concept2, PointableInstance> _propertyValues = new Dictionary<Concept2, PointableInstance>();
 
+        private static readonly Dictionary<string, Concept2> _definedConcepts = new Dictionary<string, Concept2>();
 
-        public Concept2(string name, bool isNative = true)
+        private Concept2(string name, bool isNative = true)
         {
             Name = name;
             IsNative = isNative;
+        }
+
+        public static Concept2 From(string name, bool isNative = true)
+        {
+            if (!_definedConcepts.TryGetValue(name, out var concept))
+            {
+                _definedConcepts[name] = concept = new Concept2(name, isNative);
+            }
+
+            if (concept.IsNative != isNative)
+                throw new InvalidOperationException("Cannot change concept nativness");
+
+            return concept;
         }
 
         public Concept2 AddDescription(string description)

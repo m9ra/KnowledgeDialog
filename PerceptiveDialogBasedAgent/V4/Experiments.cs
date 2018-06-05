@@ -223,5 +223,18 @@ namespace PerceptiveDialogBasedAgent.V4
             a.Input("is banana yellow");
             a.Input("banana is yellow");
         }
+
+        public static void InstanceActivationTests()
+        {
+            var a = new Agent();
+            a.Input("expensive");
+            a.Input("find the pricerange");
+        }
+
+        public static void ConceptCombinationTest()
+        {
+            var a = new Agent();
+            a.Input("find expensive restaurant");
+        }
     }
 }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V4.EventBeam
 {
-    class AdviceProcessingBeamGenerator : RestaurantDomainBeamGenerator
+    class AdviceProcessingBeamGenerator : PolicyBeamGenerator
     {
         public AdviceProcessingBeamGenerator()
         {
@@ -27,7 +27,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             AddCallback(Concept2.InstanceOf, _instanceOf);
         }
 
-        private void _instanceOf(ConceptInstance action, ExecutionBeamGenerator generator)
+        private void _instanceOf(ConceptInstance action, BeamGenerator generator)
         {
             //throw new NotImplementedException();
         }

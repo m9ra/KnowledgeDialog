@@ -8,7 +8,7 @@ using PerceptiveDialogBasedAgent.V4.Primitives;
 
 namespace PerceptiveDialogBasedAgent.V4.EventBeam
 {
-    class PolicyBeamGenerator : ExecutionBeamGenerator
+    class PolicyBeamGenerator : AbilityBeamGenerator
     {
         private bool _isSubstitutionDisabled = false;
 
@@ -26,7 +26,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
 
             AddCallback(Concept2.Prompt, _prompt);
-            PushToAll(new GoalEvent(new ConceptInstance(Concept2.ActionToExecute)));
+            PushToAll(new FrameEvent(new ConceptInstance(Concept2.ActionToExecute)));
         }
 
         private void policy()
@@ -34,13 +34,13 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             // collect turn features
             var previousTurnEvents = GetPreviousTurnEvents();
             var turnEvents = GetTurnEvents();
-            var resultsFound = turnEvents.Select(e => e as InstanceFoundEvent).Where(e => e != null).ToArray();
-            var activatedInstances = turnEvents.Select(e => e as InstanceActivationEvent).Where(e => e != null).ToArray();
-            var tooManyResults = turnEvents.Select(e => e as TooManyInstancesFoundEvent).Where(e => e != null).ToArray();
-            var unknownPhrases = turnEvents.Select(e => e as UnknownPhraseEvent).Where(e => e != null).ToArray();
-            var unknownPhraseSubstitutions = GetFreeUnknownPhraseRequests();
-            var results = turnEvents.Select(e => e as ResultEvent).Where(e => e != null).ToArray();
-            var substitutionRequests = GetFreeSubstitutionRequests();
+            var resultsFound = turnEvents.Select(e => e as InformationReportEvent).Where(e => e != null).ToArray();
+            var activatedInstances = turnEvents.Select(e => e as InstanceActivationRequestEvent).Where(e => e != null).ToArray();
+            var tooManyResults = new EventBase[0]; //TODO!!!
+            var unknownPhrases = new EventBase[0]; //TODO!!!
+            var unknownPhraseSubstitutions = new EventBase[0];//TODO!!!
+            var results = turnEvents.Select(e => e as InformationReportEvent).Where(e => e != null).ToArray();
+            var substitutionRequests = GetAvailableSubstitutionRequests();
             var instanceOfRequest = substitutionRequests.Where(r => r.Target.Instance?.Concept == Concept2.InstanceOf).FirstOrDefault();
 
 
@@ -57,54 +57,18 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             if (hasResultFound)
             {
                 //start a new task
-                Push(new ActiveInstanceBarrierEvent());
-                Push(new CompleteInstanceEvent(resultsFound.First().Instance));
-                return;
-            }
-
-            if (hasTooManyResults && unknownPhrases.Count() == 1)
-            {
-                Push(new UnknownPhraseSubstitutionEvent(tooManyResults.First().SubstitutionRequest, unknownPhrases.First()));
+                throw new NotImplementedException("Start a new frame");
                 return;
             }
 
             if (hasTooManyResults)
             {
-                var request = tooManyResults.First().SubstitutionRequest;
-                Push(new SubstitutionRequestEvent(request.Target));
-                return;
-            }
-
-            if (hasInstanceOfRequest && unknownPhrases.Count() == 1)
-            {
-                // throw new NotImplementedException();
-                Push(new SubstitutionConfirmationRequestEvent(instanceOfRequest, unknownPhrases.First(), onAccepted: _instanceOfAccepted));
-                return;
-            }
-
-            if (!hasResult)
-            {
-                var goal = GetOpenGoal();
-                progressGoal(goal);
-                return;
-
-                if (hasActivatedInstance)
-                {
-                    Push(new InstanceUnderstoodEvent(activatedInstances.First()));
-                }
-                else if (hasUnknownPhrase && !hasRecentSubstitutionRequest && hasSubstitutionRequest)
-                {
-                    Push(new UnknownPhraseSubstitutionEvent(substitutionRequests.First(), unknownPhrases.First()));
-                }
-                else if (hasUnknownPhrase && hasUnknownPhraseSubstitution)
-                {
-                    Push(new PhraseStillNotKnownEvent(unknownPhraseSubstitutions.First(), unknownPhrases.First()));
-                }
+                throw new NotImplementedException("Create frame for too many results found");
                 return;
             }
         }
 
-        private void progressGoal(GoalEvent goalEvt)
+        private void progressGoal(FrameEvent goalEvt)
         {
             if (goalEvt == null)
             {
@@ -122,7 +86,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             }
         }
 
-        internal override void Visit(GoalEvent evt)
+        internal override void Visit(FrameEvent evt)
         {
             base.Visit(evt);
             var goalConcept = evt.Goal.Concept;
@@ -138,20 +102,11 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             }
         }
 
-
-
-        internal override void Visit(SubstitutionConfirmationRequestEvent evt)
+        private void _instanceOfAccepted(BeamGenerator generator, object request)
         {
-            //ask for the confirmation
-
-            Push(new InstanceActivationEvent(null, evt.ConfirmationRequest.Instance));
-        }
-
-        private void _instanceOfAccepted(BeamGenerator generator, SubstitutionConfirmationRequestEvent request)
-        {
-            var target = request.SubstitutionRequest.Target;
-            var newConceptName = request.UnknownPhrase.InputPhraseEvt.Phrase;
-            var newConcept = generator.DefineConcept(new Concept2(newConceptName, false));
+            PropertySetTarget target = null;
+            string newConceptName = null;
+            var newConcept = generator.DefineConcept(Concept2.From(newConceptName, false));
 
             if (target.Property == Concept2.Subject)
             {
@@ -173,30 +128,10 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             }
         }
 
-        private void _prompt(ConceptInstance action, ExecutionBeamGenerator generator)
+        private void _prompt(ConceptInstance action, BeamGenerator generator)
         {
             var answer = generator.GetValue(action, Concept2.Answer);
-            var requester = generator.GetRequester(action);
-            if (requester == null)
-                throw new InvalidOperationException();
-
-            if (answer.Concept == Concept2.Yes || answer.Concept == Concept2.YesExplicit)
-            {
-                generator.Push(new StaticScoreEvent(0.5));
-                requester.FireOnAccepted(generator);
-            }
-            else if (answer.Concept == Concept2.No)
-            {
-                requester.FireOnDeclined(generator);
-            }
-            else if (answer.Concept == Concept2.DontKnow)
-            {
-                requester.FireOnUnknown(generator);
-            }
-            else
-            {
-                generator.Push(new StaticScoreEvent(-1.0));
-            }
+            throw new NotImplementedException("Process prompt");
         }
 
         internal override void Visit(TurnEndEvent evt)
@@ -214,13 +149,6 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         {
             if (!_isSubstitutionDisabled)
                 base.Visit(evt);
-        }
-
-        internal override void Visit(UnknownPhraseSubstitutedEvent evt)
-        {
-            base.Visit(evt);
-
-            Push(new ConceptDescriptionEvent(evt.SubstitutedValue.Concept, evt.UnknownPhraseRequest.UnknownPhrase.InputPhraseEvt.Phrase));
         }
 
     }

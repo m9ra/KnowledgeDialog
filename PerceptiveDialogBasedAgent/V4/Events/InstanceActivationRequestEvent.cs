@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V4.Events
 {
-    class InstanceActivationEvent : EventBase
+    class InstanceActivationRequestEvent : EventBase
     {
         internal readonly ConceptInstance Instance;
         internal readonly InputPhraseEvent ActivationPhrase;
 
-        public InstanceActivationEvent(InputPhraseEvent activationPhrase, ConceptInstance conceptInstance)
+        public InstanceActivationRequestEvent(InputPhraseEvent activationPhrase, ConceptInstance conceptInstance)
         {
             ActivationPhrase = activationPhrase;
             Instance = conceptInstance;
@@ -25,7 +25,7 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 
         public override string ToString()
         {
-            return $"[active: {Instance.Concept.Name}]";
+            return $"[req: {Instance.Concept.Name}]";
         }
     }
 }

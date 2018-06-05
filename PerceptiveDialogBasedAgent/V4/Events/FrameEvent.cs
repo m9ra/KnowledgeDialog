@@ -7,11 +7,11 @@ using PerceptiveDialogBasedAgent.V4.EventBeam;
 
 namespace PerceptiveDialogBasedAgent.V4.Events
 {
-    class GoalEvent : EventBase
+    class FrameEvent : EventBase
     {
         internal readonly ConceptInstance Goal;
 
-        internal GoalEvent(ConceptInstance goal)
+        internal FrameEvent(ConceptInstance goal)
         {
             Goal = goal;
         }

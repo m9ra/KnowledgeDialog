@@ -13,7 +13,7 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 
         internal CloseEvent(EventBase closedEvent)
         {
-            closedEvent = ClosedEvent;
+            ClosedEvent = closedEvent;
         }
 
         internal override void Accept(BeamGenerator g)
@@ -23,7 +23,7 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 
         public override string ToString()
         {
-            return "!" + ClosedEvent.ToString();
+            return "X" + ClosedEvent.ToString() + "X";
         }
     }
 }

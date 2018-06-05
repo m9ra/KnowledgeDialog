@@ -33,6 +33,9 @@ namespace PerceptiveDialogBasedAgent.V4.Models
         internal EventBasedNLG()
         {
             this
+                .ForEvent<OutputEvent>()
+                    .Output(directOutput)
+
                 .ForEvent<InformationReportEvent>()
                     .Output(simpleOutput)
 
@@ -40,6 +43,12 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             ;
         }
         
+        private IEnumerable<string> directOutput()
+        {
+            var evt = CurrentEvent as OutputEvent;
+            yield return evt.OutputText;
+        }
+
         private IEnumerable<string> simpleOutput()
         {
             var evt = CurrentEvent as InformationReportEvent;
@@ -272,6 +281,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
                 turnEvents.Add(currentNode.Evt);
                 currentNode = currentNode.ParentNode;
             }
+
             return turnEvents.ToArray();
         }
 

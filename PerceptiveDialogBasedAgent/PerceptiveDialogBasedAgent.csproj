@@ -22,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -31,6 +32,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -111,6 +113,7 @@
     <Compile Include="V4\Configuration.cs" />
     <Compile Include="V4\EventBeam\AbilityBeamGenerator.cs" />
     <Compile Include="V4\EventBeam\AdviceProcessingBeamGenerator.cs" />
+    <Compile Include="V4\EventBeam\ComposedPolicyBeamGenerator.cs" />
     <Compile Include="V4\EventBeam\FeatureGenerator.cs" />
     <Compile Include="V4\Events\CloseEvent.cs" />
     <Compile Include="V4\Events\FrameEvent.cs" />
@@ -118,6 +121,7 @@
     <Compile Include="V4\EventBeam\BeamNode.cs" />
     <Compile Include="V4\EventBeam\FullExecutionBeamGenerator.cs" />
     <Compile Include="V4\EventBeam\PolicyBeamGenerator.cs" />
+    <Compile Include="V4\Events\OutputEvent.cs" />
     <Compile Include="V4\Events\InstanceReferencedEvent.cs" />
     <Compile Include="V4\Events\PropertySetScoreEvent.cs" />
     <Compile Include="V4\Events\InstanceActiveEvent.cs" />
@@ -137,6 +141,9 @@
     <Compile Include="V4\Events\PropertySetEvent.cs" />
     <Compile Include="V4\Events\TracedScoreEventBase.cs" />
     <Compile Include="V4\Models\EventBasedNLG.cs" />
+    <Compile Include="V4\Policy\OfferResult.cs" />
+    <Compile Include="V4\Policy\PolicyPartBase.cs" />
+    <Compile Include="V4\Policy\RequestRefinement.cs" />
     <Compile Include="V4\Primitives\ParameterDefinition.cs" />
     <Compile Include="V4\Phrase.cs" />
     <Compile Include="V3\Models\HandcraftedStrategy.cs" />

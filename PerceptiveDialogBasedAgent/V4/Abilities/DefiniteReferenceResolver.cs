@@ -29,6 +29,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
                 generator.Push(new StaticScoreEvent(0.05));
                 generator.Push(new InstanceReferencedEvent(relevantInstance));
                 generator.Pop();
+                generator.Pop();
             }
         }
 
@@ -42,7 +43,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
                     continue;
 
                 var values = beam.GetPropertyValues(relevantCandidate);
-                var isRelevant = values.Any(v => v.Key == relevanceCriterion || v.Value.Concept == relevanceCriterion);
+                var isRelevant = relevantCandidate.Concept == relevanceCriterion || values.Any(v => v.Key == relevanceCriterion || v.Value.Concept == relevanceCriterion);
 
                 if (isRelevant)
                     yield return relevantCandidate;

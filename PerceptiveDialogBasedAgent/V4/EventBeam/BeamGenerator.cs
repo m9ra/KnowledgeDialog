@@ -119,6 +119,11 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             // nothing do to do by default
         }
 
+        internal virtual void Visit(OutputEvent evt)
+        {
+            // nothing do to do by default
+        }
+
         internal virtual void Visit(EventBase evt)
         {
             throw new NotSupportedException("Unknown event");
@@ -145,6 +150,12 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         {
             var node = getCurrentNode();
             return GetFrameEvents<InputPhraseEvent>(node, turnLimited: true);
+        }
+
+        internal IEnumerable<InstanceActivationRequestEvent> GetTurnActivationRequestedInstances()
+        {
+            var node = getCurrentNode();
+            return GetFrameEvents<InstanceActivationRequestEvent>(node, turnLimited: true);
         }
 
         internal IEnumerable<ConceptInstance> GetInstances()
@@ -250,6 +261,12 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         {
             PushToAll(new PropertySetEvent(new PropertySetTarget(concept, property), value));
         }
+
+        public void SetProperty(ConceptInstance instance, Concept2 property, ConceptInstance value)
+        {
+            PushToAll(new PropertySetEvent(new PropertySetTarget(instance, property), value));
+        }
+
 
         public void PushInput(string input)
         {
@@ -666,8 +683,8 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
         private void tryActivateNewInstances()
         {
-            var existingInstances = GetInstances();
-            var existingConcepts = new HashSet<Concept2>(existingInstances.Select(i => i.Concept));
+            var existingInstances = GetTurnActivationRequestedInstances();
+            var existingConcepts = new HashSet<Concept2>(existingInstances.Select(e => e.Instance.Concept));
             var concepts = GetConcepts();
             var inputPhrase = GetAvailableInputPhrases().First();
 

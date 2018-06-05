@@ -3,6 +3,7 @@ using PerceptiveDialogBasedAgent.V4.Abilities;
 using PerceptiveDialogBasedAgent.V4.EventBeam;
 using PerceptiveDialogBasedAgent.V4.Events;
 using PerceptiveDialogBasedAgent.V4.Models;
+using PerceptiveDialogBasedAgent.V4.Policy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace PerceptiveDialogBasedAgent.V4
 {
     class Agent
     {
-        private AbilityBeamGenerator _beam;
+        private ComposedPolicyBeamGenerator _beam;
 
         private readonly HashSet<string> _irrelevantWords = new HashSet<string>();
 
@@ -29,12 +30,15 @@ namespace PerceptiveDialogBasedAgent.V4
 
         internal void Reset()
         {
-            _beam = new AbilityBeamGenerator();
+            _beam = new ComposedPolicyBeamGenerator();
 
             _beam.RegisterAbility(new RestaurantDomainKnowledge());
             _beam.RegisterAbility(new DefiniteReferenceResolver());
             _beam.RegisterAbility(new FindProvider());
             _beam.RegisterAbility(new WhatProvider());
+
+            _beam.AddPolicyPart(new OfferResult());
+            _beam.AddPolicyPart(new RequestRefinement());
         }
 
         internal string Input(string originalSentence)

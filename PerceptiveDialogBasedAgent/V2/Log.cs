@@ -184,7 +184,7 @@ namespace PerceptiveDialogBasedAgent.V2
                 if (evt is InformationReportEvent)
                     color = ExecutedCommandColor;
 
-                if (evt is InputPhraseEvent)
+                if (evt is InputPhraseEvent || evt is OutputEvent)
                     color = UtteranceColor;
 
                 if (evt is ConceptDescriptionEvent || evt is ConceptDefinedEvent)

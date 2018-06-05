@@ -27,10 +27,10 @@ namespace PerceptiveDialogBasedAgent.V4
 
         public static void RefinementRestaurantSearch()
         {
-            var b = new Body();
-            b.Input("find a restaurant");
+            var a = new Agent();
+            a.Input("find a restaurant");
             //I know many restaurants
-            b.Input("some expensive");
+            a.Input("some expensive");
         }
 
         public static void LuxuryRestaurantSearch()
@@ -231,10 +231,11 @@ namespace PerceptiveDialogBasedAgent.V4
             a.Input("find the pricerange");
         }
 
-        public static void ConceptCombinationTest()
+        public static void ConceptCombinationWithReferenceTest()
         {
             var a = new Agent();
-            a.Input("find expensive restaurant");
+            a.Input("expensive restaurant");
+            a.Input("find a restaurant");
         }
     }
 }

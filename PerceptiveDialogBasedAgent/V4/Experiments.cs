@@ -239,5 +239,25 @@ namespace PerceptiveDialogBasedAgent.V4
             a.Input("find the restaurant");
             a.Input("what about pricerange");
         }
+
+        public static void SubstitutionRequestHandling()
+        {
+            var a = new Agent();
+            a.Input("find");
+            a.Input("expensive restaurant");
+        }
+
+        public static void UnknownPhraseHandling()
+        {
+            var a = new Agent();
+            a.Input("find luxury restaurant");
+        }
+
+        public static void ItHandling()
+        {
+            var a = new Agent();
+            a.Input("expensive restaurant");
+            a.Input("find it");
+        }
     }
 }

@@ -33,10 +33,14 @@ namespace PerceptiveDialogBasedAgent.V4
             _beam = new ComposedPolicyBeamGenerator();
 
             _beam.RegisterAbility(new RestaurantDomainKnowledge());
+            _beam.RegisterAbility(new ItReferenceResolver());
             _beam.RegisterAbility(new DefiniteReferenceResolver());
             _beam.RegisterAbility(new FindProvider());
             _beam.RegisterAbility(new WhatProvider());
 
+            //NOTE: Ordering of policy parts matters
+            _beam.AddPolicyPart(new HowCanIHelpYouFallback());
+            _beam.AddPolicyPart(new RequestSubstitution());
             _beam.AddPolicyPart(new OfferResult());
             _beam.AddPolicyPart(new RequestRefinement());
         }

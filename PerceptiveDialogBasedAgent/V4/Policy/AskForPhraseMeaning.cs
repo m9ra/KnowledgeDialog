@@ -9,7 +9,7 @@ using PerceptiveDialogBasedAgent.V4.Primitives;
 
 namespace PerceptiveDialogBasedAgent.V4.Policy
 {
-    class RequestRefinement : PolicyPartBase
+    class AskForPhraseMeaning : PolicyPartBase
     {
         protected override IEnumerable<string> execute(BeamGenerator generator)
         {
@@ -20,10 +20,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             var instanceToRefine = generator.GetValue(evt.Instance, Concept2.Subject);
             var activationTarget = generator.GetValue(evt.Instance, Concept2.Target);
 
-            var target = new PropertySetTarget(instanceToRefine, Concept2.Something);
-            generator.Push(new SubstitutionRequestEvent(target, activationTarget:activationTarget)); 
-
-            yield return $"I know many {plural(instanceToRefine)} which one would you like?";
+            throw new NotImplementedException();
         }
     }
 }

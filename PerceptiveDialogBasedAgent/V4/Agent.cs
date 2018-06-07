@@ -65,8 +65,9 @@ namespace PerceptiveDialogBasedAgent.V4
                 }
 
                 _beam.PushToAll(new TurnEndEvent());
-                _beam.LimitBeam(10);
                 Log.States(_beam, 1);
+
+                _beam.LimitBeam(10);
 
                 var nlg = new EventBasedNLG();
                 response = nlg.GenerateResponse(_beam.GetBestNode());

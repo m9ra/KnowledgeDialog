@@ -151,14 +151,15 @@ namespace PerceptiveDialogBasedAgent.V2
 
         internal static void States(BeamGenerator generator, int stateCount = int.MaxValue)
         {
-            var rankedStates = generator.GetRankedNodes().Take(stateCount).Reverse().ToArray();
+            var rankedNodes = generator.GetRankedNodes().ToArray();
 
+            var rankedStates = rankedNodes.Take(stateCount).Reverse().ToArray();
             foreach (var state in rankedStates)
             {
-                Writeln($"S: {state.Rank:0.00} > ", HeadlineColor);
                 Indent();
                 State(state.Value);
                 Dedent();
+                Writeln($"S: {state.Rank:0.00} | N: {rankedStates.Length} > ", HeadlineColor);
                 Writeln("\n", HeadlineColor);
             }
         }

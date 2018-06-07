@@ -17,8 +17,8 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
         internal WhatProvider()
             : base("what")
         {
-            AddParameter(_subjectParameter);
             AddParameter(_propertyParameter);
+            AddParameter(_subjectParameter);
         }
 
         protected override void onInstanceActivated(ConceptInstance instance, BeamGenerator generator)
@@ -29,7 +29,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             var value = generator.GetValue(subject, property.Concept);
             if (value == null)
             {
-                throw new NotImplementedException();
+                generator.Push(new InformationReportEvent(new ConceptInstance(Concept2.NotFound)));
             }
             else
             {

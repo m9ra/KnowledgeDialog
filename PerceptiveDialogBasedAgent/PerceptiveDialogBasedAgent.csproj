@@ -141,8 +141,10 @@
     <Compile Include="V4\Events\PropertySetEvent.cs" />
     <Compile Include="V4\Events\TracedScoreEventBase.cs" />
     <Compile Include="V4\Models\EventBasedNLG.cs" />
+    <Compile Include="V4\Policy\AskForPhraseMeaning.cs" />
     <Compile Include="V4\Policy\OfferResult.cs" />
     <Compile Include="V4\Policy\PolicyPartBase.cs" />
+    <Compile Include="V4\Policy\AskForPropertyCategory.cs" />
     <Compile Include="V4\Policy\RequestRefinement.cs" />
     <Compile Include="V4\Primitives\ParameterDefinition.cs" />
     <Compile Include="V4\Phrase.cs" />

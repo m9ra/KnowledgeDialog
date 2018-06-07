@@ -12,14 +12,17 @@ namespace PerceptiveDialogBasedAgent.V4.Events
     {
         public readonly PropertySetTarget Target;
 
+        public readonly ConceptInstance ActivationTarget;
+
         public SubstitutionRequestEvent(ConceptInstance targetInstance, ParamDefinedEvent parameterDefinition)
         {
             Target = new PropertySetTarget(targetInstance, parameterDefinition.Property);
         }
 
-        public SubstitutionRequestEvent(PropertySetTarget target)
+        public SubstitutionRequestEvent(PropertySetTarget target, ConceptInstance activationTarget = null)
         {
             Target = target;
+            ActivationTarget = activationTarget;
         }
 
         internal override void Accept(BeamGenerator g)
@@ -29,7 +32,11 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 
         public override string ToString()
         {
-            return $"[{Target.Instance.Concept.Name}--{Target.Property.Name}-->?]";
+            var requestRepresentation = $"[{Target.Instance.Concept.Name}--{Target.Property.Name}-->?]";
+            if (ActivationTarget != null)
+                requestRepresentation += " | " + ActivationTarget.ToPrintable() + " ";
+
+            return requestRepresentation;
         }
     }
 }

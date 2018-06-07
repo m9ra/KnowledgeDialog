@@ -16,10 +16,17 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             if (evt == null)
                 yield break;
 
-            generator.Push(new InstanceReferencedEvent(evt.Instance));
+            if (evt.Instance.Concept == Concept2.NotFound)
+            {
+                yield return $"I don't know anything like that.";
+            }
+            else
+            {
+                generator.Push(new InstanceActiveEvent(evt.Instance));
 
-            yield return $"I think you would like {singular(evt.Instance)}";
-            yield return $"I know {singular(evt.Instance)}";
+                yield return $"I think you would like {singular(evt.Instance)}";
+                yield return $"I know {singular(evt.Instance)}";
+            }
         }
     }
 }

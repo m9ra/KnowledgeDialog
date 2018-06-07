@@ -175,6 +175,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             var closedEvents = new HashSet<T>();
             var closedFrames = new HashSet<FrameEvent>();
 
+            var hasTurnStart = false;
             var currentNode = node;
             while (currentNode != null)
             {
@@ -188,8 +189,12 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                         closedFrames.Add(cfEvt);
                 }
 
-                if (turnLimited && evt is TurnEndEvent)
+                if (hasTurnStart && evt is TurnEndEvent)
+                    //read all events till end of the previous
                     break;
+
+                if (turnLimited && evt is TurnStartEvent)
+                    hasTurnStart = true;
 
                 if (evt is T searchedEvent && !closedEvents.Contains(searchedEvent))
                     yield return searchedEvent;
@@ -723,6 +728,11 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                 Push(new CloseEvent(evt));
                 Push(new CloseEvent(request));
                 Push(setEvent);
+                if (request.ActivationTarget != null)
+                {
+                    Push(new InstanceActiveEvent(request.ActivationTarget));
+                    Pop();
+                }
                 Pop();
                 Pop();
                 Pop();
@@ -742,6 +752,11 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                 Push(new PropertySetScoreEvent(setEvent));
                 Push(new CloseEvent(request));
                 Push(setEvent);
+                if (request.ActivationTarget != null)
+                {
+                    Push(new InstanceActiveEvent(request.ActivationTarget));
+                    Pop();
+                }
                 Pop();
                 Pop();
                 Pop();
@@ -823,6 +838,8 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                 Push(new CloseEvent(freeInstance));
                 Push(new CloseEvent(evt));
                 Push(setEvent);
+                Pop();
+                Pop();
                 Pop();
                 Pop();
             }

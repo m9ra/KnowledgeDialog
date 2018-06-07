@@ -102,6 +102,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             }
         }
 
+
         private void _instanceOfAccepted(BeamGenerator generator, object request)
         {
             PropertySetTarget target = null;

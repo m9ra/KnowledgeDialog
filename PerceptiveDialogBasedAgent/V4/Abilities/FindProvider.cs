@@ -69,6 +69,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             {
                 var needRefinementInstance = new ConceptInstance(Concept2.NeedsRefinement);
                 generator.SetProperty(needRefinementInstance, Concept2.Subject, criterion);
+                generator.SetProperty(needRefinementInstance, Concept2.Target, instance);
                 generator.Push(new InformationReportEvent(needRefinementInstance));
             }
         }

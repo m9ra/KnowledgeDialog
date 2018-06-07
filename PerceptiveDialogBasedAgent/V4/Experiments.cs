@@ -31,6 +31,7 @@ namespace PerceptiveDialogBasedAgent.V4
             a.Input("find a restaurant");
             //I know many restaurants
             a.Input("some expensive");
+            a.Input("what about pricerange");
         }
 
         public static void LuxuryRestaurantSearch()
@@ -235,7 +236,8 @@ namespace PerceptiveDialogBasedAgent.V4
         {
             var a = new Agent();
             a.Input("expensive restaurant");
-            a.Input("find a restaurant");
+            a.Input("find the restaurant");
+            a.Input("what about pricerange");
         }
     }
 }

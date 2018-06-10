@@ -18,10 +18,9 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
                 yield break;
 
             var instanceToRefine = generator.GetValue(evt.Instance, Concept2.Subject);
-            var activationTarget = generator.GetValue(evt.Instance, Concept2.Target);
 
             var target = new PropertySetTarget(instanceToRefine, Concept2.Something);
-            generator.Push(new SubstitutionRequestEvent(target, activationTarget:activationTarget)); 
+            generator.Push(new SubstitutionRequestEvent(target));
 
             yield return $"I know many {plural(instanceToRefine)} which one would you like?";
         }

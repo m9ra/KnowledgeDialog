@@ -27,6 +27,33 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             _beam.Add(new BeamNode());
         }
 
+        internal Dictionary<ConceptInstance, string> GetPrefixingUnknowns(ConceptInstance instance)
+        {
+            //TODO all subvalues could be considered here
+            var result = new Dictionary<ConceptInstance, string>();
+
+            var activation = GetInstanceActivationRequest(instance);
+            if (activation == null || activation.ActivationPhrase == null)
+                return result;
+
+            var inputs = new List<InputPhraseEvent>();
+            foreach (var input in GetPrecedingEvents(getCurrentNode(), activation.ActivationPhrase, true))
+            {
+                if (IsInputUsed(input))
+                    break;
+
+                inputs.Add(input);
+            }
+
+            if (inputs.Count > 0)
+            {
+                inputs.Reverse();
+                result[instance] = string.Join(" ", inputs.Select(i=>i.Phrase));
+            }
+
+            return result;
+        }
+
         internal virtual void Visit(InputPhraseEvent evt)
         {
             // input phrase can create a new instance or point to some old instance
@@ -65,7 +92,14 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
         internal virtual void Visit(PropertySetEvent evt)
         {
+            ConceptInstance reportedInstance = null;
+            if (evt.Target.Instance != null && evt.Target.Property != Concept2.OnSetListener)
+                reportedInstance = GetValue(evt.Target.Instance, Concept2.OnSetListener);
+
             tryPushComplete(evt.Target.Instance, allowTurnReactivation: false);
+
+            if (reportedInstance != null)
+                Push(new InstanceActiveEvent(reportedInstance));
         }
 
         internal virtual void Visit(InstanceReferencedEvent evt)
@@ -163,10 +197,48 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             var node = getCurrentNode();
 
             var instances = new HashSet<ConceptInstance>();
-            instances.UnionWith(GetFrameEvents<InstanceActivationRequestEvent>(node, turnLimited: false).Select(i => i.Instance));
-            instances.UnionWith(GetFrameEvents<InstanceActiveEvent>(node, turnLimited: false).Select(i => i.Instance));
+            instances.UnionWith(GetAllEvents<InstanceActivationRequestEvent>(node).Select(i => i.Instance));
+            instances.UnionWith(GetAllEvents<InstanceActiveEvent>(node).Select(i => i.Instance));
 
             return instances;
+        }
+
+        internal IEnumerable<ConceptInstance> GetValues(ConceptInstance instance, Concept2 property)
+        {
+            var node = getCurrentNode();
+
+            return GetAllEvents<PropertySetEvent>(node).Where(s => s.Target.Instance == instance && s.Target.Property == property).Select(s => s.SubstitutedValue);
+        }
+
+        protected IEnumerable<T> GetPrecedingEvents<T>(BeamNode node, T startingEvt, bool turnLimited)
+            where T : EventBase
+        {
+            var currentNode = node;
+
+            while (currentNode != null)
+            {
+                if (currentNode.Evt == startingEvt)
+                    break;
+
+                currentNode = currentNode.ParentNode;
+            }
+            currentNode = currentNode.ParentNode;
+            while (currentNode != null)
+            {
+                var evt = currentNode.Evt;
+                if (turnLimited && evt is TurnStartEvent)
+                    yield break;
+
+                if (evt is T searchedEvent)
+                    yield return searchedEvent;
+
+                currentNode = currentNode.ParentNode;
+            }
+        }
+
+        protected bool IsInputUsed(InputPhraseEvent input)
+        {
+            return GetAllEvents<InstanceActivationRequestEvent>(getCurrentNode()).Where(r => r.ActivationPhrase == input).Any();
         }
 
         protected IEnumerable<T> GetFrameEvents<T>(BeamNode node, bool turnLimited)
@@ -262,12 +334,12 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             PushToAll(new ConceptDescriptionEvent(concept, description));
         }
 
-        public void SetProperty(Concept2 concept, Concept2 property, ConceptInstance value)
+        public void SetValue(Concept2 concept, Concept2 property, ConceptInstance value)
         {
             PushToAll(new PropertySetEvent(new PropertySetTarget(concept, property), value));
         }
 
-        public void SetProperty(ConceptInstance instance, Concept2 property, ConceptInstance value)
+        public void SetValue(ConceptInstance instance, Concept2 property, ConceptInstance value)
         {
             PushToAll(new PropertySetEvent(new PropertySetTarget(instance, property), value));
         }
@@ -783,7 +855,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                         continue;
 
                     var target = new PropertySetTarget(instanceEvt.Instance, targetProperty);
-                    Push(new StaticScoreEvent(10.05));
+                    Push(new StaticScoreEvent(0.05));
                     Push(new CloseEvent(evt));
                     Push(new PropertySetEvent(target, evt.Instance));
                     tryAsDirectInstanceSubstitution(target.Instance);
@@ -872,7 +944,9 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         {
             var requests = new List<SubstitutionRequestEvent>();
             var targetDefinitions = GetParameterDefinitions(evt.Instance);
-            foreach (var targetDefinition in targetDefinitions)
+            var filteredTargetDefinitions = targetDefinitions.Where(t => GetValue(evt.Instance, t.Property) == null).ToArray();
+
+            foreach (var targetDefinition in filteredTargetDefinitions)
             {
                 var request = new SubstitutionRequestEvent(evt.Instance, targetDefinition);
                 requests.Add(request);

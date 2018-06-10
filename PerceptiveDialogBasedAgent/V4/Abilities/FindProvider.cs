@@ -31,6 +31,8 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
         {
             var criterion = generator.GetValue(instance, _parameter);
             var criterionValues = generator.GetPropertyValues(criterion);
+            criterionValues.Remove(Concept2.OnSetListener); // TODO internal property removal should be done in more systematic way
+
             var requiredProperties = new HashSet<Concept2>(criterionValues.Values.Select(i => i.Concept));
             requiredProperties.Add(criterion.Concept);
 
@@ -68,26 +70,9 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             else
             {
                 var needRefinementInstance = new ConceptInstance(Concept2.NeedsRefinement);
-                generator.SetProperty(needRefinementInstance, Concept2.Subject, criterion);
-                generator.SetProperty(needRefinementInstance, Concept2.Target, instance);
+                generator.SetValue(needRefinementInstance, Concept2.Subject, criterion);
+                generator.SetValue(criterion, Concept2.OnSetListener, instance);
                 generator.Push(new InformationReportEvent(needRefinementInstance));
-            }
-        }
-
-        private IEnumerable<ConceptInstance> getRelevantInstances(ConceptInstance instance, Concept2 relevanceCriterion, BeamGenerator beam)
-        {
-            var relevantCandidates = beam.GetInstances();
-            foreach (var relevantCandidate in relevantCandidates)
-            {
-                if (relevantCandidate == instance)
-                    // prevent self reference
-                    continue;
-
-                var values = beam.GetPropertyValues(relevantCandidate);
-                var isRelevant = values.Any(v => v.Key == relevanceCriterion || v.Value.Concept == relevanceCriterion);
-
-                if (isRelevant)
-                    yield return relevantCandidate;
             }
         }
     }

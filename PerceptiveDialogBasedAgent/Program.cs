@@ -10,7 +10,7 @@ namespace PerceptiveDialogBasedAgent
     {
         static void Main(string[] args)
         {
-            V4.Experiments.ItHandling();
+            V4.Experiments.UnknownPhraseHandling();
 
             Console.WriteLine();
             Console.WriteLine("Press any key to leave");

@@ -159,7 +159,7 @@ namespace PerceptiveDialogBasedAgent.V2
                 Indent();
                 State(state.Value);
                 Dedent();
-                Writeln($"S: {state.Rank:0.00} | N: {rankedStates.Length} > ", HeadlineColor);
+                Writeln($"S: {state.Rank:0.00} | N: {rankedNodes.Length} > ", HeadlineColor);
                 Writeln("\n", HeadlineColor);
             }
         }

@@ -250,7 +250,11 @@ namespace PerceptiveDialogBasedAgent.V4
         public static void UnknownPhraseHandling()
         {
             var a = new Agent();
-            a.Input("find luxury restaurant");
+            //TODO refinement driver unknown phrase handling - try find features for the refined instance
+            a.Input("find high style restaurant for my wife");
+            a.Input("yes");
+            a.Input("pricerange");
+            a.Input("expensive");
         }
 
         public static void ItHandling()
@@ -258,6 +262,15 @@ namespace PerceptiveDialogBasedAgent.V4
             var a = new Agent();
             a.Input("expensive restaurant");
             a.Input("find it");
+        }
+
+        public static void BeamBranchTesting()
+        {
+            var b = new BeamGenerator();
+            b.Push(new InputPhraseEvent("x"));
+            b.Pop();
+            b.Push(new InputPhraseEvent("y"));
+            b.PushSelf();
         }
     }
 }

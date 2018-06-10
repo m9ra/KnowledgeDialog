@@ -14,9 +14,9 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
 
         internal Concept2 AbilityConcept;
 
-        internal ConceptAbilityBase(string conceptName)
+        internal ConceptAbilityBase(string conceptName, bool fireConceptDefinedEvt = true)
         {
-            DefineConcept(conceptName, out AbilityConcept);
+            DefineConcept(conceptName, out AbilityConcept, fireConceptDefinedEvt);
         }
 
         protected void AddParameter(Concept2 parameter)

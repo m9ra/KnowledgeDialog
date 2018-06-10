@@ -32,14 +32,15 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             }
         }
 
-        protected Evt Get<Evt>()
+        protected Evt Get<Evt>(Func<Evt, bool> predicate = null)
             where Evt : EventBase
         {
             for (var i = 0; i < _turnEvents.Length; ++i)
             {
                 var e = _turnEvents[_turnEvents.Length - i - 1];
                 if (e is Evt evt)
-                    return evt;
+                    if (predicate == null || predicate(evt))
+                        return evt;
             }
             return null;
         }
@@ -49,10 +50,20 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             return instance.ToPrintable();
         }
 
+        protected string singular(Concept2 concept)
+        {
+            return concept.Name;
+        }
 
         protected string plural(ConceptInstance instance)
         {
             return singular(instance) + "s";
         }
+
+        protected string plural(Concept2 concept)
+        {
+            return singular(concept) + "s";
+        }
+
     }
 }

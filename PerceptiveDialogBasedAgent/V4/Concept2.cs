@@ -8,6 +8,16 @@ namespace PerceptiveDialogBasedAgent.V4
 {
     class Concept2
     {
+        private readonly Dictionary<Concept2, PointableInstance> _propertyValues = new Dictionary<Concept2, PointableInstance>();
+
+        private static readonly Dictionary<string, Concept2> _definedConcepts = new Dictionary<string, Concept2>();
+
+        public readonly static Concept2 OnSetListener = Concept("on set listener");
+        public readonly static Concept2 DisambiguationFailed = Concept("disambiguation failed");
+        public readonly static Concept2 PropertyValueDisambiguation = Concept("property value disambiguation");
+        public readonly static Concept2 AssignUnknownProperty = Concept("assign unknown property");
+        public readonly static Concept2 FireEvent = Concept("fire event");
+        public readonly static Concept2 ActivationRequestEvent = Concept("activation request event");
         public readonly static Concept2 Answer = Concept("answer");
         public readonly static Concept2 Prompt = Concept("prompt");
         public readonly static Concept2 InstanceOf = Concept("instance of");
@@ -26,6 +36,7 @@ namespace PerceptiveDialogBasedAgent.V4
         public readonly static Concept2 Output = Concept("output");
         public readonly static Concept2 Subject = Concept("subject").SetPropertyValue(Parameter, new ConceptInstance(Yes));
         public readonly static Concept2 Property = Concept("property");
+        public readonly static Concept2 Unknown = Concept("unknown");
         public readonly static Concept2 Target = Concept("target");
         public readonly static Concept2 TargetProperty = Concept("target property");
         public readonly static Concept2 StateToRetry = Concept("state to retry");
@@ -33,8 +44,6 @@ namespace PerceptiveDialogBasedAgent.V4
         public readonly static Concept2 ConceptName = Concept("concept name");
         public readonly static Concept2 Invocation = Concept("invocation").SetPropertyValue(Subject, new ConceptInstance(Concept2.Something));
         public readonly static Concept2 ActionToExecute = Concept("action to execute");
-
-
 
         public readonly string Name;
 
@@ -45,10 +54,6 @@ namespace PerceptiveDialogBasedAgent.V4
         internal IEnumerable<string> Descriptions => _descriptions;
 
         private readonly List<string> _descriptions = new List<string>();
-
-        private readonly Dictionary<Concept2, PointableInstance> _propertyValues = new Dictionary<Concept2, PointableInstance>();
-
-        private static readonly Dictionary<string, Concept2> _definedConcepts = new Dictionary<string, Concept2>();
 
         private Concept2(string name, bool isNative = true)
         {
@@ -78,7 +83,7 @@ namespace PerceptiveDialogBasedAgent.V4
 
         public static Concept2 Concept(string name)
         {
-            return new Concept2(name, true);
+            return From(name, true);
         }
 
         public Concept2 SetPropertyValue(Concept2 property, PointableInstance value)

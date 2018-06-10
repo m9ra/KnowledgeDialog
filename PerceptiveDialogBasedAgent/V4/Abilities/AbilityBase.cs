@@ -43,12 +43,19 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             _initializationEvents.Add(evt);
         }
 
-        internal AbilityBase DefineConcept(string conceptName, out Concept2 concept)
+        internal AbilityBase DefineConcept(Concept2 concept)
+        {
+            return DefineConcept(concept.Name);
+        }
+
+        internal AbilityBase DefineConcept(string conceptName, out Concept2 concept, bool fireConceptDefinedEvt = true)
         {
             _currentInstance = null;
             _currentConcept = concept = Concept2.From(conceptName);
 
-            AddInitializationEvent(new ConceptDefinedEvent(concept));
+            if (fireConceptDefinedEvt)
+                AddInitializationEvent(new ConceptDefinedEvent(concept));
+
             return this;
         }
 

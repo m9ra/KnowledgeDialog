@@ -113,7 +113,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             {
                 //we have got a new class member
                 var superClass = generator.GetValue(target.Instance, Concept2.Target);
-                generator.SetProperty(newConcept, Concept2.InstanceOf, superClass);
+                generator.SetValue(newConcept, Concept2.InstanceOf, superClass);
             }
             else if (target.Property == Concept2.Target)
             {
@@ -121,7 +121,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                 var inheritant = generator.GetValue(target.Instance, Concept2.Subject);
                 if (inheritant != null)
                     //TODO this should not happen
-                    generator.SetProperty(inheritant.Concept, Concept2.InstanceOf, new ConceptInstance(newConcept));
+                    generator.SetValue(inheritant.Concept, Concept2.InstanceOf, new ConceptInstance(newConcept));
             }
             else
             {

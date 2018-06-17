@@ -23,12 +23,12 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             if (answer == Concept2.Yes)
             {
                 var yesInstance = generator.GetValue(instance, Concept2.Yes);
-                generator.Push(new InstanceActivationRequestEvent(null, yesInstance));
+                generator.Push(new InstanceActivationRequestEvent(yesInstance));
             }
             else if (answer == Concept2.No)
             {
                 var noInstance = generator.GetValue(instance, Concept2.No);
-                generator.Push(new InstanceActivationRequestEvent(null, noInstance));
+                generator.Push(new InstanceActivationRequestEvent(noInstance));
             }
             else
             {

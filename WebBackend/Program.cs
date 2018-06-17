@@ -120,7 +120,8 @@ namespace WebBackend
                      new GraphNavigationExperiment(experimentsRootPath, "edge_requests", 100, Configuration.GetQuestionDialogsTrain()),*/
                 new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant", 10),
                 new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant2", 10),
-                new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant3", 10)
+                new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant3", 10),
+                new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant4", 10)
                 );
 
             //QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "qdd_extension_r_");

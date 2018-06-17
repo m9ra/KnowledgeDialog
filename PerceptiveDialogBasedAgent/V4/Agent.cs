@@ -21,7 +21,7 @@ namespace PerceptiveDialogBasedAgent.V4
         internal Agent()
         {
             _irrelevantWords.UnionWith(KnowledgeDialog.Dialog.UtteranceParser.NonInformativeWords);
-            foreach (var word in new[] { "a", "an", "the", "it", "no", "yes", "is", "find", "search", "google", "lookup", "look", "want", "get", "give", "expensive", "cheap", "stupid", "what", "where", "which" })
+            foreach (var word in new[] { "a", "an", "the", "it", "no", "yes", "is", "find", "search", "google", "lookup", "look", "want", "get", "give", "expensive", "cheap", "stupid", "what", "where", "which", "name" })
             {
                 _irrelevantWords.Remove(word);
             }
@@ -32,6 +32,7 @@ namespace PerceptiveDialogBasedAgent.V4
         {
             _beam = new ComposedPolicyBeamGenerator();
 
+            _beam.RegisterAbility(new RememberNewProperty());
             _beam.RegisterAbility(new EssentialKnowledge());
             _beam.RegisterAbility(new RestaurantDomainKnowledge());
             _beam.RegisterAbility(new ItReferenceResolver());
@@ -44,11 +45,18 @@ namespace PerceptiveDialogBasedAgent.V4
 
             //NOTE: Ordering of policy parts matters
             _beam.AddPolicyPart(new HowCanIHelpYouFallback());
+            _beam.AddPolicyPart(new RequestActionWithKnownConfirmation());
             _beam.AddPolicyPart(new RequestSubstitution());
+            _beam.AddPolicyPart(new AssignUnknownValue());
+
+            _beam.AddPolicyPart(new ReaskDisambiguation());
+            _beam.AddPolicyPart(new AskForDisambiguation());
+
             _beam.AddPolicyPart(new OfferResult());
             _beam.AddPolicyPart(new RequestRefinement());
             _beam.AddPolicyPart(new LearnUnknownForRefinement());
-            _beam.AddPolicyPart(new AskForDisambiguation());
+
+
         }
 
         internal string Input(string originalSentence)

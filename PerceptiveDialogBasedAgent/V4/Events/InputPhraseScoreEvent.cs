@@ -12,20 +12,27 @@ namespace PerceptiveDialogBasedAgent.V4.Events
     {
         internal static readonly HashSet<string> AuxiliaryWords = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase) { "a", "an", "the", "on", "at", "in", "of", "some", "any", "none", "such", "to", "and", "with" };
 
-        internal readonly InputPhraseEvent InputPhrase;
+        internal readonly InputPhraseEvent[] InputPhrases;
 
         internal readonly Concept2 Concept;
 
-        public InputPhraseScoreEvent(InputPhraseEvent inputPhrase, Concept2 concept)
+        public InputPhraseScoreEvent(InputPhraseEvent[] inputPhrases, Concept2 concept)
         {
-            InputPhrase = inputPhrase;
+            InputPhrases = inputPhrases;
             Concept = concept;
         }
 
         internal override double GetDefaultScore(BeamNode node)
         {
             var descriptions = BeamGenerator.GetDescriptions(Concept, node);
-            return getSimilarity(InputPhrase.Phrase, Concept.Name, descriptions); //TODO solve the descriptions
+
+            var composedPhrase = getComposedPhrase();
+            return getSimilarity(composedPhrase, Concept.Name, descriptions); //TODO solve the descriptions
+        }
+
+        private string getComposedPhrase()
+        {
+            return string.Join(" ", InputPhrases.Select(i => i.Phrase));
         }
 
         internal static string ToMeaningfulPhrase(string phrase)

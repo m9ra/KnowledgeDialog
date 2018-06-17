@@ -19,7 +19,12 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             DefineConcept("pizza", out var pizzaConcept)
                 .Property(Concept2.InstanceOf, foodConcept);
 
-            DefineConcept("pricerange", out var pricerangeConcept);
+            DefineConcept("pricerange", out var pricerangeConcept)
+                .Description("price")
+                .Description("money")
+                .Description("pricy")
+                ;
+                
             DefineConcept("name", out var nameConcept);
             DefineConcept("cheap", out var cheapConcept)
                 .Property(Concept2.InstanceOf, pricerangeConcept);

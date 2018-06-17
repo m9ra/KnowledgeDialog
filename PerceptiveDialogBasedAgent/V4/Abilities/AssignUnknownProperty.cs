@@ -23,7 +23,10 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
 
             var relevantProperties = getRelevantProperties(target, generator);
             if (!relevantProperties.Any())
-                throw new NotImplementedException();
+            {
+                generator.Push(new StaticScoreEvent(-0.5));
+                return;
+            }
 
             var disambiguation = new ConceptInstance(Concept2.PropertyValueDisambiguation);
             generator.SetValue(disambiguation, Concept2.Unknown, subject);
@@ -39,7 +42,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
                 }
             }
 
-            generator.Push(new InstanceActivationRequestEvent(null, disambiguation));
+            generator.Push(new InstanceActivationRequestEvent(disambiguation));
         }
 
         private Dictionary<Concept2, HashSet<Concept2>> getRelevantProperties(ConceptInstance targetInstance, BeamGenerator generator)

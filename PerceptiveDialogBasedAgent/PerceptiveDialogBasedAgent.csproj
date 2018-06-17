@@ -109,6 +109,7 @@
     <Compile Include="V4\Abilities\AssignUnknownProperty.cs" />
     <Compile Include="V4\Abilities\PromptAbility.cs" />
     <Compile Include="V4\Abilities\PropertyValueDisambiguation.cs" />
+    <Compile Include="V4\Abilities\RememberNewProperty.cs" />
     <Compile Include="V4\Abilities\WhatProvider.cs" />
     <Compile Include="V4\Abilities\FindProvider.cs" />
     <Compile Include="V4\Abilities\DefiniteReferenceResolver.cs" />
@@ -147,12 +148,13 @@
     <Compile Include="V4\Events\TracedScoreEventBase.cs" />
     <Compile Include="V4\Models\EventBasedNLG.cs" />
     <Compile Include="V4\Policy\AskForDisambiguation.cs" />
-    <Compile Include="V4\Policy\AskForPhraseMeaning.cs" />
+    <Compile Include="V4\Policy\AssignUnknownValue.cs" />
     <Compile Include="V4\Policy\HowCanIHelpYouFallback.cs" />
     <Compile Include="V4\Policy\OfferResult.cs" />
     <Compile Include="V4\Policy\PolicyPartBase.cs" />
-    <Compile Include="V4\Policy\AskForPropertyCategory.cs" />
     <Compile Include="V4\Policy\LearnUnknownForRefinement.cs" />
+    <Compile Include="V4\Policy\ReaskDisambiguation.cs" />
+    <Compile Include="V4\Policy\RequestActionWithKnownConfirmation.cs" />
     <Compile Include="V4\Policy\RequestRefinement.cs" />
     <Compile Include="V4\Policy\RequestSubstitution.cs" />
     <Compile Include="V4\Primitives\ParameterDefinition.cs" />

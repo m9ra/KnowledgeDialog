@@ -52,11 +52,10 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             _isSubstitutionDisabled = false;
         }
 
-
-        internal override void Visit(InstanceActiveEvent evt)
+        protected override void handleOnActiveSubstitution(InstanceActiveEvent evt)
         {
             if (!_isSubstitutionDisabled)
-                base.Visit(evt);
+                base.handleOnActiveSubstitution(evt);
         }
 
         internal override void Visit(SubstitutionRequestEvent evt)

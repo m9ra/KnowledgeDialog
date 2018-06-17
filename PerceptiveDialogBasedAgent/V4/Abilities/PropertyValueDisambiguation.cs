@@ -29,6 +29,12 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             var directSubjects = filterDirectSubjects(subjects, answer);
             var indirectSubjects = filterIndirectSubjects(subjects, answer, generator);
 
+            if (answer.Concept == Concept2.Nothing)
+            {
+                // user does not like any option 
+                return;
+            }
+
             if (directSubjects.Count() == 1)
             {
                 pushSetSubject(target, directSubjects.First(), generator);
@@ -76,7 +82,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
                 generator.SetValue(disambiguation, Concept2.Subject, subject);
             }
 
-            generator.Push(new InstanceActivationRequestEvent(null, disambiguation));
+            generator.Push(new InstanceActivationRequestEvent(disambiguation));
         }
 
         private IEnumerable<ConceptInstance> filterIndirectSubjects(ConceptInstance[] subjects, ConceptInstance answer, BeamGenerator generator)

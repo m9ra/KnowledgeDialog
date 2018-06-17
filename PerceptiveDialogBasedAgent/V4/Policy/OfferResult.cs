@@ -20,6 +20,10 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             {
                 yield return $"I don't know anything like that.";
             }
+            else if (evt.Instance.Concept == Concept2.DisambiguationFailed)
+            {
+                yield return $"It is too complex for me. Could you use different words?";
+            }
             else
             {
                 generator.Push(new InstanceActiveEvent(evt.Instance));

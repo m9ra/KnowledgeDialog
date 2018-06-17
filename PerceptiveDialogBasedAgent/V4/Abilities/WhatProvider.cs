@@ -26,16 +26,55 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             var property = generator.GetValue(instance, _propertyParameter);
             var subject = generator.GetValue(instance, _subjectParameter);
 
-            var value = generator.GetValue(subject, property.Concept);
-            if (value == null)
+            var answer = getAnswer(subject, property.Concept, generator);
+
+            if (answer.Count == 0)
             {
                 generator.Push(new InformationReportEvent(new ConceptInstance(Concept2.NotFound)));
             }
-            else
+            else if (answer.Count == 1)
             {
                 generator.Push(new StaticScoreEvent(0.20));
-                generator.Push(new InformationReportEvent(value));
+                generator.Push(new InformationReportEvent(answer.First()));
             }
+            else
+            {
+                var needRefinementInstance = new ConceptInstance(Concept2.NeedsRefinement);
+                generator.SetValue(needRefinementInstance, Concept2.Subject, subject);
+                generator.SetValue(subject, Concept2.OnSetListener, instance);
+                generator.Push(new InformationReportEvent(needRefinementInstance));
+            }
+        }
+
+        private List<ConceptInstance> getAnswer(ConceptInstance subject, Concept2 property, BeamGenerator generator)
+        {
+            var result = new List<ConceptInstance>();
+
+            var directValue = generator.GetValue(subject, property);
+            if (directValue != null)
+            {
+                result.Add(directValue);
+                return result;
+            }
+
+            var criterionValues = generator.GetPropertyValues(subject);
+            criterionValues.Remove(Concept2.OnSetListener); // TODO internal property removal should be done in more systematic way
+
+
+            var requiredProperties = new HashSet<Concept2>(criterionValues.Values.Select(i => i.Concept));
+            requiredProperties.Add(subject.Concept);
+
+            var relevantConcepts = FindProvider.FindRelevantConcepts(generator, requiredProperties);
+            foreach (var concept in relevantConcepts)
+            {
+                var searchedPropertyValue = generator.GetValue(concept, property);
+                if (searchedPropertyValue == null)
+                    continue;
+
+                result.Add(searchedPropertyValue);
+            }
+
+            return result;
         }
 
         private IEnumerable<ConceptInstance> getRelevantInstances(ConceptInstance instance, Concept2 relevanceCriterion, BeamGenerator beam)

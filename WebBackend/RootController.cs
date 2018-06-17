@@ -517,6 +517,11 @@ namespace WebBackend
             experimentHandler("phrase_restaurant3");
         }
 
+        public void phrase_restaurant4()
+        {
+            experimentHandler("phrase_restaurant4");
+        }
+
         /// <summary>
         /// Render experiment console. Also handle feedback and tracing of given experiment.
         /// </summary>

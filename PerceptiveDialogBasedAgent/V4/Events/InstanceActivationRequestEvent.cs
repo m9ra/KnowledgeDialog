@@ -10,11 +10,17 @@ namespace PerceptiveDialogBasedAgent.V4.Events
     class InstanceActivationRequestEvent : EventBase
     {
         internal readonly ConceptInstance Instance;
-        internal readonly InputPhraseEvent ActivationPhrase;
+        internal readonly InputPhraseEvent[] ActivationPhrases;
 
-        public InstanceActivationRequestEvent(InputPhraseEvent activationPhrase, ConceptInstance conceptInstance)
+        public InstanceActivationRequestEvent(InputPhraseEvent[] activationPhrases, ConceptInstance conceptInstance)
         {
-            ActivationPhrase = activationPhrase;
+            ActivationPhrases = activationPhrases ?? throw new ArgumentNullException(nameof(activationPhrases));
+            Instance = conceptInstance;
+        }
+
+        public InstanceActivationRequestEvent(ConceptInstance conceptInstance)
+        {
+            ActivationPhrases = new InputPhraseEvent[0];
             Instance = conceptInstance;
         }
 

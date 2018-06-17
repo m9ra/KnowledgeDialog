@@ -22,8 +22,12 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
 
             var prefixesForRefine = generator.GetPrefixingUnknowns(instanceToRefine);
 
-            if (!prefixesForRefine.TryGetValue(instanceToRefine, out var propertyUnknown))
+            if (!prefixesForRefine.TryGetValue(instanceToRefine, out var propertyUnknownRaw))
                 //nothing to ask for
+                yield break;
+
+            var propertyUnknown = toMeaningfulPhrase(propertyUnknownRaw);
+            if (propertyUnknown == "")
                 yield break;
 
             /* 
@@ -46,10 +50,24 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             generator.SetValue(assignUnknownProperty, Concept2.Target, instanceToRefine);
 
             generator.SetValue(prompt, Concept2.Yes, assignUnknownProperty);
-            //TODO refine event should be retriggred
             generator.SetValue(prompt, Concept2.No, instanceToRefine);
-            generator.Push(new InstanceActivationRequestEvent(null, prompt));
+            generator.Push(new InstanceActivationRequestEvent(prompt));
             yield return $"So, you would like to find {plural(instanceToRefine)} which are {propertyUnknown}?";
+        }
+
+        private string toMeaningfulPhrase(string phrase)
+        {
+            var auxiliaryWords = new[] { "a", "the", "some", "my" };
+            var input = phrase.ToLowerInvariant();
+            var inputWords = Phrase.AsWords(input).ToList();
+
+            while (inputWords.Count > 0 && auxiliaryWords.Contains(inputWords.First()))
+                inputWords.RemoveAt(0);
+
+            while (inputWords.Count > 0 && auxiliaryWords.Contains(inputWords.Last()))
+                inputWords.RemoveAt(inputWords.Count - 1);
+
+            return string.Join(" ", inputWords);
         }
     }
 }

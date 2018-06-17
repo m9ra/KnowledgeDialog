@@ -12,9 +12,12 @@ namespace PerceptiveDialogBasedAgent.V4.Events
     {
         internal readonly PropertySetEvent PropertySet;
 
-        internal PropertySetScoreEvent(PropertySetEvent propertySet)
+        private readonly int _distancePenalty;
+
+        internal PropertySetScoreEvent(PropertySetEvent propertySet, int distancePenalty)
         {
             PropertySet = propertySet;
+            _distancePenalty = distancePenalty;
         }
 
         internal override IEnumerable<string> GenerateFeatures(BeamNode node)
@@ -27,7 +30,7 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 
             var ngramLimitCount = 2;
             var targetSufixes = new InputPhraseEvent[0];//BeamGenerator.GetSufixPhrases(targetActivationEvent.ActivationPhrase, ngramLimitCount, node);
-            var targetPrefixes = BeamGenerator.GetPrefixPhrases(targetActivationEvent.ActivationPhrase, ngramLimitCount, node);
+            var targetPrefixes = BeamGenerator.GetPrefixPhrases(targetActivationEvent.ActivationPhrases.FirstOrDefault(), ngramLimitCount, node);
             var featureId = "* --" + PropertySet.Target.Property.Name + "--> $1";
             var targetId = "$1";
 
@@ -49,7 +52,7 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 
         internal override double GetDefaultScore(BeamNode node)
         {
-            return Configuration.ParameterSubstitutionScore;
+            return Configuration.ParameterSubstitutionScore / _distancePenalty;
         }
     }
 }

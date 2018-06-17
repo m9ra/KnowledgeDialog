@@ -15,14 +15,16 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
         internal ItReferenceResolver()
             : base("it")
         {
+            Description("its");
         }
 
         protected override void onInstanceActivated(ConceptInstance instance, BeamGenerator generator)
         {
-            var instances = generator.GetInstances();
+            var activations = generator.GetInputActivatedInstances();
 
-            foreach (var relevantInstance in instances)
+            foreach (var relevantInstanceActivation in activations)
             {
+                var relevantInstance = relevantInstanceActivation.Instance;
                 if (relevantInstance == instance)
                     //dont reference self
                     continue;

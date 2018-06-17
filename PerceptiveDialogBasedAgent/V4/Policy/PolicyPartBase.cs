@@ -16,12 +16,15 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
 
         private EventBase[] _turnEvents;
 
+        private BeamGenerator _generator;
+
         internal string[] Execute(BeamGenerator generator, EventBase[] previousTurnEvents, EventBase[] turnEvents)
         {
             try
             {
                 _previousTurnEvents = previousTurnEvents;
                 _turnEvents = turnEvents;
+                _generator = generator;
 
                 return execute(generator).ToArray();
             }
@@ -29,20 +32,36 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             {
                 _previousTurnEvents = null;
                 _turnEvents = null;
+                _generator = null;
             }
         }
 
         protected Evt Get<Evt>(Func<Evt, bool> predicate = null)
             where Evt : EventBase
         {
+            return GetMany<Evt>(predicate).FirstOrDefault();
+        }
+
+        protected IEnumerable<Evt> GetMany<Evt>(Func<Evt, bool> predicate = null)
+          where Evt : EventBase
+        {
             for (var i = 0; i < _turnEvents.Length; ++i)
             {
                 var e = _turnEvents[_turnEvents.Length - i - 1];
                 if (e is Evt evt)
                     if (predicate == null || predicate(evt))
-                        return evt;
+                        yield return evt;
             }
-            return null;
+        }
+
+        protected Evt Find<Evt>(Func<Evt, bool> predicate = null, int precedingTurns = 0)
+            where Evt : EventBase
+        {
+            var events = _generator.GetTurnEvents<Evt>(precedingTurns);
+            if (predicate != null)
+                events = events.Where(predicate);
+
+            return events.FirstOrDefault();
         }
 
         protected string singular(ConceptInstance instance)

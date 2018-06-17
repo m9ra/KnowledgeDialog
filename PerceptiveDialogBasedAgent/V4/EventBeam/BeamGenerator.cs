@@ -33,11 +33,11 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             var result = new Dictionary<ConceptInstance, string>();
 
             var activation = GetInstanceActivationRequest(instance);
-            if (activation == null || activation.ActivationPhrase == null)
+            if (activation == null || !activation.ActivationPhrases.Any())
                 return result;
 
             var inputs = new List<InputPhraseEvent>();
-            foreach (var input in GetPrecedingEvents(getCurrentNode(), activation.ActivationPhrase, true))
+            foreach (var input in GetPrecedingEvents(getCurrentNode(), activation.ActivationPhrases.First(), true))
             {
                 if (IsInputUsed(input))
                     break;
@@ -48,7 +48,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             if (inputs.Count > 0)
             {
                 inputs.Reverse();
-                result[instance] = string.Join(" ", inputs.Select(i=>i.Phrase));
+                result[instance] = string.Join(" ", inputs.Select(i => i.Phrase));
             }
 
             return result;
@@ -68,19 +68,14 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             var requests = pushFreeParameterSubstitutionRequests(evt);
             if (!requests.Any())
                 //we have got a complete instance
-                Push(new InstanceActiveEvent(evt.Instance));
+                Push(new InstanceActiveEvent(evt.Instance, evt));
         }
 
         internal virtual void Visit(InstanceActiveEvent evt)
         {
-            // we have a complete instance - lets look where it can be put into
-            tryAsSubstitution(evt);
-            tryPropertySubstitution(evt);
-
-            //instance can be left without being substituted anywhere
-            PushSelf();
+            handleOnActiveSubstitution(evt);
         }
-
+        
         internal virtual void Visit(SubstitutionRequestEvent evt)
         {
             //try to substitute by some free active instance
@@ -163,7 +158,28 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             throw new NotSupportedException("Unknown event");
         }
 
+
+        protected virtual void handleOnActiveSubstitution(InstanceActiveEvent evt)
+        {
+            // we have a complete instance - lets look where it can be put into
+            tryAsSubstitution(evt);
+            tryPropertySubstitution(evt);
+
+            //instance can be left without being substituted anywhere
+            PushSelf();
+        }
+
         #region Beam Operations
+
+        internal IEnumerable<InputPhraseEvent[]> GetInputActivationHypotheses()
+        {
+            var phrases = GetAvailableInputPhrases().Take(2).ToArray();
+
+            for (var i = 0; i < phrases.Length; ++i)
+            {
+                yield return phrases.Take(i + 1).Reverse().ToArray();
+            }
+        }
 
         internal IEnumerable<Concept2> GetConcepts()
         {
@@ -203,6 +219,12 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return instances;
         }
 
+        internal IEnumerable<InstanceActiveEvent> GetInputActivatedInstances()
+        {
+            var node = getCurrentNode();
+            return GetAllEvents<InstanceActiveEvent>(node).Where(i => i.Request?.ActivationPhrases.Length > 0);
+        }
+
         internal IEnumerable<ConceptInstance> GetValues(ConceptInstance instance, Concept2 property)
         {
             var node = getCurrentNode();
@@ -236,9 +258,9 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             }
         }
 
-        protected bool IsInputUsed(InputPhraseEvent input)
+        internal bool IsInputUsed(InputPhraseEvent input)
         {
-            return GetAllEvents<InstanceActivationRequestEvent>(getCurrentNode()).Where(r => r.ActivationPhrase == input).Any();
+            return GetAllEvents<InstanceActivationRequestEvent>(getCurrentNode()).Where(r => r.ActivationPhrases.Contains(input)).Any();
         }
 
         protected IEnumerable<T> GetFrameEvents<T>(BeamNode node, bool turnLimited)
@@ -277,6 +299,44 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
                 currentNode = currentNode.ParentNode;
             }
+        }
+
+        public IEnumerable<T> GetTurnEvents<T>(int precedingTurns = 0)
+            where T : EventBase
+        {
+            var closedEvents = new HashSet<T>();
+
+            var currentNode = getCurrentNode();
+            var currentTurn = 0;
+            while (currentNode != null)
+            {
+                var evt = currentNode.Evt;
+                if (evt is CloseEvent closingEvent)
+                {
+                    if (closingEvent.ClosedEvent is T closedEvent)
+                        closedEvents.Add(closedEvent);
+                }
+
+                if (evt is TurnStartEvent)
+                    currentTurn += 1;
+
+                if (currentTurn == precedingTurns)
+                {
+                    if (evt is T searchedEvent && !closedEvents.Contains(searchedEvent))
+                        yield return searchedEvent;
+                }
+                else if (currentTurn > precedingTurns)
+                {
+                    break;
+                }
+
+                currentNode = currentNode.ParentNode;
+            }
+        }
+
+        internal IEnumerable<EventBase> GetTurnEvents(BeamNode node)
+        {
+            return GetFrameEvents<EventBase>(node, true);
         }
 
         protected IEnumerable<T> GetAllEvents<T>(BeamNode node)
@@ -539,7 +599,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return GetPreviousTurnEvents(getCurrentNode());
         }
 
-        internal static IEnumerable<EventBase> GetPreviousTurnEvents(BeamNode node)
+        internal IEnumerable<EventBase> GetPreviousTurnEvents(BeamNode node)
         {
             var currentNode = node;
             while (currentNode != null)
@@ -553,21 +613,6 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return GetTurnEvents(currentNode.ParentNode);
         }
 
-        internal static IEnumerable<EventBase> GetTurnEvents(BeamNode node)
-        {
-            var result = new List<EventBase>();
-
-            var currentNode = node;
-            while (currentNode != null)
-            {
-                if (currentNode.Evt is TurnStartEvent)
-                    break;
-
-                result.Add(currentNode.Evt);
-                currentNode = currentNode.ParentNode;
-            }
-            return result;
-        }
 
         internal static InputPhraseEvent[] GetSufixPhrases(InputPhraseEvent phrase, int ngramLimitCount, BeamNode node)
         {
@@ -763,40 +808,49 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             var existingInstances = GetTurnActivationRequestedInstances();
             var existingConcepts = new HashSet<Concept2>(existingInstances.Select(e => e.Instance.Concept));
             var concepts = GetConcepts();
-            var inputPhrase = GetAvailableInputPhrases().First();
+            var inputPhrasesHypotheses = GetInputActivationHypotheses();
 
-
-            foreach (var concept in concepts)
+            foreach (var inputPhrases in inputPhrasesHypotheses)
             {
-                if (existingConcepts.Contains(concept))
-                    // prevent concept multi activation
-                    continue;
+                foreach (var concept in concepts)
+                {
+                    if (existingConcepts.Contains(concept))
+                        // prevent concept multi activation
+                        continue;
 
-                var scoreEvent = new InputPhraseScoreEvent(inputPhrase, concept);
-                var score = GetScore(scoreEvent);
-                if (score < Configuration.ConceptActivationThreshold)
-                    // performance optimization
-                    continue;
+                    var scoreEvent = new InputPhraseScoreEvent(inputPhrases, concept);
+                    var score = GetScore(scoreEvent);
+                    if (score < Configuration.ConceptActivationThreshold)
+                        // performance optimization
+                        continue;
 
-                Push(new CloseEvent(inputPhrase)); //TODO this could be optimized
-                Push(scoreEvent);
-                Push(new InstanceActivationRequestEvent(inputPhrase, new ConceptInstance(concept)));
-                Pop();
-                Pop();
-                Pop();
+                    foreach (var inputPhrase in inputPhrases)
+                        Push(new CloseEvent(inputPhrase));
+
+                    Push(scoreEvent);
+                    Push(new InstanceActivationRequestEvent(inputPhrases, new ConceptInstance(concept)));
+                    Pop();
+                    Pop();
+
+                    foreach (var inputPhrase in inputPhrases)
+                        Pop();
+                }
             }
         }
 
         private void tryAsSubstitution(InstanceActiveEvent evt)
         {
+            var distancePenalty = 0;
             foreach (var request in GetAvailableSubstitutionRequests())
             {
                 if (!IsSatisfiedBy(request, evt.Instance))
                     //substitution is not possible
                     continue;
 
+                distancePenalty += 1;
+
                 var setEvent = new PropertySetEvent(request, evt);
-                Push(new PropertySetScoreEvent(setEvent));
+                Push(new PropertySetScoreEvent(setEvent, distancePenalty));
                 Push(new CloseEvent(evt));
                 Push(new CloseEvent(request));
                 Push(setEvent);
@@ -814,14 +868,17 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
         private void tryAsDirectInstanceSubstitution(ConceptInstance instance)
         {
+            var distancePenalty = 0;
             foreach (var request in GetAvailableSubstitutionRequests())
             {
                 if (!IsSatisfiedBy(request, instance))
                     //substitution is not possible
                     continue;
 
+                distancePenalty += 1;
+
                 var setEvent = new PropertySetEvent(request.Target, instance);
-                Push(new PropertySetScoreEvent(setEvent));
+                Push(new PropertySetScoreEvent(setEvent, distancePenalty));
                 Push(new CloseEvent(request));
                 Push(setEvent);
                 if (request.ActivationTarget != null)
@@ -839,12 +896,17 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         {
             var availableInstances = GetAvailableActiveInstances();
             var targetPropertyOccurences = GetPointingProperties(evt.Instance.Concept);
+            var definedConcepts = GetConcepts();
+            targetPropertyOccurences = targetPropertyOccurences.Intersect(definedConcepts).ToArray();
 
+            var distancePenalty = 0;
             foreach (var instanceEvt in availableInstances)
             {
                 if (instanceEvt.Instance.Concept == evt.Instance.Concept)
                     //self indexing is not allowed
                     continue;
+
+                distancePenalty += 1;
 
                 //try to set as a property value
                 foreach (var targetProperty in targetPropertyOccurences)
@@ -855,7 +917,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                         continue;
 
                     var target = new PropertySetTarget(instanceEvt.Instance, targetProperty);
-                    Push(new StaticScoreEvent(0.05));
+                    Push(new StaticScoreEvent(0.05 / distancePenalty));
                     Push(new CloseEvent(evt));
                     Push(new PropertySetEvent(target, evt.Instance));
                     tryAsDirectInstanceSubstitution(target.Instance);
@@ -867,6 +929,9 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                 //try to grab other instances as properties to this instance
                 foreach (var sourceProperty in GetPointingProperties(instanceEvt.Instance.Concept))
                 {
+                    if (!definedConcepts.Contains(sourceProperty))
+                        continue;
+
                     var value = GetValue(instanceEvt.Instance, sourceProperty);
                     if (value != null)
                         //TODO think about reassigning logic
@@ -874,7 +939,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
                     //TODO combination of properties should be here
                     var target = new PropertySetTarget(evt.Instance, sourceProperty);
-                    Push(new StaticScoreEvent(0.05));
+                    Push(new StaticScoreEvent(0.05 / distancePenalty));
                     Push(new CloseEvent(instanceEvt));
                     Push(new PropertySetEvent(target, instanceEvt.Instance));
                     tryAsDirectInstanceSubstitution(target.Instance);
@@ -899,14 +964,17 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
         private void trySubstituteBy(SubstitutionRequestEvent evt, IEnumerable<InstanceActiveEvent> completeInstances)
         {
+            var distancePenalty = 0;
+
             foreach (var freeInstance in completeInstances)
             {
                 if (!IsSatisfiedBy(evt, freeInstance.Instance))
                     continue;
 
+                distancePenalty += 1;
 
                 var setEvent = new PropertySetEvent(evt, freeInstance);
-                Push(new PropertySetScoreEvent(setEvent));
+                Push(new PropertySetScoreEvent(setEvent, distancePenalty));
                 Push(new CloseEvent(freeInstance));
                 Push(new CloseEvent(evt));
                 Push(setEvent);

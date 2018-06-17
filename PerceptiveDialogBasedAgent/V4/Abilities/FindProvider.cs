@@ -20,6 +20,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             Description("finds concepts that agent knows");
             Description("find concept according to some constraint");
             Description("give");
+            Description("tell");
             Description("get");
             Description("want");
             Description("lookup");
@@ -36,6 +37,28 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             var requiredProperties = new HashSet<Concept2>(criterionValues.Values.Select(i => i.Concept));
             requiredProperties.Add(criterion.Concept);
 
+            var result = FindRelevantConcepts(generator, requiredProperties);
+
+            if (result.Count == 0)
+            {
+                generator.Push(new InformationReportEvent(new ConceptInstance(Concept2.NotFound)));
+            }
+            else if (result.Count == 1)
+            {
+                generator.Push(new StaticScoreEvent(0.2));
+                generator.Push(new InformationReportEvent(result.First()));
+            }
+            else
+            {
+                var needRefinementInstance = new ConceptInstance(Concept2.NeedsRefinement);
+                generator.SetValue(needRefinementInstance, Concept2.Subject, criterion);
+                generator.SetValue(criterion, Concept2.OnSetListener, instance);
+                generator.Push(new InformationReportEvent(needRefinementInstance));
+            }
+        }
+
+        internal static List<ConceptInstance> FindRelevantConcepts(BeamGenerator generator, HashSet<Concept2> requiredProperties)
+        {
             //TODO better matching logic
             var concepts = generator.GetConcepts();
             var result = new List<ConceptInstance>();
@@ -58,22 +81,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
                 }
             }
 
-            if (result.Count == 0)
-            {
-                generator.Push(new InformationReportEvent(new ConceptInstance(Concept2.NotFound)));
-            }
-            else if (result.Count == 1)
-            {
-                generator.Push(new StaticScoreEvent(0.2));
-                generator.Push(new InformationReportEvent(result.First()));
-            }
-            else
-            {
-                var needRefinementInstance = new ConceptInstance(Concept2.NeedsRefinement);
-                generator.SetValue(needRefinementInstance, Concept2.Subject, criterion);
-                generator.SetValue(criterion, Concept2.OnSetListener, instance);
-                generator.Push(new InformationReportEvent(needRefinementInstance));
-            }
+            return result;
         }
     }
 }

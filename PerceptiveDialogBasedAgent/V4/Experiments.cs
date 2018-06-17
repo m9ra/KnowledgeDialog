@@ -250,11 +250,55 @@ namespace PerceptiveDialogBasedAgent.V4
         public static void UnknownPhraseHandling()
         {
             var a = new Agent();
-            //TODO refinement driver unknown phrase handling - try find features for the refined instance
+            //TODO refinement driven unknown phrase handling - try find features for the refined instance
             a.Input("find high style restaurant for my wife");
             a.Input("yes");
-            a.Input("pricerange");
+            a.Input("something like a price or pricerange");
             a.Input("expensive");
+        }
+
+        public static void UnknownWhatHandling()
+        {
+            var a = new Agent();
+            a.Input("what is name of luxury restaurant");
+            a.Input("yes");
+            a.Input("high price");
+            a.Input("expensive");
+        }
+
+        public static void WhatHandling()
+        {
+            var a = new Agent();
+            a.Input("what is name of expensive restaurant");
+        }
+
+        public static void UnknownPhraseHandlingWithUnknowns()
+        {
+            var a = new Agent();
+            a.Input("find a high style restaurant");
+            a.Input("yes foo");
+            a.Input("bar");
+            a.Input("expensive");
+        }
+
+        public static void UnknownPhraseHandlingWithLotOfUnknowns()
+        {
+            var a = new Agent();
+            a.Input("find high style restaurant");
+            a.Input("yes foo");
+            a.Input("bar");
+            a.Input("bar2");
+            a.Input("bar3");
+            a.Input("expensive");
+        }
+
+        public static void UnknownPhraseNothingHandling()
+        {
+            var a = new Agent();
+            a.Input("find a fancy restaurant");
+            a.Input("yes");
+            a.Input("pricerange");
+            a.Input("nothing like that");
         }
 
         public static void ItHandling()
@@ -271,6 +315,49 @@ namespace PerceptiveDialogBasedAgent.V4
             b.Pop();
             b.Push(new InputPhraseEvent("y"));
             b.PushSelf();
+        }
+
+        public static void PhraseRestaurant4_Debugging()
+        {
+            var a = new Agent();
+            a.Input("would like to find a luxury restaurant please");
+            a.Input("yes i would");
+            a.Input("it means fancy or expensive or gourmet");
+            a.Input("expensive");
+        }
+
+        public static void PhraseRestaurant4_Debugging2()
+        {
+            var a = new Agent();
+            a.Input("Hi, I would like to find a luxury restaurant please");
+            a.Input("Yes, an expensive restaurant");
+            a.Input("Luxury means high quality and high price");
+            a.Input("expensive");
+        }
+
+        public static void NewPropertyHandling()
+        {
+            var a = new Agent();
+            //a.Input("Ceasar Palace serves italian food");
+            a.Input("remember that Ceasar Palace serves italian food");
+        }
+
+        public static void PromptWithUnknownAnswer()
+        {
+            var a = new Agent();
+            a.Input("find a restaurant");
+            a.Input("some luxury");
+            a.Input("high price");
+            a.Input("expensive");
+        }
+
+        public static void PromptWithUnknownAnswer2()
+        {
+            var a = new Agent();
+            a.Input("find a restaurant");
+            a.Input("i would like some luxury");
+            a.Input("high price");
+            a.Input("expensive");
         }
     }
 }

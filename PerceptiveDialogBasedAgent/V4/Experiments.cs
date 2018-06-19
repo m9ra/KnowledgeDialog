@@ -338,8 +338,8 @@ namespace PerceptiveDialogBasedAgent.V4
         public static void NewPropertyHandling()
         {
             var a = new Agent();
-            //a.Input("Ceasar Palace serves italian food");
-            a.Input("remember that Ceasar Palace serves italian food");
+            a.Input("Bombay serves moderate food");
+            a.Input("yes");
         }
 
         public static void PromptWithUnknownAnswer()

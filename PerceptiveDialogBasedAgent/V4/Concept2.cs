@@ -12,6 +12,7 @@ namespace PerceptiveDialogBasedAgent.V4
 
         private static readonly Dictionary<string, Concept2> _definedConcepts = new Dictionary<string, Concept2>();
 
+        public readonly static Concept2 PropertyDomain = Concept("property domain");
         public readonly static Concept2 OnSetListener = Concept("on set listener");
         public readonly static Concept2 Nothing = Concept("nothing");
         public readonly static Concept2 DisambiguationFailed = Concept("disambiguation failed");

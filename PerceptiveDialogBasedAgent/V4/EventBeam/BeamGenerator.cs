@@ -181,7 +181,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             }
         }
 
-        internal IEnumerable<Concept2> GetConcepts()
+        internal IEnumerable<Concept2> GetDefinedConcepts()
         {
             return GetAllEvents<ConceptDefinedEvent>(getCurrentNode()).Select(e => e.Concept);
         }
@@ -807,7 +807,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         {
             var existingInstances = GetTurnActivationRequestedInstances();
             var existingConcepts = new HashSet<Concept2>(existingInstances.Select(e => e.Instance.Concept));
-            var concepts = GetConcepts();
+            var concepts = GetDefinedConcepts();
             var inputPhrasesHypotheses = GetInputActivationHypotheses();
 
             foreach (var inputPhrases in inputPhrasesHypotheses)
@@ -896,7 +896,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         {
             var availableInstances = GetAvailableActiveInstances();
             var targetPropertyOccurences = GetPointingProperties(evt.Instance.Concept);
-            var definedConcepts = GetConcepts();
+            var definedConcepts = GetDefinedConcepts();
             targetPropertyOccurences = targetPropertyOccurences.Intersect(definedConcepts).ToArray();
 
             var distancePenalty = 0;

@@ -46,6 +46,7 @@ namespace PerceptiveDialogBasedAgent.V4
             //NOTE: Ordering of policy parts matters
             _beam.AddPolicyPart(new HowCanIHelpYouFallback());
             _beam.AddPolicyPart(new RequestActionWithKnownConfirmation());
+            _beam.AddPolicyPart(new AssesPropertyKnowledge());
             _beam.AddPolicyPart(new RequestSubstitution());
             _beam.AddPolicyPart(new AssignUnknownValue());
 

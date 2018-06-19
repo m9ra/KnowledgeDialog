@@ -522,6 +522,11 @@ namespace WebBackend
             experimentHandler("phrase_restaurant4");
         }
 
+        public void learn_restaurant_property()
+        {
+            experimentHandler("learn_restaurant_property");
+        }
+
         /// <summary>
         /// Render experiment console. Also handle feedback and tracing of given experiment.
         /// </summary>

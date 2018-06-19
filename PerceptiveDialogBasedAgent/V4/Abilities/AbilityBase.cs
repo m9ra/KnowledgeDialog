@@ -59,6 +59,18 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             return this;
         }
 
+        internal AbilityBase DefineProperty(Concept2 property, params Concept2[] domain)
+        {
+            var target = new PropertySetTarget(property, Concept2.PropertyDomain);
+            foreach (var domainValue in domain)
+            {
+                var domainValueInstance = new ConceptInstance(domainValue);
+                AddInitializationEvent(new PropertySetEvent(target, domainValueInstance));
+            }
+
+            return this;
+        }
+
         internal AbilityBase DefineInstance(string conceptName, out Concept2 concept)
         {
             DefineConcept(conceptName, out concept);

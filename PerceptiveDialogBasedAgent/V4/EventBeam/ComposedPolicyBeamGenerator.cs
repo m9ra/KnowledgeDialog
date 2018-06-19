@@ -25,10 +25,11 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         {
             var previousTurnEvents = GetPreviousTurnEvents().ToArray();
             var turnEvents = GetTurnEvents().ToArray();
+            var definedConcepts = new HashSet<Concept2>(GetDefinedConcepts());
 
             foreach (var part in _policyParts)
             {
-                var outputs = part.Execute(this, previousTurnEvents, turnEvents);
+                var outputs = part.Execute(this, previousTurnEvents, turnEvents, definedConcepts);
                 if (outputs.Length > 0)
                 {
                     pushRandomOutput(outputs);

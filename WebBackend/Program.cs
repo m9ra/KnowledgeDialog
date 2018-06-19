@@ -121,7 +121,8 @@ namespace WebBackend
                 new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant", 10),
                 new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant2", 10),
                 new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant3", 10),
-                new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant4", 10)
+                new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant4", 10),
+                new LearnRestaurantPropertyExperiment(experimentsRootPath, "learn_restaurant_property", 10)
                 );
 
             //QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "qdd_extension_r_");

@@ -60,7 +60,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
         internal static List<ConceptInstance> FindRelevantConcepts(BeamGenerator generator, HashSet<Concept2> requiredProperties)
         {
             //TODO better matching logic
-            var concepts = generator.GetConcepts();
+            var concepts = generator.GetDefinedConcepts();
             var result = new List<ConceptInstance>();
             foreach (var concept in concepts)
             {

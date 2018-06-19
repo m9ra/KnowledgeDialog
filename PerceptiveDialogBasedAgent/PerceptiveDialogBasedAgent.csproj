@@ -148,6 +148,7 @@
     <Compile Include="V4\Events\TracedScoreEventBase.cs" />
     <Compile Include="V4\Models\EventBasedNLG.cs" />
     <Compile Include="V4\Policy\AskForDisambiguation.cs" />
+    <Compile Include="V4\Policy\AssesPropertyKnowledge.cs" />
     <Compile Include="V4\Policy\AssignUnknownValue.cs" />
     <Compile Include="V4\Policy\HowCanIHelpYouFallback.cs" />
     <Compile Include="V4\Policy\OfferResult.cs" />

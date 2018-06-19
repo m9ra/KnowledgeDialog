@@ -14,15 +14,18 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
 
         private EventBase[] _previousTurnEvents;
 
+        private HashSet<Concept2> _definedConcepts;
+
         private EventBase[] _turnEvents;
 
         private BeamGenerator _generator;
 
-        internal string[] Execute(BeamGenerator generator, EventBase[] previousTurnEvents, EventBase[] turnEvents)
+        internal string[] Execute(BeamGenerator generator, EventBase[] previousTurnEvents, EventBase[] turnEvents, HashSet<Concept2> definedConcepts)
         {
             try
             {
                 _previousTurnEvents = previousTurnEvents;
+                _definedConcepts = definedConcepts;
                 _turnEvents = turnEvents;
                 _generator = generator;
 
@@ -31,6 +34,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             finally
             {
                 _previousTurnEvents = null;
+                _definedConcepts = null;
                 _turnEvents = null;
                 _generator = null;
             }
@@ -62,6 +66,21 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
                 events = events.Where(predicate);
 
             return events.FirstOrDefault();
+        }
+
+        protected IEnumerable<ConceptInstance> FindTurnInstances(Func<ConceptInstance, bool> predicate = null)
+        {
+            var instances = _generator.GetInputActivatedInstances();
+            foreach (var instance in instances.Select(i => i.Instance).Distinct())
+            {
+                if (predicate(instance))
+                    yield return instance;
+            }
+        }
+
+        internal bool IsDefined(Concept2 concept)
+        {
+            return _definedConcepts.Contains(concept);
         }
 
         protected string singular(ConceptInstance instance)

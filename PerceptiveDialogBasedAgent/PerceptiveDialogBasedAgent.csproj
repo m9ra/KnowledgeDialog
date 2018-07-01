@@ -22,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -31,6 +32,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -100,17 +102,66 @@
     <Compile Include="V3\ConceptRequirement.cs" />
     <Compile Include="V3\ContextBeam.cs" />
     <Compile Include="V3\Experiments.cs" />
-    <Compile Include="V4\AllowedPointableBaseConstraint.cs" />
-    <Compile Include="V4\Brain\InstanceContext.cs" />
-    <Compile Include="V4\Brain\MindEvaluationContext.cs" />
+    <Compile Include="V4\Abilities\AbilityBase.cs" />
+    <Compile Include="V4\Abilities\ConceptAbilityBase.cs" />
+    <Compile Include="V4\Abilities\PartialDoYouKnow.cs" />
+    <Compile Include="V4\Abilities\DoYouKnow.cs" />
+    <Compile Include="V4\Abilities\EssentialKnowledge.cs" />
+    <Compile Include="V4\Abilities\ItReferenceResolver.cs" />
+    <Compile Include="V4\Abilities\AssignUnknownProperty.cs" />
+    <Compile Include="V4\Abilities\PromptAbility.cs" />
+    <Compile Include="V4\Abilities\PropertyValueDisambiguation.cs" />
+    <Compile Include="V4\Abilities\RememberPropertyValue.cs" />
+    <Compile Include="V4\Abilities\WhatProvider.cs" />
+    <Compile Include="V4\Abilities\FindProvider.cs" />
+    <Compile Include="V4\Abilities\DefiniteReferenceResolver.cs" />
+    <Compile Include="V4\Abilities\KnowledgeAbilityBase.cs" />
+    <Compile Include="V4\Abilities\RestaurantDomainKnowledge.cs" />
+    <Compile Include="V4\Agent.cs" />
     <Compile Include="V4\Configuration.cs" />
-    <Compile Include="V4\Brain\Mind.cs" />
-    <Compile Include="V4\Brain\MindState.cs" />
-    <Compile Include="V4\Brain\PlanProvider.cs" />
-    <Compile Include="V4\Brain\SubstitutionPoint.cs" />
-    <Compile Include="V4\MindStateInstance.cs" />
+    <Compile Include="V4\EventBeam\AbilityBeamGenerator.cs" />
+    <Compile Include="V4\EventBeam\AdviceProcessingBeamGenerator.cs" />
+    <Compile Include="V4\EventBeam\ComposedPolicyBeamGenerator.cs" />
+    <Compile Include="V4\EventBeam\FeatureGenerator.cs" />
+    <Compile Include="V4\Events\CloseEvent.cs" />
+    <Compile Include="V4\Events\ExportEvent.cs" />
+    <Compile Include="V4\Events\FrameEvent.cs" />
+    <Compile Include="V4\EventBeam\BeamGenerator.cs" />
+    <Compile Include="V4\EventBeam\BeamNode.cs" />
+    <Compile Include="V4\EventBeam\FullExecutionBeamGenerator.cs" />
+    <Compile Include="V4\EventBeam\PolicyBeamGenerator.cs" />
+    <Compile Include="V4\Events\OutputEvent.cs" />
+    <Compile Include="V4\Events\InstanceReferencedEvent.cs" />
+    <Compile Include="V4\Events\PropertySetScoreEvent.cs" />
+    <Compile Include="V4\Events\InstanceActiveEvent.cs" />
+    <Compile Include="V4\Events\InformationReportEvent.cs" />
+    <Compile Include="V4\Events\TurnEndEvent.cs" />
+    <Compile Include="V4\Events\TurnStartEvent.cs" />
+    <Compile Include="V4\Events\ParamDefinedEvent.cs" />
+    <Compile Include="V4\Events\StaticScoreEvent.cs" />
+    <Compile Include="V4\Events\DistanceScoreEvt.cs" />
+    <Compile Include="V4\Events\EventBase.cs" />
+    <Compile Include="V4\Events\InstanceActivationRequestEvent.cs" />
+    <Compile Include="V4\Events\ConceptDescriptionEvent.cs" />
+    <Compile Include="V4\Events\ConceptDefinedEvent.cs" />
+    <Compile Include="V4\Events\InputPhraseEvent.cs" />
+    <Compile Include="V4\Events\InputPhraseScoreEvent.cs" />
+    <Compile Include="V4\Events\SubstitutionRequestEvent.cs" />
+    <Compile Include="V4\Events\PropertySetEvent.cs" />
+    <Compile Include="V4\Events\TracedScoreEventBase.cs" />
     <Compile Include="V4\Models\EventBasedNLG.cs" />
-    <Compile Include="V4\Models\MindBasedModel.cs" />
+    <Compile Include="V4\Policy\AskForDisambiguation.cs" />
+    <Compile Include="V4\Policy\LearnPropertyValue.cs" />
+    <Compile Include="V4\Policy\AssignUnknownValue.cs" />
+    <Compile Include="V4\Policy\HowCanIHelpYouFallback.cs" />
+    <Compile Include="V4\Policy\OfferResult.cs" />
+    <Compile Include="V4\Policy\PolicyPartBase.cs" />
+    <Compile Include="V4\Policy\LearnUnknownForRefinement.cs" />
+    <Compile Include="V4\Policy\ReaskDisambiguation.cs" />
+    <Compile Include="V4\Policy\RequestActionWithKnownConfirmation.cs" />
+    <Compile Include="V4\Policy\RequestRefinement.cs" />
+    <Compile Include="V4\Policy\RequestSubstitution.cs" />
+    <Compile Include="V4\Primitives\ParameterDefinition.cs" />
     <Compile Include="V4\Phrase.cs" />
     <Compile Include="V3\Models\HandcraftedStrategy.cs" />
     <Compile Include="V3\Models\ScoreModelBase.cs" />
@@ -118,20 +169,12 @@
     <Compile Include="V3\Models\StrategyModelBase.cs" />
     <Compile Include="V3\PointingAgent.cs" />
     <Compile Include="V3\RankedConcept.cs" />
-    <Compile Include="V4\AllowedConceptConstraint.cs" />
-    <Compile Include="V4\Body.cs" />
-    <Compile Include="V4\BodyContext2.cs" />
-    <Compile Include="V4\BodyState2.cs" />
     <Compile Include="V4\Concept2.cs" />
     <Compile Include="V4\ConceptInstance.cs" />
     <Compile Include="V4\Experiments.cs" />
-    <Compile Include="V4\Models\HandcraftedModel.cs" />
-    <Compile Include="V4\ParameterRequirement.cs" />
     <Compile Include="V4\PointableInstance.cs" />
-    <Compile Include="V4\PointingModelBase.cs" />
+    <Compile Include="V4\Primitives\PropertySetTarget.cs" />
     <Compile Include="V4\PropertyContainer.cs" />
-    <Compile Include="V4\RankedPointing.cs" />
-    <Compile Include="V4\StateBeam.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

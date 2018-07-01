@@ -1,4 +1,6 @@
-﻿using System;
+﻿using PerceptiveDialogBasedAgent.V4.EventBeam;
+using PerceptiveDialogBasedAgent.V4.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -145,6 +147,70 @@ namespace PerceptiveDialogBasedAgent.V2
         {
             Writeln("\tSENSOR: {0}", SensorColor, condition);
             Writeln("\t\t{0}", ActionColor, action);
+        }
+
+        internal static void States(BeamGenerator generator, int stateCount = int.MaxValue)
+        {
+            var rankedNodes = generator.GetRankedNodes().ToArray();
+
+            var rankedStates = rankedNodes.Take(stateCount).Reverse().ToArray();
+            foreach (var state in rankedStates)
+            {
+                Indent();
+                State(state.Value);
+                Dedent();
+                Writeln($"S: {state.Rank:0.00} | N: {rankedNodes.Length} > ", HeadlineColor);
+                Writeln("\n", HeadlineColor);
+            }
+        }
+
+        internal static void State(BeamNode node)
+        {
+            var events = new List<EventBase>();
+            var currentNode = node;
+
+            while (currentNode != null && currentNode.Evt != null)
+            {
+                events.Add(currentNode.Evt);
+                currentNode = currentNode.ParentNode;
+            }
+
+            events.Reverse();
+            foreach (var evt in events)
+            {
+                var color = ItemColor;
+                if (evt is TurnStartEvent || evt is TurnEndEvent || evt is FrameEvent)
+                    color = PolicyColor;
+
+                if (evt is InformationReportEvent || evt is ExportEvent)
+                    color = ExecutedCommandColor;
+
+                if (evt is InputPhraseEvent || evt is OutputEvent)
+                    color = UtteranceColor;
+
+                if (evt is ConceptDescriptionEvent || evt is ConceptDefinedEvent)
+                    color = ConsoleColor.Yellow;
+
+                if (evt is TurnEndEvent)
+                    Dedent();
+
+                if (evt is TracedScoreEventBase)
+                {
+                    var scoreEvt = evt as TracedScoreEventBase;
+                    var score = BeamGenerator.GetScore(scoreEvt, node);
+                    var scoreText = score.ToString("0.00");
+                    if (score >= 0)
+                        scoreText = "+" + scoreText;
+
+                    Writeln($"[{scoreText}]", color);
+                    continue;
+                }
+
+                Writeln(evt.ToString(), color);
+
+                if (evt is TurnStartEvent)
+                    Indent();
+            }
         }
 
         internal static void Writeln(string format = "", ConsoleColor color = ConsoleColor.Gray, params object[] formatArgs)

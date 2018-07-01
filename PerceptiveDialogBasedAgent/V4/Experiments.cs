@@ -1,4 +1,8 @@
-﻿using System;
+﻿using PerceptiveDialogBasedAgent.V2;
+using PerceptiveDialogBasedAgent.V4.EventBeam;
+using PerceptiveDialogBasedAgent.V4.Events;
+using PerceptiveDialogBasedAgent.V4.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,10 +27,11 @@ namespace PerceptiveDialogBasedAgent.V4
 
         public static void RefinementRestaurantSearch()
         {
-            var b = new Body();
-            b.Input("find a restaurant");
+            var a = new Agent();
+            a.Input("find a restaurant");
             //I know many restaurants
-            b.Input("some expensive");
+            a.Input("some expensive");
+            a.Input("what about pricerange");
         }
 
         public static void LuxuryRestaurantSearch()
@@ -93,7 +98,6 @@ namespace PerceptiveDialogBasedAgent.V4
             b.Input("find the address of a restaurant");
             b.Input("luxury one");
             b.Input(expensiveAnswer);
-
         }
 
         public static void CollectedDataDebugging()
@@ -142,6 +146,255 @@ namespace PerceptiveDialogBasedAgent.V4
 
             b = new Body();
             b.Input("Please send me the address of an Italian restaurant in New York");
+        }
+
+        public static void RichDialogTest()
+        {
+            var agent = new Agent();
+            agent.Input("I would like to find something");
+            agent.Input("some nice restaurant");
+            agent.Input("luxury");
+            agent.Input("bla bla");
+            agent.Input("expensive");
+            agent.Input("what pricerange");
+        }
+
+        public static void AdviceProcessing()
+        {
+            var a = new Agent();
+            a.Input("banana is food");
+            a.Input("yes it is");
+        }
+
+        public static void DialogWithDistractions()
+        {
+            var agent = new Agent();
+            agent.Input("I would like a restaurant for dinner with my wife");
+            //I understand the restaurant. However, what should I do?
+            agent.Input("find it");
+            //I know many restaurants which one would you like?
+            agent.Input("luxury");
+            agent.Input("bla bla");
+            agent.Input("expensive restaurant");
+            agent.Input("what are the prices?");
+            agent.Input("pricerange");
+        }
+
+        public static void AliasTesting()
+        {
+            var a = new Agent();
+            a.Input("give me expensive restaurant");
+            a.Reset();
+
+            a.Input("get me expensive restaurant");
+            a.Reset();
+
+            a.Input("i want expensive restaurant");
+            a.Reset();
+
+            a.Input("search for expensive restaurant");
+            a.Reset();
+
+            a.Input("look up expensive restaurant");
+            a.Reset();
+        }
+
+        public static void UnknownPropertyLearning()
+        {
+            var a = new Agent();
+            a.Input("give me luxury restaurant");
+            // what luxury is ?
+            a.Input("it is a property");
+            // is it a name of some restaurant ?
+            a.Input("no it is pricerange");
+        }
+
+        public static void UnknownConceptLearning()
+        {
+            var a = new Agent();
+            a.Input("give me banana");
+            // what banana is ?
+            a.Input("it is a food");
+            // I see. I know pizza is food as well but I'm not able to give you a food.
+        }
+
+        public static void QuestionDetection()
+        {
+            var a = new Agent();
+            a.Input("is banana yellow");
+            a.Train("banana is yellow").Not("what");
+        }
+
+        public static void InstanceActivationTests()
+        {
+            var a = new Agent();
+            a.Input("expensive");
+            a.Input("find the pricerange");
+        }
+
+        public static void ConceptCombinationWithReferenceTest()
+        {
+            var a = new Agent();
+            a.Input("expensive restaurant");
+            a.Input("find the restaurant");
+            a.Input("what about pricerange");
+        }
+
+        public static void SubstitutionRequestHandling()
+        {
+            var a = new Agent();
+            a.Input("find");
+            a.Input("expensive restaurant");
+        }
+
+        public static void UnknownPhraseHandling()
+        {
+            var a = new Agent();
+            //TODO refinement driven unknown phrase handling - try find features for the refined instance
+            a.Input("find high style restaurant for my wife");
+            a.Input("yes");
+            a.Input("something like a price or pricerange");
+            a.Input("expensive");
+        }
+
+        public static void UnknownWhatHandling()
+        {
+            var a = new Agent();
+            a.Input("what is name of luxury restaurant");
+            a.Input("yes");
+            a.Input("high price");
+            a.Input("expensive");
+        }
+
+        public static void WhatHandling()
+        {
+            var a = new Agent();
+            a.Input("what is name of expensive restaurant");
+        }
+
+        public static void UnknownPhraseHandlingWithUnknowns()
+        {
+            var a = new Agent();
+            a.Input("find a high style restaurant");
+            a.Input("yes foo");
+            a.Input("bar");
+            a.Input("expensive");
+        }
+
+        public static void UnknownPhraseHandlingWithLotOfUnknowns()
+        {
+            var a = new Agent();
+            a.Input("find high style restaurant");
+            a.Input("yes foo");
+            a.Input("bar");
+            a.Input("bar2");
+            a.Input("bar3");
+            a.Input("expensive");
+        }
+
+        public static void UnknownPhraseNothingHandling()
+        {
+            var a = new Agent();
+            a.Input("find a fancy restaurant");
+            a.Input("yes");
+            a.Input("pricerange");
+            a.Input("nothing like that");
+        }
+
+        public static void ItHandling()
+        {
+            var a = new Agent();
+            a.Input("expensive restaurant");
+            a.Input("find it");
+        }
+
+        public static void BeamBranchTesting()
+        {
+            var b = new BeamGenerator();
+            b.Push(new InputPhraseEvent("x"));
+            b.Pop();
+            b.Push(new InputPhraseEvent("y"));
+            b.PushSelf();
+        }
+
+        public static void PhraseRestaurant4_Debugging()
+        {
+            var a = new Agent();
+            a.Input("would like to find a luxury restaurant please");
+            a.Input("yes i would");
+            a.Input("it means fancy or expensive or gourmet");
+            a.Input("expensive");
+        }
+
+        public static void PhraseRestaurant4_Debugging2()
+        {
+            var a = new Agent();
+            a.Input("Hi, I would like to find a luxury restaurant please");
+            a.Input("Yes, an expensive restaurant");
+            a.Input("Luxury means high quality and high price");
+            a.Input("expensive");
+        }
+
+        public static void NewPropertyHandling()
+        {
+            var a = new Agent();
+            a.Input("Bombay serves food with moderate prices");
+            a.Input("yes");
+        }
+
+        public static void PromptWithUnknownAnswer()
+        {
+            var a = new Agent();
+            a.Input("find a restaurant");
+            a.Input("some luxury");
+            a.Input("high class");
+            a.Input("high price");
+            a.Input("expensive");
+        }
+
+        public static void PromptWithUnknownAnswer2()
+        {
+            var a = new Agent();
+            a.Input("find a restaurant");
+            a.Input("i would like some luxury");
+            a.Input("high price");
+            a.Input("expensive");
+        }
+
+        public static void DoYouKnowHandling()
+        {
+            var a = new Agent();
+            a.Input("do you know bombay?");
+            a.Input("it has moderate pricerange.");
+            a.Input("yes");
+        }
+
+        public static void PartialDoYouKnowHandlingPositive()
+        {
+            var a = new Agent();
+            a.Input("do you know Vapiano pricerange?");
+        }
+
+        public static void PartialDoYouKnowHandlingNegative()
+        {
+            var a = new Agent();
+            a.Input("do you know Bombay pricerange?");
+            a.Input("it has moderate pricerange");
+            a.Input("yes");
+        }
+
+        internal static void CollectedDataDebugging5()
+        {
+            var a = new Agent();
+            a.Input("What can you tell me about Bombay restaurant?");
+            a.Input("Bombay restaurant");
+        }
+
+        internal static void CollectedDataDebugging6()
+        {
+            var a = new Agent();
+            a.Input("I would like to know more about the Bombay restaurant.");
+            a.Input("Tell me about the prices in the restaurant.");
         }
     }
 }

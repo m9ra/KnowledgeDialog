@@ -8,11 +8,10 @@ using WebBackend.Task;
 
 namespace WebBackend.Experiment
 {
-    class PhraseRestaurantExperiment : ExperimentBase
+    class LearnRestaurantPropertyExperiment : ExperimentBase
     {
-        public PhraseRestaurantExperiment(string rootPath, string experimentId, int taskCount) : base(rootPath, experimentId)
+        public LearnRestaurantPropertyExperiment(string rootPath, string experimentId, int taskCount) : base(rootPath, experimentId)
         {
-
             var writer = new CrowdFlowerCodeWriter(ExperimentRootPath, experimentId);
 
             //generate all tasks
@@ -27,7 +26,7 @@ namespace WebBackend.Experiment
         ///<inheritdoc/>
         internal override TaskInstance GetTask(int taskId)
         {
-            return new RestaurantTaskInstance(taskId, "Find a restaurant.", "phrase_restaurant", _validationCodes[taskId], "restaurant_phrase.haml");
+            return new RestaurantTaskInstance(taskId, "Provide restaurant info.", "learn_restaurant_property", _validationCodes[taskId], "learn_restaurant_property.haml");
         }
 
         /// <summary>
@@ -46,7 +45,7 @@ namespace WebBackend.Experiment
         ///<inheritdoc/>
         protected override WebConsoleBase createConsole(string databasePath)
         {
-            return new PhraseAgentWebConsole(PerceptiveDialogBasedAgent.OutputRecognitionAlgorithm.CeasarPalacePresence);
+            return new PhraseAgentWebConsole(PerceptiveDialogBasedAgent.OutputRecognitionAlgorithm.NewBombayProperty);
         }
     }
 }

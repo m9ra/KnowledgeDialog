@@ -47,6 +47,8 @@ namespace KnowledgeDialog.Dialog
 
             "can", "could", "will", "would", "tell", "give", "name", "think", "thing",
 
+            "up", "down",
+
             "dont", "idk", "hi", "hey", "hei", "on","any","this","hate",
             "shit","stupid","idiot", "is","in", "im", "is", "that","no","yes", "yeah","are","my","your","his","her","him", "their","they","she","he","it","there","that","this","here","like","so","never","ever","always","any","some","anytime","sometime","from",
             "has","have","had","will", "u", "not","lol","oh", "asl",

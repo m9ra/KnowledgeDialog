@@ -12,15 +12,26 @@ using System.IO;
 
 namespace PerceptiveDialogBasedAgent
 {
+    public enum OutputRecognitionAlgorithm { CeasarPalacePresence, NewBombayProperty };
+
     public class PhraseAgentManager : CollectionManagerBase, IInformativeFeedbackProvider
     {
         private bool _hadInformativeInput = false;
+
+        private int _inputCount = 0;
 
         public bool HadInformativeInput => _hadInformativeInput;
 
         public bool CanBeCompleted => true;
 
-        private readonly Body _body = new Body();
+        private readonly Agent _agent = new Agent();
+
+        private readonly OutputRecognitionAlgorithm _recognitionAlgorithm;
+
+        public PhraseAgentManager(OutputRecognitionAlgorithm recognitionAlgorithm)
+        {
+            _recognitionAlgorithm = recognitionAlgorithm;
+        }
 
         public override ResponseBase Initialize()
         {
@@ -33,10 +44,17 @@ namespace PerceptiveDialogBasedAgent
             string response;
             try
             {
-                response = _body.Input(utterance.OriginalSentence);
-                var pricerangeSpecifier = _body.RestaurantDb.GetSpecifier("pricerange");
-                if (response.ToLowerInvariant().Contains("ceasar"))
-                    _hadInformativeInput = true;
+                _inputCount += 1;
+                if (_inputCount > 10)
+                {
+                    response = "[NOTE] Too much inputs. The task should be easier - use simple phrases. Type reset to start the dialog from beginning.";
+                }
+                else
+                {
+                    response = _agent.Input(utterance.OriginalSentence);
+                    if (hasInformativeInput())
+                        _hadInformativeInput = true;
+                }
             }
             catch (Exception ex)
             {
@@ -47,6 +65,42 @@ namespace PerceptiveDialogBasedAgent
             }
 
             return new SimpleResponse(response);
+        }
+
+        private bool hasInformativeInput()
+        {
+            switch (_recognitionAlgorithm)
+            {
+                case OutputRecognitionAlgorithm.CeasarPalacePresence:
+                    var lastOutput = _agent.LastOutput;
+                    return lastOutput.ToLowerInvariant().Contains("caesar");
+
+                case OutputRecognitionAlgorithm.NewBombayProperty:
+                    var currentNode = _agent.LastBestNode;
+                    while (currentNode != null)
+                    {
+                        try
+                        {
+                            if (!(currentNode.Evt is V4.Events.ExportEvent export))
+                                continue;
+
+                            if (!(export.ExportedEvent is V4.Events.PropertySetEvent propertySet))
+                                continue;
+
+                            var instance = propertySet.Target.Instance;
+                            if (instance != null && instance.Concept.Name.ToLowerInvariant().Contains("bombay"))
+                                return true;
+                        }
+                        finally
+                        {
+                            currentNode = currentNode.ParentNode;
+                        }
+                    }
+                    return false;
+
+                default:
+                    throw new NotImplementedException("Unknown recognition algorithm " + _recognitionAlgorithm);
+            }
         }
     }
 }

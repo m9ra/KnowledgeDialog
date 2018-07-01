@@ -1,5 +1,7 @@
 ﻿using PerceptiveDialogBasedAgent.V1.Interpretation;
 using PerceptiveDialogBasedAgent.V1.SemanticRepresentation;
+using PerceptiveDialogBasedAgent.V4.EventBeam;
+using PerceptiveDialogBasedAgent.V4.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -81,7 +83,7 @@ namespace PerceptiveDialogBasedAgent.V1
                     parameters.Add(value);
             }
 
-            callName = callName.Split(new[] { "_$" },StringSplitOptions.None)[0];
+            callName = callName.Split(new[] { "_$" }, StringSplitOptions.None)[0];
 
             return string.Format("{0}({1})", callName, string.Join(", ", parameters));
         }

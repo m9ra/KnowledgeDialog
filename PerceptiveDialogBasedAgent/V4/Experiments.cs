@@ -222,7 +222,6 @@ namespace PerceptiveDialogBasedAgent.V4
         {
             var a = new Agent();
             a.Input("is banana yellow");
-            a.Train("banana is yellow").Not("what");
         }
 
         public static void InstanceActivationTests()

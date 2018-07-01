@@ -16,8 +16,17 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             if (request == null)
                 yield break;
 
-            generator.Push(request);
-            yield return "What should I " + singular(request.Target.Instance) + " ?";
+            var instanceConcept = request.Target.Instance.Concept;
+            if (instanceConcept == Concept2.What)
+            {
+                generator.Push(request);
+                yield return "What are you interested in?";
+            }
+            else
+            {
+                generator.Push(request);
+                yield return "What should I " + singular(request.Target.Instance) + " ?";
+            }
         }
     }
 }

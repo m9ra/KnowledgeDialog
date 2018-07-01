@@ -15,7 +15,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
         private readonly Concept2 _propertyParameter = Concept2.Property;
 
         internal WhatProvider()
-            : base("what")
+            : base(Concept2.What.Name)
         {
             AddParameter(_propertyParameter);
             AddParameter(_subjectParameter);
@@ -30,6 +30,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
 
             if (answer.Count == 0)
             {
+                //generator.Push(new StaticScoreEvent(-0.20));
                 generator.Push(new InformationReportEvent(new ConceptInstance(Concept2.NotFound)));
             }
             else if (answer.Count == 1)

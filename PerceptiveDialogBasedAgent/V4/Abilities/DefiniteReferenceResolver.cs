@@ -25,6 +25,10 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
 
             foreach (var relevantInstance in relevantInstances)
             {
+                //avoid reference circles
+                if (relevantInstance.Concept == instance.Concept)
+                    continue;
+
                 //try tunnel instances between turns
                 generator.Push(new StaticScoreEvent(0.05));
                 generator.Push(new InstanceReferencedEvent(relevantInstance));

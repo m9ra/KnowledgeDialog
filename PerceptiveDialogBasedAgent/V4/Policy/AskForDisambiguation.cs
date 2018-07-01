@@ -13,7 +13,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
     {
         protected override IEnumerable<string> execute(BeamGenerator generator)
         {
-            var evt = Get<SubstitutionRequestEvent>(s => s.Target?.Instance.Concept == Concept2.PropertyValueDisambiguation);
+            var evt = Get<SubstitutionRequestEvent>(s => s.Target?.Instance.Concept == Concept2.PropertyValueDisambiguation, searchInsideTurnOnly: false);
             if (evt == null)
                 yield break;
 

@@ -17,6 +17,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             DefineConcept("name", out _nameProperty);
             DefineConcept("pricerange", out _pricerangeProperty)
                 .Description("price")
+                //.Description("prices")
                 .Description("money")
                 .Description("pricy");
 
@@ -42,7 +43,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             DefineRestaurant("Chinese Bistro", cheapConcept);
         }
 
-        internal void DefineRestaurant(string name, Concept2 pricerange)
+        internal void DefineRestaurant(string name, Concept2 pricerange, params string[] descriptions)
         {
             DefineConcept(name, out var restaurantConcept)
                 .Property(Concept2.InstanceOf, _restaurantClass)
@@ -50,6 +51,11 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
 
             if (pricerange != null)
                 Property(_pricerangeProperty, pricerange);
+
+            foreach (var description in descriptions)
+            {
+                Description(description);
+            }
         }
     }
 }

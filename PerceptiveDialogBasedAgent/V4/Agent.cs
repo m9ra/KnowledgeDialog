@@ -18,6 +18,10 @@ namespace PerceptiveDialogBasedAgent.V4
 
         private readonly HashSet<string> _irrelevantWords = new HashSet<string>();
 
+        internal string LastOutput { get; private set; }
+
+        internal BeamNode LastBestNode { get; private set; }
+
         internal Agent()
         {
             _irrelevantWords.UnionWith(KnowledgeDialog.Dialog.UtteranceParser.NonInformativeWords);
@@ -32,7 +36,9 @@ namespace PerceptiveDialogBasedAgent.V4
         {
             _beam = new ComposedPolicyBeamGenerator();
 
-            _beam.RegisterAbility(new RememberNewProperty());
+            _beam.RegisterAbility(new RememberPropertyValue());
+            _beam.RegisterAbility(new DoYouKnow());
+            _beam.RegisterAbility(new PartialDoYouKnow());
             _beam.RegisterAbility(new EssentialKnowledge());
             _beam.RegisterAbility(new RestaurantDomainKnowledge());
             _beam.RegisterAbility(new ItReferenceResolver());
@@ -46,12 +52,12 @@ namespace PerceptiveDialogBasedAgent.V4
             //NOTE: Ordering of policy parts matters
             _beam.AddPolicyPart(new HowCanIHelpYouFallback());
             _beam.AddPolicyPart(new RequestActionWithKnownConfirmation());
-            _beam.AddPolicyPart(new AssesPropertyKnowledge());
+            _beam.AddPolicyPart(new LearnPropertyValue());
             _beam.AddPolicyPart(new RequestSubstitution());
             _beam.AddPolicyPart(new AssignUnknownValue());
 
-            _beam.AddPolicyPart(new ReaskDisambiguation());
             _beam.AddPolicyPart(new AskForDisambiguation());
+            _beam.AddPolicyPart(new ReaskDisambiguation());
 
             _beam.AddPolicyPart(new OfferResult());
             _beam.AddPolicyPart(new RequestRefinement());
@@ -86,13 +92,16 @@ namespace PerceptiveDialogBasedAgent.V4
                 _beam.PushToAll(new TurnEndEvent());
                 Log.States(_beam, 1);
 
-                _beam.LimitBeam(10);
+                _beam.LimitBeam(1);
 
                 var nlg = new EventBasedNLG();
                 response = nlg.GenerateResponse(_beam.GetBestNode());
             }
 
             Log.DialogUtterance("S: " + response);
+            LastOutput = response;
+            LastBestNode = _beam.GetBestNode();
+
             return response;
         }
     }

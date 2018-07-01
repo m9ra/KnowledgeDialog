@@ -63,7 +63,7 @@ namespace PerceptiveDialogBasedAgent.V4.Events
             foreach (var description in conceptDescriptions)
             {
                 if (description.ToLowerInvariant() == sanitizedInput)
-                    return 0.9 * words.Length * weight;
+                    return 1.02 * words.Length * weight;
             }
 
             var scores = new List<double>();

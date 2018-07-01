@@ -8,7 +8,7 @@ using PerceptiveDialogBasedAgent.V4.Events;
 
 namespace PerceptiveDialogBasedAgent.V4.Policy
 {
-    class AssesPropertyKnowledge : PolicyPartBase
+    class LearnPropertyValue : PolicyPartBase
     {
         protected override IEnumerable<string> execute(BeamGenerator generator)
         {
@@ -19,8 +19,14 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
 
             var target = conceptWithAssignedProperty.Target;
 
+
+            var rememberValue = new ConceptInstance(Concept2.RememberPropertyValue);
+            generator.SetValue(rememberValue, Concept2.Target, target.Instance);
+            generator.SetValue(rememberValue, Concept2.TargetProperty, new ConceptInstance(target.Property));
+            generator.SetValue(rememberValue, Concept2.Subject, conceptWithAssignedProperty.SubstitutedValue);
+
             var prompt = new ConceptInstance(Concept2.Prompt);
-            generator.SetValue(prompt, Concept2.Yes, new ConceptInstance(Concept2.Nothing));
+            generator.SetValue(prompt, Concept2.Yes, rememberValue);
             generator.SetValue(prompt, Concept2.No, new ConceptInstance(Concept2.Nothing));
             generator.Push(new InstanceActivationRequestEvent(prompt));
             yield return $"You think that {singular(target.Instance)} has {singular(conceptWithAssignedProperty.SubstitutedValue)} {singular(target.Property)}?";

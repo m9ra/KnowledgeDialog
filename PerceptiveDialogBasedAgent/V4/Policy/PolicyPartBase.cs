@@ -40,18 +40,26 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             }
         }
 
-        protected Evt Get<Evt>(Func<Evt, bool> predicate = null)
+        protected Evt Get<Evt>(Func<Evt, bool> predicate = null, bool searchInsideTurnOnly = true)
             where Evt : EventBase
         {
-            return GetMany<Evt>(predicate).FirstOrDefault();
+            return GetMany(predicate, searchInsideTurnOnly).FirstOrDefault();
         }
 
-        protected IEnumerable<Evt> GetMany<Evt>(Func<Evt, bool> predicate = null)
+        protected IEnumerable<Evt> GetMany<Evt>(Func<Evt, bool> predicate = null, bool searchInsideTurnOnly = true)
           where Evt : EventBase
         {
+            var needTurnStart = searchInsideTurnOnly;
             for (var i = 0; i < _turnEvents.Length; ++i)
             {
                 var e = _turnEvents[_turnEvents.Length - i - 1];
+
+                if (e is TurnStartEvent)
+                    needTurnStart = false;
+
+                if (needTurnStart)
+                    continue;
+
                 if (e is Evt evt)
                     if (predicate == null || predicate(evt))
                         yield return evt;
@@ -86,6 +94,31 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
         protected string singular(ConceptInstance instance)
         {
             return instance.ToPrintable();
+        }
+
+        protected string singularWithProperty(ConceptInstance instance)
+        {
+            var properties = _generator.GetPropertyValues(instance, includeInheritedProps: false);
+            foreach (var property in properties.Keys.ToArray())
+            {
+                var value = properties[property];
+                if (value.Concept == Concept2.Something)
+                    continue;
+
+                //properties.Remove(property);
+            }
+
+            if (properties.Count == 0)
+                return instance.ToPrintable();
+
+            var reportedProperty = properties.Keys.First();
+            var reportedValue = properties[reportedProperty];
+            var propertyName = reportedProperty.Name;
+
+            if (reportedValue.Concept == Concept2.Something)
+                return instance.ToPrintable() + " " + propertyName;
+            else
+                return instance.ToPrintable() + " " + propertyName + " is " + reportedValue.ToPrintable();
         }
 
         protected string singular(Concept2 concept)

@@ -20,10 +20,13 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
 
         protected override void onInstanceActivated(ConceptInstance instance, BeamGenerator generator)
         {
-            var activations = generator.GetInputActivatedInstances();
+            var activations = generator.GetInstanceActivations();
 
             foreach (var relevantInstanceActivation in activations)
             {
+                if (!relevantInstanceActivation.CanBeReferenced)
+                    continue;
+
                 var relevantInstance = relevantInstanceActivation.Instance;
                 if (relevantInstance == instance)
                     //dont reference self

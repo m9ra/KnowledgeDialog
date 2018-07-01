@@ -11,9 +11,16 @@ namespace WebBackend.DialogProvider
 {
     class PhraseAgentWebConsole : WebConsoleBase
     {
+        private readonly OutputRecognitionAlgorithm _algorithm;
+
+        internal PhraseAgentWebConsole(OutputRecognitionAlgorithm algorithm)
+        {
+            _algorithm = algorithm;
+        }
+
         protected override IInputDialogManager createDialogManager()
         {
-            return new PhraseAgentManager();
+            return new PhraseAgentManager(_algorithm);
         }
     }
 }

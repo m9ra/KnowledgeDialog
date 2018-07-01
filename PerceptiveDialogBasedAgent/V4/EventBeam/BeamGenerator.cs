@@ -68,14 +68,14 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             var requests = pushFreeParameterSubstitutionRequests(evt);
             if (!requests.Any())
                 //we have got a complete instance
-                Push(new InstanceActiveEvent(evt.Instance, evt));
+                Push(new InstanceActiveEvent(evt.Instance, canBeReferenced: evt.ActivationPhrases.Any(), evt));
         }
 
         internal virtual void Visit(InstanceActiveEvent evt)
         {
             handleOnActiveSubstitution(evt);
         }
-        
+
         internal virtual void Visit(SubstitutionRequestEvent evt)
         {
             //try to substitute by some free active instance
@@ -94,13 +94,13 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             tryPushComplete(evt.Target.Instance, allowTurnReactivation: false);
 
             if (reportedInstance != null)
-                Push(new InstanceActiveEvent(reportedInstance));
+                Push(new InstanceActiveEvent(reportedInstance, false));
         }
 
         internal virtual void Visit(InstanceReferencedEvent evt)
         {
             //notice that we should not care about multiple activations - because of multiple mentions
-            tryPushComplete(evt.Instance);
+            tryPushComplete(evt.Instance, requireActivationRequest: false);
         }
 
         internal virtual void Visit(ConceptDefinedEvent evt)
@@ -149,6 +149,11 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         }
 
         internal virtual void Visit(OutputEvent evt)
+        {
+            // nothing do to do by default
+        }
+
+        internal virtual void Visit(ExportEvent evt)
         {
             // nothing do to do by default
         }
@@ -339,6 +344,12 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return GetFrameEvents<EventBase>(node, true);
         }
 
+        public bool IsProperty(Concept2 concept)
+        {
+            return GetAllEvents<PropertySetEvent>(getCurrentNode()).Where(p=>p.Target.Property==concept).Any();
+        }
+
+
         protected IEnumerable<T> GetAllEvents<T>(BeamNode node)
           where T : EventBase
         {
@@ -403,7 +414,6 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         {
             PushToAll(new PropertySetEvent(new PropertySetTarget(instance, property), value));
         }
-
 
         public void PushInput(string input)
         {
@@ -494,12 +504,15 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         {
             _layers.Pop();
         }
-
+        
         protected virtual bool IsSatisfiedBy(SubstitutionRequestEvent request, ConceptInstance instance)
         {
             if (request.Target.Instance.Concept == instance.Concept)
                 //disable self assignments
                 return false;
+
+            if (request.Target.Property == Concept2.Property)
+                return IsProperty(instance.Concept);
 
             //TODO check for patterns
             return true;
@@ -668,6 +681,12 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return GetFrameEvents<InstanceActiveEvent>(getCurrentNode(), turnLimited: true).Where(e => e.Instance == instance).FirstOrDefault();
         }
 
+        internal IEnumerable<InstanceActiveEvent> GetInstanceActivations()
+        {
+            return GetFrameEvents<InstanceActiveEvent>(getCurrentNode(), turnLimited: false);
+        }
+
+
         internal InstanceActivationRequestEvent GetInstanceActivationRequest(ConceptInstance instance)
         {
             return GetInstanceActivationRequest(instance, getCurrentNode());
@@ -730,12 +749,12 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return null;
         }
 
-        internal Dictionary<Concept2, ConceptInstance> GetPropertyValues(ConceptInstance instance)
+        internal Dictionary<Concept2, ConceptInstance> GetPropertyValues(ConceptInstance instance, bool includeInheritedProps = true, bool includeInstanceProps = true)
         {
-            return GetPropertyValues(instance, getCurrentNode());
+            return GetPropertyValues(instance, getCurrentNode(), includeInheritedProps, includeInstanceProps);
         }
 
-        internal static Dictionary<Concept2, ConceptInstance> GetPropertyValues(ConceptInstance instance, BeamNode node)
+        internal static Dictionary<Concept2, ConceptInstance> GetPropertyValues(ConceptInstance instance, BeamNode node, bool includeInheritedProps = true, bool includeInstanceProps = true)
         {
             var result = new Dictionary<Concept2, ConceptInstance>();
 
@@ -743,7 +762,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             while (currentNode != null)
             {
                 var propertySetEvt = currentNode.Evt as PropertySetEvent;
-                if ((propertySetEvt?.Target.Instance == instance || propertySetEvt?.Target.Concept == instance.Concept) && !result.ContainsKey(propertySetEvt.Target.Property))
+                if (((propertySetEvt?.Target.Instance == instance && includeInstanceProps) || (propertySetEvt?.Target.Concept == instance.Concept && includeInheritedProps)) && !result.ContainsKey(propertySetEvt.Target.Property))
                     //reflect only last value (the freshest one)
                     result.Add(propertySetEvt.Target.Property, propertySetEvt.SubstitutedValue);
 
@@ -856,7 +875,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                 Push(setEvent);
                 if (request.ActivationTarget != null)
                 {
-                    Push(new InstanceActiveEvent(request.ActivationTarget));
+                    Push(new InstanceActiveEvent(request.ActivationTarget, false));
                     Pop();
                 }
                 Pop();
@@ -883,7 +902,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                 Push(setEvent);
                 if (request.ActivationTarget != null)
                 {
-                    Push(new InstanceActiveEvent(request.ActivationTarget));
+                    Push(new InstanceActiveEvent(request.ActivationTarget, false));
                     Pop();
                 }
                 Pop();
@@ -911,8 +930,11 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                 //try to set as a property value
                 foreach (var targetProperty in targetPropertyOccurences)
                 {
+                    if (instanceEvt.Instance.Concept == targetProperty || evt.Instance.Concept == targetProperty)
+                        continue;
+
                     var value = GetValue(instanceEvt.Instance, targetProperty);
-                    if (value != null)
+                    if (value != null && value.Concept != Concept2.Something)
                         //TODO think about reassigning logic
                         continue;
 
@@ -930,6 +952,9 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                 foreach (var sourceProperty in GetPointingProperties(instanceEvt.Instance.Concept))
                 {
                     if (!definedConcepts.Contains(sourceProperty))
+                        continue;
+
+                    if (instanceEvt.Instance.Concept == sourceProperty || evt.Instance.Concept == sourceProperty)
                         continue;
 
                     var value = GetValue(instanceEvt.Instance, sourceProperty);
@@ -985,10 +1010,10 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             }
         }
 
-        private void tryPushComplete(ConceptInstance instance, bool allowTurnReactivation = true)
+        private void tryPushComplete(ConceptInstance instance, bool allowTurnReactivation = true, bool requireActivationRequest = true)
         {
-            var activation = GetInstanceActivationRequest(instance);
-            if (activation == null)
+            var request = GetInstanceActivationRequest(instance);
+            if (request == null && requireActivationRequest)
                 // only activated instances can fire completition
                 return;
 
@@ -1005,7 +1030,8 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                     return;
             }
 
-            Push(new InstanceActiveEvent(instance));
+            var canBeReferenced = !requireActivationRequest || request.ActivationPhrases.Any();
+            Push(new InstanceActiveEvent(instance, canBeReferenced, request));
         }
 
         private IEnumerable<SubstitutionRequestEvent> pushFreeParameterSubstitutionRequests(InstanceActivationRequestEvent evt)

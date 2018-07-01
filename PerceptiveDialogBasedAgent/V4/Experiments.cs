@@ -222,7 +222,7 @@ namespace PerceptiveDialogBasedAgent.V4
         {
             var a = new Agent();
             a.Input("is banana yellow");
-            a.Input("banana is yellow");
+            a.Train("banana is yellow").Not("what");
         }
 
         public static void InstanceActivationTests()
@@ -338,7 +338,7 @@ namespace PerceptiveDialogBasedAgent.V4
         public static void NewPropertyHandling()
         {
             var a = new Agent();
-            a.Input("Bombay serves moderate food");
+            a.Input("Bombay serves food with moderate prices");
             a.Input("yes");
         }
 
@@ -347,6 +347,7 @@ namespace PerceptiveDialogBasedAgent.V4
             var a = new Agent();
             a.Input("find a restaurant");
             a.Input("some luxury");
+            a.Input("high class");
             a.Input("high price");
             a.Input("expensive");
         }
@@ -358,6 +359,42 @@ namespace PerceptiveDialogBasedAgent.V4
             a.Input("i would like some luxury");
             a.Input("high price");
             a.Input("expensive");
+        }
+
+        public static void DoYouKnowHandling()
+        {
+            var a = new Agent();
+            a.Input("do you know bombay?");
+            a.Input("it has moderate pricerange.");
+            a.Input("yes");
+        }
+
+        public static void PartialDoYouKnowHandlingPositive()
+        {
+            var a = new Agent();
+            a.Input("do you know Vapiano pricerange?");
+        }
+
+        public static void PartialDoYouKnowHandlingNegative()
+        {
+            var a = new Agent();
+            a.Input("do you know Bombay pricerange?");
+            a.Input("it has moderate pricerange");
+            a.Input("yes");
+        }
+
+        internal static void CollectedDataDebugging5()
+        {
+            var a = new Agent();
+            a.Input("What can you tell me about Bombay restaurant?");
+            a.Input("Bombay restaurant");
+        }
+
+        internal static void CollectedDataDebugging6()
+        {
+            var a = new Agent();
+            a.Input("I would like to know more about the Bombay restaurant.");
+            a.Input("Tell me about the prices in the restaurant.");
         }
     }
 }

@@ -13,10 +13,13 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 
         internal readonly InstanceActivationRequestEvent Request;
 
-        internal InstanceActiveEvent(ConceptInstance instance, InstanceActivationRequestEvent request = null)
+        internal readonly bool CanBeReferenced;
+
+        internal InstanceActiveEvent(ConceptInstance instance, bool canBeReferenced, InstanceActivationRequestEvent request = null)
         {
             Instance = instance;
             Request = request;
+            CanBeReferenced = canBeReferenced;
         }
 
         internal override void Accept(BeamGenerator g)

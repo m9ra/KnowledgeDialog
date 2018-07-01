@@ -16,17 +16,36 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             if (evt == null)
                 yield break;
 
-            if (evt.Instance.Concept == Concept2.NotFound)
+            var concept = evt.Instance.Concept;
+
+            if (concept == Concept2.NotFound)
             {
                 yield return $"I don't know anything like that.";
             }
-            else if (evt.Instance.Concept == Concept2.DisambiguationFailed)
+            else if (concept == Concept2.DisambiguationFailed)
             {
                 yield return $"It is too complex for me. Could you use different words?";
             }
+            else if (concept == Concept2.RememberPropertyValue)
+            {
+                yield return $"Ok, I'll remember that.";
+                yield return $"Thank you for the information!";
+            }
+            else if (concept == Concept2.KnowledgeConfirmed)
+            {
+                var information = generator.GetValue(evt.Instance, Concept2.Subject);
+                generator.Push(new InstanceActiveEvent(information, canBeReferenced: true));
+                yield return $"Yes, I know {singularWithProperty(information)}";
+            }
+            else if (concept == Concept2.KnowledgeRefutation)
+            {
+                var information = generator.GetValue(evt.Instance, Concept2.Subject);
+                generator.Push(new InstanceActiveEvent(information, canBeReferenced: true));
+                yield return $"No, I don't know {singularWithProperty(information)}";
+            }
             else
             {
-                generator.Push(new InstanceActiveEvent(evt.Instance));
+                generator.Push(new InstanceActiveEvent(evt.Instance, canBeReferenced: true));
 
                 yield return $"I think you would like {singular(evt.Instance)}";
                 yield return $"I know {singular(evt.Instance)}";

@@ -182,7 +182,7 @@ namespace PerceptiveDialogBasedAgent.V2
                 if (evt is TurnStartEvent || evt is TurnEndEvent || evt is FrameEvent)
                     color = PolicyColor;
 
-                if (evt is InformationReportEvent)
+                if (evt is InformationReportEvent || evt is ExportEvent)
                     color = ExecutedCommandColor;
 
                 if (evt is InputPhraseEvent || evt is OutputEvent)

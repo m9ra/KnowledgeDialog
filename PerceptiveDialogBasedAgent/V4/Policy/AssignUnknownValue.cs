@@ -13,7 +13,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
         protected override IEnumerable<string> execute(BeamGenerator generator)
         {
             var unknownPhrases = getUnknownPhrases(generator);
-            var substitutionRequest = Get<SubstitutionRequestEvent>();
+            var substitutionRequest = Get<SubstitutionRequestEvent>(searchInsideTurnOnly: false);
             if (unknownPhrases.Count() != 1 || substitutionRequest==null)
                 yield break;
 

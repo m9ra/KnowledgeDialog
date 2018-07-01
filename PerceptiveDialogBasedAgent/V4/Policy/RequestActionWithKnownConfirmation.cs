@@ -10,9 +10,17 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
 {
     class RequestActionWithKnownConfirmation : PolicyPartBase
     {
+        private readonly HashSet<Concept2> _nonConfirmableConcepts = new HashSet<Concept2>
+        {
+            Concept2.No,
+            Concept2.Yes,
+            Concept2.DontKnow,
+            Concept2.Nothing,
+        };
+
         protected override IEnumerable<string> execute(BeamGenerator generator)
         {
-            var activeInstance = Get<InstanceActiveEvent>(e => e.Request != null && canBeReported(e.Instance));
+            var activeInstance = Get<InstanceActiveEvent>(e => e.Request != null && e.Request.ActivationPhrases.Any() && canBeReported(e.Instance));
             if (activeInstance == null)
                 yield break;
 

@@ -120,7 +120,6 @@
     <Compile Include="V4\Agent.cs" />
     <Compile Include="V4\Configuration.cs" />
     <Compile Include="V4\EventBeam\AbilityBeamGenerator.cs" />
-    <Compile Include="V4\EventBeam\AdviceProcessingBeamGenerator.cs" />
     <Compile Include="V4\EventBeam\ComposedPolicyBeamGenerator.cs" />
     <Compile Include="V4\EventBeam\FeatureGenerator.cs" />
     <Compile Include="V4\Events\CloseEvent.cs" />
@@ -128,8 +127,7 @@
     <Compile Include="V4\Events\FrameEvent.cs" />
     <Compile Include="V4\EventBeam\BeamGenerator.cs" />
     <Compile Include="V4\EventBeam\BeamNode.cs" />
-    <Compile Include="V4\EventBeam\FullExecutionBeamGenerator.cs" />
-    <Compile Include="V4\EventBeam\PolicyBeamGenerator.cs" />
+    <Compile Include="V4\Events\InformationPartEvent.cs" />
     <Compile Include="V4\Events\OutputEvent.cs" />
     <Compile Include="V4\Events\InstanceReferencedEvent.cs" />
     <Compile Include="V4\Events\PropertySetScoreEvent.cs" />

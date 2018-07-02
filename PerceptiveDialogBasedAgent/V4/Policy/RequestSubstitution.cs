@@ -12,11 +12,11 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
     {
         protected override IEnumerable<string> execute(BeamGenerator generator)
         {
-            var request = Get<SubstitutionRequestEvent>();
-            if (request == null)
+            var request = Get<InformationPartEvent>(p => !p.IsFilled);
+            if (request == null || request.Subject == null)
                 yield break;
 
-            var instanceConcept = request.Target.Instance.Concept;
+            var instanceConcept = request.Subject?.Concept;
             if (instanceConcept == Concept2.What)
             {
                 generator.Push(request);
@@ -25,7 +25,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             else
             {
                 generator.Push(request);
-                yield return "What should I " + singular(request.Target.Instance) + " ?";
+                yield return "What should I " + singular(request.Subject) + " ?";
             }
         }
     }

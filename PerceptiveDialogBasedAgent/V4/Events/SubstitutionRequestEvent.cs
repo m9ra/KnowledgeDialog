@@ -8,18 +8,18 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V4.Events
 {
-    class SubstitutionRequestEvent : EventBase
+    class SubstitutionRequestEvent_old : EventBase
     {
         public readonly PropertySetTarget Target;
 
         public readonly ConceptInstance ActivationTarget;
 
-        public SubstitutionRequestEvent(ConceptInstance targetInstance, ParamDefinedEvent parameterDefinition)
+        public SubstitutionRequestEvent_old(ConceptInstance targetInstance, ParamDefinedEvent parameterDefinition)
         {
             Target = new PropertySetTarget(targetInstance, parameterDefinition.Property);
         }
 
-        public SubstitutionRequestEvent(PropertySetTarget target, ConceptInstance activationTarget = null)
+        public SubstitutionRequestEvent_old(PropertySetTarget target, ConceptInstance activationTarget = null)
         {
             Target = target;
             ActivationTarget = activationTarget;

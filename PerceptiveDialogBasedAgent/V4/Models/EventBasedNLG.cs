@@ -74,45 +74,6 @@ namespace PerceptiveDialogBasedAgent.V4.Models
             yield return "Interesting. " + continuation;
         }
 
-        private IEnumerable<string> needsSubstitution()
-        {
-            var evt = CurrentEvent as SubstitutionRequestEvent;
-            var value = getPropertyValue(evt.Target.Instance, evt.Target.Property);
-            if (value != null)
-                //request is not opened
-                yield break;
-
-            var questionFormulation = getPropertyQuestion(evt.Target.Property);
-            var subject = evt.Target.Instance.Concept.Name;
-
-            if (subject == "what")
-            {
-                yield return "What are you asking for?";
-            }
-            else if (subject == Concept2.InstanceOf.Name)
-            {
-                var target = getProperty(evt.Target.Instance, Concept2.Target);
-                if (target != null)
-                {
-                    yield return "What is " + target.ToPrintable() + " ?";
-                }
-                else if (subject != null)
-                {
-                    yield return "What class is " + subject + " ?";
-                }
-                else
-                {
-                    yield return "What is instance of what ?";
-                }
-            }
-            else
-            {
-                yield return questionFormulation + " " + subject;
-            }
-        }
-
-
-
         private string getPropertyQuestion(Concept2 property)
         {
             if (property == Concept2.Something || property == Concept2.Subject)

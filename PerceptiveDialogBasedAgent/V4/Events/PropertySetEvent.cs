@@ -14,12 +14,6 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 
         internal readonly ConceptInstance SubstitutedValue;
 
-        public PropertySetEvent(SubstitutionRequestEvent request, InstanceActiveEvent evt)
-        {
-            Target = request.Target;
-            SubstitutedValue = evt.Instance;
-        }
-
         public PropertySetEvent(PropertySetTarget target, ConceptInstance value)
         {
             Target = target;

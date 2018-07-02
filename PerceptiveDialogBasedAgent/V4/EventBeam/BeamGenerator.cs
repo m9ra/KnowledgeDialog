@@ -58,6 +58,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         {
             // input phrase can create a new instance or point to some old instance
             tryActivateNewInstances();
+            tryActivateProperties();
 
             // input can be unrecognized
             PushSelf();
@@ -76,13 +77,23 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             handleOnActiveSubstitution(evt);
         }
 
-        internal virtual void Visit(SubstitutionRequestEvent evt)
+        internal virtual void Visit(InformationPartEvent evt)
         {
-            //try to substitute by some free active instance
-            var completeInstances = GetAvailableActiveInstances();
-            trySubstituteBy(evt, completeInstances);
+            if (evt.IsFilled)
+            {
+                var target = new PropertySetTarget(evt.Subject, evt.Property);
+                Push(new CloseEvent(evt));
+                Push(new PropertySetEvent(target, evt.Value));
+            }
+            else
+            {
+                //try to fill by some free active instance
+                var completeInstances = GetAvailableActiveInstances();
+                tryToFillBy(evt, completeInstances);
 
-            PushSelf();
+                //or keep unfilled
+                PushSelf();
+            }
         }
 
         internal virtual void Visit(PropertySetEvent evt)
@@ -91,7 +102,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             if (evt.Target.Instance != null && evt.Target.Property != Concept2.OnSetListener)
                 reportedInstance = GetValue(evt.Target.Instance, Concept2.OnSetListener);
 
-            tryPushComplete(evt.Target.Instance, allowTurnReactivation: false);
+            pushCompleteIfPossible(evt.Target.Instance, allowTurnReactivation: false);
 
             if (reportedInstance != null)
                 Push(new InstanceActiveEvent(reportedInstance, false));
@@ -100,7 +111,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         internal virtual void Visit(InstanceReferencedEvent evt)
         {
             //notice that we should not care about multiple activations - because of multiple mentions
-            tryPushComplete(evt.Instance, requireActivationRequest: false);
+            pushCompleteIfPossible(evt.Instance, requireActivationRequest: false);
         }
 
         internal virtual void Visit(ConceptDefinedEvent evt)
@@ -168,7 +179,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         {
             // we have a complete instance - lets look where it can be put into
             tryAsSubstitution(evt);
-            tryPropertySubstitution(evt);
+            tryAsPropertyValueActivation(evt);
 
             //instance can be left without being substituted anywhere
             PushSelf();
@@ -191,9 +202,9 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return GetAllEvents<ConceptDefinedEvent>(getCurrentNode()).Select(e => e.Concept);
         }
 
-        protected IEnumerable<SubstitutionRequestEvent> GetAvailableSubstitutionRequests()
+        protected IEnumerable<InformationPartEvent> GetIncompleteTurnInformationParts()
         {
-            return GetFrameEvents<SubstitutionRequestEvent>(getCurrentNode(), turnLimited: true);
+            return GetFrameEvents<InformationPartEvent>(getCurrentNode(), turnLimited: true).Where(p => !p.IsFilled);
         }
 
         protected IEnumerable<InstanceActiveEvent> GetAvailableActiveInstances()
@@ -346,7 +357,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
         public bool IsProperty(Concept2 concept)
         {
-            return GetAllEvents<PropertySetEvent>(getCurrentNode()).Where(p=>p.Target.Property==concept).Any();
+            return GetAllEvents<PropertySetEvent>(getCurrentNode()).Where(p => p.Target.Property == concept).Any();
         }
 
 
@@ -504,15 +515,39 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         {
             _layers.Pop();
         }
-        
-        protected virtual bool IsSatisfiedBy(SubstitutionRequestEvent request, ConceptInstance instance)
+
+        protected virtual bool CanSubstituteSubject(InformationPartEvent information, ConceptInstance subject)
         {
-            if (request.Target.Instance.Concept == instance.Concept)
+            if (information.Subject != null)
+                //overwrites are not allowed
+                return false;
+
+            if (information.Value == null)
+                //incomplete subject assignments are not allowed
+                //TODO is it important to have incomplete assignments enabled ?
+                return false;
+
+            if (subject.Concept == information.Value?.Concept || subject.Concept == information.Property)
                 //disable self assignments
                 return false;
 
-            if (request.Target.Property == Concept2.Property)
-                return IsProperty(instance.Concept);
+            //TODO check for patterns
+            return true;
+        }
+
+        protected virtual bool CanSubstituteValue(InformationPartEvent information, ConceptInstance value)
+        {
+            if (information.Value != null)
+                //incomplete subject assignments are not allowed
+                //TODO is it important to have incomplete assignments enabled ?
+                return false;
+
+            if (value.Concept == information.Subject?.Concept || value.Concept == information.Property)
+                //disable self assignments
+                return false;
+
+            if (information.Property == Concept2.Property)
+                return IsProperty(value.Concept);
 
             //TODO check for patterns
             return true;
@@ -857,160 +892,157 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             }
         }
 
+        private void tryActivateProperties()
+        {
+            var existingInstances = GetTurnActivationRequestedInstances();
+            var existingConcepts = new HashSet<Concept2>(existingInstances.Select(e => e.Instance.Concept));
+            var concepts = GetDefinedConcepts();
+            var inputPhrasesHypotheses = GetInputActivationHypotheses();
+
+            foreach (var inputPhrases in inputPhrasesHypotheses)
+            {
+                foreach (var concept in concepts)
+                {
+                    if (existingConcepts.Contains(concept))
+                        // prevent concept multi activation
+                        continue;
+
+                    if (!isKnownProperty(concept))
+                        //don't spam with meaningless attempts
+                        continue;
+
+                    var scoreEvent = new InputPhraseScoreEvent(inputPhrases, concept);
+                    var score = GetScore(scoreEvent);
+                    if (score < Configuration.ConceptActivationThreshold)
+                        // performance optimization
+                        continue;
+
+                    foreach (var inputPhrase in inputPhrases)
+                        Push(new CloseEvent(inputPhrase));
+
+                    Push(scoreEvent);
+                    Push(new InformationPartEvent(null, concept, null));
+                    Pop();
+                    Pop();
+
+                    foreach (var inputPhrase in inputPhrases)
+                        Pop();
+                }
+            }
+        }
+
+        private bool isKnownProperty(Concept2 concept)
+        {
+            var hierarchy = GetClassHierarchy();
+            var hierarchyChain = new HashSet<Concept2>();
+
+            var currentConcept = concept;
+            while (currentConcept != null && hierarchyChain.Add(currentConcept))
+            {
+                hierarchy.TryGetValue(currentConcept, out currentConcept);
+            }
+
+            return GetAllEvents<PropertySetEvent>(getCurrentNode()).Where(s => s.Target.Property == Concept2.HasPropertyValue).Any();
+        }
+
+        internal Dictionary<Concept2, Concept2> GetClassHierarchy()
+        {
+            var hierarchy = new Dictionary<Concept2, Concept2>();
+            foreach (var propertySet in GetAllEvents<PropertySetEvent>(getCurrentNode()).Where(s => s.Target.Property == Concept2.InstanceOf))
+            {
+                if (propertySet.Target.Concept == null)
+                    continue;
+
+                hierarchy[propertySet.Target.Concept] = propertySet.Target.Concept;
+            }
+            return hierarchy;
+        }
+
         private void tryAsSubstitution(InstanceActiveEvent evt)
         {
             var distancePenalty = 0;
-            foreach (var request in GetAvailableSubstitutionRequests())
+            foreach (var part in GetIncompleteTurnInformationParts())
             {
-                if (!IsSatisfiedBy(request, evt.Instance))
-                    //substitution is not possible
-                    continue;
+                tryToFillBy(part, evt, distancePenalty);
 
                 distancePenalty += 1;
-
-                var setEvent = new PropertySetEvent(request, evt);
-                Push(new PropertySetScoreEvent(setEvent, distancePenalty));
-                Push(new CloseEvent(evt));
-                Push(new CloseEvent(request));
-                Push(setEvent);
-                if (request.ActivationTarget != null)
-                {
-                    Push(new InstanceActiveEvent(request.ActivationTarget, false));
-                    Pop();
-                }
-                Pop();
-                Pop();
-                Pop();
-                Pop();
             }
         }
 
-        private void tryAsDirectInstanceSubstitution(ConceptInstance instance)
+        private void tryAsPropertyValueActivation(InstanceActiveEvent evt)
         {
-            var distancePenalty = 0;
-            foreach (var request in GetAvailableSubstitutionRequests())
+            var properties = GetPointingProperties(evt.Instance.Concept);
+            foreach (var property in properties)
             {
-                if (!IsSatisfiedBy(request, instance))
-                    //substitution is not possible
-                    continue;
-
-                distancePenalty += 1;
-
-                var setEvent = new PropertySetEvent(request.Target, instance);
-                Push(new PropertySetScoreEvent(setEvent, distancePenalty));
-                Push(new CloseEvent(request));
-                Push(setEvent);
-                if (request.ActivationTarget != null)
-                {
-                    Push(new InstanceActiveEvent(request.ActivationTarget, false));
-                    Pop();
-                }
-                Pop();
-                Pop();
-                Pop();
-            }
-        }
-
-        private void tryPropertySubstitution(InstanceActiveEvent evt)
-        {
-            var availableInstances = GetAvailableActiveInstances();
-            var targetPropertyOccurences = GetPointingProperties(evt.Instance.Concept);
-            var definedConcepts = GetDefinedConcepts();
-            targetPropertyOccurences = targetPropertyOccurences.Intersect(definedConcepts).ToArray();
-
-            var distancePenalty = 0;
-            foreach (var instanceEvt in availableInstances)
-            {
-                if (instanceEvt.Instance.Concept == evt.Instance.Concept)
-                    //self indexing is not allowed
-                    continue;
-
-                distancePenalty += 1;
-
-                //try to set as a property value
-                foreach (var targetProperty in targetPropertyOccurences)
-                {
-                    if (instanceEvt.Instance.Concept == targetProperty || evt.Instance.Concept == targetProperty)
-                        continue;
-
-                    var value = GetValue(instanceEvt.Instance, targetProperty);
-                    if (value != null && value.Concept != Concept2.Something)
-                        //TODO think about reassigning logic
-                        continue;
-
-                    var target = new PropertySetTarget(instanceEvt.Instance, targetProperty);
-                    Push(new StaticScoreEvent(0.05 / distancePenalty));
-                    Push(new CloseEvent(evt));
-                    Push(new PropertySetEvent(target, evt.Instance));
-                    tryAsDirectInstanceSubstitution(target.Instance);
-                    Pop();
-                    Pop();
-                    Pop();
-                }
-
-                //try to grab other instances as properties to this instance
-                foreach (var sourceProperty in GetPointingProperties(instanceEvt.Instance.Concept))
-                {
-                    if (!definedConcepts.Contains(sourceProperty))
-                        continue;
-
-                    if (instanceEvt.Instance.Concept == sourceProperty || evt.Instance.Concept == sourceProperty)
-                        continue;
-
-                    var value = GetValue(instanceEvt.Instance, sourceProperty);
-                    if (value != null)
-                        //TODO think about reassigning logic
-                        continue;
-
-                    //TODO combination of properties should be here
-                    var target = new PropertySetTarget(evt.Instance, sourceProperty);
-                    Push(new StaticScoreEvent(0.05 / distancePenalty));
-                    Push(new CloseEvent(instanceEvt));
-                    Push(new PropertySetEvent(target, instanceEvt.Instance));
-                    tryAsDirectInstanceSubstitution(target.Instance);
-                    Pop();
-                    Pop();
-                    Pop();
-                }
+                //try to interpret as an implicit property
+                var part = new InformationPartEvent(null, property, null);
+                tryFillValueBy(part, evt, 0);
             }
         }
 
         private IEnumerable<Concept2> GetPointingProperties(Concept2 concept)
         {
+            var definedConcepts = GetDefinedConcepts();
             var propertySets = GetAllEvents<PropertySetEvent>(getCurrentNode());
             var result = new HashSet<Concept2>();
             foreach (var propertySet in propertySets)
             {
+                if (!definedConcepts.Contains(propertySet.Target.Property))
+                    continue;
+
                 if (propertySet.SubstitutedValue.Concept == concept)
                     result.Add(propertySet.Target.Property);
             }
             return result;
         }
 
-        private void trySubstituteBy(SubstitutionRequestEvent evt, IEnumerable<InstanceActiveEvent> completeInstances)
+        private void tryToFillBy(InformationPartEvent evt, InstanceActiveEvent instanceActiveEvt, int distancePenalty)
+        {
+            tryFillSubjectBy(evt, instanceActiveEvt, distancePenalty);
+            tryFillValueBy(evt, instanceActiveEvt, distancePenalty);
+        }
+
+        private void tryToFillBy(InformationPartEvent evt, IEnumerable<InstanceActiveEvent> completeInstances)
         {
             var distancePenalty = 0;
 
             foreach (var freeInstance in completeInstances)
             {
-                if (!IsSatisfiedBy(evt, freeInstance.Instance))
-                    continue;
-
+                tryToFillBy(evt, freeInstance, distancePenalty);
                 distancePenalty += 1;
-
-                var setEvent = new PropertySetEvent(evt, freeInstance);
-                Push(new PropertySetScoreEvent(setEvent, distancePenalty));
-                Push(new CloseEvent(freeInstance));
-                Push(new CloseEvent(evt));
-                Push(setEvent);
-                Pop();
-                Pop();
-                Pop();
-                Pop();
             }
         }
 
-        private void tryPushComplete(ConceptInstance instance, bool allowTurnReactivation = true, bool requireActivationRequest = true)
+        private void tryFillValueBy(InformationPartEvent evt, InstanceActiveEvent instanceActiveEvt, int distancePenalty)
+        {
+            if (!CanSubstituteValue(evt, instanceActiveEvt.Instance))
+                return;
+
+            var filledEvt = evt.SubstituteValue(instanceActiveEvt.Instance);
+            Push(new PropertySetScoreEvent(filledEvt, distancePenalty));
+            Push(new CloseEvent(instanceActiveEvt));
+            Push(new CloseEvent(evt));
+            Push(filledEvt);
+            Pop();
+            Pop();
+            Pop();
+            Pop();
+        }
+
+        private void tryFillSubjectBy(InformationPartEvent evt, InstanceActiveEvent instanceActiveEvt, int distancePenalty)
+        {
+            if (!CanSubstituteSubject(evt, instanceActiveEvt.Instance))
+                return;
+
+            var filledEvt = evt.SubstituteSubject(instanceActiveEvt.Instance);
+            // subject activation is not closed 
+            Push(new CloseEvent(evt));
+            Push(filledEvt);
+            Pop();
+            Pop();
+        }
+
+        private void pushCompleteIfPossible(ConceptInstance instance, bool allowTurnReactivation = true, bool requireActivationRequest = true)
         {
             var request = GetInstanceActivationRequest(instance);
             if (request == null && requireActivationRequest)
@@ -1034,15 +1066,15 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             Push(new InstanceActiveEvent(instance, canBeReferenced, request));
         }
 
-        private IEnumerable<SubstitutionRequestEvent> pushFreeParameterSubstitutionRequests(InstanceActivationRequestEvent evt)
+        private IEnumerable<InformationPartEvent> pushFreeParameterSubstitutionRequests(InstanceActivationRequestEvent evt)
         {
-            var requests = new List<SubstitutionRequestEvent>();
+            var requests = new List<InformationPartEvent>();
             var targetDefinitions = GetParameterDefinitions(evt.Instance);
             var filteredTargetDefinitions = targetDefinitions.Where(t => GetValue(evt.Instance, t.Property) == null).ToArray();
 
             foreach (var targetDefinition in filteredTargetDefinitions)
             {
-                var request = new SubstitutionRequestEvent(evt.Instance, targetDefinition);
+                var request = new InformationPartEvent(evt.Instance, targetDefinition.Property, null);
                 requests.Add(request);
                 Push(request);
                 //no pops because all the parameters will be requested in a serie

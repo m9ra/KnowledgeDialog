@@ -13,8 +13,8 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
         protected override IEnumerable<string> execute(BeamGenerator generator)
         {
             var unknownPhrases = getUnknownPhrases(generator);
-            var substitutionRequest = Get<SubstitutionRequestEvent>(searchInsideTurnOnly: false);
-            if (unknownPhrases.Count() != 1 || substitutionRequest==null)
+            var substitutionRequest = Get<InformationPartEvent>(p => !p.IsFilled, searchInsideTurnOnly: false);
+            if (unknownPhrases.Count() != 1 || substitutionRequest == null)
                 yield break;
 
             var unknownPhrase = unknownPhrases.FirstOrDefault();
@@ -23,7 +23,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             generator.SetValue(assignUnknownProperty, Concept2.Subject, unknownPropertyCandidate);
 
             //TODO incorporate target property
-            generator.SetValue(assignUnknownProperty, Concept2.Target, substitutionRequest.Target.Instance);
+            generator.SetValue(assignUnknownProperty, Concept2.Target, substitutionRequest.Subject);
             generator.Push(new InstanceActivationRequestEvent(assignUnknownProperty));
 
             yield return $"What does {unknownPhrase} mean?";

@@ -10,11 +10,11 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 {
     class PropertySetScoreEvent : TracedScoreEventBase
     {
-        internal readonly PropertySetEvent PropertySet;
+        internal readonly InformationPartEvent PropertySet;
 
         private readonly int _distancePenalty;
 
-        internal PropertySetScoreEvent(PropertySetEvent propertySet, int distancePenalty)
+        internal PropertySetScoreEvent(InformationPartEvent propertySet, int distancePenalty)
         {
             PropertySet = propertySet;
             _distancePenalty = distancePenalty;
@@ -22,8 +22,8 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 
         internal override IEnumerable<string> GenerateFeatures(BeamNode node)
         {
-            var targetActivationEvent = BeamGenerator.GetInstanceActivationRequest(PropertySet.Target.Instance, node);
-            var sourceActivationEvent = BeamGenerator.GetInstanceActivationRequest(PropertySet.SubstitutedValue, node);
+            var targetActivationEvent = BeamGenerator.GetInstanceActivationRequest(PropertySet.Subject, node);
+            var sourceActivationEvent = BeamGenerator.GetInstanceActivationRequest(PropertySet.Value, node);
 
             if (targetActivationEvent == null || sourceActivationEvent == null)
                 yield break;
@@ -31,7 +31,7 @@ namespace PerceptiveDialogBasedAgent.V4.Events
             var ngramLimitCount = 2;
             var targetSufixes = new InputPhraseEvent[0];//BeamGenerator.GetSufixPhrases(targetActivationEvent.ActivationPhrase, ngramLimitCount, node);
             var targetPrefixes = BeamGenerator.GetPrefixPhrases(targetActivationEvent.ActivationPhrases.FirstOrDefault(), ngramLimitCount, node);
-            var featureId = "* --" + PropertySet.Target.Property.Name + "--> $1";
+            var featureId = "* --" + PropertySet.Property.Name + "--> $1";
             var targetId = "$1";
 
             for (var i = 0; i < ngramLimitCount; ++i)
@@ -52,7 +52,7 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 
         internal override double GetDefaultScore(BeamNode node)
         {
-            return Configuration.ParameterSubstitutionScore / _distancePenalty;
+            return Configuration.ParameterSubstitutionScore / (1 + _distancePenalty);
         }
     }
 }

@@ -91,6 +91,17 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             return this;
         }
 
+        internal AbilityBase SetValues(Concept2 target, Concept2 property, params Concept2[] values)
+        {
+            var setTarget = new PropertySetTarget(target, property);
+            foreach (var value in values)
+            {
+                AddInitializationEvent(new PropertySetEvent(setTarget, new ConceptInstance(value)));
+            }
+
+            return this;
+        }
+
         internal AbilityBase Property(Concept2 instanceProperty, Concept2 value)
         {
             var target = _currentConcept == null ? new PropertySetTarget(_currentInstance, instanceProperty) : new PropertySetTarget(_currentConcept, instanceProperty);

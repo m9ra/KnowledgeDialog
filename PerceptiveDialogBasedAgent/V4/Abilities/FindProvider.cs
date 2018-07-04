@@ -33,6 +33,8 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             var criterion = generator.GetValue(instance, _parameter);
             var criterionValues = generator.GetPropertyValues(criterion);
             criterionValues.Remove(Concept2.OnSetListener); // TODO internal property removal should be done in more systematic way
+            criterionValues.Remove(Concept2.HasProperty);
+            criterionValues.Remove(Concept2.HasPropertyValue);
 
             var requiredProperties = new HashSet<Concept2>(criterionValues.Values.Select(i => i.Concept));
             requiredProperties.Add(criterion.Concept);

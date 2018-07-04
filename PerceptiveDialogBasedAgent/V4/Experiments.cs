@@ -22,7 +22,7 @@ namespace PerceptiveDialogBasedAgent.V4
         public static void SimpleRestaurantSearch()
         {
             var a = new Agent();
-            a.Input("expensive restaurant");
+            a.Input("find expensive restaurant");
         }
 
         public static void RefinementRestaurantSearch()

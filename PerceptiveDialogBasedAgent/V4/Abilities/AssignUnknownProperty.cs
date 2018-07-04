@@ -48,7 +48,8 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
         private Dictionary<Concept2, HashSet<Concept2>> getRelevantProperties(ConceptInstance targetInstance, BeamGenerator generator)
         {
             var properties = new Dictionary<Concept2, HashSet<Concept2>>();
-            foreach (var conceptCandidate in generator.GetDefinedConcepts())
+            var definedConcepts = new HashSet<Concept2>(generator.GetDefinedConcepts());
+            foreach (var conceptCandidate in definedConcepts)
             {
                 var conceptCandidateInstance = new ConceptInstance(conceptCandidate);
 
@@ -59,6 +60,12 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
                 var instanceProperties = generator.GetPropertyValues(conceptCandidateInstance);
                 foreach (var instanceProperty in instanceProperties)
                 {
+                    if (!definedConcepts.Contains(instanceProperty.Value.Concept))
+                        continue;
+
+                    if (!definedConcepts.Contains(instanceProperty.Key))
+                        continue;
+
                     if (!properties.TryGetValue(instanceProperty.Key, out var propertyValues))
                         properties[instanceProperty.Key] = propertyValues = new HashSet<Concept2>();
 

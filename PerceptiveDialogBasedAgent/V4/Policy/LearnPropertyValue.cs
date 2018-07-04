@@ -13,7 +13,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
         protected override IEnumerable<string> execute(BeamGenerator generator)
         {
             var definedConcepts = new HashSet<Concept2>(generator.GetDefinedConcepts());
-            var conceptWithAssignedProperty = Get<PropertySetEvent>((s) => hasExtraInformation(s, definedConcepts));
+            var conceptWithAssignedProperty = Get<PropertySetEvent>((s) => hasExtraInformation(s, definedConcepts, generator));
             if (conceptWithAssignedProperty == null)
                 yield break;
 
@@ -32,13 +32,17 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             yield return $"You think that {singular(target.Instance)} has {singular(conceptWithAssignedProperty.SubstitutedValue)} {singular(target.Property)}?";
         }
 
-        private bool hasExtraInformation(PropertySetEvent setEvent, HashSet<Concept2> definedConcepts)
+        private bool hasExtraInformation(PropertySetEvent setEvent, HashSet<Concept2> definedConcepts, BeamGenerator generator)
         {
             var instance = setEvent.Target.Instance;
             if (instance == null)
                 return false;
 
-            return definedConcepts.Contains(setEvent.Target.Property) && definedConcepts.Contains(setEvent.Target.Instance.Concept);
+            return
+                definedConcepts.Contains(setEvent.Target.Property) &&
+                definedConcepts.Contains(setEvent.Target.Instance.Concept) &&
+                generator.IsKnownPropertyOf(setEvent.Target.Instance, setEvent.Target.Property)
+                ;
         }
     }
 }

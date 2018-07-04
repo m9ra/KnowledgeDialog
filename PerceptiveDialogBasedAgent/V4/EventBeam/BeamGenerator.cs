@@ -245,7 +245,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         {
             var node = getCurrentNode();
 
-            return GetAllEvents<PropertySetEvent>(node).Where(s => s.Target.Instance == instance && s.Target.Property == property).Select(s => s.SubstitutedValue);
+            return GetAllEvents<PropertySetEvent>(node).Where(s => (s.Target.Instance == instance || s.Target.Concept == instance.Concept) && s.Target.Property == property).Select(s => s.SubstitutedValue);
         }
 
         protected IEnumerable<T> GetPrecedingEvents<T>(BeamNode node, T startingEvt, bool turnLimited)
@@ -522,7 +522,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                 //overwrites are not allowed
                 return false;
 
-            if (information.Value == null)
+            if (information.Value == null || information.Property == null)
                 //incomplete subject assignments are not allowed
                 //TODO is it important to have incomplete assignments enabled ?
                 return false;
@@ -530,6 +530,9 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             if (subject.Concept == information.Value?.Concept || subject.Concept == information.Property)
                 //disable self assignments
                 return false;
+
+            /*if (!isPropertyOf(subject, information.Property))
+                return false;*/
 
             //TODO check for patterns
             return true;
@@ -542,6 +545,9 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                 //TODO is it important to have incomplete assignments enabled ?
                 return false;
 
+            if (information.Property == null)
+                return false;
+
             if (value.Concept == information.Subject?.Concept || value.Concept == information.Property)
                 //disable self assignments
                 return false;
@@ -549,8 +555,13 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             if (information.Property == Concept2.Property)
                 return IsProperty(value.Concept);
 
-            //TODO check for patterns
             return true;
+        }
+
+        private bool IsValueOf(Concept2 property, ConceptInstance value)
+        {
+            var values = GetValues(new ConceptInstance(property), Concept2.HasPropertyValue);
+            return values.Select(v => v.Concept).Contains(value.Concept);
         }
 
         public static void AddFeatureScore(string feature, double score)
@@ -908,7 +919,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                         continue;
 
                     if (!isKnownProperty(concept))
-                        //don't spam with meaningless attempts
+                        //don't spam with meaningless property concept activations
                         continue;
 
                     var scoreEvent = new InputPhraseScoreEvent(inputPhrases, concept);
@@ -942,7 +953,22 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                 hierarchy.TryGetValue(currentConcept, out currentConcept);
             }
 
-            return GetAllEvents<PropertySetEvent>(getCurrentNode()).Where(s => s.Target.Property == Concept2.HasPropertyValue).Any();
+            return GetAllEvents<PropertySetEvent>(getCurrentNode()).Where(s => s.SubstitutedValue.Concept == concept && s.Target.Property == Concept2.HasProperty && hierarchyChain.Contains(s.Target.Concept)).Any();
+        }
+
+        internal bool IsKnownPropertyOf(ConceptInstance instance, Concept2 property)
+        {
+            var hierarchy = GetClassHierarchy();
+            var hierarchyChain = new HashSet<Concept2>();
+
+            var currentConcept = instance.Concept;
+            while (currentConcept != null && hierarchyChain.Add(currentConcept))
+            {
+                hierarchy.TryGetValue(currentConcept, out currentConcept);
+            }
+
+            hierarchyChain.Remove(instance.Concept); //dont include instance's concept
+            return GetAllEvents<PropertySetEvent>(getCurrentNode()).Where(s => s.SubstitutedValue.Concept == property && s.Target.Property == Concept2.HasProperty && hierarchyChain.Contains(s.Target.Concept)).Any();
         }
 
         internal Dictionary<Concept2, Concept2> GetClassHierarchy()
@@ -964,7 +990,6 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             foreach (var part in GetIncompleteTurnInformationParts())
             {
                 tryToFillBy(part, evt, distancePenalty);
-
                 distancePenalty += 1;
             }
         }
@@ -976,7 +1001,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             {
                 //try to interpret as an implicit property
                 var part = new InformationPartEvent(null, property, null);
-                tryFillValueBy(part, evt, 0);
+                tryFillValueBy(part, evt, 0, addScore: false);
             }
         }
 
@@ -1013,20 +1038,29 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             }
         }
 
-        private void tryFillValueBy(InformationPartEvent evt, InstanceActiveEvent instanceActiveEvt, int distancePenalty)
+        private void tryFillValueBy(InformationPartEvent evt, InstanceActiveEvent instanceActiveEvt, int distancePenalty, bool addScore = true)
         {
             if (!CanSubstituteValue(evt, instanceActiveEvt.Instance))
                 return;
 
+            var isKnownValue = IsValueOf(evt.Property, instanceActiveEvt.Instance);
             var filledEvt = evt.SubstituteValue(instanceActiveEvt.Instance);
-            Push(new PropertySetScoreEvent(filledEvt, distancePenalty));
+            if (addScore)
+                Push(new PropertySetScoreEvent(filledEvt, distancePenalty));
+            if (isKnownValue)
+                Push(new StaticScoreEvent(0.1));
+
             Push(new CloseEvent(instanceActiveEvt));
             Push(new CloseEvent(evt));
             Push(filledEvt);
             Pop();
             Pop();
             Pop();
-            Pop();
+
+            if (isKnownValue)
+                Pop();
+            if (addScore)
+                Pop();
         }
 
         private void tryFillSubjectBy(InformationPartEvent evt, InstanceActiveEvent instanceActiveEvt, int distancePenalty)
@@ -1034,12 +1068,18 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             if (!CanSubstituteSubject(evt, instanceActiveEvt.Instance))
                 return;
 
+            var isKnown = IsKnownPropertyOf(instanceActiveEvt.Instance, evt.Property);
+
             var filledEvt = evt.SubstituteSubject(instanceActiveEvt.Instance);
             // subject activation is not closed 
+            if (isKnown)
+                Push(new StaticScoreEvent(0.1));
             Push(new CloseEvent(evt));
             Push(filledEvt);
             Pop();
             Pop();
+            if (isKnown)
+                Pop();
         }
 
         private void pushCompleteIfPossible(ConceptInstance instance, bool allowTurnReactivation = true, bool requireActivationRequest = true)

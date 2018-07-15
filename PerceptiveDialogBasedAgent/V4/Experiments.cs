@@ -382,6 +382,15 @@ namespace PerceptiveDialogBasedAgent.V4
             a.Input("yes");
         }
 
+        public static void NewPropertyLearning()
+        {
+            var a = new Agent();
+            a.Input("Bombay is located in New York");
+            a.Input("It is property of Bombay");
+            a.Input("New York");
+            a.Input("Yes");
+        }
+
         internal static void CollectedDataDebugging5()
         {
             var a = new Agent();

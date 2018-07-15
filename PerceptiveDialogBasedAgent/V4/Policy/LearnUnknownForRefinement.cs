@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PerceptiveDialogBasedAgent.V4.Abilities;
 using PerceptiveDialogBasedAgent.V4.EventBeam;
 using PerceptiveDialogBasedAgent.V4.Events;
 using PerceptiveDialogBasedAgent.V4.Primitives;
@@ -21,7 +22,6 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             var activationTarget = generator.GetValue(evt.Instance, Concept2.Target);
 
             var prefixesForRefine = generator.GetPrefixingUnknowns(instanceToRefine);
-
             if (!prefixesForRefine.TryGetValue(instanceToRefine, out var propertyUnknownRaw))
                 //nothing to ask for
                 yield break;
@@ -42,16 +42,13 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
 
               yield return $"I know many {plural(instanceToRefine)} which one would you like?";*/
 
-            var prompt = new ConceptInstance(Concept2.Prompt);
 
             var assignUnknownProperty = new ConceptInstance(Concept2.AssignUnknownProperty);
             var unknownPropertyCandidate = new ConceptInstance(Concept2.From(propertyUnknown));
             generator.SetValue(assignUnknownProperty, Concept2.Subject, unknownPropertyCandidate);
             generator.SetValue(assignUnknownProperty, Concept2.Target, instanceToRefine);
 
-            generator.SetValue(prompt, Concept2.Yes, assignUnknownProperty);
-            generator.SetValue(prompt, Concept2.No, instanceToRefine);
-            generator.Push(new InstanceActivationRequestEvent(prompt));
+            YesNoPrompt.Generate(generator, assignUnknownProperty, instanceToRefine);
             yield return $"So, you would like to find {plural(instanceToRefine)} which are {propertyUnknown}?";
         }
 

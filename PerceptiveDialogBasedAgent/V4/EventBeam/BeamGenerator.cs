@@ -102,7 +102,8 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             if (evt.Target.Instance != null && evt.Target.Property != Concept2.OnSetListener)
                 reportedInstance = GetValue(evt.Target.Instance, Concept2.OnSetListener);
 
-            pushCompleteIfPossible(evt.Target.Instance, allowTurnReactivation: false);
+            if (evt.AllowActivation)
+                pushCompleteIfPossible(evt.Target.Instance, allowTurnReactivation: false);
 
             if (reportedInstance != null)
                 Push(new InstanceActiveEvent(reportedInstance, false));
@@ -200,6 +201,11 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         internal IEnumerable<Concept2> GetDefinedConcepts()
         {
             return GetAllEvents<ConceptDefinedEvent>(getCurrentNode()).Select(e => e.Concept);
+        }
+
+        internal bool IsDefined(Concept2 concept)
+        {
+            return GetDefinedConcepts().Contains(concept);
         }
 
         protected IEnumerable<InformationPartEvent> GetIncompleteTurnInformationParts()

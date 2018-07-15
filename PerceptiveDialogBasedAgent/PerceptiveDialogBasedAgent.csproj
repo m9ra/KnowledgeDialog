@@ -103,13 +103,15 @@
     <Compile Include="V3\ContextBeam.cs" />
     <Compile Include="V3\Experiments.cs" />
     <Compile Include="V4\Abilities\AbilityBase.cs" />
+    <Compile Include="V4\Abilities\AcceptNewProperty.cs" />
+    <Compile Include="V4\Abilities\OptionPrompt.cs" />
     <Compile Include="V4\Abilities\ConceptAbilityBase.cs" />
     <Compile Include="V4\Abilities\PartialDoYouKnow.cs" />
     <Compile Include="V4\Abilities\DoYouKnow.cs" />
     <Compile Include="V4\Abilities\EssentialKnowledge.cs" />
     <Compile Include="V4\Abilities\ItReferenceResolver.cs" />
     <Compile Include="V4\Abilities\AssignUnknownProperty.cs" />
-    <Compile Include="V4\Abilities\PromptAbility.cs" />
+    <Compile Include="V4\Abilities\YesNoPrompt.cs" />
     <Compile Include="V4\Abilities\PropertyValueDisambiguation.cs" />
     <Compile Include="V4\Abilities\RememberPropertyValue.cs" />
     <Compile Include="V4\Abilities\WhatProvider.cs" />
@@ -148,6 +150,8 @@
     <Compile Include="V4\Events\PropertySetEvent.cs" />
     <Compile Include="V4\Events\TracedScoreEventBase.cs" />
     <Compile Include="V4\Models\EventBasedNLG.cs" />
+    <Compile Include="V4\Policy\AfterPropertyLearned.cs" />
+    <Compile Include="V4\Policy\LearnNewPhrase.cs" />
     <Compile Include="V4\Policy\AskForDisambiguation.cs" />
     <Compile Include="V4\Policy\LearnPropertyValue.cs" />
     <Compile Include="V4\Policy\AssignUnknownValue.cs" />

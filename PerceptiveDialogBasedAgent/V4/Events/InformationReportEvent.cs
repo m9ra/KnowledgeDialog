@@ -23,7 +23,7 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 
         public override string ToString()
         {
-            return $"[found: {Instance.Concept.Name}]";
+            return $"[info: {Instance.Concept.Name}]";
         }
     }
 }

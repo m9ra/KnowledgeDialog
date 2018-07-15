@@ -19,6 +19,12 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             DefineConcept(conceptName, out AbilityConcept, fireConceptDefinedEvt);
         }
 
+        internal ConceptAbilityBase(Concept2 concept, bool fireConceptDefinedEvt = false)
+            : this(concept.Name, fireConceptDefinedEvt)
+        {
+
+        }
+
         protected void AddParameter(Concept2 parameter)
         {
             var pattern = new ConceptInstance(Concept2.Something);

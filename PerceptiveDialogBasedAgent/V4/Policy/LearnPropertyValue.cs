@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PerceptiveDialogBasedAgent.V4.Abilities;
 using PerceptiveDialogBasedAgent.V4.EventBeam;
 using PerceptiveDialogBasedAgent.V4.Events;
+using PerceptiveDialogBasedAgent.V4.Primitives;
 
 namespace PerceptiveDialogBasedAgent.V4.Policy
 {
@@ -18,17 +20,9 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
                 yield break;
 
             var target = conceptWithAssignedProperty.Target;
+            var rememberValue = RememberPropertyValue.Create(generator, target, conceptWithAssignedProperty.SubstitutedValue);
 
-
-            var rememberValue = new ConceptInstance(Concept2.RememberPropertyValue);
-            generator.SetValue(rememberValue, Concept2.Target, target.Instance);
-            generator.SetValue(rememberValue, Concept2.TargetProperty, new ConceptInstance(target.Property));
-            generator.SetValue(rememberValue, Concept2.Subject, conceptWithAssignedProperty.SubstitutedValue);
-
-            var prompt = new ConceptInstance(Concept2.Prompt);
-            generator.SetValue(prompt, Concept2.Yes, rememberValue);
-            generator.SetValue(prompt, Concept2.No, new ConceptInstance(Concept2.Nothing));
-            generator.Push(new InstanceActivationRequestEvent(prompt));
+            YesNoPrompt.Generate(generator, rememberValue, new ConceptInstance(Concept2.Nothing));
             yield return $"You think that {singular(target.Instance)} has {singular(conceptWithAssignedProperty.SubstitutedValue)} {singular(target.Property)}?";
         }
 

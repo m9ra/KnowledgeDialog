@@ -14,10 +14,13 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 
         internal readonly ConceptInstance SubstitutedValue;
 
-        public PropertySetEvent(PropertySetTarget target, ConceptInstance value)
+        internal readonly bool AllowActivation;
+
+        public PropertySetEvent(PropertySetTarget target, ConceptInstance value, bool allowActivation = true)
         {
             Target = target;
             SubstitutedValue = value;
+            AllowActivation = allowActivation;
         }
 
         internal override void Accept(BeamGenerator g)

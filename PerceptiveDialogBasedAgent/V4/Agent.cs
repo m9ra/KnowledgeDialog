@@ -25,7 +25,7 @@ namespace PerceptiveDialogBasedAgent.V4
         internal Agent()
         {
             _irrelevantWords.UnionWith(KnowledgeDialog.Dialog.UtteranceParser.NonInformativeWords);
-            foreach (var word in new[] { "a", "an", "the", "it", "no", "yes", "is", "find", "search", "google", "lookup", "look", "want", "get", "give", "expensive", "cheap", "stupid", "what", "where", "which", "name" })
+            foreach (var word in new[] { "in", "a", "an", "the", "it", "no", "yes", "is", "find", "search", "google", "lookup", "look", "want", "get", "give", "expensive", "cheap", "stupid", "what", "where", "which", "name" })
             {
                 _irrelevantWords.Remove(word);
             }
@@ -36,6 +36,8 @@ namespace PerceptiveDialogBasedAgent.V4
         {
             _beam = new ComposedPolicyBeamGenerator();
 
+            _beam.RegisterAbility(new OptionPrompt());
+            _beam.RegisterAbility(new AcceptNewProperty());
             _beam.RegisterAbility(new RememberPropertyValue());
             _beam.RegisterAbility(new DoYouKnow());
             _beam.RegisterAbility(new PartialDoYouKnow());
@@ -45,14 +47,16 @@ namespace PerceptiveDialogBasedAgent.V4
             _beam.RegisterAbility(new DefiniteReferenceResolver());
             _beam.RegisterAbility(new FindProvider());
             _beam.RegisterAbility(new WhatProvider());
-            _beam.RegisterAbility(new PromptAbility());
+            _beam.RegisterAbility(new YesNoPrompt());
             _beam.RegisterAbility(new AssignUnknownProperty());
             _beam.RegisterAbility(new PropertyValueDisambiguation());
 
             //NOTE: Ordering of policy parts matters
             _beam.AddPolicyPart(new HowCanIHelpYouFallback());
             _beam.AddPolicyPart(new RequestActionWithKnownConfirmation());
+            _beam.AddPolicyPart(new LearnNewPhrase());
             _beam.AddPolicyPart(new LearnPropertyValue());
+            _beam.AddPolicyPart(new AfterPropertyLearned());
             _beam.AddPolicyPart(new RequestSubstitution());
             _beam.AddPolicyPart(new AssignUnknownValue());
 

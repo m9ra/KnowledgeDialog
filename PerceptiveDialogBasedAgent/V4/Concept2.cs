@@ -12,6 +12,9 @@ namespace PerceptiveDialogBasedAgent.V4
 
         private static readonly Dictionary<string, Concept2> _definedConcepts = new Dictionary<string, Concept2>();
 
+        public readonly static Concept2 AcceptNewProperty = Concept("accept new property");
+        public readonly static Concept2 OptionPrompt = Concept("option prompt");
+        public readonly static Concept2 Option = Concept("option");
         public readonly static Concept2 HasPropertyValue = Concept("has property value"); // joins properties with their values
         public readonly static Concept2 HasProperty = Concept("has property"); // joins classes with properties
         public readonly static Concept2 What = Concept("what");

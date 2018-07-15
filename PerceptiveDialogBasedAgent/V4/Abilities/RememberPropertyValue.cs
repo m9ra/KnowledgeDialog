@@ -26,7 +26,19 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
 
             var setTarget = new PropertySetTarget(target, targetProperty.Concept);
             generator.Push(new ExportEvent(new PropertySetEvent(setTarget, subject)));
-            generator.Push(new InformationReportEvent(instance));
+            if (generator.IsDefined(instance.Concept))
+                generator.Push(new InformationReportEvent(instance));
+        }
+
+        internal static ConceptInstance Create(BeamGenerator generator, PropertySetTarget target, ConceptInstance value)
+        {
+            var rememberValue = new ConceptInstance(Concept2.RememberPropertyValue);
+
+            generator.SetValue(rememberValue, Concept2.Target, target.Instance);
+            generator.SetValue(rememberValue, Concept2.TargetProperty, new ConceptInstance(target.Property));
+            generator.SetValue(rememberValue, Concept2.Subject, value);
+
+            return rememberValue;
         }
     }
 }

@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PerceptiveDialogBasedAgent.V4.Abilities;
 using PerceptiveDialogBasedAgent.V4.EventBeam;
 using PerceptiveDialogBasedAgent.V4.Events;
+using PerceptiveDialogBasedAgent.V4.Primitives;
 
 namespace PerceptiveDialogBasedAgent.V4.Policy
 {
@@ -20,6 +22,17 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             var unknownPhrase = unknownPhrases.FirstOrDefault();
             var assignUnknownProperty = new ConceptInstance(Concept2.AssignUnknownProperty);
             var unknownPropertyCandidate = new ConceptInstance(Concept2.From(unknownPhrase));
+
+            var newPropertyAssignment = Find<PropertySetEvent>(p => p.Target.Property == Concept2.HasProperty && p.SubstitutedValue?.Concept == substitutionRequest.Property, precedingTurns: 1);
+            if (newPropertyAssignment != null)
+            {
+                var remember = RememberPropertyValue.Create(generator, new PropertySetTarget(substitutionRequest.Subject, substitutionRequest.Property), unknownPropertyCandidate);
+                YesNoPrompt.Generate(generator, remember, new ConceptInstance(Concept2.Nothing));
+
+                yield return $"So, you think {singular(substitutionRequest.Subject)} {singular(substitutionRequest.Property)} {unknownPhrase} ?";
+                yield break;
+            }
+
             generator.SetValue(assignUnknownProperty, Concept2.Subject, unknownPropertyCandidate);
 
             //TODO incorporate target property

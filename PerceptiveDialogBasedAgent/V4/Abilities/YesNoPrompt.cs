@@ -8,13 +8,27 @@ using PerceptiveDialogBasedAgent.V4.Events;
 
 namespace PerceptiveDialogBasedAgent.V4.Abilities
 {
-    class PromptAbility : ConceptAbilityBase
+    class YesNoPrompt : ConceptAbilityBase
     {
-        internal PromptAbility() : base(Concept2.Prompt.Name, fireConceptDefinedEvt: false)
+        internal YesNoPrompt() : base(Concept2.Prompt.Name, fireConceptDefinedEvt: false)
         {
             AddParameter(Concept2.Yes);
             AddParameter(Concept2.No);
             AddParameter(Concept2.Answer);
+        }
+
+        internal static void Generate(BeamGenerator generator, ConceptInstance yesInstance, ConceptInstance noInstance)
+        {
+            var prompt = Create(generator, yesInstance, noInstance);
+            generator.Push(new InstanceActivationRequestEvent(prompt));
+        }
+
+        internal static ConceptInstance Create(BeamGenerator generator, ConceptInstance yesInstance, ConceptInstance noInstance)
+        {
+            var prompt = new ConceptInstance(Concept2.Prompt);
+            generator.SetValue(prompt, Concept2.Yes, yesInstance);
+            generator.SetValue(prompt, Concept2.No, noInstance);
+            return prompt;
         }
 
         protected override void onInstanceActivated(ConceptInstance instance, BeamGenerator generator)

@@ -8,6 +8,7 @@ using System.IO;
 
 using WebBackend.Task;
 using WebBackend.DialogProvider;
+using KnowledgeDialog.Knowledge;
 
 namespace WebBackend.Experiment
 {
@@ -53,6 +54,11 @@ namespace WebBackend.Experiment
         public readonly string ExperimentUserPath;
 
         /// <summary>
+        /// Optionall knowledge storage.
+        /// </summary>
+        public readonly GeneralVoteContainer Knowledge;
+
+        /// <summary>
         /// Initialize new instance of <see cref="ExperimentBase"/>.
         /// </summary>
         /// <param name="id">Id of the experiment.</param>
@@ -66,6 +72,9 @@ namespace WebBackend.Experiment
             //prepare file structure
             Directory.CreateDirectory(ExperimentRootPath);
             Directory.CreateDirectory(ExperimentUserPath);
+
+            var knowledgePath = Path.Combine(ExperimentRootPath, "knowledge.bin");
+            Knowledge = new GeneralVoteContainer(knowledgePath);
         }
 
         abstract protected WebConsoleBase createConsole(string databasePath);

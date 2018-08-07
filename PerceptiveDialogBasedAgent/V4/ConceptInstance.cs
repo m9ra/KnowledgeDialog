@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V4
 {
+    [Serializable]
     class ConceptInstance : PointableInstance
     {
         internal readonly Concept2 Concept;

@@ -37,13 +37,13 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
 
             if (directSubjects.Count() == 1)
             {
-                pushSetSubject(target, directSubjects.First(), generator);
+                pushSetSubject(target, directSubjects.First(), generator, unknown);
                 return;
             }
 
             if (indirectSubjects.Count() == 1)
             {
-                pushSetSubject(target, indirectSubjects.First(), generator);
+                pushSetSubject(target, indirectSubjects.First(), generator, unknown);
                 return;
             }
 
@@ -61,12 +61,24 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
                 return;
             }
 
+            if (indirectSubjects.Count() == subjects.Count())
+            {
+                var knowledgeConfirmation = new ConceptInstance(Concept2.DisambiguatedKnowledgeConfirmed);
+                generator.SetValue(knowledgeConfirmation, Concept2.Subject, answer);
+                generator.SetValue(knowledgeConfirmation, Concept2.Target, instance);
+                generator.Push(new StaticScoreEvent(0.05));
+                generator.Push(new InformationReportEvent(knowledgeConfirmation));
+                return;
+            }
+
             //disambiguation was not helpful
             generator.Push(new StaticScoreEvent(-1.0));
         }
 
-        private void pushSetSubject(ConceptInstance target, ConceptInstance resolvedSubject, BeamGenerator generator)
+        private void pushSetSubject(ConceptInstance target, ConceptInstance resolvedSubject, BeamGenerator generator, ConceptInstance unknown)
         {
+            RememberConceptDescription.Activate(resolvedSubject.Concept, unknown.Concept.Name, generator);
+
             var relevantProperty = generator.GetValue(resolvedSubject, Concept2.Property);
             generator.Push(new StaticScoreEvent(0.1));
             generator.SetValue(target, relevantProperty.Concept, resolvedSubject);

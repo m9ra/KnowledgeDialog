@@ -28,7 +28,16 @@ namespace WebBackend
             Id = Path.GetFileName(path);
             Time = File.GetCreationTime(path);
 
-            var usersDirectory = Path.GetDirectoryName(path);
+            //find users directory
+            var usersDirectory = path;
+            while (Path.GetFileNameWithoutExtension(usersDirectory) != "users" && usersDirectory != "")
+            {
+                usersDirectory = Path.GetDirectoryName(usersDirectory);
+            }
+
+            if (usersDirectory == "")
+                usersDirectory = Path.Combine(Path.GetDirectoryName(path), "users");
+
             var experimentDirectory = Path.GetDirectoryName(usersDirectory);
             ExperimentId = Path.GetFileNameWithoutExtension(experimentDirectory);
 

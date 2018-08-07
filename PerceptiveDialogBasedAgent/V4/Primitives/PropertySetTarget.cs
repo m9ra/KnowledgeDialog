@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V4.Primitives
 {
+    [Serializable]
     class PropertySetTarget
     {
         /// <summary>

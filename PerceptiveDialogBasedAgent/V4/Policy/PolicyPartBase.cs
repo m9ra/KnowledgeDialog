@@ -10,6 +10,10 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
 {
     abstract class PolicyPartBase
     {
+        protected ConceptInstance TagInstance => _tagInstance;
+
+        internal ConceptInstance LastTag { get; private set; }
+
         protected abstract IEnumerable<string> execute(BeamGenerator generator);
 
         private EventBase[] _previousTurnEvents;
@@ -20,6 +24,8 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
 
         private BeamGenerator _generator;
 
+        private ConceptInstance _tagInstance;
+
         internal string[] Execute(BeamGenerator generator, EventBase[] previousTurnEvents, EventBase[] turnEvents, HashSet<Concept2> definedConcepts)
         {
             try
@@ -28,7 +34,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
                 _definedConcepts = definedConcepts;
                 _turnEvents = turnEvents;
                 _generator = generator;
-
+                _tagInstance = new ConceptInstance(AsConcept(this.GetType()));
                 return execute(generator).ToArray();
             }
             finally
@@ -37,7 +43,20 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
                 _definedConcepts = null;
                 _turnEvents = null;
                 _generator = null;
+
+                LastTag = _tagInstance;
+                _tagInstance = null;
             }
+        }
+
+        protected Concept2 AsConcept<T>()
+        {
+            return AsConcept(typeof(T));
+        }
+
+        protected Concept2 AsConcept(Type policy)
+        {
+            return Concept2.From(policy.Name);
         }
 
         protected Evt Get<Evt>(Func<Evt, bool> predicate = null, bool searchInsideTurnOnly = true)
@@ -81,7 +100,17 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             var instances = _generator.GetInputActivatedInstances();
             foreach (var instance in instances.Select(i => i.Instance).Distinct())
             {
-                if (predicate(instance))
+                if (predicate == null || predicate(instance))
+                    yield return instance;
+            }
+        }
+
+        protected IEnumerable<ConceptInstance> FindDeactivatedTurnInstances(Func<ConceptInstance, bool> predicate = null)
+        {
+            var instances = _generator.GetTurnLimitedDeactivatedInputActivatedInstances();
+            foreach (var instance in instances.Select(i => i.Instance).Distinct())
+            {
+                if (predicate == null || predicate(instance))
                     yield return instance;
             }
         }
@@ -89,6 +118,16 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
         internal bool IsDefined(Concept2 concept)
         {
             return _definedConcepts.Contains(concept);
+        }
+
+        protected bool PreviousPolicy<T>(out PolicyTagEvent tag)
+            where T : PolicyPartBase
+        {
+            var policyConcept = AsConcept<T>();
+
+            tag = _turnEvents.Where(e => e is PolicyTagEvent tagEvt && tagEvt.Tag.Concept == policyConcept).FirstOrDefault() as PolicyTagEvent;
+
+            return tag != null;
         }
 
         protected string singular(ConceptInstance instance)
@@ -135,6 +174,5 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
         {
             return singular(concept) + "s";
         }
-
     }
 }

@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 using PerceptiveDialogBasedAgent.V4;
 using KnowledgeDialog.Dialog.Responses;
 using System.IO;
+using KnowledgeDialog.Knowledge;
+using PerceptiveDialogBasedAgent.V4.Events;
+using PerceptiveDialogBasedAgent.V4.EventBeam;
 
 namespace PerceptiveDialogBasedAgent
 {
@@ -28,9 +31,28 @@ namespace PerceptiveDialogBasedAgent
 
         private readonly OutputRecognitionAlgorithm _recognitionAlgorithm;
 
-        public PhraseAgentManager(OutputRecognitionAlgorithm recognitionAlgorithm)
+        private VoteContainer<object> _knowledge;
+
+        private bool _exportKnowledge = true;
+
+        private bool _useKnowledge = false;
+
+        public PhraseAgentManager(OutputRecognitionAlgorithm recognitionAlgorithm, VoteContainer<object> knowledge, bool exportKnowledge, bool useKnowledge)
         {
+            _knowledge = knowledge;
+            _exportKnowledge = exportKnowledge;
+            _useKnowledge = useKnowledge;
             _recognitionAlgorithm = recognitionAlgorithm;
+
+            foreach (var itemVotes in _knowledge.ItemsVotes)
+            {
+                if (!_useKnowledge)
+                    // knowledge won't be used
+                    break;
+
+                if (itemVotes.Value.Positive > 1)
+                    _agent.AcceptKnowledge(itemVotes.Key as EventBase);
+            }
         }
 
         public override ResponseBase Initialize()
@@ -51,9 +73,15 @@ namespace PerceptiveDialogBasedAgent
                 }
                 else
                 {
+                    var turnStartNode = _agent.LastBestNode;
                     response = _agent.Input(utterance.OriginalSentence);
+                    var turnEndNode = _agent.LastBestNode;
+
                     if (hasInformativeInput())
                         _hadInformativeInput = true;
+
+                    if (_exportKnowledge)
+                        voteForExportedEvents(turnStartNode, turnEndNode);
                 }
             }
             catch (Exception ex)
@@ -65,6 +93,28 @@ namespace PerceptiveDialogBasedAgent
             }
 
             return new SimpleResponse(response);
+        }
+
+        private void voteForExportedEvents(BeamNode turnStart, BeamNode turnEnd)
+        {
+            var currentNode = turnEnd;
+            while (currentNode != null)
+            {
+                if (currentNode == turnStart)
+                    break;
+
+                try
+                {
+                    if (!(currentNode.Evt is V4.Events.ExportEvent export))
+                        continue;
+
+                    _knowledge.Vote(export.ExportedEvent);
+                }
+                finally
+                {
+                    currentNode = currentNode.ParentNode;
+                }
+            }
         }
 
         private bool hasInformativeInput()

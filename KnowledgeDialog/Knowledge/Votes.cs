@@ -22,5 +22,10 @@ namespace KnowledgeDialog.Knowledge
             _positiveVotes += votes;
             _totalVotes += Math.Abs(votes);
         }
+
+        public override string ToString()
+        {
+            return $"votes: {Positive} / {Total}";
+        }
     }
 }

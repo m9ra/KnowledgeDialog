@@ -404,5 +404,18 @@ namespace PerceptiveDialogBasedAgent.V4
             a.Input("I would like to know more about the Bombay restaurant.");
             a.Input("Tell me about the prices in the restaurant.");
         }
+
+        internal static void FineTuning()
+        {
+            var a = new Agent();
+            a.Input("restuarant");
+            a.Input("restaurant");
+            a.Input("sure");
+            a.Input("find it");
+            a.Input("luxury");
+            a.Input("high style");
+            a.Input("price");
+            a.Input("expensive");
+        }
     }
 }

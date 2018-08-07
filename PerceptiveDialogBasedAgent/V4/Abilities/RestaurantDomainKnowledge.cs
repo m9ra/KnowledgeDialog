@@ -22,6 +22,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
                 .Description("pricy");
 
             DefineConcept("restaurant", out _restaurantClass)
+                .Description("restaurants")
                 .Description("venue to eat");
 
             DefineConcept("food", out var foodConcept)
@@ -40,7 +41,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             SetValues(_pricerangeProperty, Concept2.HasPropertyValue, expensiveConcept, moderateConcept, cheapConcept);
             SetValues(_restaurantClass, Concept2.HasProperty, _pricerangeProperty);
 
-            DefineRestaurant("Ceasar Palace", expensiveConcept);
+            DefineRestaurant("Caesar Palace", expensiveConcept);
             DefineRestaurant("Bombay", null);
             DefineRestaurant("Vapiano", moderateConcept);
             DefineRestaurant("Chinese Bistro", cheapConcept);

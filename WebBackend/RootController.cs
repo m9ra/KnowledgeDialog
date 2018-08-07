@@ -126,6 +126,20 @@ namespace WebBackend
             Render("omegle.haml");
         }
 
+        public void knowledge_votes()
+        {
+            var experimentId = GET("experiment_id");
+            var experiment = Program.Experiments.Get(experimentId);
+
+            var knowledge = experiment?.Knowledge ?? new GeneralVoteContainer(null);
+
+            SetParam("knowledge", knowledge);
+            SetParam("current_experiment_id", experimentId);
+
+            Layout("layout.haml");
+            Render("knowledge_votes.haml");
+        }
+
         public void knowledge()
         {
             var knowledgeIds = ExtractionKnowledge.RegisteredKnowledge.Select(k => k.StoragePath).ToArray();
@@ -525,6 +539,11 @@ namespace WebBackend
         public void learn_restaurant_property()
         {
             experimentHandler("learn_restaurant_property");
+        }
+
+        public void shared_phrase_restaurant1()
+        {
+            experimentHandler("shared_phrase_restaurant1");
         }
 
         /// <summary>

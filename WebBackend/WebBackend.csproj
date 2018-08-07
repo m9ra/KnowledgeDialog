@@ -126,6 +126,7 @@
     <Compile Include="DialogProvider\PhraseAgentWebConsole.cs" />
     <Compile Include="DialogProvider\QuestionCollectionWebConsole.cs" />
     <Compile Include="Experiment\AnnotatedActionEntry.cs" />
+    <Compile Include="Experiment\GeneralVoteContainer.cs" />
     <Compile Include="Experiment\GraphNavigationExperiment.cs" />
     <Compile Include="Experiment\AnswerExtractionExperiment.cs" />
     <Compile Include="Experiment\LearnRestaurantPropertyExperiment.cs" />
@@ -171,6 +172,7 @@
     <None Include="www\action_log.haml" />
     <None Include="www\annotate.haml" />
     <None Include="www\annotate2.haml" />
+    <None Include="www\knowledge_votes.haml" />
     <None Include="www\learn_restaurant_property.haml" />
     <None Include="www\restaurant_phrase.haml" />
     <None Include="www\graph_navigation.haml" />

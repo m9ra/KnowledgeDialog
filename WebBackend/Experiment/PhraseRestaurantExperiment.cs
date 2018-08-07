@@ -10,8 +10,14 @@ namespace WebBackend.Experiment
 {
     class PhraseRestaurantExperiment : ExperimentBase
     {
-        public PhraseRestaurantExperiment(string rootPath, string experimentId, int taskCount) : base(rootPath, experimentId)
+        private readonly bool _exportKnowledge;
+
+        private readonly bool _useKnowledge;
+
+        public PhraseRestaurantExperiment(string rootPath, string experimentId, int taskCount, bool exportKnowledge, bool useKnowledge) : base(rootPath, experimentId)
         {
+            _useKnowledge = useKnowledge;
+            _exportKnowledge = exportKnowledge;
 
             var writer = new CrowdFlowerCodeWriter(ExperimentRootPath, experimentId);
 
@@ -22,8 +28,8 @@ namespace WebBackend.Experiment
             }
 
             writer.Close();
-        } 
-        
+        }
+
         ///<inheritdoc/>
         internal override TaskInstance GetTask(int taskId)
         {
@@ -46,7 +52,7 @@ namespace WebBackend.Experiment
         ///<inheritdoc/>
         protected override WebConsoleBase createConsole(string databasePath)
         {
-            return new PhraseAgentWebConsole(PerceptiveDialogBasedAgent.OutputRecognitionAlgorithm.CeasarPalacePresence);
+            return new PhraseAgentWebConsole(PerceptiveDialogBasedAgent.OutputRecognitionAlgorithm.CeasarPalacePresence, Knowledge, _exportKnowledge, _useKnowledge);
         }
     }
 }

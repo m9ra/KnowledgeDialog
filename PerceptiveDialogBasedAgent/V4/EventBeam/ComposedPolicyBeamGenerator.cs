@@ -32,6 +32,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                 var outputs = part.Execute(this, previousTurnEvents, turnEvents, definedConcepts);
                 if (outputs.Length > 0)
                 {
+                    Push(new PolicyTagEvent(part.LastTag));
                     pushRandomOutput(outputs);
                     break;
                 }

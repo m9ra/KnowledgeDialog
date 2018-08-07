@@ -111,6 +111,7 @@
     <Compile Include="V4\Abilities\EssentialKnowledge.cs" />
     <Compile Include="V4\Abilities\ItReferenceResolver.cs" />
     <Compile Include="V4\Abilities\AssignUnknownProperty.cs" />
+    <Compile Include="V4\Abilities\RememberConceptDescription.cs" />
     <Compile Include="V4\Abilities\YesNoPrompt.cs" />
     <Compile Include="V4\Abilities\PropertyValueDisambiguation.cs" />
     <Compile Include="V4\Abilities\RememberPropertyValue.cs" />
@@ -135,6 +136,7 @@
     <Compile Include="V4\Events\PropertySetScoreEvent.cs" />
     <Compile Include="V4\Events\InstanceActiveEvent.cs" />
     <Compile Include="V4\Events\InformationReportEvent.cs" />
+    <Compile Include="V4\Events\PolicyTagEvent.cs" />
     <Compile Include="V4\Events\TurnEndEvent.cs" />
     <Compile Include="V4\Events\TurnStartEvent.cs" />
     <Compile Include="V4\Events\ParamDefinedEvent.cs" />
@@ -150,7 +152,10 @@
     <Compile Include="V4\Events\PropertySetEvent.cs" />
     <Compile Include="V4\Events\TracedScoreEventBase.cs" />
     <Compile Include="V4\Models\EventBasedNLG.cs" />
+    <Compile Include="V4\Policy\AfterDescriptionRemembered.cs" />
     <Compile Include="V4\Policy\AfterPropertyLearned.cs" />
+    <Compile Include="V4\Policy\AskForAliasAfterLearnUnknown.cs" />
+    <Compile Include="V4\Policy\CreateAliasHypothesis.cs" />
     <Compile Include="V4\Policy\LearnNewPhrase.cs" />
     <Compile Include="V4\Policy\AskForDisambiguation.cs" />
     <Compile Include="V4\Policy\LearnPropertyValue.cs" />

@@ -170,6 +170,11 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             // nothing do to do by default
         }
 
+        internal virtual void Visit(PolicyTagEvent evt)
+        {
+            // nothing to do by default
+        }
+
         internal virtual void Visit(EventBase evt)
         {
             throw new NotSupportedException("Unknown event");
@@ -245,6 +250,11 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         {
             var node = getCurrentNode();
             return GetAllEvents<InstanceActiveEvent>(node).Where(i => i.Request?.ActivationPhrases.Length > 0);
+        }
+
+        internal IEnumerable<InstanceActiveEvent> GetTurnLimitedDeactivatedInputActivatedInstances(int precedingTurns = 0)
+        {
+            return GetTurnEvents<CloseEvent>(0, ignoreCloseEvents: true).Select(e => e.ClosedEvent as InstanceActiveEvent).Where(e => e != null);
         }
 
         internal IEnumerable<ConceptInstance> GetValues(ConceptInstance instance, Concept2 property)
@@ -323,7 +333,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             }
         }
 
-        public IEnumerable<T> GetTurnEvents<T>(int precedingTurns = 0)
+        public IEnumerable<T> GetTurnEvents<T>(int precedingTurns = 0, bool ignoreCloseEvents = false)
             where T : EventBase
         {
             var closedEvents = new HashSet<T>();
@@ -333,7 +343,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             while (currentNode != null)
             {
                 var evt = currentNode.Evt;
-                if (evt is CloseEvent closingEvent)
+                if (!ignoreCloseEvents && evt is CloseEvent closingEvent)
                 {
                     if (closingEvent.ClosedEvent is T closedEvent)
                         closedEvents.Add(closedEvent);
@@ -367,7 +377,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         }
 
 
-        protected IEnumerable<T> GetAllEvents<T>(BeamNode node)
+        protected IEnumerable<T> GetAllEvents<T>(BeamNode node, bool ignoreCloseEvents = false)
           where T : EventBase
         {
             var closedEvents = new HashSet<T>();
@@ -376,7 +386,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             while (currentNode != null)
             {
                 var evt = currentNode.Evt;
-                if (evt is CloseEvent closingEvent)
+                if (!ignoreCloseEvents && evt is CloseEvent closingEvent)
                 {
                     if (closingEvent.ClosedEvent is T closedEvent)
                         closedEvents.Add(closedEvent);

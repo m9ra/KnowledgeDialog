@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V4.Events
 {
+    [Serializable]
     class ConceptDescriptionEvent : EventBase
     {
         public readonly Concept2 Concept;
@@ -26,7 +27,7 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 
         public override string ToString()
         {
-            return $"[description for {Concept.Name}]";
+            return $"[{Concept.Name} ~ {Description}]";
         }
     }
 }

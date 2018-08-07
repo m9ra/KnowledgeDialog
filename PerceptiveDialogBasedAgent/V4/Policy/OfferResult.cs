@@ -18,7 +18,17 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
 
             var concept = evt.Instance.Concept;
 
-            if (concept == Concept2.NotFound)
+
+            if (concept == Concept2.DisambiguatedKnowledgeConfirmed)
+            {
+                var disamb = Find<InformationPartEvent>(s => !s.IsFilled && s.Subject?.Concept == Concept2.PropertyValueDisambiguation, precedingTurns: 1);
+                var confirmed = generator.GetValue(evt.Instance, Concept2.Subject);
+                var disambiguator = generator.GetValue(evt.Instance, Concept2.Target);
+                generator.Push(new InformationPartEvent(disambiguator, Concept2.Answer, null));
+
+                yield return $"I know it is {singular(confirmed)} already. Could you be more specific?";
+            }
+            else if (concept == Concept2.NotFound)
             {
                 yield return $"I don't know anything like that.";
             }

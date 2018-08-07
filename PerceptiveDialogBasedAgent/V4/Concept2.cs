@@ -1,23 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V4
 {
-    class Concept2
+    [Serializable]
+    class Concept2 : ISerializable
     {
         private readonly Dictionary<Concept2, PointableInstance> _propertyValues = new Dictionary<Concept2, PointableInstance>();
 
         private static readonly Dictionary<string, Concept2> _definedConcepts = new Dictionary<string, Concept2>();
 
+        public readonly static Concept2 LearnNewPhrase = Concept("learn new phrase");
         public readonly static Concept2 AcceptNewProperty = Concept("accept new property");
         public readonly static Concept2 OptionPrompt = Concept("option prompt");
         public readonly static Concept2 Option = Concept("option");
         public readonly static Concept2 HasPropertyValue = Concept("has property value"); // joins properties with their values
         public readonly static Concept2 HasProperty = Concept("has property"); // joins classes with properties
         public readonly static Concept2 What = Concept("what");
+        public readonly static Concept2 DisambiguatedKnowledgeConfirmed = Concept("disambiguated knowledge confirmed");
         public readonly static Concept2 KnowledgeConfirmed = Concept("knowledge confirmed");
         public readonly static Concept2 KnowledgeRefutation = Concept("knowledge refutation");
         public readonly static Concept2 RememberPropertyValue = Concept("remember property value");
@@ -45,6 +49,7 @@ namespace PerceptiveDialogBasedAgent.V4
         public readonly static Concept2 DontKnow = Concept("dont know").AddDescription("i dont know").AddDescription("dunno");
         public readonly static Concept2 It = Concept("it").AddDescription("reference");
         public readonly static Concept2 Output = Concept("output");
+        public readonly static Concept2 Description = Concept("description");
         public readonly static Concept2 Subject = Concept("subject").SetPropertyValue(Parameter, new ConceptInstance(Yes));
         public readonly static Concept2 Property = Concept("property");
         public readonly static Concept2 Unknown = Concept("unknown");
@@ -55,6 +60,7 @@ namespace PerceptiveDialogBasedAgent.V4
         public readonly static Concept2 ConceptName = Concept("concept name");
         public readonly static Concept2 Invocation = Concept("invocation").SetPropertyValue(Subject, new ConceptInstance(Concept2.Something));
         public readonly static Concept2 ActionToExecute = Concept("action to execute");
+        public readonly static Concept2 RememberConceptDescription = Concept("remember concept description");
 
         public readonly string Name;
 
@@ -109,10 +115,30 @@ namespace PerceptiveDialogBasedAgent.V4
             return values;
         }
 
+        void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.SetType(typeof(ConceptSerializationHelper));
+            info.AddValue("Name", Name);
+            info.AddValue("IsNative", IsNative);
+        }
+
         /// </inheritdoc>
         public override string ToString()
         {
             return "'" + Name + "' D: " + _descriptions.Count;
+        }
+    }
+
+    [Serializable]
+    internal sealed class ConceptSerializationHelper : IObjectReference
+    {
+        private string Name = null;
+
+        private bool IsNative = false;
+
+        public Object GetRealObject(StreamingContext context)
+        {
+            return Concept2.From(Name, IsNative);
         }
     }
 }

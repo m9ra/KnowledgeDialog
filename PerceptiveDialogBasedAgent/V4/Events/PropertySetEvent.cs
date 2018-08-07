@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V4.Events
 {
+    [Serializable]
     class PropertySetEvent : EventBase
     {
         internal readonly PropertySetTarget Target;

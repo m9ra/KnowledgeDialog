@@ -22,6 +22,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             Description("give");
             Description("tell");
             Description("get");
+            Description("need");
             Description("want");
             Description("lookup");
             Description("look");
@@ -43,6 +44,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
 
             if (result.Count == 0)
             {
+                generator.Push(new StaticScoreEvent(-0.2));
                 generator.Push(new InformationReportEvent(new ConceptInstance(Concept2.NotFound)));
             }
             else if (result.Count == 1)

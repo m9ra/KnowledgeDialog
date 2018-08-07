@@ -50,10 +50,13 @@ namespace PerceptiveDialogBasedAgent.V4
             _beam.RegisterAbility(new YesNoPrompt());
             _beam.RegisterAbility(new AssignUnknownProperty());
             _beam.RegisterAbility(new PropertyValueDisambiguation());
+            _beam.RegisterAbility(new RememberConceptDescription());
 
             //NOTE: Ordering of policy parts matters
             _beam.AddPolicyPart(new HowCanIHelpYouFallback());
             _beam.AddPolicyPart(new RequestActionWithKnownConfirmation());
+            _beam.AddPolicyPart(new AfterDescriptionRemembered());
+            _beam.AddPolicyPart(new AskForAliasAfterLearnUnknown());
             _beam.AddPolicyPart(new LearnNewPhrase());
             _beam.AddPolicyPart(new LearnPropertyValue());
             _beam.AddPolicyPart(new AfterPropertyLearned());
@@ -68,6 +71,11 @@ namespace PerceptiveDialogBasedAgent.V4
             _beam.AddPolicyPart(new LearnUnknownForRefinement());
 
 
+        }
+
+        internal void AcceptKnowledge(EventBase evt)
+        {
+            _beam.PushToAll(evt);
         }
 
         internal string Input(string originalSentence)

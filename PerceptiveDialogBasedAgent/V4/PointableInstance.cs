@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace PerceptiveDialogBasedAgent.V4
 {
+    [Serializable]
     abstract class PointableInstance
     {
         internal readonly Phrase ActivationPhrase;

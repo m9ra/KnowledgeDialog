@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KnowledgeDialog.Knowledge;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,8 +11,15 @@ namespace WebBackend.Experiment
 {
     class LearnRestaurantPropertyExperiment : ExperimentBase
     {
-        public LearnRestaurantPropertyExperiment(string rootPath, string experimentId, int taskCount) : base(rootPath, experimentId)
+        private readonly bool _exportKnowledge;
+
+        private readonly bool _useKnowledge;
+
+        public LearnRestaurantPropertyExperiment(string rootPath, string experimentId, int taskCount, bool exportKnowledge, bool useKnowledge) : base(rootPath, experimentId)
         {
+            _exportKnowledge = exportKnowledge;
+            _useKnowledge = useKnowledge;
+
             var writer = new CrowdFlowerCodeWriter(ExperimentRootPath, experimentId);
 
             //generate all tasks
@@ -21,8 +29,8 @@ namespace WebBackend.Experiment
             }
 
             writer.Close();
-        } 
-        
+        }
+
         ///<inheritdoc/>
         internal override TaskInstance GetTask(int taskId)
         {
@@ -45,7 +53,9 @@ namespace WebBackend.Experiment
         ///<inheritdoc/>
         protected override WebConsoleBase createConsole(string databasePath)
         {
-            return new PhraseAgentWebConsole(PerceptiveDialogBasedAgent.OutputRecognitionAlgorithm.NewBombayProperty);
+            var console = new PhraseAgentWebConsole(PerceptiveDialogBasedAgent.OutputRecognitionAlgorithm.NewBombayProperty, Knowledge, _exportKnowledge, _useKnowledge);
+            return console;
         }
+
     }
 }

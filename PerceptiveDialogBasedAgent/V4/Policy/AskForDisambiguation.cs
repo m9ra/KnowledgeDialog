@@ -17,6 +17,9 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             if (evt == null)
                 yield break;
 
+            generator.Push(evt);
+
+
             var disambiguation = evt.Subject;
             var unknown = generator.GetValue(disambiguation, Concept2.Unknown);
             var candidates = generator.GetValues(disambiguation, Concept2.Subject);
@@ -28,16 +31,19 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
                 candidateProperties.Add(relevantProperty.Concept);
             }
 
-            generator.Push(evt);
 
-            if (candidateProperties.Count > 1)
-            {
-                yield return $"What does {singular(unknown)} mean ?";
-            }
-            else
+            if (candidateProperties.Count == 1)
             {
                 var candidateString = string.Join(", ", candidates.Select(c => singular(c.Concept)));
                 yield return $"I can recognize {candidateString} as {plural(candidateProperties.First())}. Which of them is related to {singular(unknown)}?";
+            }else if (candidateProperties.Count < 4)
+            {
+                var candidateString = string.Join(" or ", candidateProperties.Select(c => singular(c)));
+                yield return $"I think, It can be {candidateString}. Which fits best the meaning of {singular(unknown)}?";
+            }
+            else
+            {
+                yield return $"What does {singular(unknown)} mean ?";
             }
         }
     }

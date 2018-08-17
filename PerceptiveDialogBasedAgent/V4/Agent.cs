@@ -51,26 +51,34 @@ namespace PerceptiveDialogBasedAgent.V4
             _beam.RegisterAbility(new AssignUnknownProperty());
             _beam.RegisterAbility(new PropertyValueDisambiguation());
             _beam.RegisterAbility(new RememberConceptDescription());
+            _beam.RegisterAbility(new CollectNewConceptLearning());
 
             //NOTE: Ordering of policy parts matters
             _beam.AddPolicyPart(new HowCanIHelpYouFallback());
             _beam.AddPolicyPart(new RequestActionWithKnownConfirmation());
             _beam.AddPolicyPart(new AfterDescriptionRemembered());
-            _beam.AddPolicyPart(new AskForAliasAfterLearnUnknown());
+
             _beam.AddPolicyPart(new LearnNewPhrase());
+            _beam.AddPolicyPart(new UnknownAnsweredToLearnNewPhrase());
+            _beam.AddPolicyPart(new RememberDescriptionAfterLearnNewPhrase());
             _beam.AddPolicyPart(new LearnPropertyValue());
             _beam.AddPolicyPart(new AfterPropertyLearned());
+
+            _beam.AddPolicyPart(new UnknownAnsweredToRefinement());
+
             _beam.AddPolicyPart(new RequestSubstitution());
-            _beam.AddPolicyPart(new AssignUnknownValue());
+            _beam.AddPolicyPart(new RequestSubstitutionWithUnknown());
+
+            _beam.AddPolicyPart(new RequestNewPropertyExplanation());
+            _beam.AddPolicyPart(new ReaskAssignUnknownValue());
 
             _beam.AddPolicyPart(new AskForDisambiguation());
             _beam.AddPolicyPart(new ReaskDisambiguation());
 
             _beam.AddPolicyPart(new OfferResult());
+            _beam.AddPolicyPart(new ProcessCollectedNewConceptLearning());
             _beam.AddPolicyPart(new RequestRefinement());
             _beam.AddPolicyPart(new LearnUnknownForRefinement());
-
-
         }
 
         internal void AcceptKnowledge(EventBase evt)

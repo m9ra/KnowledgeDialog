@@ -8,14 +8,15 @@ using PerceptiveDialogBasedAgent.V4.EventBeam;
 
 namespace PerceptiveDialogBasedAgent.V4.Policy
 {
-    class AskForAliasAfterLearnUnknown : PolicyPartBase
+    class RememberDescriptionAfterLearnNewPhrase : PolicyPartBase
     {
         protected override IEnumerable<string> execute(BeamGenerator generator)
         {
-            if (!PreviousPolicy<LearnNewPhrase>(out var policyTag))
+            var askedForLearning = PreviousPolicy<LearnNewPhrase>(out var policyTag) || PreviousPolicy<UnknownAnsweredToLearnNewPhrase>(out policyTag);
+            if (!askedForLearning)
                 yield break;
 
-            var instances = FindTurnInstances();
+            var instances = FindTurnInstances().ToArray();
             if (instances.Count() != 1)
                 yield break;
 

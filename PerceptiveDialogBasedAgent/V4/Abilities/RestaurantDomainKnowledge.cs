@@ -9,12 +9,14 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
     class RestaurantDomainKnowledge : KnowledgeAbilityBase
     {
         private readonly Concept2 _pricerangeProperty = Concept2.From("pricerange");
+        private readonly Concept2 _addressProperty = Concept2.From("address");
         private readonly Concept2 _nameProperty = Concept2.From("name");
         private readonly Concept2 _restaurantClass = Concept2.From("restaurant");
 
         public RestaurantDomainKnowledge()
         {
             DefineConcept("name", out _nameProperty);
+            DefineConcept("address", out _addressProperty);
             DefineConcept("pricerange", out _pricerangeProperty)
                 .Description("price")
                 //.Description("prices")
@@ -41,13 +43,13 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             SetValues(_pricerangeProperty, Concept2.HasPropertyValue, expensiveConcept, moderateConcept, cheapConcept);
             SetValues(_restaurantClass, Concept2.HasProperty, _pricerangeProperty);
 
-            DefineRestaurant("Caesar Palace", expensiveConcept);
-            DefineRestaurant("Bombay", null);
-            DefineRestaurant("Vapiano", moderateConcept);
-            DefineRestaurant("Chinese Bistro", cheapConcept);
+            DefineRestaurant("Caesar Palace", expensiveConcept, Concept2.From("Balleary Street"));
+            DefineRestaurant("Bombay", null, Concept2.From("V Parku"));
+            DefineRestaurant("Vapiano", moderateConcept, Concept2.From("Chodov Avenue"));
+            DefineRestaurant("Chinese Bistro", cheapConcept, Concept2.From("Montreal"));
         }
 
-        internal void DefineRestaurant(string name, Concept2 pricerange, params string[] descriptions)
+        internal void DefineRestaurant(string name, Concept2 pricerange, Concept2 address, params string[] descriptions)
         {
             DefineConcept(name, out var restaurantConcept)
                 .Property(Concept2.InstanceOf, _restaurantClass)
@@ -57,10 +59,16 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             if (pricerange != null)
                 Property(_pricerangeProperty, pricerange);
 
+            Property(_addressProperty, address);
+
             foreach (var description in descriptions)
             {
                 Description(description);
             }
+
+            DefineConcept(address);
+            SetValues(address, Concept2.InstanceOf, _addressProperty);
+            SetValues(_addressProperty, Concept2.HasPropertyValue, address);
         }
     }
 }

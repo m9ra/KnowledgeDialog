@@ -417,5 +417,15 @@ namespace PerceptiveDialogBasedAgent.V4
             a.Input("price");
             a.Input("expensive");
         }
+
+        internal static void RepetitiveQuestions()
+        {
+            var a = new Agent();
+            a.Input("find luxury restaurant");
+            a.Input("yes");
+            a.Input("high style");
+            a.Input("pricerange");
+            a.Input("expensive");
+        }
     }
 }

@@ -13,8 +13,8 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
     {
         protected override IEnumerable<string> execute(BeamGenerator generator)
         {
-            var unknownPhrases = getUnknownPhrases(generator).ToArray();
-            if (unknownPhrases.Length == 0)
+            var unknownPhrases = GetUnknownPhrases(generator).ToArray();
+            if (unknownPhrases.Length != 1)
                 yield break;
 
             var phraseToAsk = unknownPhrases.First();
@@ -32,45 +32,15 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             };
 
             var prompt = OptionPrompt.CreatePrompt(options, generator);
+
+            //remember runtime info so others can use it
+            generator.SetValue(TagInstance, Concept2.Unknown, newConceptInstance);
+            generator.SetValue(TagInstance, Concept2.Prompt, prompt);
+
             generator.Push(new InstanceActivationRequestEvent(prompt));
             generator.SetValue(TagInstance, Concept2.Unknown, newConceptInstance);
 
             yield return $"What does '{unknownPhrases.First()}' mean?";
-        }
-
-        private IEnumerable<string> getUnknownPhrases(BeamGenerator generator)
-        {
-            var allInputPhrases = GetMany<InputPhraseEvent>();
-
-            var currentBuffer = new List<InputPhraseEvent>();
-            foreach (var inputPhrase in allInputPhrases)
-            {
-                var phrase = inputPhrase;
-
-                if (generator.IsInputUsed(phrase) || isDelimiter(inputPhrase))
-                {
-                    if (currentBuffer.Count > 0)
-                        yield return composeUnknownPhrase(currentBuffer);
-
-                    currentBuffer.Clear();
-                    continue;
-                }
-                currentBuffer.Add(phrase);
-            }
-
-            if (currentBuffer.Count > 0)
-                yield return composeUnknownPhrase(currentBuffer);
-        }
-
-        private bool isDelimiter(InputPhraseEvent inputPhrase)
-        {
-            var phrase = inputPhrase.Phrase;
-            return new[] { "in", "from", "out", "of", "i", "am", "iam", "i'am", "where", "what", "mean" }.Contains(phrase);
-        }
-
-        private string composeUnknownPhrase(IEnumerable<InputPhraseEvent> currentBuffer)
-        {
-            return string.Join(" ", currentBuffer.Select(i => i.Phrase));
         }
     }
 }

@@ -19,8 +19,26 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             var instanceConcept = request.Subject?.Concept;
             if (instanceConcept == Concept2.What)
             {
+                var subject = generator.GetValue(request.Subject, Concept2.Subject);
+                var property = generator.GetValue(request.Subject, Concept2.Property);
+
                 generator.Push(request);
-                yield return "What are you interested in?";
+
+
+                if (subject == null && property != null)
+                {
+                    yield return $"{singular(property)} of what ?";
+                }
+                else if (property == null && subject != null)
+                {
+                    yield return $"What are you interested in about {singular(subject)} ?";
+                }
+                else
+                {
+                    yield return "What are you interested in?";
+
+                }
+
             }
             else
             {

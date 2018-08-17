@@ -11,6 +11,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
     {
         protected override IEnumerable<string> execute(BeamGenerator generator)
         {
+            generator.Push(new Events.StaticScoreEvent(-0.5));
             yield return "How can I help you?";
             yield return "I need to know what should I do.";
             yield return "Please, tell me what should I do.";

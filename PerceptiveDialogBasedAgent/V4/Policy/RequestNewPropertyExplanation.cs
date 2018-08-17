@@ -10,22 +10,23 @@ using PerceptiveDialogBasedAgent.V4.Primitives;
 
 namespace PerceptiveDialogBasedAgent.V4.Policy
 {
-    class AssignUnknownValue : PolicyPartBase
+    class RequestNewPropertyExplanation : PolicyPartBase
     {
         protected override IEnumerable<string> execute(BeamGenerator generator)
         {
-            var unknownPhrases = getUnknownPhrases(generator);
+            var unknownPhrases = getUnknownPhrases(generator).ToArray();
+
             var substitutionRequest = Get<InformationPartEvent>(p => !p.IsFilled, searchInsideTurnOnly: false);
-            if (unknownPhrases.Count() != 1 || substitutionRequest == null || substitutionRequest.Subject == null)
+            if (PreviousPolicy<LearnNewPhrase>(out _) || unknownPhrases.Count() != 1 || substitutionRequest == null || substitutionRequest.Subject == null)
                 yield break;
 
             var unknownPhrase = unknownPhrases.FirstOrDefault();
-            var assignUnknownProperty = new ConceptInstance(Concept2.AssignUnknownProperty);
-            var unknownPropertyCandidate = new ConceptInstance(Concept2.From(unknownPhrase));
 
+            var unknownPropertyCandidate = new ConceptInstance(Concept2.From(unknownPhrase));
             var newPropertyAssignment = Find<PropertySetEvent>(p => p.Target.Property == Concept2.HasProperty && p.SubstitutedValue?.Concept == substitutionRequest.Property, precedingTurns: 1);
             if (newPropertyAssignment != null)
             {
+                //in the previous turn, new property was registered - this might be its value
                 var remember = RememberPropertyValue.Create(generator, new PropertySetTarget(substitutionRequest.Subject, substitutionRequest.Property), unknownPropertyCandidate);
                 YesNoPrompt.Generate(generator, remember, new ConceptInstance(Concept2.Nothing));
 
@@ -33,6 +34,11 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
                 yield break;
             }
 
+            // Unknown value when substitution is required was observed
+            // TODO detect whether request is for parameter (then nothing to do here)
+            // or try to learn new property value
+            /*
+            var assignUnknownProperty = new ConceptInstance(Concept2.AssignUnknownProperty);
             generator.SetValue(assignUnknownProperty, Concept2.Subject, unknownPropertyCandidate);
 
             //TODO incorporate target property
@@ -40,6 +46,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             generator.Push(new InstanceActivationRequestEvent(assignUnknownProperty));
 
             yield return $"What does {unknownPhrase} mean?";
+            */
         }
 
         private IEnumerable<string> getUnknownPhrases(BeamGenerator generator)

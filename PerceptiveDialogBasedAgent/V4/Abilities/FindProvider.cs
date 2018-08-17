@@ -27,6 +27,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             Description("lookup");
             Description("look");
             Description("search");
+            Description("what");
         }
 
         protected override void onInstanceActivated(ConceptInstance instance, BeamGenerator generator)

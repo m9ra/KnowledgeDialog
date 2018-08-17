@@ -120,6 +120,12 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             return _definedConcepts.Contains(concept);
         }
 
+        protected bool PreviousPolicy<T>()
+    where T : PolicyPartBase
+        {
+            return PreviousPolicy<T>(out _);
+        }
+
         protected bool PreviousPolicy<T>(out PolicyTagEvent tag)
             where T : PolicyPartBase
         {
@@ -128,6 +134,41 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             tag = _turnEvents.Where(e => e is PolicyTagEvent tagEvt && tagEvt.Tag.Concept == policyConcept).FirstOrDefault() as PolicyTagEvent;
 
             return tag != null;
+        }
+
+        protected IEnumerable<string> GetUnknownPhrases(BeamGenerator generator)
+        {
+            var allInputPhrases = GetMany<InputPhraseEvent>();
+
+            var currentBuffer = new List<InputPhraseEvent>();
+            foreach (var inputPhrase in allInputPhrases)
+            {
+                var phrase = inputPhrase;
+
+                if (generator.IsInputUsed(phrase) || isDelimiter(inputPhrase))
+                {
+                    if (currentBuffer.Count > 0)
+                        yield return composeUnknownPhrase(currentBuffer);
+
+                    currentBuffer.Clear();
+                    continue;
+                }
+                currentBuffer.Add(phrase);
+            }
+
+            if (currentBuffer.Count > 0)
+                yield return composeUnknownPhrase(currentBuffer);
+        }
+
+        private bool isDelimiter(InputPhraseEvent inputPhrase)
+        {
+            var phrase = inputPhrase.Phrase;
+            return new[] { "is", "can", "will", "in", "from", "out", "of", "i", "am", "iam", "i'am", "where", "what", "mean" }.Contains(phrase);
+        }
+
+        private string composeUnknownPhrase(IEnumerable<InputPhraseEvent> currentBuffer)
+        {
+            return string.Join(" ", currentBuffer.Select(i => i.Phrase));
         }
 
         protected string singular(ConceptInstance instance)

@@ -16,6 +16,15 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             AddParameter(Concept2.Target);
         }
 
+        internal static ConceptInstance Create(ConceptInstance instanceToRefine, string unknown, BeamGenerator generator)
+        {
+            var assignUnknownProperty = new ConceptInstance(Concept2.AssignUnknownProperty);
+            var unknownPropertyCandidate = new ConceptInstance(Concept2.From(unknown));
+            generator.SetValue(assignUnknownProperty, Concept2.Subject, unknownPropertyCandidate);
+            generator.SetValue(assignUnknownProperty, Concept2.Target, instanceToRefine);
+            return assignUnknownProperty;
+        }
+
         protected override void onInstanceActivated(ConceptInstance instance, BeamGenerator generator)
         {
             var subject = generator.GetValue(instance, Concept2.Subject);

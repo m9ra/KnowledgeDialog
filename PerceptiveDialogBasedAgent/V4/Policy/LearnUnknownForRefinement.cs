@@ -43,10 +43,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
               yield return $"I know many {plural(instanceToRefine)} which one would you like?";*/
 
 
-            var assignUnknownProperty = new ConceptInstance(Concept2.AssignUnknownProperty);
-            var unknownPropertyCandidate = new ConceptInstance(Concept2.From(propertyUnknown));
-            generator.SetValue(assignUnknownProperty, Concept2.Subject, unknownPropertyCandidate);
-            generator.SetValue(assignUnknownProperty, Concept2.Target, instanceToRefine);
+            var assignUnknownProperty = AssignUnknownProperty.Create(instanceToRefine, propertyUnknown, generator);
 
             YesNoPrompt.Generate(generator, assignUnknownProperty, instanceToRefine);
             yield return $"So, you would like to find {plural(instanceToRefine)} which are {propertyUnknown}?";

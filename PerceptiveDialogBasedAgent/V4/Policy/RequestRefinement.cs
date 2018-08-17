@@ -18,8 +18,12 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
                 yield break;
 
             var instanceToRefine = generator.GetValue(evt.Instance, Concept2.Subject);
-            generator.Push(new InformationPartEvent(instanceToRefine, Concept2.Something, null));
+            
+            // let following policies know about the refinement target
+            generator.SetValue(TagInstance, Concept2.Target, instanceToRefine);
 
+            // generate a question
+            generator.Push(new InformationPartEvent(instanceToRefine, Concept2.Something, null));
             yield return $"I know many {plural(instanceToRefine)} which one would you like?";
         }
     }

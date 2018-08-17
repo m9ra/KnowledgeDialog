@@ -8,11 +8,11 @@ using PerceptiveDialogBasedAgent.V4.Events;
 
 namespace PerceptiveDialogBasedAgent.V4.Policy
 {
-    class ReaskDisambiguation : PolicyPartBase
+    class ReaskAssignUnknownValue : PolicyPartBase
     {
         protected override IEnumerable<string> execute(BeamGenerator generator)
         {
-            var evt = Find<InformationPartEvent>(s => !s.IsFilled && s.Subject?.Concept == Concept2.PropertyValueDisambiguation, precedingTurns: 1);
+            var evt = Find<InformationPartEvent>(s => !s.IsFilled && s.Subject?.Concept == Concept2.AssignUnknownProperty, precedingTurns: 1);
             if (evt == null)
                 yield break;
 
@@ -21,9 +21,8 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
 
             // retry the event
             generator.Push(evt);
-            yield return $"I'm sorry, it did not help me. What does {singular(unknown)} mean?";
-            yield return $"I can't see any clues there. What does {singular(unknown)} mean?";
-            yield return $"It seems to be complicated. What does {singular(unknown)} mean?";
+            yield return $"I'm sorry, I don't understand that either. What does {singular(unknown)} mean?";
+            yield return $"It seems to be very complicated. What does {singular(unknown)} mean?";
         }
     }
 }

@@ -40,7 +40,9 @@ namespace PerceptiveDialogBasedAgent.V4
             utterance = utterance.Replace(",", " ").Replace(".", " ").Replace("?", " ").Replace("!", " ").Replace("  ", " ").Replace("  ", " ");
             utterance = utterance.Replace("'nt ", " not ");
             utterance = utterance.Replace("'s ", " is ");//TODO 's can also expand to has
+            utterance = utterance.Replace("’s ", " is ");
             utterance = utterance.Replace("'re ", " are ");
+            utterance = utterance.Replace("’re ", " are ");
             return utterance.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
         }
 

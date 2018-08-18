@@ -17,6 +17,10 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
                 yield break;
 
             var instanceConcept = request.Subject?.Concept;
+
+            if (instanceConcept.Name == "the" || instanceConcept.Name == "a")
+                yield break;
+
             if (instanceConcept == Concept2.What)
             {
                 var subject = generator.GetValue(request.Subject, Concept2.Subject);

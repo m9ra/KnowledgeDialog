@@ -124,7 +124,8 @@ namespace WebBackend
                 new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant4", 10, exportKnowledge: true, useKnowledge: false),
                 new LearnRestaurantPropertyExperiment(experimentsRootPath, "learn_restaurant_property", 10, exportKnowledge: true, useKnowledge: false),
                 new PhraseRestaurantExperiment(experimentsRootPath, "shared_phrase_restaurant1", 10, exportKnowledge: true, useKnowledge: true),
-                new PhraseRestaurantExperiment(experimentsRootPath, "shared_phrase_restaurant2", 10, exportKnowledge: true, useKnowledge: true)
+                new PhraseRestaurantExperiment(experimentsRootPath, "shared_phrase_restaurant2", 10, exportKnowledge: true, useKnowledge: true),
+                new LearnRestaurantPropertyExperiment(experimentsRootPath, "learn_restaurant_property2", 10, exportKnowledge: true, useKnowledge: true)
                 );
 
             //QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "qdd_extension_r_");

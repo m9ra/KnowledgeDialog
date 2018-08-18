@@ -24,8 +24,10 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             var targetProperty = generator.GetValue(instance, Concept2.TargetProperty);
             var subject = generator.GetValue(instance, Concept2.Subject);
 
-            var setTarget = new PropertySetTarget(target, targetProperty.Concept);
-            generator.Push(new ExportEvent(new PropertySetEvent(setTarget, subject)));
+            var generalTarget = new PropertySetTarget(target.Concept, targetProperty.Concept);
+            var setEvent = new PropertySetEvent(generalTarget, subject);
+            generator.Push(new ExportEvent(setEvent));
+            generator.Push(setEvent);
             if (generator.IsDefined(instance.Concept))
                 generator.Push(new InformationReportEvent(instance));
         }

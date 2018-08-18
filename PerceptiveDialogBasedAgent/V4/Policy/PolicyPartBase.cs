@@ -144,8 +144,9 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             foreach (var inputPhrase in allInputPhrases)
             {
                 var phrase = inputPhrase;
+                var isPhraseDisconnected = currentBuffer.Count > 0 && phrase.InputId - currentBuffer.Last().InputId != 1;
 
-                if (generator.IsInputUsed(phrase) || isDelimiter(inputPhrase))
+                if (generator.IsInputUsed(phrase) || isDelimiter(inputPhrase) || isPhraseDisconnected)
                 {
                     if (currentBuffer.Count > 0)
                         yield return composeUnknownPhrase(currentBuffer);

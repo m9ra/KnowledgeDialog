@@ -21,6 +21,8 @@ namespace WebBackend
 
         public virtual bool IsComplete { get { return _turns > 3 && _containsAnswer; } }
 
+        public virtual int SuccessCode { get; protected set; }
+
         public string Text { get { return string.Format(TaskFormat, Substitutions.Select(s => "'" + s.Data + "'").ToArray()); } }
 
         internal readonly int ValidationCodeKey;

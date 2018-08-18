@@ -12,6 +12,9 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
     {
         internal PartialDoYouKnow() : base("partial do you know")
         {
+            Description("do you know");
+            Description("do know");
+            Description("you know that");
             AddParameter(Concept2.Subject);
             AddParameter(Concept2.Property);
         }
@@ -29,6 +32,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
                 var refutedInfo = new ConceptInstance(subject.Concept);
                 generator.SetValue(refutedInfo, property.Concept, new ConceptInstance(Concept2.Something));
                 generator.SetValue(refutation, Concept2.Subject, refutedInfo);
+                generator.SetValue(refutation, Concept2.Property, property);
                 generator.Push(new InformationReportEvent(refutation));
             }
             else

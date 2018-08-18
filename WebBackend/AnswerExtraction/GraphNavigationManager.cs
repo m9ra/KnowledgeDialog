@@ -27,6 +27,8 @@ namespace WebBackend.AnswerExtraction
 
         public bool CanBeCompleted { get; private set; }
 
+        public int SuccessCode { get; private set; }
+
         private static readonly string _edgeTag = "[edge]";
 
         private static readonly string _label1Tag = "[label1]";

@@ -48,6 +48,8 @@ namespace WebBackend.Task
 
             if (_informativeTurnCount >= _requiredInformativeTurnCount && provider.CanBeCompleted)
                 _isComplete = true;
+
+            SuccessCode = provider.SuccessCode;
         }
     }
 }

@@ -15,7 +15,7 @@ using PerceptiveDialogBasedAgent.V4.EventBeam;
 
 namespace PerceptiveDialogBasedAgent
 {
-    public enum OutputRecognitionAlgorithm { CeasarPalacePresence, NewBombayProperty };
+    public enum OutputRecognitionAlgorithm { CeasarPalacePresence, NewBombayProperty, BombayPresenceOrModerateSearchFallback };
 
     public class PhraseAgentManager : CollectionManagerBase, IInformativeFeedbackProvider
     {
@@ -36,6 +36,8 @@ namespace PerceptiveDialogBasedAgent
         private bool _exportKnowledge = true;
 
         private bool _useKnowledge = false;
+
+        public int SuccessCode { get; private set; }
 
         public PhraseAgentManager(OutputRecognitionAlgorithm recognitionAlgorithm, VoteContainer<object> knowledge, bool exportKnowledge, bool useKnowledge)
         {
@@ -108,6 +110,7 @@ namespace PerceptiveDialogBasedAgent
                     if (!(currentNode.Evt is V4.Events.ExportEvent export))
                         continue;
 
+                    LogMessage(export.ExportedEvent.ToString());
                     _knowledge.Vote(export.ExportedEvent);
                 }
                 finally
@@ -122,8 +125,24 @@ namespace PerceptiveDialogBasedAgent
             switch (_recognitionAlgorithm)
             {
                 case OutputRecognitionAlgorithm.CeasarPalacePresence:
-                    var lastOutput = _agent.LastOutput;
-                    return lastOutput.ToLowerInvariant().Contains("caesar");
+                    {
+                        var lastOutput = _agent.LastOutput;
+                        return lastOutput.ToLowerInvariant().Contains("caesar");
+                    }
+
+                case OutputRecognitionAlgorithm.BombayPresenceOrModerateSearchFallback:
+                    {
+                        if (containsBombay())
+                            return true;
+
+                        if (containsModerateSearch())
+                        {
+                            SuccessCode = -1;
+                            return true;
+                        }
+
+                        return false;
+                    }
 
                 case OutputRecognitionAlgorithm.NewBombayProperty:
                     var currentNode = _agent.LastBestNode;
@@ -138,7 +157,8 @@ namespace PerceptiveDialogBasedAgent
                                 continue;
 
                             var instance = propertySet.Target.Instance;
-                            if (instance != null && instance.Concept.Name.ToLowerInvariant().Contains("bombay"))
+                            var concept = propertySet.Target.Concept ?? propertySet.Target.Instance.Concept;
+                            if (concept != null && concept.Name.ToLowerInvariant().Contains("bombay"))
                                 return true;
                         }
                         finally
@@ -151,6 +171,47 @@ namespace PerceptiveDialogBasedAgent
                 default:
                     throw new NotImplementedException("Unknown recognition algorithm " + _recognitionAlgorithm);
             }
+        }
+
+        private bool containsModerateSearch()
+        {
+            var currentNode = _agent.LastBestNode;
+
+            var hadFind = false;
+            var hadModerate = false;
+            var hadRestaurant = false;
+            while (currentNode != null && currentNode.Evt != null)
+            {
+                try
+                {
+                    var str = currentNode.Evt.ToString();
+                    hadFind |= str.Contains("find");
+                    hadModerate |= str.Contains("moderate");
+                    hadRestaurant |= str.Contains("restaurant");
+
+                    if (currentNode.Evt is TurnEndEvent)
+                    {
+                        if (hadFind && hadModerate && hadRestaurant)
+                            return true;
+
+                        //reset after turn passed
+                        hadFind = false;
+                        hadModerate = false;
+                        hadRestaurant = false;
+                    }
+                }
+                finally
+                {
+                    currentNode = currentNode.ParentNode;
+                }
+            }
+            return false;
+        }
+
+        private bool containsBombay()
+        {
+            var lastOutput = _agent.LastOutput;
+            return lastOutput.ToLowerInvariant().Contains("bombay");
         }
     }
 }

@@ -14,12 +14,12 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
     {
         protected override IEnumerable<string> execute(BeamGenerator generator)
         {
-            var unknownPhrases = getUnknownPhrases(generator).ToArray();
+            var unknownPhrases = GetUnknownPhrases(generator).ToArray();
 
             var substitutionRequest = Get<InformationPartEvent>(p => !p.IsFilled, searchInsideTurnOnly: false);
             if (PreviousPolicy<LearnNewPhrase>(out _) || unknownPhrases.Count() != 1 || substitutionRequest == null || substitutionRequest.Subject == null)
                 yield break;
-
+            
             var unknownPhrase = unknownPhrases.FirstOrDefault();
 
             var unknownPropertyCandidate = new ConceptInstance(Concept2.From(unknownPhrase));
@@ -34,10 +34,10 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
                 yield break;
             }
 
-            // Unknown value when substitution is required was observed
+            /*// Unknown value when substitution is required was observed
             // TODO detect whether request is for parameter (then nothing to do here)
             // or try to learn new property value
-            /*
+            
             var assignUnknownProperty = new ConceptInstance(Concept2.AssignUnknownProperty);
             generator.SetValue(assignUnknownProperty, Concept2.Subject, unknownPropertyCandidate);
 
@@ -45,36 +45,8 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             generator.SetValue(assignUnknownProperty, Concept2.Target, substitutionRequest.Subject);
             generator.Push(new InstanceActivationRequestEvent(assignUnknownProperty));
 
-            yield return $"What does {unknownPhrase} mean?";
-            */
-        }
-
-        private IEnumerable<string> getUnknownPhrases(BeamGenerator generator)
-        {
-            var allInputPhrases = GetMany<InputPhraseEvent>();
-
-            var currentBuffer = new List<InputPhraseEvent>();
-            foreach (var inputPhrase in allInputPhrases)
-            {
-                var phrase = inputPhrase;
-                if (generator.IsInputUsed(phrase))
-                {
-                    if (currentBuffer.Count > 0)
-                        yield return composeUnknownPhrase(currentBuffer);
-
-                    currentBuffer.Clear();
-                }
-
-                currentBuffer.Add(phrase);
-            }
-
-            if (currentBuffer.Count > 0)
-                yield return composeUnknownPhrase(currentBuffer);
-        }
-
-        private string composeUnknownPhrase(IEnumerable<InputPhraseEvent> currentBuffer)
-        {
-            return string.Join(" ", currentBuffer.Select(i => i.Phrase));
+            yield return $"What does {unknownPhrase} mean?";*/
+            
         }
     }
 }

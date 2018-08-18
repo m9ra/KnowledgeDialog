@@ -50,9 +50,9 @@ namespace WebBackend.Experiment
         }
 
         ///<inheritdoc/>
-        protected override WebConsoleBase createConsole(string databasePath)
+        protected override WebConsoleBase createConsole(string databasePath, int taskId, SolutionLog log)
         {
-            return new PhraseAgentWebConsole(PerceptiveDialogBasedAgent.OutputRecognitionAlgorithm.CeasarPalacePresence, Knowledge, _exportKnowledge, _useKnowledge);
+            return new PhraseAgentWebConsole(PerceptiveDialogBasedAgent.OutputRecognitionAlgorithm.CeasarPalacePresence, Knowledge, _exportKnowledge, _useKnowledge, log);
         }
     }
 }

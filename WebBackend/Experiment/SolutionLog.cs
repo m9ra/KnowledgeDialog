@@ -58,16 +58,16 @@ namespace WebBackend.Experiment
             reportTaskStart(_task);
 
             //console has to be created after log storage is prepared
-            _console = createConsole();
+            _console = createConsole(taskId);
         }
 
-        internal void Input(string utterance)
+        internal void Input(string utterance, int taskId)
         {
             var isReset = utterance != null && utterance.Trim().ToLowerInvariant() == "reset";
             logUtterance(utterance);
             if (isReset)
             {
-                _console = createConsole();
+                _console = createConsole(taskId);
             }
             else
             {
@@ -131,6 +131,7 @@ namespace WebBackend.Experiment
                 //nothing to report
                 return;
 
+            _completitionCall.ReportParameter("success_code", _task.SuccessCode);
             _completitionCall.ReportParameter("task", _task.Key);
             _completitionCall.ReportParameter("format", _task.TaskFormat);
             _completitionCall.ReportParameter("substitutions", _task.Substitutions);
@@ -166,10 +167,10 @@ namespace WebBackend.Experiment
 
         #region Private utilities
 
-        private WebConsoleBase createConsole()
+        private WebConsoleBase createConsole(int taskId)
         {
             logInfo("new console ");
-            var console = _experiment.CreateConsoleWithDatabase("dialog");
+            var console = _experiment.CreateConsoleWithDatabase("dialog", taskId, this);
             logResponse(console.FirstResponse);
 
             return console;

@@ -85,6 +85,11 @@ namespace WebBackend
             {
                 var substitutions = data["substitutions"] as Newtonsoft.Json.Linq.JArray;
                 Text = string.Format(data["format"].ToString(), substitutions.ToArray());
+
+                if (data.ContainsKey("success_code"))
+                {
+                    Text = $"Success: {data["success_code"]}, " + Text;
+                }
             }
 
             switch (Type)

@@ -44,6 +44,8 @@ namespace KnowledgeDialog.DataCollection
         /// </summary>
         public bool CanBeCompleted { get; private set; }
 
+        public int SuccessCode { get; private set; }
+
         public QuestionCollectionManager(QuestionCollection questions)
         {
             _questions = questions;

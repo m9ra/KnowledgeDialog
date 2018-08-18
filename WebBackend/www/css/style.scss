@@ -4,6 +4,13 @@
 	}
 }
 
+.jumbotron{
+    padding:0;
+    margin:0;
+    margin-bottom:5px;
+    padding-bottom:5px;
+}
+
 .control_pane{
 	margin: 5px;
 
@@ -23,7 +30,7 @@
 
 .dialog_log{
 	width: 555px;
-	height: 300px;
+	height: 150px;
 	border: 1px solid gray;
 
 	overflow-x:hidden;
@@ -59,7 +66,7 @@
 
 .feedback_textarea{
 	width: 555px;
-	height: 300px;
+	height: 195px;
 }
 
 .T_utterance, .act{

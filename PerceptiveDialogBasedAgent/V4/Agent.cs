@@ -25,7 +25,7 @@ namespace PerceptiveDialogBasedAgent.V4
         internal Agent()
         {
             _irrelevantWords.UnionWith(KnowledgeDialog.Dialog.UtteranceParser.NonInformativeWords);
-            foreach (var word in new[] { "in", "a", "an", "the", "it", "no", "yes", "is", "find", "search", "google", "lookup", "look", "want", "get", "give", "expensive", "cheap", "stupid", "what", "where", "which", "name" })
+            foreach (var word in new[] { "know", "look", "looking", "for", "in", "a", "an", "the", "it", "no", "yes", "is", "find", "search", "google", "lookup", "look", "want", "get", "give", "expensive", "cheap", "stupid", "what", "where", "which", "name" })
             {
                 _irrelevantWords.Remove(word);
             }
@@ -57,6 +57,7 @@ namespace PerceptiveDialogBasedAgent.V4
             _beam.AddPolicyPart(new HowCanIHelpYouFallback());
             _beam.AddPolicyPart(new RequestActionWithKnownConfirmation());
             _beam.AddPolicyPart(new AfterDescriptionRemembered());
+            _beam.AddPolicyPart(new RequestRelationConfirmation());
 
             _beam.AddPolicyPart(new LearnNewPhrase());
             _beam.AddPolicyPart(new UnknownAnsweredToLearnNewPhrase());

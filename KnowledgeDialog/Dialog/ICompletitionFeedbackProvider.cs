@@ -17,5 +17,10 @@ namespace KnowledgeDialog.Dialog
         /// Determine whether task based informative inputs can be completed.
         /// </summary>
         bool CanBeCompleted { get; }
+
+        /// <summary>
+        /// Information about task success
+        /// </summary>
+        int SuccessCode { get; }
     }
 }

@@ -373,7 +373,11 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
 
         public bool IsProperty(Concept2 concept)
         {
-            return GetAllEvents<PropertySetEvent>(getCurrentNode()).Where(p => p.Target.Property == concept).Any();
+            return GetAllEvents<PropertySetEvent>(getCurrentNode())
+                .Where(p =>
+                p.Target.Property == concept ||
+                (p.SubstitutedValue.Concept == concept && p.Target.Property == Concept2.HasPropertyValue)
+                ).Any();
         }
 
 
@@ -748,7 +752,6 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return GetFrameEvents<InstanceActiveEvent>(getCurrentNode(), turnLimited: false);
         }
 
-
         internal InstanceActivationRequestEvent GetInstanceActivationRequest(ConceptInstance instance)
         {
             return GetInstanceActivationRequest(instance, getCurrentNode());
@@ -777,6 +780,26 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
         internal ConceptInstance GetValue(ConceptInstance instance, Concept2 property)
         {
             return GetValue(instance, property, getCurrentNode());
+        }
+
+        internal IEnumerable<ConceptInstance> GetInverseConceptValues(Concept2 property, ConceptInstance instance)
+        {
+            var currentNode = getCurrentNode();
+            while (currentNode != null)
+            {
+                var propertySetEvt = currentNode.Evt as PropertySetEvent;
+                if ((propertySetEvt?.SubstitutedValue.Concept == instance.Concept && propertySetEvt.Target.Property == property))
+                    if (propertySetEvt.Target.Instance == null)
+                    {
+                        yield return new ConceptInstance(propertySetEvt.Target.Concept);
+                    }
+                    else
+                    {
+                        yield return propertySetEvt.SubstitutedValue;
+                    }
+
+                currentNode = currentNode.ParentNode;
+            }
         }
 
         internal static ConceptInstance GetValue(ConceptInstance instance, ParamDefinedEvent parameter, BeamNode node)
@@ -1015,6 +1038,9 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             var properties = GetPointingProperties(evt.Instance.Concept);
             foreach (var property in properties)
             {
+                if (property == Concept2.Property)
+                    continue;
+
                 //try to interpret as an implicit property
                 var part = new InformationPartEvent(null, property, null);
                 tryFillValueBy(part, evt, 0, addScore: false);
@@ -1028,6 +1054,13 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             var result = new HashSet<Concept2>();
             foreach (var propertySet in propertySets)
             {
+                if (propertySet.Target.Property == Concept2.HasPropertyValue && propertySet.SubstitutedValue.Concept == concept)
+                {
+                    var propertyConcept = propertySet.Target.Concept ?? propertySet.Target.Instance.Concept;
+                    result.Add(propertyConcept);
+                    continue;
+                }
+
                 if (!definedConcepts.Contains(propertySet.Target.Property))
                     continue;
 

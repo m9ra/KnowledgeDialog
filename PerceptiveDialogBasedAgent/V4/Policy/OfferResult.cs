@@ -17,7 +17,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
                 yield break;
 
             var concept = evt.Instance.Concept;
-
+            generator.SetValue(TagInstance, Concept2.Subject, evt.Instance);
 
             if (concept == Concept2.DisambiguatedKnowledgeConfirmed)
             {
@@ -50,7 +50,9 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             else if (concept == Concept2.KnowledgeRefutation)
             {
                 var information = generator.GetValue(evt.Instance, Concept2.Subject);
+                var property = generator.GetValue(evt.Instance, Concept2.Property).Concept;
                 generator.Push(new InstanceActiveEvent(information, canBeReferenced: true));
+                generator.Push(new InformationPartEvent(information, property, null));
                 yield return $"No, I don't know {singularWithProperty(information)}";
             }
             else

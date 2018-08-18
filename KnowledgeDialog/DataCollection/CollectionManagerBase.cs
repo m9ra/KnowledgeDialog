@@ -26,6 +26,8 @@ namespace KnowledgeDialog.DataCollection
         /// </summary>
         protected bool IsDialogClosed = false;
 
+        private Action<string> _logProvider;
+
         /// <summary>
         /// Keep track about denotations that has been asked.
         /// </summary>
@@ -34,13 +36,26 @@ namespace KnowledgeDialog.DataCollection
         /// <summary>
         /// Denotation which has been asked lastly.
         /// </summary>
-        protected DenotationType LastDenotationQuestion = DenotationType.None;       
+        protected DenotationType LastDenotationQuestion = DenotationType.None;
 
         /// <inheritdoc/>
         public abstract ResponseBase Initialize();
 
         /// <inheritdoc/>
         public abstract ResponseBase Input(ParsedUtterance utterance);
+
+        protected void LogMessage(string message)
+        {
+            if (_logProvider == null)
+                return; //no logging is available now
+
+            _logProvider(message);
+        }
+
+        public void RegisterLog(Action<string> log)
+        {
+            _logProvider = log;
+        }
 
         protected ResponseBase Ask(DenotationType denotationType)
         {

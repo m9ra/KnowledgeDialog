@@ -45,6 +45,7 @@ namespace WebBackend.AnswerExtraction
         /// Determine whether task based on data collection can be completed.
         /// </summary>
         public bool CanBeCompleted { get; private set; }
+        public int SuccessCode { get; private set; }
 
         internal AnswerExtractionManager(QuestionCollection questions, ExtractionKnowledge knowledge, LinkBasedExtractor extractor)
         {

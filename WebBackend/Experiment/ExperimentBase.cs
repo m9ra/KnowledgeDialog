@@ -77,7 +77,15 @@ namespace WebBackend.Experiment
             Knowledge = new GeneralVoteContainer(knowledgePath);
         }
 
-        abstract protected WebConsoleBase createConsole(string databasePath);
+        virtual protected WebConsoleBase createConsole(string databasePath)
+        {
+            throw new NotImplementedException("must be implemented");
+        }
+
+        virtual protected WebConsoleBase createConsole(string databasePath, int taskId, SolutionLog log)
+        {
+            return createConsole(databasePath);
+        }
 
         protected void ExportExperiment(string experimentId, int taskCount, TaskFactoryBase[] factories)
         {
@@ -135,10 +143,10 @@ namespace WebBackend.Experiment
             return factory.CreateInstance(taskId, factoryRelatedIndex, code);
         }
 
-        internal WebConsoleBase CreateConsoleWithDatabase(string databaseIdentifier)
+        internal WebConsoleBase CreateConsoleWithDatabase(string databaseIdentifier, int taskId, SolutionLog log)
         {
             var databasePath = GetDatabasePath(databaseIdentifier);
-            return createConsole(databasePath);
+            return createConsole(databasePath, taskId, log);
         }
 
         internal string GetDatabasePath(string database)

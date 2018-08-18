@@ -427,5 +427,26 @@ namespace PerceptiveDialogBasedAgent.V4
             a.Input("pricerange");
             a.Input("expensive");
         }
+
+        internal static void Debugging()
+        {
+            var a = new Agent();
+            a.Input("Expensive restaurant, please.");
+        }
+
+        internal static void PropertyLearningDebugging()
+        {
+            var a = new Agent();
+            a.Input("bombay restaurant has moderate prices?");
+            a.Input("yes");
+        }
+
+        internal static void PropertyLearningDebugging2()
+        {
+            var a = new Agent();
+            a.Input("do you know bombay prices?");
+            a.Input("it has moderate prices");
+            a.Input("yes");
+        }
     }
 }

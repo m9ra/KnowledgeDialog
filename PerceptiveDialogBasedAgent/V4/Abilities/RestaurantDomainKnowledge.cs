@@ -15,37 +15,62 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
 
         public RestaurantDomainKnowledge()
         {
+            DefineConcept("hello")
+                .Description("hi")
+                .Description("good morning")
+                .Description("good day")
+                ;
+
+            DefineConcept("bye")
+                .Description("cheers")
+                .Description("cya")
+                .Description("see you")
+                ;
+
+            DefineConcept("thank")
+                .Description("thank you")
+                .Description("thanks")
+                ;
+
             DefineConcept("name", out _nameProperty);
             DefineConcept("address", out _addressProperty);
             DefineConcept("pricerange", out _pricerangeProperty)
                 .Description("price")
-                //.Description("prices")
+                .Description("pricing")
+                .Description("prices")
                 .Description("money")
+                .Description("priced")
                 .Description("pricy");
 
             DefineConcept("restaurant", out _restaurantClass)
                 .Description("restaurants")
+                .Description("place to eat")
                 .Description("venue to eat");
 
             DefineConcept("food", out var foodConcept)
                 .Description("stuff to eat");
 
-            DefineConcept("pizza", out var pizzaConcept)
-                .Property(Concept2.InstanceOf, foodConcept);
+            //DefineConcept("pizza", out var pizzaConcept)
+            //    .Property(Concept2.InstanceOf, foodConcept);
 
             DefineConcept("cheap", out var cheapConcept)
                 .Property(Concept2.InstanceOf, _pricerangeProperty);
             DefineConcept("expensive", out var expensiveConcept)
                 .Property(Concept2.InstanceOf, _pricerangeProperty);
             DefineConcept("moderate", out var moderateConcept)
-                .Property(Concept2.InstanceOf, _pricerangeProperty);
+                .Property(Concept2.InstanceOf, _pricerangeProperty)
+                .Description("medium")
+                .Description("mid")
+                .Description("midrange")
+                .Description("middle")
+                ;
 
             SetValues(_pricerangeProperty, Concept2.HasPropertyValue, expensiveConcept, moderateConcept, cheapConcept);
             SetValues(_restaurantClass, Concept2.HasProperty, _pricerangeProperty);
 
             DefineRestaurant("Caesar Palace", expensiveConcept, Concept2.From("Balleary Street"));
             DefineRestaurant("Bombay", null, Concept2.From("V Parku"));
-            DefineRestaurant("Vapiano", moderateConcept, Concept2.From("Chodov Avenue"));
+            //DefineRestaurant("Vapiano", moderateConcept, Concept2.From("Chodov Avenue"));
             DefineRestaurant("Chinese Bistro", cheapConcept, Concept2.From("Montreal"));
         }
 

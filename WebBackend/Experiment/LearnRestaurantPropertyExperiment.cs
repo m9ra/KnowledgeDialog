@@ -34,7 +34,14 @@ namespace WebBackend.Experiment
         ///<inheritdoc/>
         internal override TaskInstance GetTask(int taskId)
         {
-            return new RestaurantTaskInstance(taskId, "Provide restaurant info.", "learn_restaurant_property", _validationCodes[taskId], "learn_restaurant_property.haml");
+            if (taskId % 2 == 0)
+            {
+                return new RestaurantTaskInstance(taskId, "Find a restaurant.", "learn_restaurant_property", _validationCodes[taskId], "learn_restaurant_property_retrieve.haml");
+            }
+            else
+            {
+                return new RestaurantTaskInstance(taskId, "Provide restaurant info.", "learn_restaurant_property", _validationCodes[taskId], "learn_restaurant_property.haml");
+            }
         }
 
         /// <summary>
@@ -51,10 +58,16 @@ namespace WebBackend.Experiment
         }
 
         ///<inheritdoc/>
-        protected override WebConsoleBase createConsole(string databasePath)
+        protected override WebConsoleBase createConsole(string databasePath, int taskId, SolutionLog log)
         {
-            var console = new PhraseAgentWebConsole(PerceptiveDialogBasedAgent.OutputRecognitionAlgorithm.NewBombayProperty, Knowledge, _exportKnowledge, _useKnowledge);
-            return console;
+            if (taskId % 2 == 0)
+            {
+                return new PhraseAgentWebConsole(PerceptiveDialogBasedAgent.OutputRecognitionAlgorithm.BombayPresenceOrModerateSearchFallback, Knowledge, _exportKnowledge, _useKnowledge, log);
+            }
+            else
+            {
+                return new PhraseAgentWebConsole(PerceptiveDialogBasedAgent.OutputRecognitionAlgorithm.NewBombayProperty, Knowledge, _exportKnowledge, _useKnowledge, log);
+            }
         }
 
     }

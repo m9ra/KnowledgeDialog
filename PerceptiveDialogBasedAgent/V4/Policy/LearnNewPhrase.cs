@@ -18,6 +18,9 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
                 yield break;
 
             var phraseToAsk = unknownPhrases.First();
+            if (phraseToAsk.Split(' ').Length > 2)
+                yield break;
+
             var newConcept = Concept2.From(phraseToAsk);
             var newConceptInstance = new ConceptInstance(newConcept);
 

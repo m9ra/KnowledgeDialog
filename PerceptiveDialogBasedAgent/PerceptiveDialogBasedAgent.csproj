@@ -155,8 +155,8 @@
     <Compile Include="V4\Models\EventBasedNLG.cs" />
     <Compile Include="V4\Policy\AfterDescriptionRemembered.cs" />
     <Compile Include="V4\Policy\AfterPropertyLearned.cs" />
+    <Compile Include="V4\Policy\RequestRelationConfirmation.cs" />
     <Compile Include="V4\Policy\RememberDescriptionAfterLearnNewPhrase.cs" />
-    <Compile Include="V4\Policy\CreateAliasHypothesis.cs" />
     <Compile Include="V4\Policy\ProcessCollectedNewConceptLearning.cs" />
     <Compile Include="V4\Policy\RequestSubstitutionWithUnknown.cs" />
     <Compile Include="V4\Policy\LearnNewPhrase.cs" />

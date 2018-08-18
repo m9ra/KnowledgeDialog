@@ -545,11 +545,17 @@ namespace WebBackend
         {
             experimentHandler("shared_phrase_restaurant1");
         }
-        
+
         public void shared_phrase_restaurant2()
         {
             experimentHandler("shared_phrase_restaurant2");
         }
+
+        public void learn_restaurant_property2()
+        {
+            experimentHandler("learn_restaurant_property2");
+        }
+
 
         /// <summary>
         /// Render experiment console. Also handle feedback and tracing of given experiment.
@@ -615,7 +621,7 @@ namespace WebBackend
                 return;
 
 
-            solution.Input(utterance);
+            solution.Input(utterance, taskId);
 
             //build html output
             var html = solution.GetDialogHTML();

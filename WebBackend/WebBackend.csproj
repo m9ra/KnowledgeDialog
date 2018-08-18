@@ -173,6 +173,7 @@
     <None Include="www\annotate.haml" />
     <None Include="www\annotate2.haml" />
     <None Include="www\knowledge_votes.haml" />
+    <None Include="www\learn_restaurant_property_retrieve.haml" />
     <None Include="www\learn_restaurant_property.haml" />
     <None Include="www\restaurant_phrase.haml" />
     <None Include="www\graph_navigation.haml" />

@@ -25,7 +25,13 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             Description("need");
             Description("want");
             Description("lookup");
+            Description("look up");
             Description("look");
+            Description("look for");
+            Description("looking for");
+            Description("looking");
+            Description("searching");
+            Description("searching for");
             Description("search");
             Description("what");
         }
@@ -42,10 +48,16 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             requiredProperties.Add(criterion.Concept);
 
             var result = FindRelevantConcepts(generator, requiredProperties);
+            var isSubjectClass = generator.GetInverseConceptValues(Concept2.InstanceOf, criterion).Any();
+
 
             if (result.Count == 0)
             {
-                generator.Push(new StaticScoreEvent(-0.2));
+                if (isSubjectClass)
+                    generator.Push(new StaticScoreEvent(0.1));
+                else
+                    generator.Push(new StaticScoreEvent(-0.1));
+
                 generator.Push(new InformationReportEvent(new ConceptInstance(Concept2.NotFound)));
             }
             else if (result.Count == 1)
@@ -55,6 +67,9 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             }
             else
             {
+                if (generator.IsProperty(criterion.Concept))
+                    generator.Push(new StaticScoreEvent(-0.15));
+
                 var needRefinementInstance = new ConceptInstance(Concept2.NeedsRefinement);
                 generator.SetValue(needRefinementInstance, Concept2.Subject, criterion);
                 generator.SetValue(criterion, Concept2.OnSetListener, instance);

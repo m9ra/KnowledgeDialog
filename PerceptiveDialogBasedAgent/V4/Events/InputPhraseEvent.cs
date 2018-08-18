@@ -11,9 +11,14 @@ namespace PerceptiveDialogBasedAgent.V4.Events
     {
         internal readonly string Phrase;
 
+        internal readonly int InputId;
+
+        private static int _lastId = 0;
+
         public InputPhraseEvent(string phrase)
         {
             Phrase = phrase;
+            InputId = ++_lastId;
         }
 
         internal override void Accept(BeamGenerator g)

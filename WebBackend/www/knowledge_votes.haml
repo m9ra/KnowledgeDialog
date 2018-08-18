@@ -1,0 +1,28 @@
+﻿@knowledge WebBackend.Experiment.GeneralVoteContainer
+@current_experiment_id string
+
+.container
+	%nav{class: "navbar navbar-inverse navbar-fixed-top"}
+		.navbar-header
+			%button{type: "button", class: "navbar-toggle", data-toggle: "collapse", data-target: "navbar-collapse"}
+				%span.sr-only
+					Expand navigation	
+				%span.icon-bar
+				%span.icon-bar
+				%span.icon-bar
+
+			%a{class: "navbar-brand", href: "/"} Mgr. Vodolán Miroslav
+.jumbotron#preface
+	.container
+		%h1 Knowledge Votes
+		%p 
+			Knowledge collected during conversations.
+
+		%a{class: "btn btn-primary", href: "/logs?experiment=" + @current_experiment_id } Back to log files
+				
+.container	
+	- @knowledge.SortedItemsVotes.each do |pair|
+		.knowledge_report
+			%b = pair.Key
+			= " : "
+			%span = pair.Value

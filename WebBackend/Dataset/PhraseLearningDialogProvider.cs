@@ -13,6 +13,8 @@ namespace WebBackend.Dataset
 
         private readonly List<TaskDialogAnnotation> _dialogAnnotations = new List<TaskDialogAnnotation>();
 
+        internal IEnumerable<ExperimentBase> Experiments => _experiments;
+
         internal int DialogCount { get { return _dialogAnnotations.Count; } }
 
         internal PhraseLearningDialogProvider(ExperimentCollection collection, params string[] experimentsIds)

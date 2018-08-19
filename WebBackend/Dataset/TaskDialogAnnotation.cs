@@ -19,10 +19,8 @@ namespace WebBackend.Dataset
 
         internal TaskDialogAnnotation(TaskDialog dialog)
         {
-            var startTime = dialog.Start.Ticks;
-
             Dialog = dialog;
-            PhraseAnnotationPath = dialog.LogFilePath + "." + startTime + ".dant";
+            PhraseAnnotationPath = Path.Combine(Path.GetDirectoryName(dialog.LogFilePath), Dialog.Id + ".dant");
 
             if (File.Exists(PhraseAnnotationPath))
             {

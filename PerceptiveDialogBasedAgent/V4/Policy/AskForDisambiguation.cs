@@ -36,9 +36,11 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             {
                 var candidateString = string.Join(", ", candidates.Select(c => singular(c.Concept)));
                 yield return $"I can recognize {candidateString} as {plural(candidateProperties.First())}. Which of them is related to {singular(unknown)}?";
-            }else if (candidateProperties.Count < 4)
+            }
+            else if (candidateProperties.Count < 4)
             {
                 var candidateString = string.Join(" or ", candidateProperties.Select(c => singular(c)));
+                yield return $"What does {singular(unknown)} mean?";
                 yield return $"I think, It can be {candidateString}. Which fits best the meaning of {singular(unknown)}?";
             }
             else

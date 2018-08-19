@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,6 +23,8 @@ namespace WebBackend.Dataset
 
         public readonly string ExperimentId;
 
+        public readonly string Id;
+
         public readonly string LogFilePath;
 
         internal TaskDialog(string task, LogFile log, IEnumerable<ActionEntry> entries)
@@ -30,6 +33,9 @@ namespace WebBackend.Dataset
             Task = task;
             Entries = entries.ToArray();
             LogFilePath = log.FilePath;
+
+            var startTime = Start.Ticks;
+            Id = Path.GetFileName(LogFilePath) + "." + startTime;
         }
     }
 }

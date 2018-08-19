@@ -51,7 +51,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
 
         private string toMeaningfulPhrase(string phrase)
         {
-            var auxiliaryWords = new[] { "a", "the", "some", "my" };
+            var auxiliaryWords = new[] { "a", "an", "the", "some", "my" };
             var input = phrase.ToLowerInvariant();
             var inputWords = Phrase.AsWords(input).ToList();
 

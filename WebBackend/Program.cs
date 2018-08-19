@@ -49,31 +49,12 @@ namespace WebBackend
 
 
             InitializeExperiments();
-
-            //AnswerExtraction.Omegle_Batch.ObserveDialogCollection();
-            //AnswerExtraction.GraphNavigationExperiments_Batch.PrintEdgeVotesInfo();
-            //AnswerExtraction.GraphNavigationExperiments_Batch.EvaluateLabelRequestInfo();
-            //AnswerExtraction.ExtractionEvaluation_Batch.RunLinkingExperiment();
-            //AnswerExtraction.ExtractionEvaluation_Batch.ExportAnswerExtractionData();
-            //AnswerExtraction.Statistics_Batch.CountReferences();
-            //AnswerExtraction.ExtractionEvaluation_Batch.RunLinkedAnswerExtractionExperiment();
-            //AnswerExtraction.SigdialPaperExperiments_Batch.EdgeMaximizationLinking();
-            //AnswerExtraction.SigdialPaperExperiments_Batch.PopularityMaximizationLinking();
-            //AnswerExtraction.SigdialPaperExperiments_Batch.BasicCancelation();
-            //AnswerExtraction.SigdialPaperExperiments_Batch.DatasetStatistics();
-            //AnswerExtraction.GraphNavigationExperiments_Batch.ListUnknownEntityWordsQDD();
-            //AnswerExtraction.SigdialPaperExperiments_Batch.BasicCancelation_WithEnumDetection();
-            //AnswerExtraction.SigdialPaperExperiments_Batch.BasicCancelation_WithEnumAndNgrams();
-            //AnswerExtraction.LuceneIndex_Batch.BuildIndex();
-            //AnswerExtraction.DumpCreation_Batch.BenchmarkFreebaseProviderNodes();
-            //AnswerExtraction.DumpCreation_Batch.BuildFreebaseDB();
-            //AnswerExtraction.DumpCreation_Batch.BenchmarkMySQLEdges(); 
-            //AnswerExtraction.DumpCreation_Batch.FillMySQLEdges();
-            //AnswerExtraction.DumpCreation_Batch.DumpQuestions();
-            //GeneralizationQA.GoldenAnswer_Batch.RunAnswerGeneralizationDev();
-            //GeneralizationQA.GoldenAnswer_Batch.RunGraphMIExperiment();
             RunWebInterface();
-            //Console.ReadLine();
+
+            /*/
+            WritePhraseLearningDataset();
+            Console.ReadKey();
+            /**/
         }
 
         private static void InitializeExperiments()
@@ -154,6 +135,18 @@ namespace WebBackend
             runServer(Configuration.RootPath);
             runConsole();
         }
+
+        private static void WritePhraseLearningDataset()
+        {
+            //foreach (var experiment in ConceptLearningDialogs.Experiments.Concat(CompositionLearningDialogs.Experiments))
+            foreach (var experiment in new PhraseLearningDialogProvider(Experiments, "learn_restaurant_property2").Experiments)
+            {
+                var provider = new PhraseLearningDialogProvider(Experiments, experiment.Id);
+                var writer = new PhraseLearningDatasetWriter(provider);
+                writer.WriteValidDialogs(experiment.Id + ".json");
+            }
+        }
+
 
         /// <summary>
         /// Parse arguments from commandline.

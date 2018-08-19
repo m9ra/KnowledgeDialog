@@ -94,6 +94,7 @@
     <Compile Include="Dataset\FreebaseEntry.cs" />
     <Compile Include="Dataset\FreebaseGraphLayer.cs" />
     <Compile Include="Dataset\GraphNavigationDataProvider.cs" />
+    <Compile Include="Dataset\PhraseLearningDatasetWriter.cs" />
     <Compile Include="Dataset\PhraseLearningDialogProvider.cs" />
     <Compile Include="Dataset\SimpleQuestionDumpProcessor.cs" />
     <Compile Include="AnswerExtraction\SearchContext.cs" />

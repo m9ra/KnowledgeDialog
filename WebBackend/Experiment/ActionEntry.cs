@@ -46,6 +46,22 @@ namespace WebBackend
             }
         }
 
+        public bool IsCompletition
+        {
+            get
+            {
+                return Type == "T_completition";
+            }
+        }
+
+        public bool IsInfo
+        {
+            get
+            {
+                return Type == "T_info";
+            }
+        }
+
         public bool IsDialogStart
         {
             get

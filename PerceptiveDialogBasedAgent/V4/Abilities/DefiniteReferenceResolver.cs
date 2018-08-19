@@ -29,6 +29,9 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
                 if (relevantInstance.Concept == instance.Concept)
                     continue;
 
+                if (!generator.IsDefined(relevantInstance.Concept))
+                    continue;
+
                 //try tunnel instances between turns
                 generator.Push(new StaticScoreEvent(0.05));
                 generator.Push(new InstanceReferencedEvent(relevantInstance));

@@ -21,6 +21,12 @@ namespace WebBackend.Experiment
 
         public int NegativeEquivalencies { get; private set; }
 
+        public int NegativeOneCodes { get; private set; }
+
+        public int PositiveOneCodes { get; private set; }
+
+        public int PositiveTwoCodes { get; private set; }
+
         public Statistics(string experimentRoot)
         {
             var experimentId = Path.GetFileNameWithoutExtension(experimentRoot);
@@ -28,41 +34,19 @@ namespace WebBackend.Experiment
 
             foreach (var file in LogFiles)
             {
-                var currentDialogTurnCount = 0;
-                foreach (var action in file.LoadActions())
+                foreach (var dialogue in file.ParseDialogs())
                 {
-                    if (action.Type == "T_reset")
-                    {
-                        if (currentDialogTurnCount > 0)
-                            //skip empty dialogs
-                            ++DialogCount;
-
-                        currentDialogTurnCount = 0;
-                    }
-                    else if (action.Type == "T_utterance")
-                    {
-                        ++TurnCount;
-                        ++currentDialogTurnCount;
-                    }
-                }
-
-                if (currentDialogTurnCount > 0)
                     ++DialogCount;
-            }
+                    TurnCount += dialogue.TurnCount;
 
-            var advice = new LogFile(Path.Combine(experimentRoot, experimentId + ".dialog"));
-            foreach (var action in advice.LoadActions())
-            {
-                if (action.Type == "T_advice")
-                {
-                    ++QuestionAnswerPairs;
-                }
-                else if (action.Type == "T_equivalence")
-                {
-                    if ((bool)action.Data["isEquivalent"])
-                        ++PositiveEquivalencies;
-                    else
-                        ++NegativeEquivalencies;
+                    if (dialogue.SuccessCode == 1)
+                        PositiveOneCodes += 1;
+
+                    if (dialogue.SuccessCode == 2)
+                        PositiveTwoCodes += 1;
+
+                    if (dialogue.SuccessCode == -1)
+                        NegativeOneCodes += 1;
                 }
             }
         }

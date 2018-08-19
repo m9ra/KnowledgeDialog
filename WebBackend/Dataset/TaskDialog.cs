@@ -14,6 +14,8 @@ namespace WebBackend.Dataset
 
         public int TurnCount => Entries.Where(e => e.Type == "T_utterance").Count();
 
+        public int SuccessCode => Entries.Where(e => e.Type == "T_completition" && e.Data.ContainsKey("success_code")).Select(e => (int)(long)e.Data["success_code"]).FirstOrDefault();
+
         public DateTime Start => Entries.First().Time;
 
         public DateTime End => Entries.Last().Time;

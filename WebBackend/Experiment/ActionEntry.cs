@@ -52,7 +52,8 @@ namespace WebBackend
             {
                 var isOpeningAct =
                     //Type == "T_Info" && Text == "new console" ||
-                    Type == "T_task"
+                    Type == "T_task" ||
+                    Type == "T_reset"
                 ;
 
                 return isOpeningAct;

@@ -45,6 +45,7 @@ namespace PerceptiveDialogBasedAgent
 
         public PhraseAgentManager(OutputRecognitionAlgorithm recognitionAlgorithm, VoteContainer<object> knowledge, bool exportKnowledge, bool useKnowledge)
         {
+            SuccessCode = 1;
             _knowledge = knowledge;
             _exportKnowledge = exportKnowledge;
             _useKnowledge = useKnowledge;
@@ -168,7 +169,10 @@ namespace PerceptiveDialogBasedAgent
                             var instance = propertySet.Target.Instance;
                             var concept = propertySet.Target.Concept ?? propertySet.Target.Instance.Concept;
                             if (concept != null && concept.Name.ToLowerInvariant().Contains("bombay"))
+                            {
+                                SuccessCode = 2;
                                 return true;
+                            }
                         }
                         finally
                         {
@@ -198,7 +202,7 @@ namespace PerceptiveDialogBasedAgent
                     hadModerate |= str.Contains("moderate");
                     hadRestaurant |= str.Contains("restaurant");
 
-                    if (currentNode.Evt is TurnEndEvent)
+                    if (currentNode.Evt is TurnStartEvent)
                     {
                         if (hadFind && hadModerate && hadRestaurant)
                             return true;

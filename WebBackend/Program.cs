@@ -31,6 +31,8 @@ namespace WebBackend
 
         public static PhraseLearningDialogProvider ConceptLearningDialogs;
 
+        public static PhraseLearningDialogProvider CompositionLearningDialogs;
+
         /// <summary>
         /// Entry point of the program.
         /// </summary>
@@ -120,18 +122,30 @@ namespace WebBackend
                      new AnswerExtractionExperiment(experimentsRootPath, "answer_extraction", 100, simpleQuestionsTrain, Configuration.AnswerExtractor),
                      new GraphNavigationExperiment(experimentsRootPath, "graph_navigation", 100, Configuration.GetQuestionDialogsTrain()),
                      new GraphNavigationExperiment(experimentsRootPath, "edge_requests", 100, Configuration.GetQuestionDialogsTrain()),*/
-                new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant", 10, exportKnowledge: true, useKnowledge: false),
+                /*new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant", 10, exportKnowledge: true, useKnowledge: false),
                 new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant2", 10, exportKnowledge: true, useKnowledge: false),
                 new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant3", 10, exportKnowledge: true, useKnowledge: false),
-                new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant4", 10, exportKnowledge: true, useKnowledge: false),
-                new LearnRestaurantPropertyExperiment(experimentsRootPath, "learn_restaurant_property", 10, exportKnowledge: true, useKnowledge: false),
+                new PhraseRestaurantExperiment(experimentsRootPath, "phrase_restaurant4", 10, exportKnowledge: true, useKnowledge: false),*/
+                new LearnRestaurantPropertyExperiment(experimentsRootPath, "learn_restaurant_property", 10, exportKnowledge: true, useKnowledge: false, requestInformation: true),
                 new PhraseRestaurantExperiment(experimentsRootPath, "shared_phrase_restaurant1", 10, exportKnowledge: true, useKnowledge: true),
                 new PhraseRestaurantExperiment(experimentsRootPath, "shared_phrase_restaurant2", 10, exportKnowledge: true, useKnowledge: true),
-                new LearnRestaurantPropertyExperiment(experimentsRootPath, "learn_restaurant_property2", 10, exportKnowledge: true, useKnowledge: true)
+                new LearnRestaurantPropertyExperiment(experimentsRootPath, "learn_restaurant_property2", 10, exportKnowledge: true, useKnowledge: true, requestInformation: true),
+
+                new PhraseRestaurantExperiment(experimentsRootPath, "concept_learning1a", 50, exportKnowledge: true, useKnowledge: false),
+                new PhraseRestaurantExperiment(experimentsRootPath, "concept_learning2a", 50, exportKnowledge: true, useKnowledge: false),
+                new PhraseRestaurantExperiment(experimentsRootPath, "concept_learning1b", 50, exportKnowledge: true, useKnowledge: true),
+                new PhraseRestaurantExperiment(experimentsRootPath, "concept_learning2b", 50, exportKnowledge: true, useKnowledge: true),
+
+                new LearnRestaurantPropertyExperiment(experimentsRootPath, "composition_learning0", 50, exportKnowledge: true, useKnowledge: true, requestInformation: false),
+                new LearnRestaurantPropertyExperiment(experimentsRootPath, "composition_learning1", 100, exportKnowledge: true, useKnowledge: true, requestInformation: true),
+                new LearnRestaurantPropertyExperiment(experimentsRootPath, "composition_learning2", 100, exportKnowledge: true, useKnowledge: true, requestInformation: true),
+                new LearnRestaurantPropertyExperiment(experimentsRootPath, "composition_learning3", 100, exportKnowledge: true, useKnowledge: true, requestInformation: true)
+
                 );
 
             //QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "qdd_extension_r_");
-            ConceptLearningDialogs = new PhraseLearningDialogProvider(Experiments, "shared_phrase_restaurant1");
+            ConceptLearningDialogs = new PhraseLearningDialogProvider(Experiments, "concept_learning1a", "concept_learning2a", "concept_learning1b", "concept_learning2b");
+            CompositionLearningDialogs = new PhraseLearningDialogProvider(Experiments, "composition_learning0", "composition_learning1", "composition_learning2", "composition_learning3");
         }
 
         private static void RunWebInterface()

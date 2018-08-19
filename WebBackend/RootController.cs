@@ -306,54 +306,14 @@ namespace WebBackend
             Render("annotate2.haml");
         }
 
-        public void annotate3()
+        public void annotate_concept_learning()
         {
-            //refreshing
-            if (GET("action") == "refresh")
-                Program.ConceptLearningDialogs.Refresh();
+            annotationProvider(Program.ConceptLearningDialogs, "/annotate_concept_learning");
+        }
 
-            //find id without annotation
-            if (GET("action") == "id_without_annotation")
-            {
-                for (var i = 0; i < Program.ConceptLearningDialogs.DialogCount; ++i)
-                {
-                    var testedDialog = Program.ConceptLearningDialogs.GetDialog(i);
-                    if (testedDialog.Annotation == null)
-                    {
-                        RedirectTo("/annotate3?id=" + i);
-                        return;
-                    }
-                }
-            }
-
-            //annotation handling
-            int annotatedId;
-            int.TryParse(POST("annotated_id"), out annotatedId);
-            var annotation = POST("annotation");
-
-            if (annotation != null)
-            {
-                var annotatedDialog = Program.ConceptLearningDialogs.GetDialog(annotatedId);
-                if (annotatedDialog != null)
-                    annotatedDialog.Annotate(annotation);
-            }
-
-            //display indexed dialog
-            int dialogIndex;
-            int.TryParse(GET("id"), out dialogIndex);
-            var dialog = Program.ConceptLearningDialogs.GetDialog(dialogIndex);
-
-
-            SetParam("next_id_link", "/annotate3?id=" + (dialogIndex + 1));
-            SetParam("previous_id_link", "/annotate3?id=" + (dialogIndex - 1));
-            SetParam("refresh_link", "/annotate3?id=" + dialogIndex + "&action=refresh");
-
-            SetParam("first_without_annotation_link", "/annotate3?action=id_without_annotation");
-            SetParam("dialog", dialog);
-            SetParam("total_dialog_count", Program.ConceptLearningDialogs.DialogCount);
-            SetParam("dialog_index", dialogIndex.ToString());
-            Layout("layout.haml");
-            Render("annotate3.haml");
+        public void annotate_composition_learning()
+        {
+            annotationProvider(Program.CompositionLearningDialogs, "/annotate_composition_learning");
         }
 
         public void index()
@@ -555,7 +515,6 @@ namespace WebBackend
             experimentHandler(experimentName);
         }
 
-
         public void graph_navigation()
         {
             experimentHandler("graph_navigation");
@@ -605,6 +564,48 @@ namespace WebBackend
         {
             experimentHandler("learn_restaurant_property2");
         }
+
+        #region AAAI Experiments
+        public void concept_learning1a()
+        {
+            experimentHandler("concept_learning1a");
+        }
+
+        public void concept_learning2a()
+        {
+            experimentHandler("concept_learning2a");
+        }
+
+        public void concept_learning1b()
+        {
+            experimentHandler("concept_learning1b");
+        }
+
+        public void concept_learning2b()
+        {
+            experimentHandler("concept_learning2b");
+        }
+
+        public void composition_learning0()
+        {
+            experimentHandler("composition_learning0");
+        }
+
+        public void composition_learning1()
+        {
+            experimentHandler("composition_learning1");
+        }
+
+        public void composition_learning2()
+        {
+            experimentHandler("composition_learning2");
+        }
+
+        public void composition_learning3()
+        {
+            experimentHandler("composition_learning3");
+        }
+        #endregion
 
 
         /// <summary>
@@ -682,6 +683,56 @@ namespace WebBackend
 
             SetParam("dialog", html);
             Render("dialog.haml");
+        }
+
+        private void annotationProvider(PhraseLearningDialogProvider dialogProvider, string url)
+        {
+            //refreshing        
+            if (GET("action") == "refresh")
+                dialogProvider.Refresh();
+
+            //find id without annotation
+            if (GET("action") == "id_without_annotation")
+            {
+                for (var i = 0; i < dialogProvider.DialogCount; ++i)
+                {
+                    var testedDialog = dialogProvider.GetDialog(i);
+                    if (testedDialog.Annotation == null)
+                    {
+                        RedirectTo(url + "?id=" + i);
+                        return;
+                    }
+                }
+            }
+
+            //annotation handling
+            int annotatedId;
+            int.TryParse(POST("annotated_id"), out annotatedId);
+            var annotation = POST("annotation");
+
+            if (annotation != null)
+            {
+                var annotatedDialog = dialogProvider.GetDialog(annotatedId);
+                if (annotatedDialog != null)
+                    annotatedDialog.Annotate(annotation);
+            }
+
+            //display indexed dialog
+            int dialogIndex;
+            int.TryParse(GET("id"), out dialogIndex);
+            var dialog = dialogProvider.GetDialog(dialogIndex);
+
+
+            SetParam("next_id_link", url + "?id=" + (dialogIndex + 1));
+            SetParam("previous_id_link", url + "?id=" + (dialogIndex - 1));
+            SetParam("refresh_link", url + "?id=" + dialogIndex + "&action=refresh");
+
+            SetParam("first_without_annotation_link", url + "?action=id_without_annotation");
+            SetParam("dialog", dialog);
+            SetParam("total_dialog_count", dialogProvider.DialogCount);
+            SetParam("dialog_index", dialogIndex.ToString());
+            Layout("layout.haml");
+            Render("annotate3.haml");
         }
 
         #region Utilities

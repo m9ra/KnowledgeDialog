@@ -164,7 +164,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
         private bool isDelimiter(InputPhraseEvent inputPhrase)
         {
             var phrase = inputPhrase.Phrase;
-            return new[] { "is", "does", "much", "can", "will", "in", "from", "out", "of", "i", "am", "iam", "i'am", "where", "what", "mean" }.Contains(phrase);
+            return new[] { "a", "an", "is", "does", "much", "can", "will", "in", "from", "out", "of", "i", "am", "iam", "i'am", "where", "what", "mean" }.Contains(phrase);
         }
 
         private string composeUnknownPhrase(IEnumerable<InputPhraseEvent> currentBuffer)

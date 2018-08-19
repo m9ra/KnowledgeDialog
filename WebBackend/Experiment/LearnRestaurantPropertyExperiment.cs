@@ -15,10 +15,13 @@ namespace WebBackend.Experiment
 
         private readonly bool _useKnowledge;
 
-        public LearnRestaurantPropertyExperiment(string rootPath, string experimentId, int taskCount, bool exportKnowledge, bool useKnowledge) : base(rootPath, experimentId)
+        private readonly bool _requestInformation;
+
+        public LearnRestaurantPropertyExperiment(string rootPath, string experimentId, int taskCount, bool exportKnowledge, bool useKnowledge, bool requestInformation) : base(rootPath, experimentId)
         {
             _exportKnowledge = exportKnowledge;
             _useKnowledge = useKnowledge;
+            _requestInformation = requestInformation;
 
             var writer = new CrowdFlowerCodeWriter(ExperimentRootPath, experimentId);
 
@@ -34,7 +37,7 @@ namespace WebBackend.Experiment
         ///<inheritdoc/>
         internal override TaskInstance GetTask(int taskId)
         {
-            if (taskId % 2 == 0)
+            if (taskId % 2 == 0 || !_requestInformation)
             {
                 return new RestaurantTaskInstance(taskId, "Find a restaurant.", "learn_restaurant_property", _validationCodes[taskId], "learn_restaurant_property_retrieve.haml");
             }
@@ -60,7 +63,7 @@ namespace WebBackend.Experiment
         ///<inheritdoc/>
         protected override WebConsoleBase createConsole(string databasePath, int taskId, SolutionLog log)
         {
-            if (taskId % 2 == 0)
+            if (taskId % 2 == 0 || !_requestInformation)
             {
                 return new PhraseAgentWebConsole(PerceptiveDialogBasedAgent.OutputRecognitionAlgorithm.BombayPresenceOrModerateSearchFallback, Knowledge, _exportKnowledge, _useKnowledge, log);
             }

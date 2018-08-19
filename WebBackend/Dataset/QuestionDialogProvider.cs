@@ -47,8 +47,8 @@ namespace WebBackend.Dataset
 
             foreach (var logFile in logFiles)
             {
-                var annotatedLogFile = new AnnotatedQuestionLogFile(logFile);
-                foreach (var dialog in AnnotatedQuestionDialogBuilder.ParseDialogs(annotatedLogFile, _questions))
+                var annotatedLogFile = new AnnotatedDialogLogFile(logFile);
+                foreach (var dialog in AnnotatedDialogBuilder.ParseQuestionDialogs(annotatedLogFile, _questions))
                 {
                     _questionDialogs.Add(dialog);
                 }

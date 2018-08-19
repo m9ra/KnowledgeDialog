@@ -4,144 +4,92 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using Newtonsoft.Json.Linq;
-
-using WebBackend.Experiment;
+using KnowledgeDialog.DataCollection;
 
 namespace WebBackend.Dataset
 {
-    class AnnotatedBuilderContext
-    {
-        internal string TaskType;
-
-        internal string SubstitutionData;
-    }
-
     class AnnotatedDialogBuilder
     {
-        private List<AnnotatedSemiTurn> _questionTurns = new List<AnnotatedSemiTurn>();
+        internal bool HasValidDialog { get { return _explanationTurns.Count > 0 && _answerTurns.Count > 0 && _question != null; } }
 
-        private List<AnnotatedSemiTurn> _explanationTurns = new List<AnnotatedSemiTurn>();
+        private readonly List<AnnotatedQuestionActionEntry> _explanationTurns = new List<AnnotatedQuestionActionEntry>();
 
-        private List<AnnotatedSemiTurn> _answerTurns = new List<AnnotatedSemiTurn>();
+        private readonly List<AnnotatedQuestionActionEntry> _answerTurns = new List<AnnotatedQuestionActionEntry>();
 
-        private readonly AnnotatedBuilderContext _context;
+        private readonly QuestionCollection _questions;
 
-        private bool _isQuestionComplete;
+        private readonly AnnotatedDialogLogFile _log;
 
-        private bool _isExplanationComplete;
+        private string _question;
 
-        internal bool HasValidDialog
+        private string _answerId;
+
+        private bool _isAnswerPhase;
+
+        private AnnotatedDialogBuilder(AnnotatedDialogLogFile log, QuestionCollection questions)
         {
-            get
-            {
-                return _questionTurns.Count > 1;
-            }
+            _questions = questions;
+            _log = log;
         }
 
-        internal bool IsDialogEnd { get; private set; }
-
-        internal AnnotatedDialogBuilder(AnnotatedBuilderContext builder)
-        {
-            _context = builder;
-        }
-
-        internal void Register(AnnotatedActionEntry action)
-        {
-            if (IsDialogEnd)
-                throw new NotSupportedException("Cannot add more actions to closed dialog");
-
-            if (action.IsReset)
-            {
-                IsDialogEnd = true;
-                return;
-            }
-
-
-            if (action.Type == "T_task")
-            {
-                //we have a task description action
-                _context.TaskType = action.Entry.Data["task"].ToString();
-                var substitutionArray = action.Entry.Data["substitutions"] as JArray;
-                if (substitutionArray.Count() > 1)
-                    throw new NotSupportedException("We currently doesn't support multiple substitutions");
-
-                _context.SubstitutionData = substitutionArray[0].ToString();
-            }
-
-            var turn = new AnnotatedSemiTurn(action);
-            if (!turn.IsRegularTurn)
-                //we are interested only in regular turns
-                return;
-
-            var actDescription = action.Act;
-            if (actDescription == null)
-                actDescription = "null";
-
-            if (actDescription.Contains("RequestExplanation"))
-            {
-                //after explanation is requested we are no more collecting question turns
-                _isQuestionComplete = true;
-            }
-
-            if (actDescription.Contains("RequestAnswer"))
-            {
-                _isQuestionComplete = true;
-                _isExplanationComplete = true;
-            }
-
-            if (!_isQuestionComplete)
-            {
-                //collect turns for question                
-                _questionTurns.Add(turn);
-            }
-            else if (!_isExplanationComplete)
-            {
-                //collect turns for explanation
-                _explanationTurns.Add(turn);
-            }
-            else
-            {
-                _answerTurns.Add(turn);
-            }
-        }
-
-        internal AnnotatedDialog Build()
-        {
-            return new AnnotatedDialog(_questionTurns, _explanationTurns, _answerTurns, _context.TaskType, _context.SubstitutionData);
-        }
-
-        static internal IEnumerable<AnnotatedDialog> ParseDialogs(AnnotatedLogFile log)
+        internal static IEnumerable<AnnotatedQuestionDialog> ParseQuestionDialogs(AnnotatedDialogLogFile log, QuestionCollection questions = null)
         {
             var actions = log.LoadActions().ToArray();
-            var builders = new List<AnnotatedDialogBuilder>();
+            var validDialogs = new List<AnnotatedQuestionDialog>();
 
             //fill builders with dialog data
-            var builderContext = new AnnotatedBuilderContext();
             AnnotatedDialogBuilder currentBuilder = null;
             foreach (var action in actions)
             {
-                if (currentBuilder == null)
+                if (action.IsDialogStart && currentBuilder != null)
                 {
-                    currentBuilder = new AnnotatedDialogBuilder(builderContext);
-                    builders.Add(currentBuilder);
+                    if (currentBuilder.HasValidDialog)
+                        validDialogs.Add(currentBuilder.Build());
+
+                    currentBuilder = null;
                 }
 
+                if (currentBuilder == null)
+                    currentBuilder = new AnnotatedDialogBuilder(log, questions);
+
                 currentBuilder.Register(action);
-
-                if (currentBuilder.IsDialogEnd)
-                    currentBuilder = null;
             }
 
-            //build valid dialogs
-            var dialogs = new List<AnnotatedDialog>();
-            foreach (var builder in builders)
+            return validDialogs;
+        }
+
+        private AnnotatedQuestionDialog Build()
+        {
+            if (!HasValidDialog)
+                throw new NotSupportedException("Cannot create invalid dialog");
+
+            var answerNames = Configuration.Db.GetNames(_answerId);
+            return new AnnotatedQuestionDialog(_log, _question, _answerId, answerNames, _explanationTurns, _answerTurns);
+        }
+
+        private void Register(AnnotatedQuestionActionEntry action)
+        {
+            if (action.IsDialogStart)
             {
-                if (builder.HasValidDialog)
-                    dialogs.Add(builder.Build());
+                _question = action.ParseQuestion();
+                _answerId = _questions.GetAnswerMid(_question);
             }
 
-            return dialogs;
+            if (!action.IsRegularTurn)
+                //we want regular turns only
+                return;
+
+            if (action.Act != null && action.Act.StartsWith("RequestAnswer"))
+                _isAnswerPhase = true;
+
+            if (_isAnswerPhase)
+            {
+                _answerTurns.Add(action);
+            }
+            else
+            {
+                _explanationTurns.Add(action);
+            }
         }
     }
 }

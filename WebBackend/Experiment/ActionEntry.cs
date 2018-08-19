@@ -34,6 +34,31 @@ namespace WebBackend
 
         internal readonly Dictionary<string, object> Data;
 
+
+        internal bool IsRegularTurn
+        {
+            get
+            {
+                return
+                    Type == "T_utterance" ||
+                    Type == "T_response"
+                    ;
+            }
+        }
+
+        public bool IsDialogStart
+        {
+            get
+            {
+                var isOpeningAct =
+                    //Type == "T_Info" && Text == "new console" ||
+                    Type == "T_task"
+                ;
+
+                return isOpeningAct;
+            }
+        }
+
         private static readonly SLUFactory _factory = new SLUFactory();
 
 
@@ -157,6 +182,11 @@ namespace WebBackend
                 return "response";
 
             return callName;
+        }
+
+        public override string ToString()
+        {
+            return $"{Type}: {Text}";
         }
     }
 }

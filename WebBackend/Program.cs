@@ -29,6 +29,8 @@ namespace WebBackend
         /// </summary>
         public static QuestionDialogProvider QuestionDialogProvider;
 
+        public static PhraseLearningDialogProvider ConceptLearningDialogs;
+
         /// <summary>
         /// Entry point of the program.
         /// </summary>
@@ -129,6 +131,7 @@ namespace WebBackend
                 );
 
             //QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "qdd_extension_r_");
+            ConceptLearningDialogs = new PhraseLearningDialogProvider(Experiments, "shared_phrase_restaurant1");
         }
 
         private static void RunWebInterface()

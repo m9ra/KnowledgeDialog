@@ -19,6 +19,8 @@ namespace PerceptiveDialogBasedAgent
 
     public class PhraseAgentManager : CollectionManagerBase, IInformativeFeedbackProvider
     {
+        internal readonly static int MinKnowledgeConfirmationCount = 3;
+
         private bool _hadInformativeInput = false;
 
         private int _inputCount = 0;
@@ -28,6 +30,8 @@ namespace PerceptiveDialogBasedAgent
         public bool CanBeCompleted => true;
 
         private readonly Agent _agent = new Agent();
+
+        private readonly HashSet<string> _exportedKnowledge = new HashSet<string>();
 
         private readonly OutputRecognitionAlgorithm _recognitionAlgorithm;
 
@@ -52,7 +56,7 @@ namespace PerceptiveDialogBasedAgent
                     // knowledge won't be used
                     break;
 
-                if (itemVotes.Value.Positive > 1)
+                if (itemVotes.Value.Positive >= MinKnowledgeConfirmationCount)
                     _agent.AcceptKnowledge(itemVotes.Key as EventBase);
             }
         }
@@ -110,8 +114,13 @@ namespace PerceptiveDialogBasedAgent
                     if (!(currentNode.Evt is V4.Events.ExportEvent export))
                         continue;
 
-                    LogMessage(export.ExportedEvent.ToString());
-                    _knowledge.Vote(export.ExportedEvent);
+                    var exportRepresentation = export.ExportedEvent.ToString();
+                    if (_exportedKnowledge.Add(exportRepresentation))
+                    {
+                        //in case new information for this dialogue is given, log it
+                        LogMessage(exportRepresentation);
+                        _knowledge.Vote(export.ExportedEvent);
+                    }
                 }
                 finally
                 {

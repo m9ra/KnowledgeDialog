@@ -81,6 +81,7 @@
     <Compile Include="AnswerExtraction\ExtractionKnowledge.cs" />
     <Compile Include="AnswerExtraction\SigdialPaperExperiments_Batch.cs" />
     <Compile Include="AnswerExtraction\Statistics_Batch.cs" />
+    <Compile Include="Dataset\AnnotatedPhraseDialog.cs" />
     <Compile Include="Dataset\DataWriter_Batch.cs" />
     <Compile Include="Dataset\DialogStatisticCounter.cs" />
     <Compile Include="Dataset\FileReader.cs" />
@@ -93,6 +94,7 @@
     <Compile Include="Dataset\FreebaseEntry.cs" />
     <Compile Include="Dataset\FreebaseGraphLayer.cs" />
     <Compile Include="Dataset\GraphNavigationDataProvider.cs" />
+    <Compile Include="Dataset\PhraseLearningDialogProvider.cs" />
     <Compile Include="Dataset\SimpleQuestionDumpProcessor.cs" />
     <Compile Include="AnswerExtraction\SearchContext.cs" />
     <Compile Include="AnswerExtraction\ExtractionEvaluation_Batch.cs" />
@@ -100,11 +102,10 @@
     <Compile Include="ComputationCache.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Dataset\AnnotatedDialog.cs" />
-    <Compile Include="Dataset\AnnotatedDialogBuilder.cs" />
     <Compile Include="Dataset\AnnotatedQuestionActionEntry.cs" />
     <Compile Include="Dataset\AnnotatedQuestionDialog.cs" />
-    <Compile Include="Dataset\AnnotatedQuestionDialogBuilder.cs" />
-    <Compile Include="Dataset\AnnotatedQuestionLogFile.cs" />
+    <Compile Include="Dataset\AnnotatedDialogBuilder.cs" />
+    <Compile Include="Dataset\AnnotatedPhraseLogFile.cs" />
     <Compile Include="Dataset\AnnotatedSemiTurn.cs" />
     <Compile Include="Dataset\DatasetReader.cs" />
     <Compile Include="Dataset\DatasetWriter.cs" />
@@ -116,6 +117,8 @@
     <Compile Include="Dataset\QuestionDialogDatasetReader.cs" />
     <Compile Include="Dataset\QuestionDialogProvider.cs" />
     <Compile Include="Dataset\SplitDescription.cs" />
+    <Compile Include="Dataset\TaskDialog.cs" />
+    <Compile Include="Dataset\TaskDialogAnnotation.cs" />
     <Compile Include="Dataset\WordStats.cs" />
     <Compile Include="DataSources\CookieAwareWebClient.cs">
       <SubType>Component</SubType>
@@ -171,6 +174,7 @@
     <None Include="www\404.haml" />
     <None Include="www\action_log.haml" />
     <None Include="www\annotate.haml" />
+    <None Include="www\annotate3.haml" />
     <None Include="www\annotate2.haml" />
     <None Include="www\knowledge_votes.haml" />
     <None Include="www\learn_restaurant_property_retrieve.haml" />

@@ -25,6 +25,10 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             Description("need");
             Description("want");
             Description("lookup");
+            Description("list");
+            Description("show");
+            Description("name a");
+            Description("listing");
             Description("look up");
             Description("look");
             Description("look for");

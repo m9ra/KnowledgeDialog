@@ -122,6 +122,19 @@ namespace WebBackend
             }
         }
 
+
+        public static string Annotate3(string annotation, TaskDialogAnnotation dialog)
+        {
+            if ((dialog.Annotation == annotation) || (dialog.Annotation == null && annotation == "none"))
+            {
+                return string.Format("<span class='current_annotation'>{0}</span>", annotation);
+            }
+            else
+            {
+                return string.Format("<input type='submit' name='annotation' value='{0}'></input>", annotation);
+            }
+        }
+
         public static string ln(string data)
         {
             return data + "\n";

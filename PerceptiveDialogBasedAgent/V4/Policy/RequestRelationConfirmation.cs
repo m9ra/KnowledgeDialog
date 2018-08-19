@@ -17,9 +17,18 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             if (fullRelation == null)
                 yield break;
 
-            var children = generator.GetInverseConceptValues(Concept2.InstanceOf, fullRelation.Target.Instance);
+            var targetInstance = fullRelation.Target.Instance;
+            if (targetInstance == null)
+                yield break;
+
+            var children = generator.GetInverseConceptValues(Concept2.InstanceOf, targetInstance);
             if (children.Any())
                 //TODO add learning for classes
+                yield break;
+
+            var parameters = generator.GetParameterDefinitions(targetInstance);
+            if (parameters.Any(p => p.Property == fullRelation.Target.Property))
+                //don't learn argument values
                 yield break;
 
             generator.Push(new StaticScoreEvent(0.1));

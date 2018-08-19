@@ -246,10 +246,11 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return instances;
         }
 
-        internal IEnumerable<InstanceActiveEvent> GetInputActivatedInstances()
+        internal IEnumerable<InstanceActiveEvent> GetInputActivatedInstances(bool turnLimited = false)
         {
             var node = getCurrentNode();
-            return GetAllEvents<InstanceActiveEvent>(node).Where(i => i.Request?.ActivationPhrases.Length > 0);
+            var baseEvents = turnLimited ? GetTurnEvents<InstanceActiveEvent>(0, ignoreCloseEvents: true) : GetAllEvents<InstanceActiveEvent>(node);
+            return baseEvents.Where(i => i.Request?.ActivationPhrases.Length > 0);
         }
 
         internal IEnumerable<InstanceActiveEvent> GetTurnLimitedDeactivatedInputActivatedInstances(int precedingTurns = 0)
@@ -639,7 +640,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return GetOpenGoal(getCurrentNode());
         }
 
-        protected IEnumerable<ParamDefinedEvent> GetParameterDefinitions(ConceptInstance instance)
+        internal IEnumerable<ParamDefinedEvent> GetParameterDefinitions(ConceptInstance instance)
         {
             return GetParameterDefinitions(instance, getCurrentNode());
         }

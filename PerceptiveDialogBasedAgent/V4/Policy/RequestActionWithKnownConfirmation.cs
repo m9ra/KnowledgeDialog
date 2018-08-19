@@ -24,6 +24,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             if (activeInstance == null)
                 yield break;
 
+            generator.Push(new Events.StaticScoreEvent(-0.3));
             generator.Push(new InstanceReferencedEvent(activeInstance.Instance));
             yield return $"I know {singular(activeInstance.Instance)} but what should I do?";
         }

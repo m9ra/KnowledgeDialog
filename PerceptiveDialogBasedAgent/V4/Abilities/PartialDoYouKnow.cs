@@ -14,6 +14,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
         {
             Description("do you know");
             Description("do know");
+            Description("does");
             Description("you know that");
             AddParameter(Concept2.Subject);
             AddParameter(Concept2.Property);

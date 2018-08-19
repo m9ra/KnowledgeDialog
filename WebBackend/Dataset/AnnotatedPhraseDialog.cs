@@ -11,7 +11,7 @@ using KnowledgeDialog.Dialog.Acts;
 
 namespace WebBackend.Dataset
 {
-    class AnnotatedQuestionDialog
+    class AnnotatedPhraseDialog
     {
         private readonly AnnotatedDialogLogFile _log;
 
@@ -37,7 +37,7 @@ namespace WebBackend.Dataset
 
         public int TurnCount { get { return (2 + ExplanationTurns.Count() + AnswerTurns.Count()) / 2; } }
 
-        internal AnnotatedQuestionDialog(AnnotatedDialogLogFile log, string question, string answerId, IEnumerable<string> answerNames, IEnumerable<AnnotatedQuestionActionEntry> explanationTurns, IEnumerable<AnnotatedQuestionActionEntry> answerTurns)
+        internal AnnotatedPhraseDialog(AnnotatedDialogLogFile log, string question, string answerId, IEnumerable<string> answerNames, IEnumerable<AnnotatedQuestionActionEntry> explanationTurns, IEnumerable<AnnotatedQuestionActionEntry> answerTurns)
         {
             _log = log;
             Question = question;

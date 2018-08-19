@@ -28,50 +28,7 @@ namespace WebBackend.Dataset
         /// <param name="targetDir">Target for dataset files.</param>
         internal void WriteData(string targetDir, SplitDescription trainSplit, SplitDescription validationSplit)
         {
-            //load all dialogs and test their compatibility with each split
-            var allDialogs = new List<AnnotatedDialog>();
-            var validationCompatibleDialogs = new List<AnnotatedDialog>();
-            var trainCompatibleDialogs = new List<AnnotatedDialog>();
-
-            //load all dialogs
-            foreach (var logFile in LogFile.Load(SourceDir))
-            {
-                var annotatedLogFile = new AnnotatedLogFile(logFile);
-                foreach (var dialog in AnnotatedDialogBuilder.ParseDialogs(annotatedLogFile))
-                {
-                    //every dialog could be used as a test dialog
-                    allDialogs.Add(dialog);
-
-                    if (trainSplit.MeetRequirements(dialog))
-                        //test train requirements
-                        trainCompatibleDialogs.Add(dialog);
-
-                    if (validationSplit.MeetRequirements(dialog))
-                        //test validation requirements
-                        validationCompatibleDialogs.Add(dialog);
-                }
-            }
-
-            //dialogs that has already been used for some split
-            var selectedDialogs = new HashSet<AnnotatedDialog>();
-
-            //dialogs selected for splits
-            var trainDialogs = new List<AnnotatedDialog>();
-            var validationDialogs = new List<AnnotatedDialog>();
-            var testDialogs = new List<AnnotatedDialog>();
-
-            var totalCount = allDialogs.Count;
-            var validationSize = (int)Math.Round(totalCount * validationSplit.SplitSizeRatio);
-            var trainSize = (int)Math.Round(totalCount * trainSplit.SplitSizeRatio);
-
-            trainDialogs.AddRange(selectSplitDialogs(trainCompatibleDialogs, selectedDialogs, trainSize));
-            validationDialogs.AddRange(selectSplitDialogs(validationDialogs, selectedDialogs, validationSize));
-            testDialogs.AddRange(allDialogs.Except(selectedDialogs));
-
-            //write split data
-            writeSplit(targetDir, "train", trainDialogs);
-            writeSplit(targetDir, "validation", validationDialogs);
-            writeSplit(targetDir, "test", testDialogs);
+            throw new NotImplementedException();
         }
 
         /// <summary>

@@ -41,7 +41,6 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             generator.SetValue(TagInstance, Concept2.Prompt, prompt);
 
             generator.Push(new InstanceActivationRequestEvent(prompt));
-            generator.SetValue(TagInstance, Concept2.Unknown, newConceptInstance);
 
             yield return $"What does '{unknownPhrases.First()}' mean?";
         }

@@ -25,10 +25,11 @@ namespace PerceptiveDialogBasedAgent.V4
         internal Agent()
         {
             _irrelevantWords.UnionWith(KnowledgeDialog.Dialog.UtteranceParser.NonInformativeWords);
-            foreach (var word in new[] { "know", "look", "looking", "for", "in", "a", "an", "the", "it", "no", "yes", "is", "find", "search", "google", "lookup", "look", "want", "get", "give", "expensive", "cheap", "stupid", "what", "where", "which", "name" })
+            foreach (var word in new[] { "tell", "know", "look", "looking", "for", "in", "a", "an", "the", "it", "no", "yes", "is", "find", "search", "google", "lookup", "look", "want", "get", "give", "expensive", "cheap", "stupid", "what", "where", "which", "name" })
             {
                 _irrelevantWords.Remove(word);
             }
+            _irrelevantWords.UnionWith(new[] {"much"});
             Reset();
         }
 

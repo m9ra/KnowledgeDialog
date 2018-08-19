@@ -97,7 +97,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
 
         protected IEnumerable<ConceptInstance> FindTurnInstances(Func<ConceptInstance, bool> predicate = null)
         {
-            var instances = _generator.GetInputActivatedInstances();
+            var instances = _generator.GetInputActivatedInstances(turnLimited: true);
             foreach (var instance in instances.Select(i => i.Instance).Distinct())
             {
                 if (predicate == null || predicate(instance))
@@ -164,7 +164,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
         private bool isDelimiter(InputPhraseEvent inputPhrase)
         {
             var phrase = inputPhrase.Phrase;
-            return new[] { "is", "can", "will", "in", "from", "out", "of", "i", "am", "iam", "i'am", "where", "what", "mean" }.Contains(phrase);
+            return new[] { "is", "does", "much", "can", "will", "in", "from", "out", "of", "i", "am", "iam", "i'am", "where", "what", "mean" }.Contains(phrase);
         }
 
         private string composeUnknownPhrase(IEnumerable<InputPhraseEvent> currentBuffer)

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.IO;
 
 using Newtonsoft.Json;
+using WebBackend.Dataset;
 
 namespace WebBackend
 {
@@ -48,7 +49,8 @@ namespace WebBackend
         public static IEnumerable<LogFile> Load(string dirPath)
         {
             var result = new List<LogFile>();
-            foreach (var file in Directory.GetFiles(dirPath))
+            var fullPath = Path.GetFullPath(dirPath);
+            foreach (var file in Directory.GetFiles(fullPath))
             {
                 if (file.EndsWith(".json"))
                     result.Add(new LogFile(file));
@@ -77,6 +79,39 @@ namespace WebBackend
                 }
 
             return result;
+        }
+
+        internal IEnumerable<TaskDialog> ParseDialogs()
+        {
+            var actions = LoadActions();
+            var dialogs = new List<TaskDialog>();
+
+            var task = getTask(actions);
+
+            var entriesBuffer = new List<ActionEntry>();
+            foreach (var action in actions)
+            {
+                if (action.IsDialogStart && entriesBuffer.Count > 0)
+                {
+                    var dialog = new TaskDialog(task, this, entriesBuffer);
+                    if (dialog.TurnCount > 0)
+                        dialogs.Add(dialog);
+
+                    entriesBuffer.Clear();
+                }
+                entriesBuffer.Add(action);
+            }
+
+            var lastdialog = new TaskDialog(task, this, entriesBuffer);
+            if (lastdialog.TurnCount > 0)
+                dialogs.Add(lastdialog);
+
+            return dialogs;
+        }
+
+        private string getTask(IEnumerable<ActionEntry> actions)
+        {
+            return actions.Where(a => a.Type == "T_task").First().Text;
         }
     }
 }

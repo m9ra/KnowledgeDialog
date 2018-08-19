@@ -306,6 +306,56 @@ namespace WebBackend
             Render("annotate2.haml");
         }
 
+        public void annotate3()
+        {
+            //refreshing
+            if (GET("action") == "refresh")
+                Program.ConceptLearningDialogs.Refresh();
+
+            //find id without annotation
+            if (GET("action") == "id_without_annotation")
+            {
+                for (var i = 0; i < Program.ConceptLearningDialogs.DialogCount; ++i)
+                {
+                    var testedDialog = Program.ConceptLearningDialogs.GetDialog(i);
+                    if (testedDialog.Annotation == null)
+                    {
+                        RedirectTo("/annotate3?id=" + i);
+                        return;
+                    }
+                }
+            }
+
+            //annotation handling
+            int annotatedId;
+            int.TryParse(POST("annotated_id"), out annotatedId);
+            var annotation = POST("annotation");
+
+            if (annotation != null)
+            {
+                var annotatedDialog = Program.ConceptLearningDialogs.GetDialog(annotatedId);
+                if (annotatedDialog != null)
+                    annotatedDialog.Annotate(annotation);
+            }
+
+            //display indexed dialog
+            int dialogIndex;
+            int.TryParse(GET("id"), out dialogIndex);
+            var dialog = Program.ConceptLearningDialogs.GetDialog(dialogIndex);
+
+
+            SetParam("next_id_link", "/annotate3?id=" + (dialogIndex + 1));
+            SetParam("previous_id_link", "/annotate3?id=" + (dialogIndex - 1));
+            SetParam("refresh_link", "/annotate3?id=" + dialogIndex + "&action=refresh");
+
+            SetParam("first_without_annotation_link", "/annotate3?action=id_without_annotation");
+            SetParam("dialog", dialog);
+            SetParam("total_dialog_count", Program.ConceptLearningDialogs.DialogCount);
+            SetParam("dialog_index", dialogIndex.ToString());
+            Layout("layout.haml");
+            Render("annotate3.haml");
+        }
+
         public void index()
         {
             Layout("layout.haml");

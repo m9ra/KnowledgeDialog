@@ -59,8 +59,8 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             {
                 generator.Push(new InstanceActiveEvent(evt.Instance, canBeReferenced: true));
 
-                yield return $"I think you would like {singular(evt.Instance)}";
-                yield return $"I know {singular(evt.Instance)}";
+                yield return $"It is {singular(evt.Instance)}";
+                yield return $"I found {singular(evt.Instance)}";
             }
         }
     }

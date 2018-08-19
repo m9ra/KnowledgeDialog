@@ -1,0 +1,76 @@
+﻿@dialog WebBackend.Dataset.TaskDialogAnnotation
+@total_dialog_count int
+@dialog_index string
+@previous_id_link string
+@next_id_link string
+@refresh_link string
+@first_without_annotation_link string
+
+.container
+	%nav{class: "navbar navbar-inverse navbar-fixed-top"}
+		.navbar-header
+			%button{type: "button", class: "navbar-toggle", data-toggle: "collapse", data-target: "navbar-collapse"}
+				%span.sr-only
+					Expand navigation	
+				%span.icon-bar
+				%span.icon-bar
+				%span.icon-bar
+
+			%a{class: "navbar-brand", href: "/"} Mgr. Vodolán Miroslav
+
+%script{src: "js/annotation.js"}=""
+
+.container.control_pane
+	.row
+		.col-md-4
+			.controls
+				%a{href: @previous_id_link} Previous
+				%a{href: @next_id_link} Next
+				%a{href: @first_without_annotation_link} First without annotation
+				%a{href: @refresh_link} Refresh
+
+- if @dialog
+	.container							
+		%h1 = @dialog.Dialog.ExperimentId
+		%h4 = @dialog_index + " of " + @total_dialog_count 
+		%br
+
+		.explanation
+			%h3 
+				Entries - 
+				= @dialog.Dialog.Task
+			#logfile_list
+				- @dialog.Dialog.Entries.each do |action|
+					.row
+						.col-md-1
+							.type= action.Type
+						.col-md-2
+							.time= action.Time					
+
+						- if action.UserId
+							.col-md-4
+								= action.UserId	
+							.col-md-5
+								%div{class: action.Type}= action.Text		
+									
+						- else
+							- if action.Act
+								.col-md-5
+									%div{class: action.Type}= raw action.Text
+								.col-md-4
+									.act= action.Act
+							- else 
+								.col-md-9
+									%div{class: action.Type}= raw action.Text
+
+		
+		.control_pane
+			.row
+				.col-md-9
+					%form{method: "post", action: @next_id_link}
+						%input{name: "annotated_id", value: @dialog_index, type: "hidden"}
+						= raw Annotate3("valid", @dialog)
+						= raw Annotate3("invalid", @dialog)
+						= raw Annotate3("none", @dialog)
+
+			

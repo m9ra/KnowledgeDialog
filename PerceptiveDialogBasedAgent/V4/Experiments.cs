@@ -431,8 +431,8 @@ namespace PerceptiveDialogBasedAgent.V4
         internal static void Debugging()
         {
             var a = new Agent();
-            a.Input("Hi, I'm looking for an Italian restaurant");
-            a.Input("but I do not know what the restaurants are");
+            a.Input("I want the name of a restaurant");
+            a.Input("a restaurant with a expensive price");
         }
 
         internal static void PropertyLearningDebugging()

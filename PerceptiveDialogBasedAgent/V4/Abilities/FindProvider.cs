@@ -24,6 +24,10 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             Description("get");
             Description("need");
             Description("want");
+            Description("need find");
+            Description("want find");
+            Description("need to find");
+            Description("want to find");
             Description("lookup");
             Description("list");
             Description("show");
@@ -66,7 +70,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             }
             else if (result.Count == 1)
             {
-                generator.Push(new StaticScoreEvent(0.2));
+                generator.Push(new StaticScoreEvent(0.5));
                 generator.Push(new InformationReportEvent(result.First()));
             }
             else

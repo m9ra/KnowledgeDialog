@@ -12,7 +12,18 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
     {
         protected override IEnumerable<string> execute(BeamGenerator generator)
         {
+            var suppressedConcepts = new HashSet<Concept2>
+            {
+                 Concept2.NotFound,
+                 Concept2.DisambiguatedKnowledgeConfirmed,
+                 Concept2.NeedsRefinement
+            };
+
             var evt = Get<InformationReportEvent>();
+            var priorityEvt = Get<InformationReportEvent>(p => !suppressedConcepts.Contains(p.Instance.Concept));
+            if (priorityEvt != null)
+                evt = priorityEvt;
+
             if (evt == null)
                 yield break;
 

@@ -14,11 +14,12 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
         protected override IEnumerable<string> execute(BeamGenerator generator)
         {
             var evt = Get<InformationReportEvent>();
-            if (evt?.Instance.Concept != Concept2.NeedsRefinement)
+            var priorityEvt = Get<InformationReportEvent>(p => p.Instance.Concept != Concept2.NeedsRefinement && p.Instance.Concept != Concept2.NotFound);
+            if (priorityEvt != null || evt?.Instance.Concept != Concept2.NeedsRefinement)
                 yield break;
 
             var instanceToRefine = generator.GetValue(evt.Instance, Concept2.Subject);
-            
+
             // let following policies know about the refinement target
             generator.SetValue(TagInstance, Concept2.Target, instanceToRefine);
 

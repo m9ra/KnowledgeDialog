@@ -67,9 +67,17 @@
 		.control_pane
 			.row
 				.col-md-9
+					%h2 
+						= @dialog.Dialog.Task
+						= " SuccessCode: "
+						= @dialog.Dialog.SuccessCode						
 					%form{method: "post", action: @next_id_link}
 						%input{name: "annotated_id", value: @dialog_index, type: "hidden"}
 						= raw Annotate3("valid", @dialog)
+						= raw Annotate3("override-1", @dialog)
+						= raw Annotate3("override+0", @dialog)						
+						= raw Annotate3("override+1", @dialog)						
+						= raw Annotate3("override+2", @dialog)
 						= raw Annotate3("invalid", @dialog)
 						= raw Annotate3("none", @dialog)
 

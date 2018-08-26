@@ -49,9 +49,9 @@ namespace WebBackend
 
 
             InitializeExperiments();
-            RunWebInterface();
+            //RunWebInterface();
 
-            /*/
+            /**/
             WritePhraseLearningDataset();
             Console.ReadKey();
             /**/
@@ -138,8 +138,8 @@ namespace WebBackend
 
         private static void WritePhraseLearningDataset()
         {
-            //foreach (var experiment in ConceptLearningDialogs.Experiments.Concat(CompositionLearningDialogs.Experiments))
-            foreach (var experiment in new PhraseLearningDialogProvider(Experiments, "learn_restaurant_property2").Experiments)
+            foreach (var experiment in ConceptLearningDialogs.Experiments.Concat(CompositionLearningDialogs.Experiments))
+            //foreach (var experiment in new PhraseLearningDialogProvider(Experiments, "learn_restaurant_property2").Experiments)
             {
                 var provider = new PhraseLearningDialogProvider(Experiments, experiment.Id);
                 var writer = new PhraseLearningDatasetWriter(provider);

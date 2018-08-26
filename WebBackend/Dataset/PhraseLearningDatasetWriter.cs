@@ -33,11 +33,35 @@ namespace WebBackend.Dataset
 
             foreach (var dialog in _dialogs)
             {
-                if (dialog.Annotation == "valid")
+                var annotation = dialog.Annotation;
+                if (annotation == "invalid")
+                    continue;
+
+                int? forcedSuccessValue = null;
+                switch (annotation)
                 {
-                    var representation = getDialogRepresentation(dialog);
-                    dialogRepresentations.Add(representation);
+                    case "override-1":
+                        forcedSuccessValue = -1;
+                        break;
+                    case "override+0":
+                        forcedSuccessValue = 0;
+                        break;
+                    case "override+1":
+                        forcedSuccessValue = 1;
+                        break;
+                    case "override+2":
+                        forcedSuccessValue = 2;
+                        break;
+                    case "valid":
+                        break;
+
+                    default:
+                        Console.WriteLine("Unrecognized annotation: " + annotation);
+                        break;
                 }
+
+                var representation = getDialogRepresentation(dialog,annotation, forcedSuccessValue);
+                dialogRepresentations.Add(representation);
             }
 
             Console.WriteLine($"\t valid dialogs detected: {dialogRepresentations.Count}");
@@ -46,14 +70,15 @@ namespace WebBackend.Dataset
             File.WriteAllText(targetFile, json);
         }
 
-        private Dictionary<string, object> getDialogRepresentation(TaskDialogAnnotation dialog)
+        private Dictionary<string, object> getDialogRepresentation(TaskDialogAnnotation dialog,string annotation, int? forcedSuccessCode)
         {
             var r = new Dictionary<string, object>();
 
             var d = dialog.Dialog;
             r["Id"] = d.Id;
             r["Task"] = d.Task;
-            r["SuccessCode"] = d.SuccessCode;
+            r["ManualAnnotation"] = annotation;
+            r["SuccessCode"] = forcedSuccessCode ?? d.SuccessCode;
             r["ExperimentId"] = d.ExperimentId;
             r["DialogEvents"] = getEventsRepresentation(dialog.Dialog);
             return r;

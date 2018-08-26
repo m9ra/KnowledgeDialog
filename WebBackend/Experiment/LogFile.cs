@@ -99,6 +99,7 @@ namespace WebBackend
 
                     entriesBuffer.Clear();
                 }
+
                 entriesBuffer.Add(action);
             }
 

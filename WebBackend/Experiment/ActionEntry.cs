@@ -30,7 +30,7 @@ namespace WebBackend
 
         public readonly int ActionIndex;
 
-        public bool IsReset { get { return Type == "T_Info" && Text.Contains("new console"); } }
+        public bool IsReset { get { return Type == "T_Info" && Text.Trim().Contains("new console"); } }
 
         internal readonly Dictionary<string, object> Data;
 
@@ -67,7 +67,8 @@ namespace WebBackend
             get
             {
                 var isOpeningAct =
-                    //Type == "T_Info" && Text == "new console" ||
+                    //(Type == "T_Info" && Text == "new console ") ||
+                    (Type == "T_utterance" && Text == "Reset") ||
                     Type == "T_task" ||
                     Type == "T_reset"
                 ;
@@ -189,7 +190,7 @@ namespace WebBackend
             if (data.ContainsKey("task"))
                 return "task";
 
-            if (data.ContainsKey("utterance") && data["utterance"].ToString().Trim() == "reset")
+            if (data.ContainsKey("utterance") && data["utterance"].ToString().ToLowerInvariant().Trim() == "reset")
                 return "reset";
 
             if (data.ContainsKey("utterance"))

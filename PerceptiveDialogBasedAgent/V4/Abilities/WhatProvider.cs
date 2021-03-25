@@ -31,19 +31,19 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             if (answer.Count == 0)
             {
                 //generator.Push(new StaticScoreEvent(-0.20));
-                generator.Push(new InformationReportEvent(new ConceptInstance(Concept2.NotFound)));
+                generator.Push(new InstanceOutputEvent(new ConceptInstance(Concept2.NotFound)));
             }
             else if (answer.Count == 1)
             {
                 generator.Push(new StaticScoreEvent(0.20));
-                generator.Push(new InformationReportEvent(answer.First()));
+                generator.Push(new InstanceOutputEvent(answer.First()));
             }
             else
             {
                 var needRefinementInstance = new ConceptInstance(Concept2.NeedsRefinement);
                 generator.SetValue(needRefinementInstance, Concept2.Subject, subject);
                 generator.SetValue(subject, Concept2.OnSetListener, instance);
-                generator.Push(new InformationReportEvent(needRefinementInstance));
+                generator.Push(new InstanceOutputEvent(needRefinementInstance));
             }
         }
 

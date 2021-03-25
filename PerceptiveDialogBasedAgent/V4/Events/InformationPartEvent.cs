@@ -7,7 +7,7 @@ using PerceptiveDialogBasedAgent.V4.EventBeam;
 
 namespace PerceptiveDialogBasedAgent.V4.Events
 {
-    class InformationPartEvent : EventBase
+    class IncompleteRelationEvent : EventBase
     {
         public readonly ConceptInstance Subject;
 
@@ -17,7 +17,7 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 
         public bool IsFilled => Subject != null && Value != null && Property != null;
 
-        public InformationPartEvent(ConceptInstance subject, Concept2 property, ConceptInstance value)
+        public IncompleteRelationEvent(ConceptInstance subject, Concept2 property, ConceptInstance value)
         {
             Subject = subject;
             Property = property;
@@ -29,14 +29,14 @@ namespace PerceptiveDialogBasedAgent.V4.Events
             g.Visit(this);
         }
 
-        internal InformationPartEvent SubstituteValue(ConceptInstance value)
+        internal IncompleteRelationEvent SubstituteValue(ConceptInstance value)
         {
-            return new InformationPartEvent(Subject, Property, value);
+            return new IncompleteRelationEvent(Subject, Property, value);
         }
 
-        internal InformationPartEvent SubstituteSubject(ConceptInstance subject)
+        internal IncompleteRelationEvent SubstituteSubject(ConceptInstance subject)
         {
-            return new InformationPartEvent(subject, Property, Value);
+            return new IncompleteRelationEvent(subject, Property, Value);
         }
 
         public override string ToString()

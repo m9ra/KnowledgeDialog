@@ -19,8 +19,8 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
                  Concept2.NeedsRefinement
             };
 
-            var evt = Get<InformationReportEvent>();
-            var priorityEvt = Get<InformationReportEvent>(p => !suppressedConcepts.Contains(p.Instance.Concept));
+            var evt = Get<InstanceOutputEvent>();
+            var priorityEvt = Get<InstanceOutputEvent>(p => !suppressedConcepts.Contains(p.Instance.Concept));
             if (priorityEvt != null)
                 evt = priorityEvt;
 
@@ -32,10 +32,10 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
 
             if (concept == Concept2.DisambiguatedKnowledgeConfirmed)
             {
-                var disamb = Find<InformationPartEvent>(s => !s.IsFilled && s.Subject?.Concept == Concept2.PropertyValueDisambiguation, precedingTurns: 1);
+                var disamb = Find<IncompleteRelationEvent>(s => !s.IsFilled && s.Subject?.Concept == Concept2.PropertyValueDisambiguation, precedingTurns: 1);
                 var confirmed = generator.GetValue(evt.Instance, Concept2.Subject);
                 var disambiguator = generator.GetValue(evt.Instance, Concept2.Target);
-                generator.Push(new InformationPartEvent(disambiguator, Concept2.Answer, null));
+                generator.Push(new IncompleteRelationEvent(disambiguator, Concept2.Answer, null));
 
                 yield return $"I know it is {singular(confirmed)} already. Could you be more specific?";
             }
@@ -63,7 +63,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
                 var information = generator.GetValue(evt.Instance, Concept2.Subject);
                 var property = generator.GetValue(evt.Instance, Concept2.Property).Concept;
                 generator.Push(new InstanceActiveEvent(information, canBeReferenced: true));
-                generator.Push(new InformationPartEvent(information, property, null));
+                generator.Push(new IncompleteRelationEvent(information, property, null));
                 yield return $"No, I don't know {singularWithProperty(information)}";
             }
             else

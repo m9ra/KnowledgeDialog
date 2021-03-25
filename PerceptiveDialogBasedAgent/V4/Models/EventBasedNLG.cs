@@ -36,7 +36,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
                 .ForEvent<OutputEvent>()
                     .Output(directOutput)
 
-                .ForEvent<InformationReportEvent>()
+                .ForEvent<InstanceOutputEvent>()
                     .Output(simpleOutput)
 
 
@@ -51,7 +51,7 @@ namespace PerceptiveDialogBasedAgent.V4.Models
 
         private IEnumerable<string> simpleOutput()
         {
-            var evt = CurrentEvent as InformationReportEvent;
+            var evt = CurrentEvent as InstanceOutputEvent;
             var outputRepresentation = evt.Instance.ToPrintable();
 
             outputRepresentation += ".";

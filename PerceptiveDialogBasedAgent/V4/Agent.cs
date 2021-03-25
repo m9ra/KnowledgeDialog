@@ -52,7 +52,7 @@ namespace PerceptiveDialogBasedAgent.V4
             _beam.RegisterAbility(new AssignUnknownProperty());
             _beam.RegisterAbility(new PropertyValueDisambiguation());
             _beam.RegisterAbility(new RememberConceptDescription());
-            _beam.RegisterAbility(new CollectNewConceptLearning());
+            _beam.RegisterAbility(new CollectNewConcept());
 
             //NOTE: Ordering of policy parts matters
             _beam.AddPolicyPart(new HowCanIHelpYouFallback());
@@ -78,7 +78,7 @@ namespace PerceptiveDialogBasedAgent.V4
             _beam.AddPolicyPart(new ReaskDisambiguation());
 
             _beam.AddPolicyPart(new OfferResult());
-            _beam.AddPolicyPart(new ProcessCollectedNewConceptLearning());
+            _beam.AddPolicyPart(new RequestNewConceptConfirmation());
             _beam.AddPolicyPart(new RequestRefinement());
             _beam.AddPolicyPart(new LearnUnknownForRefinement());
         }

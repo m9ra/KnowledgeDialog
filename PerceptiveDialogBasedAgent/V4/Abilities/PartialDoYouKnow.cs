@@ -34,7 +34,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
                 generator.SetValue(refutedInfo, property.Concept, new ConceptInstance(Concept2.Something));
                 generator.SetValue(refutation, Concept2.Subject, refutedInfo);
                 generator.SetValue(refutation, Concept2.Property, property);
-                generator.Push(new InformationReportEvent(refutation));
+                generator.Push(new InstanceOutputEvent(refutation));
             }
             else
             {
@@ -43,7 +43,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
 
                 generator.SetValue(confirmedInfo, property.Concept, value);
                 generator.SetValue(confirmation, Concept2.Subject, confirmedInfo);
-                generator.Push(new InformationReportEvent(confirmation));
+                generator.Push(new InstanceOutputEvent(confirmation));
             }
         }
     }

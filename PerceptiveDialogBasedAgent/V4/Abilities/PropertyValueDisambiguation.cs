@@ -49,7 +49,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
 
             if (indirectSubjects.Count() == 0)
             {
-                generator.Push(new InformationReportEvent(new ConceptInstance(Concept2.DisambiguationFailed)));
+                generator.Push(new InstanceOutputEvent(new ConceptInstance(Concept2.DisambiguationFailed)));
                 return;
             }
 
@@ -67,7 +67,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
                 generator.SetValue(knowledgeConfirmation, Concept2.Subject, answer);
                 generator.SetValue(knowledgeConfirmation, Concept2.Target, instance);
                 generator.Push(new StaticScoreEvent(0.05));
-                generator.Push(new InformationReportEvent(knowledgeConfirmation));
+                generator.Push(new InstanceOutputEvent(knowledgeConfirmation));
                 return;
             }
 

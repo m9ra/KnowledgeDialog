@@ -14,7 +14,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
     {
         protected override IEnumerable<string> execute(BeamGenerator generator)
         {
-            var evt = Get<InformationReportEvent>();
+            var evt = Get<InstanceOutputEvent>();
             if (evt?.Instance.Concept != Concept2.NeedsRefinement)
                 yield break;
 

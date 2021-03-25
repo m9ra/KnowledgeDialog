@@ -10,11 +10,11 @@ namespace PerceptiveDialogBasedAgent.V4.Events
 {
     class PropertySetScoreEvent : TracedScoreEventBase
     {
-        internal readonly InformationPartEvent PropertySet;
+        internal readonly IncompleteRelationEvent PropertySet;
 
         private readonly int _distancePenalty;
 
-        internal PropertySetScoreEvent(InformationPartEvent propertySet, int distancePenalty)
+        internal PropertySetScoreEvent(IncompleteRelationEvent propertySet, int distancePenalty)
         {
             PropertySet = propertySet;
             _distancePenalty = distancePenalty;

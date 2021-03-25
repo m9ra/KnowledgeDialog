@@ -29,7 +29,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             generator.Push(new ExportEvent(setEvent));
             generator.Push(setEvent);
             if (generator.IsDefined(instance.Concept))
-                generator.Push(new InformationReportEvent(instance));
+                generator.Push(new InstanceOutputEvent(instance));
         }
 
         internal static ConceptInstance Create(BeamGenerator generator, PropertySetTarget target, ConceptInstance value)

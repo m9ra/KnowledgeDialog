@@ -49,9 +49,9 @@ namespace WebBackend
 
 
             InitializeExperiments();
-            //RunWebInterface();
+            RunWebInterface();
 
-            /**/
+            /*/
             WritePhraseLearningDataset();
             Console.ReadKey();
             /**/
@@ -60,7 +60,7 @@ namespace WebBackend
         private static void InitializeExperiments()
         {
             //var simpleQuestions1 = Configuration.LoadSimpleQuestions("questions1.smpq");
-            //var simpleQuestionsTrain = Configuration.SimpleQuestionsTrain;
+            var simpleQuestionsTrain = Configuration.SimpleQuestionsTrain;
             //var extensionQuestions = loadExtensionQuestions(Configuration.SimpleQuestionsTrain_Path);
 
             var experimentsRootPath = Configuration.ExperimentsRootPath;
@@ -75,6 +75,7 @@ namespace WebBackend
 
 
                      //full operation question collection experiment 
+                     */
                      new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_1", 100, simpleQuestionsTrain),
 
                      new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_2", 100, simpleQuestionsTrain),
@@ -93,8 +94,7 @@ namespace WebBackend
 
                      new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_9", 100, simpleQuestionsTrain),
 
-                     new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_10", 100, simpleQuestionsTrain),
-
+                    /* new QuestionCollectionExperiment(experimentsRootPath, "question_collection_r_10", 100, simpleQuestionsTrain),
                      new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_1", 100, simpleQuestionsTrain),
                      new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_2", 100, simpleQuestionsTrain),
                      new QuestionCollectionExperiment(experimentsRootPath, "qdd_extension_r_3", 100, extensionQuestions),
@@ -124,7 +124,7 @@ namespace WebBackend
 
                 );
 
-            //QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "qdd_extension_r_");
+            QuestionDialogProvider = new QuestionDialogProvider(Experiments, simpleQuestionsTrain, "question_collection_r_");
             ConceptLearningDialogs = new PhraseLearningDialogProvider(Experiments, "concept_learning1a", "concept_learning2a", "concept_learning1b", "concept_learning2b");
             CompositionLearningDialogs = new PhraseLearningDialogProvider(Experiments, "composition_learning0", "composition_learning1", "composition_learning2", "composition_learning3");
         }

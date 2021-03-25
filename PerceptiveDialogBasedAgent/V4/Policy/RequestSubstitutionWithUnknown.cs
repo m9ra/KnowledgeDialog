@@ -13,7 +13,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
     {
         protected override IEnumerable<string> execute(BeamGenerator generator)
         {
-            var request = Get<InformationPartEvent>(p => !p.IsFilled);
+            var request = Get<IncompleteRelationEvent>(p => !p.IsFilled);
             if (request == null || request.Subject == null)
                 yield break;
 
@@ -23,7 +23,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
 
             var phraseToAsk = unknownPhrases.First();
 
-            CollectNewConceptLearning.GenerateActivationRequest(phraseToAsk, generator);
+            CollectNewConcept.GenerateActivationRequest(phraseToAsk, generator);
             yield return $"I don't know phrase {phraseToAsk}. What does it mean?";
         }
     }

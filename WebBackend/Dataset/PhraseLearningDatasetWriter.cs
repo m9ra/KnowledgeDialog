@@ -31,11 +31,15 @@ namespace WebBackend.Dataset
 
             Console.WriteLine($"EXPORTING {_dialogs.Count()} to {targetFile}");
 
+            var invalidDialogCount = 0;
             foreach (var dialog in _dialogs)
             {
                 var annotation = dialog.Annotation;
                 if (annotation == "invalid")
+                {
+                    invalidDialogCount += 1;
                     continue;
+                }
 
                 int? forcedSuccessValue = null;
                 switch (annotation)
@@ -64,6 +68,7 @@ namespace WebBackend.Dataset
                 dialogRepresentations.Add(representation);
             }
 
+            Console.WriteLine($"\t invalid dialogs detected: {invalidDialogCount}");
             Console.WriteLine($"\t valid dialogs detected: {dialogRepresentations.Count}");
 
             var json = Newtonsoft.Json.JsonConvert.SerializeObject(dialogRepresentations);

@@ -18,7 +18,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
 
             var learnedProperty = evt.SubstitutedValue;
             var propertyTarget = evt.Target.Instance;
-            var request = new InformationPartEvent(propertyTarget, learnedProperty.Concept, null);
+            var request = new IncompleteRelationEvent(propertyTarget, learnedProperty.Concept, null);
 
             generator.Push(request);
             yield return $"What value of '{singular(learnedProperty)}' does {singular(propertyTarget)} have ?";

@@ -9,11 +9,11 @@ using PerceptiveDialogBasedAgent.V4.Events;
 
 namespace PerceptiveDialogBasedAgent.V4.Policy
 {
-    class ProcessCollectedNewConceptLearning : PolicyPartBase
+    class RequestNewConceptConfirmation : PolicyPartBase
     {
         protected override IEnumerable<string> execute(BeamGenerator generator)
         {
-            var evt = Get<InformationReportEvent>(i => i.Instance.Concept == Concept2.LearnNewConcept);
+            var evt = Get<InstanceOutputEvent>(i => i.Instance.Concept == Concept2.LearnNewConcept);
             if (evt == null)
                 yield break;
 

@@ -174,10 +174,9 @@ namespace PerceptiveDialogBasedAgent.V4
             agent.Input("find it");
             //I know many restaurants which one would you like?
             agent.Input("luxury");
+            agent.Input("yes");
             agent.Input("bla bla");
             agent.Input("expensive restaurant");
-            agent.Input("what are the prices?");
-            agent.Input("pricerange");
         }
 
         public static void AliasTesting()
@@ -448,6 +447,19 @@ namespace PerceptiveDialogBasedAgent.V4
             a.Input("do you know bombay prices?");
             a.Input("it has moderate prices");
             a.Input("yes");
+        }
+
+        internal static void PrintEventTypes()
+        {
+            var listOfBs = (from domainAssembly in AppDomain.CurrentDomain.GetAssemblies()
+                            from assemblyType in domainAssembly.GetTypes()
+                            where typeof(EventBase).IsAssignableFrom(assemblyType)
+                            select assemblyType).ToArray();
+
+            foreach (var type in listOfBs)
+            {
+                Console.WriteLine(type.Name);
+            }
         }
     }
 }

@@ -136,7 +136,7 @@
     <Compile Include="V4\Events\InstanceReferencedEvent.cs" />
     <Compile Include="V4\Events\PropertySetScoreEvent.cs" />
     <Compile Include="V4\Events\InstanceActiveEvent.cs" />
-    <Compile Include="V4\Events\InformationReportEvent.cs" />
+    <Compile Include="V4\Events\InstanceOutputEvent.cs" />
     <Compile Include="V4\Events\PolicyTagEvent.cs" />
     <Compile Include="V4\Events\TurnEndEvent.cs" />
     <Compile Include="V4\Events\TurnStartEvent.cs" />
@@ -157,7 +157,7 @@
     <Compile Include="V4\Policy\AfterPropertyLearned.cs" />
     <Compile Include="V4\Policy\RequestRelationConfirmation.cs" />
     <Compile Include="V4\Policy\RememberDescriptionAfterLearnNewPhrase.cs" />
-    <Compile Include="V4\Policy\ProcessCollectedNewConceptLearning.cs" />
+    <Compile Include="V4\Policy\RequestNewConceptConfirmation.cs" />
     <Compile Include="V4\Policy\RequestSubstitutionWithUnknown.cs" />
     <Compile Include="V4\Policy\LearnNewPhrase.cs" />
     <Compile Include="V4\Policy\AskForDisambiguation.cs" />

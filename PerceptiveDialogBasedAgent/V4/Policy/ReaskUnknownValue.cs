@@ -12,7 +12,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
     {
         protected override IEnumerable<string> execute(BeamGenerator generator)
         {
-            var evt = Find<InformationPartEvent>(s => !s.IsFilled && s.Subject?.Concept == Concept2.AssignUnknownProperty, precedingTurns: 1);
+            var evt = Find<IncompleteRelationEvent>(s => !s.IsFilled && s.Subject?.Concept == Concept2.AssignUnknownProperty, precedingTurns: 1);
             if (evt == null)
                 yield break;
 

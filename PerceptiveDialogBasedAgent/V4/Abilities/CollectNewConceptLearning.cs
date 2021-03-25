@@ -8,9 +8,9 @@ using PerceptiveDialogBasedAgent.V4.Events;
 
 namespace PerceptiveDialogBasedAgent.V4.Abilities
 {
-    class CollectNewConceptLearning : ConceptAbilityBase
+    class CollectNewConcept : ConceptAbilityBase
     {
-        internal CollectNewConceptLearning() : base(Concept2.LearnNewConcept)
+        internal CollectNewConcept() : base(Concept2.LearnNewConcept)
         {
             AddParameter(Concept2.Unknown);
             AddParameter(Concept2.Answer);
@@ -28,7 +28,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             }
             else
             {
-                generator.Push(new InformationReportEvent(instance));
+                generator.Push(new InstanceOutputEvent(instance));
             }
         }
 

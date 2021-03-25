@@ -13,8 +13,8 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
     {
         protected override IEnumerable<string> execute(BeamGenerator generator)
         {
-            var evt = Get<InformationReportEvent>();
-            var priorityEvt = Get<InformationReportEvent>(p => p.Instance.Concept != Concept2.NeedsRefinement && p.Instance.Concept != Concept2.NotFound);
+            var evt = Get<InstanceOutputEvent>();
+            var priorityEvt = Get<InstanceOutputEvent>(p => p.Instance.Concept != Concept2.NeedsRefinement && p.Instance.Concept != Concept2.NotFound);
             if (priorityEvt != null || evt?.Instance.Concept != Concept2.NeedsRefinement)
                 yield break;
 
@@ -24,7 +24,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
             generator.SetValue(TagInstance, Concept2.Target, instanceToRefine);
 
             // generate a question
-            generator.Push(new InformationPartEvent(instanceToRefine, Concept2.Something, null));
+            generator.Push(new IncompleteRelationEvent(instanceToRefine, Concept2.Something, null));
             yield return $"I know many {plural(instanceToRefine)} which one would you like?";
         }
     }

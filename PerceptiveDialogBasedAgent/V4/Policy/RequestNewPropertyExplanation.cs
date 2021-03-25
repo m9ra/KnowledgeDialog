@@ -16,7 +16,7 @@ namespace PerceptiveDialogBasedAgent.V4.Policy
         {
             var unknownPhrases = GetUnknownPhrases(generator).ToArray();
 
-            var substitutionRequest = Get<InformationPartEvent>(p => !p.IsFilled, searchInsideTurnOnly: false);
+            var substitutionRequest = Get<IncompleteRelationEvent>(p => !p.IsFilled, searchInsideTurnOnly: false);
             if (PreviousPolicy<LearnNewPhrase>(out _) || unknownPhrases.Count() != 1 || substitutionRequest == null || substitutionRequest.Subject == null)
                 yield break;
             

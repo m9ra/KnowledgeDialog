@@ -24,7 +24,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             {
                 var confirmation = new ConceptInstance(Concept2.KnowledgeConfirmed);
                 generator.SetValue(confirmation, Concept2.Subject, subject);
-                generator.Push(new InformationReportEvent(confirmation));
+                generator.Push(new InstanceOutputEvent(confirmation));
                 return;
             }
 
@@ -39,7 +39,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
             {
                 var confirmation2 = new ConceptInstance(Concept2.KnowledgeConfirmed);
                 generator.SetValue(confirmation2, Concept2.Subject, subject);
-                generator.Push(new InformationReportEvent(confirmation2));
+                generator.Push(new InstanceOutputEvent(confirmation2));
                 return;
             }
 
@@ -51,7 +51,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
 
             var confirmation3 = new ConceptInstance(Concept2.KnowledgeRefutation);
             generator.SetValue(confirmation3, Concept2.Subject, subject);
-            generator.Push(new InformationReportEvent(unknownReport));
+            generator.Push(new InstanceOutputEvent(unknownReport));
         }
     }
 }

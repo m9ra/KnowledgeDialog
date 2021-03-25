@@ -77,7 +77,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             handleOnActiveSubstitution(evt);
         }
 
-        internal virtual void Visit(InformationPartEvent evt)
+        internal virtual void Visit(IncompleteRelationEvent evt)
         {
             if (evt.IsFilled)
             {
@@ -135,7 +135,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             // nothing to do by default
         }
 
-        internal virtual void Visit(InformationReportEvent evt)
+        internal virtual void Visit(InstanceOutputEvent evt)
         {
             // nothing to do by default
         }
@@ -213,9 +213,9 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return GetDefinedConcepts().Contains(concept);
         }
 
-        protected IEnumerable<InformationPartEvent> GetIncompleteTurnInformationParts()
+        protected IEnumerable<IncompleteRelationEvent> GetIncompleteTurnInformationParts()
         {
-            return GetFrameEvents<InformationPartEvent>(getCurrentNode(), turnLimited: true).Where(p => !p.IsFilled);
+            return GetFrameEvents<IncompleteRelationEvent>(getCurrentNode(), turnLimited: true).Where(p => !p.IsFilled);
         }
 
         protected IEnumerable<InstanceActiveEvent> GetAvailableActiveInstances()
@@ -537,7 +537,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             _layers.Pop();
         }
 
-        protected virtual bool CanSubstituteSubject(InformationPartEvent information, ConceptInstance subject)
+        protected virtual bool CanSubstituteSubject(IncompleteRelationEvent information, ConceptInstance subject)
         {
             if (information.Subject != null)
                 //overwrites are not allowed
@@ -559,7 +559,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return true;
         }
 
-        protected virtual bool CanSubstituteValue(InformationPartEvent information, ConceptInstance value)
+        protected virtual bool CanSubstituteValue(IncompleteRelationEvent information, ConceptInstance value)
         {
             if (information.Value != null)
                 //incomplete subject assignments are not allowed
@@ -972,7 +972,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                         Push(new CloseEvent(inputPhrase));
 
                     Push(scoreEvent);
-                    Push(new InformationPartEvent(null, concept, null));
+                    Push(new IncompleteRelationEvent(null, concept, null));
                     Pop();
                     Pop();
 
@@ -1043,7 +1043,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                     continue;
 
                 //try to interpret as an implicit property
-                var part = new InformationPartEvent(null, property, null);
+                var part = new IncompleteRelationEvent(null, property, null);
                 tryFillValueBy(part, evt, 0, addScore: false);
             }
         }
@@ -1071,13 +1071,13 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             return result;
         }
 
-        private void tryToFillBy(InformationPartEvent evt, InstanceActiveEvent instanceActiveEvt, int distancePenalty)
+        private void tryToFillBy(IncompleteRelationEvent evt, InstanceActiveEvent instanceActiveEvt, int distancePenalty)
         {
             tryFillSubjectBy(evt, instanceActiveEvt, distancePenalty);
             tryFillValueBy(evt, instanceActiveEvt, distancePenalty);
         }
 
-        private void tryToFillBy(InformationPartEvent evt, IEnumerable<InstanceActiveEvent> completeInstances)
+        private void tryToFillBy(IncompleteRelationEvent evt, IEnumerable<InstanceActiveEvent> completeInstances)
         {
             var distancePenalty = 0;
 
@@ -1088,7 +1088,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             }
         }
 
-        private void tryFillValueBy(InformationPartEvent evt, InstanceActiveEvent instanceActiveEvt, int distancePenalty, bool addScore = true)
+        private void tryFillValueBy(IncompleteRelationEvent evt, InstanceActiveEvent instanceActiveEvt, int distancePenalty, bool addScore = true)
         {
             if (!CanSubstituteValue(evt, instanceActiveEvt.Instance))
                 return;
@@ -1113,7 +1113,7 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
                 Pop();
         }
 
-        private void tryFillSubjectBy(InformationPartEvent evt, InstanceActiveEvent instanceActiveEvt, int distancePenalty)
+        private void tryFillSubjectBy(IncompleteRelationEvent evt, InstanceActiveEvent instanceActiveEvt, int distancePenalty)
         {
             if (!CanSubstituteSubject(evt, instanceActiveEvt.Instance))
                 return;
@@ -1156,15 +1156,15 @@ namespace PerceptiveDialogBasedAgent.V4.EventBeam
             Push(new InstanceActiveEvent(instance, canBeReferenced, request));
         }
 
-        private IEnumerable<InformationPartEvent> pushFreeParameterSubstitutionRequests(InstanceActivationRequestEvent evt)
+        private IEnumerable<IncompleteRelationEvent> pushFreeParameterSubstitutionRequests(InstanceActivationRequestEvent evt)
         {
-            var requests = new List<InformationPartEvent>();
+            var requests = new List<IncompleteRelationEvent>();
             var targetDefinitions = GetParameterDefinitions(evt.Instance);
             var filteredTargetDefinitions = targetDefinitions.Where(t => GetValue(evt.Instance, t.Property) == null).ToArray();
 
             foreach (var targetDefinition in filteredTargetDefinitions)
             {
-                var request = new InformationPartEvent(evt.Instance, targetDefinition.Property, null);
+                var request = new IncompleteRelationEvent(evt.Instance, targetDefinition.Property, null);
                 requests.Add(request);
                 Push(request);
                 //no pops because all the parameters will be requested in a serie

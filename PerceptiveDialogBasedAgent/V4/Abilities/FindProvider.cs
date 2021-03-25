@@ -66,12 +66,12 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
                 else
                     generator.Push(new StaticScoreEvent(-0.1));
 
-                generator.Push(new InformationReportEvent(new ConceptInstance(Concept2.NotFound)));
+                generator.Push(new InstanceOutputEvent(new ConceptInstance(Concept2.NotFound)));
             }
             else if (result.Count == 1)
             {
                 generator.Push(new StaticScoreEvent(0.5));
-                generator.Push(new InformationReportEvent(result.First()));
+                generator.Push(new InstanceOutputEvent(result.First()));
             }
             else
             {
@@ -81,7 +81,7 @@ namespace PerceptiveDialogBasedAgent.V4.Abilities
                 var needRefinementInstance = new ConceptInstance(Concept2.NeedsRefinement);
                 generator.SetValue(needRefinementInstance, Concept2.Subject, criterion);
                 generator.SetValue(criterion, Concept2.OnSetListener, instance);
-                generator.Push(new InformationReportEvent(needRefinementInstance));
+                generator.Push(new InstanceOutputEvent(needRefinementInstance));
             }
         }
 
